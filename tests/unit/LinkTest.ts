@@ -1,16 +1,18 @@
-import type {NavigationState} from '@react-navigation/native';
 import {canAnonymousUserAccessRoute, isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import * as Url from '@libs/Url';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import {openLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 const mockReports: Record<string, {isMoneyRequest?: boolean}> = {};
 type ReportUtilsMock = Record<string, unknown> & {
@@ -267,11 +269,7 @@ describe('Link.openLink', () => {
 
         openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL);
 
-        expect(Navigation.setParams).toHaveBeenCalledWith(
-            {reportActionID: '987654321'},
-            `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`,
-            `${NAVIGATORS.RIGHT_MODAL_NAVIGATOR}-state`,
-        );
+        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: '987654321'}, `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`, `${NAVIGATORS.RIGHT_MODAL_NAVIGATOR}-state`);
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });

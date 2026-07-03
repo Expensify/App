@@ -1,14 +1,14 @@
-import type {CommonActions, NavigationContainerRefWithCurrent, NavigationState, NavigatorScreenParams, ParamListBase, PartialRoute, PartialState, Route} from '@react-navigation/native';
-import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
+
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
+
 import type {Country, EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -19,6 +19,11 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {CommonActions, NavigationContainerRefWithCurrent, NavigationState, NavigatorScreenParams, ParamListBase, PartialRoute, PartialState, Route} from '@react-navigation/native';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;

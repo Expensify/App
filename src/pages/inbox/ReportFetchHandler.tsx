@@ -1,5 +1,3 @@
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -11,6 +9,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +30,9 @@ import {
     isThread,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
@@ -43,11 +44,15 @@ import {
     updateLastVisitTime,
     updateLoadingInitialReportAction,
 } from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -76,8 +81,7 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
-    const shouldReplaceWithExpenseReportRHP =
-        route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
+    const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation();
     const isFocused = useIsFocused();
