@@ -1,10 +1,14 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {I18nManager, View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+
 import useAnchoredPositionShared from '@components/Overlay/hooks/useAnchoredPosition/shared';
 import type {UseAnchoredPositionInput} from '@components/Overlay/hooks/useAnchoredPosition/shared';
+
 import CONST from '@src/CONST';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {I18nManager, View} from 'react-native';
 
 jest.mock('@styles/variables', () => ({
     __esModule: true,

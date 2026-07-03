@@ -1,12 +1,16 @@
-import React, {use, useEffect, useRef} from 'react';
-import type {ReactNode} from 'react';
-import {createPortal} from 'react-dom';
-import {View} from 'react-native';
 import asHostElement from '@components/Overlay/libs/asHostElement';
 import OVERLAY_PORTAL_DATASET_KEY from '@components/Overlay/libs/portalMarkers';
 import {PortalContext} from '@components/Overlay/PortalContext';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {ReactNode} from 'react';
+
+import React, {use, useEffect, useRef} from 'react';
+import {createPortal} from 'react-dom';
+import {View} from 'react-native';
 
 type PortalProps = {
     /** Stacking order of the portalled layer (web only) */

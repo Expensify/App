@@ -1,9 +1,11 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import {nextLayerMountId, pushDismissableLayer} from '@components/Overlay/libs/dismissableLayerStore';
 import type {DismissableLayerEntry} from '@components/Overlay/libs/dismissableLayerStore';
 import Portal from '@components/Overlay/Portal';
 import Text from '@components/Text';
+
+import React from 'react';
 
 type EscapeBehavior = 'dismiss' | 'ignore' | undefined;
 

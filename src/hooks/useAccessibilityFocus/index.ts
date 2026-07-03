@@ -1,5 +1,7 @@
-import {useEffect} from 'react';
 import isHTMLElement from '@libs/isHTMLElement';
+
+import {useEffect} from 'react';
+
 import type UseAccessibilityFocus from './type';
 
 const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';

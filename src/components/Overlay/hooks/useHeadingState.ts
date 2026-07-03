@@ -1,5 +1,6 @@
-import {useId, useState} from 'react';
 import type {HeadingState} from '@components/Overlay/createHeadingSystem';
+
+import {useId, useState} from 'react';
 
 function useHeadingState(): HeadingState {
     const titleId = useId();

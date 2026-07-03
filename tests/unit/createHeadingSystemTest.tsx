@@ -2,9 +2,11 @@
  * @jest-environment jsdom
  */
 import {render} from '@testing-library/react-native';
-import React, {use} from 'react';
+
 import createHeadingSystem from '@components/Overlay/createHeadingSystem';
 import useHeadingState from '@components/Overlay/hooks/useHeadingState';
+
+import React, {use} from 'react';
 
 const {StateContext, Title, Description} = createHeadingSystem('Test');
 

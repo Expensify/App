@@ -1,11 +1,14 @@
-import {isModalActiveSelector, isModalCoveringSelector} from '@selectors/Modal';
-import {useSyncExternalStore} from 'react';
 import overlayStore, {isPopoverEntry} from '@components/Overlay/libs/overlayStore';
 import type {ModalOverlayEntry, OverlayEntry} from '@components/Overlay/libs/overlayStore';
+
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ModalType from '@src/types/utils/ModalType';
+
+import {isModalActiveSelector, isModalCoveringSelector} from '@selectors/Modal';
+import {useSyncExternalStore} from 'react';
 
 const POPOVER_LIKE_KINDS = new Set<ModalType>([CONST.MODAL.MODAL_TYPE.POPOVER, CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED]);
 

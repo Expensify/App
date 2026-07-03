@@ -2,9 +2,11 @@
  * @jest-environment jsdom
  */
 import {act, renderHook} from '@testing-library/react-native';
-import type {RefObject} from 'react';
+
 import useAriaHideSiblings from '@components/Overlay/hooks/useAriaHideSiblings/index.web';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
+
+import type {RefObject} from 'react';
 
 type AnchorRef = RefObject<AnchorNode | null>;
 

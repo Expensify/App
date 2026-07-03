@@ -1,8 +1,10 @@
-import {useLayoutEffect} from 'react';
-import type {RefObject} from 'react';
 import asHostElement from '@components/Overlay/libs/asHostElement';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
 import OVERLAY_PORTAL_DATASET_KEY from '@components/Overlay/libs/portalMarkers';
+
+import type {RefObject} from 'react';
+
+import {useLayoutEffect} from 'react';
 
 type SavedAttrs = {
     priorAriaHidden: string | null;

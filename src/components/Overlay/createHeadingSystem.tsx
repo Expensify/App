@@ -1,7 +1,9 @@
-import React, {createContext, use, useEffectEvent, useLayoutEffect} from 'react';
+import Text from '@components/Text';
+
 import type {Context, ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import Text from '@components/Text';
+
+import React, {createContext, use, useEffectEvent, useLayoutEffect} from 'react';
 
 type HeadingState = {
     readonly titleId: string;

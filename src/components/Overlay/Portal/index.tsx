@@ -1,7 +1,9 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {Modal as RNModal, StyleSheet, View} from 'react-native';
 import dismissableLayerStore, {selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {Modal as RNModal, StyleSheet, View} from 'react-native';
 
 type PortalProps = {
     /** Stacking order of the portalled layer (web only) */

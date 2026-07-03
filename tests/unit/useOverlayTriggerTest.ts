@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import {renderHook} from '@testing-library/react-native';
+
 import useOverlayTrigger from '@components/Overlay/hooks/useOverlayTrigger';
 
 describe('useOverlayTrigger', () => {

@@ -1,8 +1,10 @@
-import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
-import Animated, {Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type {AnimatedProps, EasingFunction, EasingFunctionFactory} from 'react-native-reanimated';
+
+import React, {useEffect} from 'react';
+import Animated, {Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import onAnimationFinished from './libs/onAnimationFinished';
 import {usePresence} from './Presence';
 

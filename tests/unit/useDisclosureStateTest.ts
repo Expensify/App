@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import {act, renderHook} from '@testing-library/react-native';
+
 import useDisclosureState from '@hooks/useDisclosureState';
 
 jest.mock('@libs/Log', () => ({warn: jest.fn(), alert: jest.fn(), info: jest.fn()}));

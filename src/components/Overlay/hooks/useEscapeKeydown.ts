@@ -1,5 +1,6 @@
-import {useEffect} from 'react';
 import useCallbackRef from '@hooks/useCallbackRef';
+
+import {useEffect} from 'react';
 
 type UseEscapeKeydownOptions = {
     isActive?: boolean;

@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import {renderHook} from '@testing-library/react-native';
+
 import useCallbackRef, {useRefMirror} from '@hooks/useCallbackRef';
 
 describe('useCallbackRef', () => {

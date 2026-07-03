@@ -2,11 +2,14 @@
  * @jest-environment jsdom
  */
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import type {ReactNode} from 'react';
+
 import DismissableLayer from '@components/Overlay/DismissableLayer/index.web';
 import usePointerDownOutside from '@components/Overlay/hooks/usePointerDownOutside';
 import Text from '@components/Text';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
 
 jest.mock('@hooks/useThemeStyles', () => () => ({
     flex1: {flex: 1},

@@ -1,5 +1,6 @@
-import {useEffect} from 'react';
 import {isMobileIOS} from '@libs/Browser';
+
+import {useEffect} from 'react';
 
 const IS_MOBILE_IOS = isMobileIOS();
 

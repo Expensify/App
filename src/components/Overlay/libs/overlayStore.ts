@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
+
 import type {EscapeBehavior} from './dismissableLayerStore';
 import type {AnchorNode} from './measureAnchor';
 

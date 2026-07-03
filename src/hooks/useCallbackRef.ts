@@ -1,5 +1,6 @@
-import {useLayoutEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
+
+import {useLayoutEffect, useRef, useState} from 'react';
 
 function useRefMirror<T>(value: T): RefObject<T> {
     const ref = useRef(value);

@@ -1,11 +1,14 @@
-import React, {useEffect, useState, useSyncExternalStore} from 'react';
-import {BackHandler, StyleSheet, View} from 'react-native';
 import dismissableLayerStore, {nextLayerMountId, pushDismissableLayer, selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
 import type {DismissableLayerEntry, DismissableLayerKind} from '@components/Overlay/libs/dismissableLayerStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useCallbackRef, {useRefMirror} from '@hooks/useCallbackRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {useEffect, useState, useSyncExternalStore} from 'react';
+import {BackHandler, StyleSheet, View} from 'react-native';
+
 import type {DismissableLayerProps} from './types';
 
 function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escapeBehavior}: Pick<DismissableLayerProps, 'onDismiss' | 'escapeBehavior'>) {

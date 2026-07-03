@@ -1,6 +1,8 @@
-import React, {createContext, use, useEffect, useReducer, useRef} from 'react';
-import type {ReactNode} from 'react';
 import useCallbackRef, {useRefMirror} from '@hooks/useCallbackRef';
+
+import type {ReactNode} from 'react';
+
+import React, {createContext, use, useEffect, useReducer, useRef} from 'react';
 
 type PresenceLifecycle = 'mounted' | 'unmountSuspended' | 'unmounted';
 

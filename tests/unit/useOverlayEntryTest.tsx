@@ -2,9 +2,11 @@
  * @jest-environment jsdom
  */
 import {renderHook} from '@testing-library/react-native';
+
 import useOverlayEntry from '@components/Overlay/hooks/useOverlayEntry';
 import {removeOverlayEntry, upsertOverlayEntry} from '@components/Overlay/libs/overlayStore';
 import type {OverlayEntry} from '@components/Overlay/libs/overlayStore';
+
 import CONST from '@src/CONST';
 
 jest.mock('@components/Overlay/libs/overlayStore', () => ({

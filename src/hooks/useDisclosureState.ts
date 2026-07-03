@@ -1,5 +1,7 @@
-import {useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
+
+import {useState} from 'react';
+
 import useControlledState from './useControlledState';
 
 type UseDisclosureStateProps = {

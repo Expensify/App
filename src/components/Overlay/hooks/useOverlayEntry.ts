@@ -1,7 +1,9 @@
-import {useLayoutEffect, useRef} from 'react';
 import {removeOverlayEntry, upsertOverlayEntry} from '@components/Overlay/libs/overlayStore';
 import type {OverlayEntry} from '@components/Overlay/libs/overlayStore';
+
 import useCallbackRef from '@hooks/useCallbackRef';
+
+import {useLayoutEffect, useRef} from 'react';
 
 const NOOP_CLOSE = () => {};
 

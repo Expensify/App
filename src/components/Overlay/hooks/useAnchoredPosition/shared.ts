@@ -1,11 +1,16 @@
-import {useState} from 'react';
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
-import {I18nManager} from 'react-native';
 import type {AnchorRect} from '@components/Overlay/libs/measureAnchor';
+
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+
+import {useState} from 'react';
+import {I18nManager} from 'react-native';
 
 type UseAnchoredPositionInput = {
     anchorRect: AnchorRect | null;

@@ -1,17 +1,22 @@
-import React, {useState} from 'react';
-import type {ReactNode} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import type {AnchorNode, AnchorRect} from './libs/measureAnchor';
+import type {PopoverOverlayEntry} from './libs/overlayStore';
+
 import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT_SPEC} from './AnimatedSurface';
 import DismissableLayer from './DismissableLayer';
 import useAnchoredPosition from './hooks/useAnchoredPosition';
 import useDismissOnAnchorMove from './hooks/useDismissOnAnchorMove';
 import useOverlayEntry from './hooks/useOverlayEntry';
-import type {AnchorNode, AnchorRect} from './libs/measureAnchor';
-import type {PopoverOverlayEntry} from './libs/overlayStore';
 import Portal from './Portal';
 import Presence from './Presence';
 

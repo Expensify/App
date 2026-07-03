@@ -1,9 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {ReactNode} from 'react';
-import {BackHandler} from 'react-native';
+
 import DismissableLayer from '@components/Overlay/DismissableLayer';
 import Text from '@components/Text';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {BackHandler} from 'react-native';
 
 type BackHandlerCallback = () => boolean | null | undefined;
 const stub: {handler: BackHandlerCallback | null} = {handler: null};

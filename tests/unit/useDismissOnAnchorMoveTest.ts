@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import {act, renderHook} from '@testing-library/react-native';
+
 import useDismissOnAnchorMove from '@components/Overlay/hooks/useDismissOnAnchorMove/index.web';
 
 function setupAnchor(scrollContainer?: HTMLElement): {anchor: HTMLDivElement; cleanup: () => void} {

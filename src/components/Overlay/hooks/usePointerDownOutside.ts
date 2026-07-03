@@ -1,5 +1,6 @@
-import {useEffect} from 'react';
 import useCallbackRef from '@hooks/useCallbackRef';
+
+import {useEffect} from 'react';
 
 const TOUCH_CLICK_DEFER_MS = 50;
 

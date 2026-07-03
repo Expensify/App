@@ -1,6 +1,8 @@
 import useThemeStyles from '@hooks/useThemeStyles';
-import useAnchoredPositionShared from './shared';
+
 import type {UseAnchoredPositionInput, UseAnchoredPositionOutput} from './shared';
+
+import useAnchoredPositionShared from './shared';
 
 function useAnchoredPosition(input: UseAnchoredPositionInput): UseAnchoredPositionOutput {
     const styles = useThemeStyles();

@@ -1,7 +1,9 @@
-import {useEffect} from 'react';
 import asHostElement from '@components/Overlay/libs/asHostElement';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
+
 import useCallbackRef from '@hooks/useCallbackRef';
+
+import {useEffect} from 'react';
 
 function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void, isActive: boolean): void {
     const stableDismiss = useCallbackRef(onDismiss);

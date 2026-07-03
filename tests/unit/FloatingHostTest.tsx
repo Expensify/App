@@ -1,9 +1,12 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import FloatingHost from '@components/Overlay/FloatingHost';
 import Text from '@components/Text';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type PositionState = {
     style: Record<string, number>;

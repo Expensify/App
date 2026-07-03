@@ -2,7 +2,9 @@
  * @jest-environment jsdom
  */
 import {act, renderHook} from '@testing-library/react-native';
+
 import useControlledState from '@hooks/useControlledState';
+
 import Log from '@libs/Log';
 
 jest.mock('@libs/Log', () => ({warn: jest.fn(), alert: jest.fn(), info: jest.fn()}));

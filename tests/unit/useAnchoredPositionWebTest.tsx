@@ -2,12 +2,16 @@
  * @jest-environment jsdom
  */
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+
 import useAnchoredPosition from '@components/Overlay/hooks/useAnchoredPosition/index.web';
 import type {UseAnchoredPositionInput} from '@components/Overlay/hooks/useAnchoredPosition/shared';
+
 import CONST from '@src/CONST';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const VIEWPORT_WIDTH = 1024;
 const GUTTER_WIDTH = 8;
