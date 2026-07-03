@@ -1,5 +1,6 @@
-import React from 'react';
 import type {ReactElement, ReactNode} from 'react';
+
+import React from 'react';
 
 function composeTableHeaderComponent(...components: ReactNode[]): ReactElement | undefined {
     const headerContent = React.Children.toArray(components);
