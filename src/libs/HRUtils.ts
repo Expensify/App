@@ -75,7 +75,7 @@ function isMergeHRManualSyncLimitReached(policy?: OnyxEntry<Policy>): boolean {
  * shows a confirm modal and returns `true`. Returns `false` when the sync is allowed.
  */
 function showMergeHRManualSyncLimitModalIfReached(
-    policy: OnyxEntry<Policy> | undefined,
+    policy: OnyxEntry<Policy>,
     connectionName: HRConnectionName,
     translate: LocaleContextProps['translate'],
     showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'],
