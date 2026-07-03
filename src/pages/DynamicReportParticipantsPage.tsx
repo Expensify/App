@@ -29,7 +29,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
@@ -180,7 +180,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             keyForList: `${accountID}`,
             accountID,
             login: details?.login ?? '',
-            name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
             email: formatPhoneNumber(details?.login ?? ''),
             isAdmin: role === CONST.REPORT.ROLE.ADMIN,
             isGroupChat,
