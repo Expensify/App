@@ -396,7 +396,7 @@ function Search({
             return;
         }
 
-        if (hasErrors) {
+        if (hasErrors && !comingBackOnlineWithNoResults) {
             return;
         }
 
