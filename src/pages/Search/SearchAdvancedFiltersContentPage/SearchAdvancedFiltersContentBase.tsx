@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/core';
-import React, {useContext} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,22 +5,31 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useRoute} from '@react-navigation/core';
+import React, {useContext} from 'react';
+import {View} from 'react-native';
+
 import AmountFilterContentPageWrapper from './AmountFilterContentPageWrapper';
 import CommonFilterContentPageWrapper from './CommonFilterContentPageWrapper';
 import DateFilterContentPageWrapper from './DateFilterContentPageWrapper';

@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -15,6 +12,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import Switch from '@components/Switch';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -29,6 +27,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearPolicyTagErrors,
@@ -53,15 +52,23 @@ import {
 } from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {TagListItem} from './types';
 
 type WorkspaceViewTagsProps =
@@ -244,11 +251,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return;
         }
 
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value))
-                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tag.value, tag?.rules?.parentTagsFilter ?? undefined),
-        );
+        const parentTagsFilter = tag?.rules?.parentTagsFilter;
+        const workspaceTagSettingsSuffix = parentTagsFilter
+            ? `${DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.value)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
+            : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.value);
+
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value)) : createDynamicRoute(workspaceTagSettingsSuffix));
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -375,7 +383,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(currentPolicyTag?.orderWeight ?? 0))
-                : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, Navigation.getActiveRoute()),
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(currentPolicyTag?.orderWeight ?? 0)),
         );
     };
 
