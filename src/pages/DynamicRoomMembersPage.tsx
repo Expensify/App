@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -6,10 +7,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
-import Text from '@components/Text';
+import type {TableHandle} from '@components/Table';
+import type {RoomMemberRowData, RoomMembersTableColumnKey} from '@components/Tables/RoomMembersTable';
+import RoomMembersTable from '@components/Tables/RoomMembersTable';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -23,12 +23,10 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -61,7 +59,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -72,19 +70,20 @@ type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScre
 
 function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Plus', 'RemoveMembers']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'RemoveMembers']);
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
     const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
+    const tableRef = useRef<TableHandle<RoomMemberRowData, RoomMembersTableColumnKey, string>>(null);
     const navigateBackToReportDetails = useCallback(() => {
         Navigation.goBack(backPath);
     }, [backPath]);
@@ -96,11 +95,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         [report, personalDetails, reportMetadata],
     );
 
-    const [searchValue, setSearchValue, searchFilteredAccountIDs] = useSearchResults(participants, (accountID, search) => {
-        const details = personalDetails?.[accountID];
-        return !!details && isSearchStringMatchUserDetails(details, search);
-    });
-
     const shouldIncludeMember = useCallback(
         (participant?: PersonalDetails) => {
             if (!participant) {
@@ -111,7 +105,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
             const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            // Keep the member only if they're still in the room and not pending removal
             return isInParticipants && !isPendingDelete;
         },
         [participants, reportMetadata?.pendingChatMembers],
@@ -119,7 +112,9 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
     const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsSelector(firstSelectedMember),
+    });
 
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
@@ -130,9 +125,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
-    /**
-     * Get members for the current room
-     */
     const getRoomMembers = useCallback(() => {
         if (!report) {
             return;
@@ -147,34 +139,32 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    /**
-     * Open the modal to invite a user
-     */
+    const clearTableSearch = useCallback(() => {
+        tableRef.current?.updateSearchString('');
+    }, []);
+
     const inviteUser = useCallback(() => {
         if (!report) {
             return;
         }
-        setSearchValue('');
+        clearTableSearch();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
-    }, [report, setSearchValue]);
+    }, [clearTableSearch, report]);
 
-    /**
-     * Remove selected users from the room
-     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-     */
     const removeUsers = useCallback(() => {
         if (report) {
             removeFromRoom(report, selectedMembers);
         }
-        setSearchValue('');
-
+        clearTableSearch();
         setSelectedMembers([]);
         clearUserSearchPhrase();
-    }, [report, selectedMembers, setSearchValue, setSelectedMembers]);
+    }, [clearTableSearch, report, selectedMembers, setSelectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
         const {action} = await showConfirmModal({
-            title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+            title: translate('workspace.people.removeMembersTitle', {
+                count: selectedMembers.length,
+            }),
             prompt: translate('roomMembersPage.removeMembersPrompt', {
                 count: selectedMembers.length,
                 memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
@@ -189,110 +179,50 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         removeUsers();
     }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails?.displayName, removeUsers]);
 
-    /**
-     * Add user from the selectedMembers list
-     */
-    const addUser = useCallback(
-        (accountID: number) => {
-            setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
-        },
-        [setSelectedMembers],
-    );
-
-    /**
-     * Remove user from the selectedEmployees list
-     */
-    const removeUser = useCallback(
-        (accountID: number) => {
-            setSelectedMembers((prevSelected) => prevSelected.filter((id) => id !== accountID));
-        },
-        [setSelectedMembers],
-    );
-
-    /** Toggle user from the selectedMembers list */
-    const toggleUser = useCallback(
-        ({accountID, pendingAction}: ListItem) => {
-            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !accountID) {
-                return;
-            }
-
-            // Add or remove the user if the checkbox is enabled
-            if (selectedMembers.includes(accountID)) {
-                removeUser(accountID);
-            } else {
-                addUser(accountID);
-            }
-        },
-        [selectedMembers, addUser, removeUser],
-    );
-
-    /** Add or remove all users passed from the selectedMembers list */
-    const toggleAllUsers = (memberList: ListItem[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const someSelected = enabledAccounts.some((member) => {
-            if (!member.accountID) {
-                return false;
-            }
-            return selectedMembers.includes(member.accountID);
-        });
-
-        if (someSelected) {
-            setSelectedMembers([]);
-        } else {
-            const everyAccountId = enabledAccounts.map((member) => member.accountID).filter((accountID): accountID is number => !!accountID);
-            setSelectedMembers(everyAccountId);
-        }
-    };
-
-    /** Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list */
-    const shouldShowTextInput = useMemo(() => {
-        // Get the active chat members by filtering out the pending members with delete action
+    const shouldShowSearchBar = useMemo(() => {
         const activeParticipants = participants.filter((accountID) => {
             const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             if (!personalDetails?.[accountID]) {
                 return false;
             }
-            // When offline, we want to include the pending members with delete action as they are displayed in the list as well
             return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         });
         return activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     }, [participants, reportMetadata?.pendingChatMembers, personalDetails, isOffline]);
 
     useEffect(() => {
-        if (!isFocusedScreen || !shouldShowTextInput) {
+        if (!isFocusedScreen || !shouldShowSearchBar) {
             return;
         }
-        setSearchValue(userSearchPhrase ?? '');
-    }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
-
-    useEffect(() => {
-        updateUserSearchPhrase(searchValue);
-    }, [searchValue]);
+        tableRef.current?.updateSearchString(userSearchPhrase ?? '');
+    }, [isFocusedScreen, shouldShowSearchBar, userSearchPhrase]);
 
     useEffect(() => {
         if (!isFocusedScreen) {
             return;
         }
-        if (shouldShowTextInput) {
-            setSearchValue(userSearchPhrase ?? '');
-        } else {
+        if (!shouldShowSearchBar) {
             clearUserSearchPhrase();
-            setSearchValue('');
+            clearTableSearch();
         }
-    }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+    }, [clearTableSearch, isFocusedScreen, shouldShowSearchBar]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
-            setSearchValue('');
+            clearTableSearch();
             navigateBackToReportDetails();
         },
     });
 
-    const data = useMemo((): ListItem[] => {
-        let result: ListItem[] = [];
+    const openRoomMemberDetails = useCallback((accountID: number) => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(accountID)));
+    }, []);
 
-        for (const accountID of searchFilteredAccountIDs) {
+    const members = useMemo<RoomMemberRowData[]>(() => {
+        const result: RoomMemberRowData[] = [];
+
+        for (const accountID of participants) {
             const details = personalDetails?.[accountID];
             if (!details) {
                 continue;
@@ -300,7 +230,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isAdmin = isPolicyAdmin(policy, details.login);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
-            const isDisabledCheckbox =
+            const isSelectionDisabled =
                 (isPolicyExpenseChat && isAdmin) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
@@ -309,55 +239,49 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             result.push({
                 keyForList: String(accountID),
                 accountID,
-                isSelected: selectedMembers.includes(accountID),
-                isDisabled,
-                isDisabledCheckbox,
-                text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
-                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                icons: [
-                    {
-                        source: details.avatar ?? icons.FallbackAvatar,
-                        name: details.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
+                login: details.login ?? '',
+                name: formatPhoneNumber(
+                    temporaryGetDisplayNameOrDefault({
+                        passedPersonalDetails: details,
+                        translate,
+                    }),
+                ),
+                email: formatPhoneNumber(details.login ?? ''),
+                disabled: isDisabled,
+                isSelectionDisabled,
                 pendingAction: pendingChatMember?.pendingAction,
                 errors: pendingChatMember?.errors,
+                action: () => openRoomMemberDetails(accountID),
+                dismissError: () => clearAddRoomMemberError(report.reportID, String(accountID)),
             });
         }
 
-        result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
-
-        return result;
+        return result.sort((value1, value2) => value1.name.localeCompare(value2.name));
     }, [
         formatPhoneNumber,
-        localeCompare,
         isPolicyExpenseChat,
-        searchFilteredAccountIDs,
+        openRoomMemberDetails,
+        participants,
         personalDetails,
         policy,
         report.ownerAccountID,
+        report.reportID,
         reportMetadata?.pendingChatMembers,
-        selectedMembers,
         session?.accountID,
-        icons.FallbackAvatar,
         translate,
     ]);
 
-    const dismissError = useCallback(
-        (item: ListItem) => {
-            clearAddRoomMemberError(report.reportID, String(item.accountID));
-        },
-        [report.reportID],
-    );
+    const selectedKeys = selectedMembers.map(String);
+    const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
 
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+                text: translate('workspace.people.removeMembersTitle', {
+                    count: selectedMembers.length,
+                }),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
                 onSelected: showRemoveMembersModal,
@@ -373,7 +297,9 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedMembers.length,
+                        })}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
@@ -395,41 +321,13 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         );
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
-    /** Opens the room member details page */
-    const openRoomMemberDetails = useCallback((item: ListItem) => {
-        if (!item?.accountID) {
-            return;
-        }
-
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(item.accountID)));
-    }, []);
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
-
-    const customListHeader = useMemo(() => {
-        const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-                <View>
-                    <Text style={[styles.textMicroSupporting, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
-                </View>
-            </View>
-        );
-
-        if (canSelectMultiple) {
-            return header;
-        }
-
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
-    }, [styles, translate, canSelectMultiple]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('selectionList.findMember'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            headerMessage: searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '',
-        }),
-        [data.length, searchValue, setSearchValue, translate],
-    );
+    const isLoading = !isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers;
+    const reasonAttributes = {
+        context: 'DynamicRoomMembersPage',
+        didLoadRoomMembers,
+        isPersonalDetailsReady: isPersonalDetailsReady(personalDetails),
+    };
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -459,30 +357,28 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                             return;
                         }
 
-                        setSearchValue('');
+                        clearTableSearch();
                         navigateBackToReportDetails();
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
-                <View style={[styles.w100, styles.mt3, styles.flex1]}>
-                    <SelectionListWithModal
-                        data={data}
-                        ListItem={TableListItem}
-                        onSelectRow={openRoomMemberDetails}
-                        onSelectionButtonPress={toggleUser}
-                        textInputOptions={textInputOptions}
-                        shouldShowTextInput={shouldShowTextInput}
-                        shouldShowLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        onSelectAll={() => toggleAllUsers(data)}
-                        canSelectMultiple={canSelectMultiple}
-                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
-                        customListHeader={customListHeader}
-                        onDismissError={dismissError}
-                        turnOnSelectionModeOnLongPress
+                {isLoading ? (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
                     />
-                </View>
+                ) : (
+                    <View style={[styles.w100, styles.mt3, styles.flex1]}>
+                        <RoomMembersTable
+                            ref={tableRef}
+                            members={members}
+                            selectionEnabled={canSelectMultiple}
+                            selectedKeys={selectedKeys}
+                            shouldShowSearchBar={shouldShowSearchBar}
+                            onRowSelectionChange={onRowSelectionChange}
+                        />
+                    </View>
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
