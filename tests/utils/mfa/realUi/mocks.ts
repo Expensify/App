@@ -56,7 +56,7 @@ function syncHistoryMock() {
 }
 
 /**
- * Reuses the shared Navigation stubs and overrides the two transition methods the flow needs to observe.
+ * Reuses the shared Navigation stubs and overrides the transition methods the flow needs to observe.
  * `runAfterTransition` runs its callback immediately because jsdom has no real transition, while
  * `runAfterUpcomingTransition` captures the teardown callback so the `closing` state stays observable.
  * Missing methods remain undefined so new dependencies fail explicitly.

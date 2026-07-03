@@ -13,11 +13,12 @@ import {handleInitialScreenLayout, mfaNavigationRef} from '@components/Multifact
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-// This file pins the contract between the machine and the rendered modal: it mounts the production
-// providers and navigator, drives each machine event as a real gesture, and asserts the UI markers of
-// the reached state at every step of every generated path. The paths come from `getWalkedPaths`, so a
-// state or event added to the machine gains steps here without edits. The chart-only suites live in
-// `everyStateReachable.test.ts`, and the guards on the generated coverage in `coverageStaysComplete.test.ts`.
+// This file tests that the rendered modal matches the machine: it mounts the production providers and
+// navigator, drives each machine event as a real gesture, and asserts the UI markers of the reached
+// state at every step of every generated path. A state or event added to the machine appears in the
+// walked paths automatically, and the type checks and guard suites then demand the hand-written
+// pieces it needs, such as an executor, a payload fixture, or a UI assertion. The machine-only suites
+// live in `everyStateReachable.test.ts` and the coverage guards in `coverageStaysComplete.test.ts`.
 
 // This mock forces a wide layout so the navigator renders the backdrop used as the mounted marker.
 jest.mock('@hooks/useResponsiveLayout');
@@ -29,13 +30,11 @@ jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: 
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
-// This mock reuses the shared Navigation implementation and overrides the transition methods used by the MFA flow.
+// jsdom runs no real navigation transitions, so the mock controls when the transition callbacks fire.
 jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
 
-// These UI markers distinguish the closed, closing, and outcome states. `OutcomeScreenBase` identifies the
-// outcome screen, while the backdrop exists only when the MFA navigator is mounted. Every outcome screen
-// renders the same `OutcomeScreenBase`, so the success assertion also checks the route name to pin which
-// outcome screen is on top.
+// These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while
+// the MFA navigator is mounted.
 const OUTCOME_SCREEN_TEST_ID = 'OutcomeScreenBase';
 const MODAL_BACKDROP_TEST_ID = 'MultifactorAuthenticationModalBackdrop';
 
@@ -45,14 +44,17 @@ const CONFIRM_BUTTON_TEST_ID = 'MultifactorAuthenticationOutcomeConfirmButton';
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 type MfaEventType = MfaEvent['type'];
-// The event carries only its `type` here because `xstate/graph` erases the payload from the executor's
-// step type. The INIT executor recovers the payload through `isTestScenarioInitEvent`.
+
+/**
+ * The event carries only its `type` here because `xstate/graph` erases the payload from the executor's
+ * step type. The INIT executor recovers the payload through `isTestScenarioInitEvent`.
+ */
 type MfaEventExecutor = (step: {event: {type: MfaEventType}}) => Promise<void>;
 
 /**
- * `INIT` enters through the public API with the scenario and payload of the step's own event, so paths
- * built from different INIT fixtures drive different flows. `MODAL_CLOSED` runs the navigator's teardown
- * callback. `satisfies Record<MfaEventType, ...>` requires an explicit executor for every machine event.
+ * `INIT` starts a flow through the public API, using the scenario and payload from the step's own
+ * event. `MODAL_CLOSED` runs the navigator's teardown callback. `satisfies Record<MfaEventType, ...>`
+ * requires an explicit executor for every machine event.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 const mfaEventExecutors = {
@@ -91,6 +93,7 @@ const testConfig = {
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
             expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).not.toHaveLength(0);
             expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).not.toHaveLength(0);
+            // Every outcome screen renders the same `OutcomeScreenBase`, so the route name identifies which one is on top.
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
         },
         [MFA_STATE.CLOSING]: () => {
@@ -102,10 +105,13 @@ const testConfig = {
 
 const walkedPaths = getWalkedPaths();
 
-// `path.description` serializes the complete event payload, so test names use the short labels from
-// `describeTraversalEvent` instead. The synthetic `xstate.init` event is excluded because it is not part
-// of `MfaEvent`.
 const INIT_STEP_EVENT_TYPE = 'xstate.init';
+
+/**
+ * Builds the event part of a test name. `path.description` would serialize the complete event payload,
+ * so the name uses the short labels from `describeTraversalEvent` instead. The synthetic `xstate.init`
+ * event is excluded because it is not part of `MfaEvent`.
+ */
 function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): string {
     const drivenEventLabels = steps
         .map((step) => step.event)
@@ -115,9 +121,9 @@ function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): st
 }
 
 describe('the real MFA modal matches the machine at every step of every generated path', () => {
-    // The navigation buffer is deliberately not reset here. The machine owns that cleanup on `closed`
-    // entry, which also runs when each test's fresh actor starts, so a reset here would hide a machine
-    // that stopped performing it.
+    // The navigation buffer is deliberately not reset here. The machine resets it when it enters
+    // `closed`, which also runs when each test's fresh actor starts, so a reset here would hide a
+    // machine that stopped doing that cleanup.
     beforeEach(() => {
         resetMfaUiMocks();
     });
@@ -138,10 +144,9 @@ describe('the real MFA modal matches the machine at every step of every generate
 // TestModel runs only the state assertions whose keys match the reached state, so if no key matches a
 // state, the test passes without checking it. These guards fail in that case.
 //
-// Types cannot do this. TypeScript's inferred type does not record whether a state has an `always`
-// transition, so it cannot tell a real leaf from a pass-through state such as `{open: "preparing"}`. A
-// `Record<leaf, ...>` would then need an empty assertion for every pass-through state, and that empty
-// entry would make the check pass on its own once the state later loses its `always` and becomes settleable.
+// A type cannot enforce this, because TypeScript does not know which states auto-advance. A
+// `Record` over all leaf states would then need empty assertions for the pass-through states, and an
+// empty assertion keeps passing silently.
 describe('testConfig defines a UI assertion for every settleable state and for nothing else', () => {
     const settleableLeafStates = getSettleableLeafStates(mfaMachine.root);
     const configuredStateKeys = Object.keys(testConfig.states);

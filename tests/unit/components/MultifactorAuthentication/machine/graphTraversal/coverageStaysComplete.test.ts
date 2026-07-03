@@ -7,11 +7,10 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 // The suites in this file guard the generated coverage itself: they analyze the walked paths that
 // `viewMatchesMachine.test.tsx` drives through the real UI, without rendering anything themselves. A
 // failure here usually means the walk stopped covering a state or transition, not that the modal broke.
-// Each failure names the missing piece.
 
 const walkedPaths = getWalkedPaths();
 
-// Every settleable leaf must end a path that the UI walk drives, not merely appear mid-path.
+// Every settleable leaf must end a path that the UI walk drives, not only appear in the middle of one.
 describe('every settleable MFA state is reachable through the real UI', () => {
     const walkedLeafValues = walkedPaths.map((path) => path.state.value);
 
@@ -20,12 +19,10 @@ describe('every settleable MFA state is reachable through the real UI', () => {
     });
 });
 
-// Shortest paths keep a single incoming route per distinct state-and-context vertex, so a transition can
-// silently drop out of the walk once another route to its target is shorter. A failure here has two
-// possible causes. When a transition was added to the machine, the fix is an explicit journey in
-// `DRIVING_JOURNEYS` that drives it. When the machine stopped resetting part of its context, the same
-// state value splits into a second vertex whose transitions have no route, so compare the failing
-// vertex's context with the intended one and fix the machine instead of adding a journey.
+// Shortest paths keep only one route into each distinct state and context, so a transition can
+// silently drop out of the walk when another route to its target is shorter. If this fails after
+// adding a transition, add a journey to `DRIVING_JOURNEYS` that drives it. If the failing entry has an
+// unexpected context, fix the machine so it resets that context again instead of adding a journey.
 describe('every UI-drivable state-changing transition is exercised', () => {
     const exercisedTransitionKeys = getExercisedTransitionKeys(walkedPaths);
 
@@ -34,9 +31,9 @@ describe('every UI-drivable state-changing transition is exercised', () => {
     });
 });
 
-// The payload INIT fixture exists to give the payload flow its own context vertices. When the machine
-// stops copying the payload into its context, every INIT fixture lands in the same vertex, the split
-// disappears, and the explicit journeys keep the walk green. This guard pins the split itself.
+// The payload INIT fixture exists so that the flow with a payload gets its own entries in the graph.
+// When the machine stops copying the payload into its context, the graph no longer tells the two
+// flows apart and the other suites still pass. Only this suite fails in that case.
 describe('INIT fixtures produce distinct context vertices', () => {
     it('keeps at least one landing vertex per distinct INIT fixture', () => {
         const landings = getInitEdgeLandings();
