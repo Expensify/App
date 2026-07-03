@@ -1,5 +1,6 @@
-import {useNavigation} from '@react-navigation/native';
 import type {EventListenerCallback, EventMapCore, NavigationState} from '@react-navigation/native';
+
+import {useNavigation} from '@react-navigation/native';
 import {useEffect} from 'react';
 
 // beforeRemove have some limitations. When the react-navigation is upgraded to 7.x, update this to use usePreventRemove hook.
