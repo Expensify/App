@@ -69,6 +69,7 @@ type SendInvoiceInformation = {
         | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
         | typeof ONYXKEYS.COLLECTION.POLICY
         | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     >;
 };
 
@@ -136,6 +137,7 @@ function buildOnyxDataForInvoice(
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
 > {
     const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
     const transaction = transactionParams.transaction;
@@ -422,7 +424,13 @@ function buildOnyxDataForInvoice(
     const errorKey = DateUtils.getMicroseconds();
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.POLICY>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -481,6 +489,17 @@ function buildOnyxDataForInvoice(
             },
         },
     ];
+
+    if (chat.isNewReport) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chat.report?.reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+                isLoadingInitialReportActions: false,
+            },
+        });
+    }
 
     if (transactionParams.threadCreatedReportAction?.reportActionID) {
         failureData.push({
