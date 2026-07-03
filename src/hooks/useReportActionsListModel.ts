@@ -1,5 +1,6 @@
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';

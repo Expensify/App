@@ -8,6 +8,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
