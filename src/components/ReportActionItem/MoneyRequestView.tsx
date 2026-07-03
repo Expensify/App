@@ -52,6 +52,7 @@ import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -840,7 +841,7 @@ function MoneyRequestView({
         });
     };
 
-    const showTagDisabledAlert = () => {
+    const showTagDisabledAlert = (tagListIndex: number) => {
         const transactionID = transaction?.transactionID;
         if (!transactionID) {
             return;
@@ -855,11 +856,13 @@ function MoneyRequestView({
                 return;
             }
 
+            // Clear only the pressed level so the other levels of a multi-level tag are kept.
+            const updatedTag = insertTagIntoTransactionTagsString(transactionTag, '', tagListIndex, policy?.hasMultipleTagLists ?? false);
             updateMoneyRequestTag({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
-                tag: '',
+                tag: updatedTag,
                 policy,
                 policyTagList,
                 policyRecentlyUsedTags: undefined,
@@ -1061,7 +1064,7 @@ function MoneyRequestView({
                             return;
                         }
                         if (shouldShowTagDisabledAlert) {
-                            showTagDisabledAlert();
+                            showTagDisabledAlert(index);
                             return;
                         }
                         Navigation.navigate(
