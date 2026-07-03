@@ -1,6 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {
     ConnectPolicyToRilletParams,
@@ -15,9 +12,15 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RilletCoding, RilletConnectionsConfig, RilletExport} from '@src/types/onyx/Policy';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function connectToRillet(policyID: string, apiKey: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
@@ -35,12 +38,18 @@ function connectToRillet(policyID: string, apiKey: string) {
         policyID,
         apiKey,
     };
-    write(WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET, parameters, {optimisticData});
+    write(WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET, parameters, {
+        optimisticData,
+    });
 }
 
 function clearRilletErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        connections: {[CONST.POLICY.CONNECTIONS.NAME.RILLET]: {config: {errorFields: {[fieldName]: null}}}},
+        connections: {
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                config: {errorFields: {[fieldName]: null}},
+            },
+        },
     });
 }
 

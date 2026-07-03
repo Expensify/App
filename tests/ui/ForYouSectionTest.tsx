@@ -1,15 +1,22 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ForYouSection from '@pages/home/ForYouSection';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionViolations} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 

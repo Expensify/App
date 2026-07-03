@@ -1,18 +1,25 @@
-import {SafeString} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
+
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {SafeString} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
 import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';

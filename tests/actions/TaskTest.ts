@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
@@ -25,12 +25,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';

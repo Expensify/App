@@ -1,7 +1,3 @@
-import {SafeString} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
-import React, {memo, useEffect} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -9,6 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,6 +17,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
+
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {
@@ -37,11 +35,18 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import {SafeString} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
+import React, {memo, useEffect} from 'react';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */

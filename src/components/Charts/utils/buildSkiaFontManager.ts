@@ -1,6 +1,9 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {Skia} from '@shopify/react-native-skia';
 import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
+import {Skia} from '@shopify/react-native-skia';
+
 import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 
 function buildSkiaFontManager(typefaces: ChartDefaultTypeface): SkTypefaceFontProvider {

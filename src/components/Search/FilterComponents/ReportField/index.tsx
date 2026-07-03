@@ -1,23 +1,29 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createAllPolicyReportFieldsSelector} from '@src/selectors/Policy';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useImperativeHandle, useRef, useState} from 'react';
+
 import ReportFieldList from './ReportFieldList';
 import ReportFieldText from './ReportFieldText';
 

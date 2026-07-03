@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {FinancialForceFFAExportStatus, FinancialForceReportExportStatus, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ValueOf} from 'type-fest';
+
 // We have to disable eslint for this import because otherwise the import will be 300 lines long
 // eslint-disable-next-line no-restricted-syntax
 import type * as Parameters from './parameters';
@@ -1525,7 +1527,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     RECONNECT_APP: 'ReconnectApp',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
-    REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA: 'RevealExpensifyCardDetailsWithSCA',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
     DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
@@ -1551,6 +1552,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
     REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS: 'RevokeMultifactorAuthenticationCredentials',
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: 'SetPersonalDetailsAndShipExpensifyCardsWithPIN',
+    SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD: 'SetPersonalDetailsAndRevealExpensifyCard',
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     DENY_TRANSACTION: 'DenyTransaction',
     GET_TRANSACTIONS_PENDING_3DS_REVIEW: 'GetTransactionsPending3DSReview',
@@ -1569,7 +1571,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA]: Parameters.RevealExpensifyCardDetailsWithSCAParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
@@ -1594,6 +1595,9 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS]: Parameters.RevokeMultifactorAuthenticationCredentialsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN]: Parameters.SetPersonalDetailsAndShipExpensifyCardsWithPINParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD]:
+        | Parameters.SetPersonalDetailsAndRevealExpensifyCardParams
+        | Parameters.SetPersonalDetailsAndRevealExpensifyCardWithSCAParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION]: Parameters.DenyTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW]: null;

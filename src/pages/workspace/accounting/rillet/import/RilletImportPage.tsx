@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function RilletImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
