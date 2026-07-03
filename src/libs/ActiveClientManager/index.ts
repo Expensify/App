@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import type {Init, IsClientTheLeader, IsReady, PromoteToLeader} from './types';
+import type {Init, IsClientTheLeader, IsReady} from './types';
 
 const clientID = Str.guid();
 const maxClients = 20;
@@ -90,16 +90,6 @@ const isClientTheLeader: IsClientTheLeader = () => {
     return lastActiveClient === clientID;
 };
 
-/**
- * Force this client to become the leader by moving its GUID to the end of the list. Last-resort
- * safety net for when the queue is stuck because a stale/ghost GUID is holding leadership.
- */
-const promoteToLeader: PromoteToLeader = () => {
-    activeClients = activeClients.filter((id) => id !== clientID);
-    activeClients.push(clientID);
-    setActiveClients(activeClients);
-};
-
 const cleanUpClientId = () => {
     isLeavingTab = true;
     isPromotingNewLeader = isClientTheLeader();
@@ -134,4 +124,4 @@ const init: Init = () => {
     });
 };
 
-export {init, isClientTheLeader, isReady, promoteToLeader};
+export {init, isClientTheLeader, isReady};

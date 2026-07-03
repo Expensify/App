@@ -1,4 +1,4 @@
-import type {Init, IsClientTheLeader, IsReady, PromoteToLeader} from '@libs/ActiveClientManager/types';
+import type {Init, IsClientTheLeader, IsReady} from '@libs/ActiveClientManager/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -12,7 +12,6 @@ const ActiveClientManager = jest.requireActual<{
     init: Init;
     isClientTheLeader: IsClientTheLeader;
     isReady: IsReady;
-    promoteToLeader: PromoteToLeader;
 }>('@libs/ActiveClientManager/index.ts');
 
 const GHOST_GUID = 'ghost-guid-from-a-dead-tab';
@@ -51,19 +50,6 @@ describe('ActiveClientManager', () => {
 
         // The connect callback must re-append our GUID so the ghost can't hold leadership.
         expect(latestActiveClients).toEqual([GHOST_GUID, clientID]);
-        expect(ActiveClientManager.isClientTheLeader()).toBe(true);
-    });
-
-    it('reclaims leadership via promoteToLeader when a ghost GUID holds the last slot', async () => {
-        // Our GUID is present but a ghost sits last, so we are not the leader and the callback won't re-add us.
-        await Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, [clientID, GHOST_GUID]);
-        await waitForBatchedUpdates();
-        expect(ActiveClientManager.isClientTheLeader()).toBe(false);
-
-        ActiveClientManager.promoteToLeader();
-        await waitForBatchedUpdates();
-
-        expect(latestActiveClients?.at(-1)).toBe(clientID);
         expect(ActiveClientManager.isClientTheLeader()).toBe(true);
     });
 });

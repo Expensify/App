@@ -13,7 +13,7 @@ import {
     update as updatePersistedRequest,
 } from '@libs/actions/PersistedRequests';
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
-import {isClientTheLeader, promoteToLeader} from '@libs/ActiveClientManager';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
@@ -50,16 +50,6 @@ type RequestError = Error & {
 let resolveIsReadyPromise: (() => void) | undefined;
 let isReadyPromise: Promise<void> = Promise.resolve();
 let isReadyPromisePending = false;
-// Timer for the stuck-queue self-promotion safety net (see flush()).
-let stuckQueueTimeoutId: ReturnType<typeof setTimeout> | null = null;
-
-function clearStuckQueueTimer() {
-    if (!stuckQueueTimeoutId) {
-        return;
-    }
-    clearTimeout(stuckQueueTimeoutId);
-    stuckQueueTimeoutId = null;
-}
 
 /**
  * Marks isReadyPromise as pending so any READ that consults waitForIdle() parks behind us.
@@ -312,40 +302,6 @@ function process(): Promise<void> {
 }
 
 /**
- * Schedules a one-shot check that self-promotes this client to leader if the queue is still stuck
- * (non-empty, no leader flushing it) after the timeout. This recovers from a leader-election
- * deadlock where a stale/ghost GUID holds leadership and never flushes the shared queue.
- */
-function scheduleStuckQueueCheck() {
-    if (stuckQueueTimeoutId) {
-        return;
-    }
-    stuckQueueTimeoutId = setTimeout(() => {
-        stuckQueueTimeoutId = null;
-
-        // Conditions may have changed while we waited (we became leader, went offline, the queue
-        // paused, or another flush is already running) — in those cases there's nothing to recover.
-        if (isClientTheLeader() || isOfflineNetwork() || isQueuePaused || isSequentialQueueRunning) {
-            return;
-        }
-
-        // Only recover the deadlock this targets: pending requests that never start because no leader
-        // flushes them. If a request is already in flight (ongoing), a live leader is/was processing it,
-        // so promoting could re-issue that same request as a duplicate write — don't.
-        const hasStalledWork = getAllPersistedRequests().length > 0 && !getPersistedOngoingRequest();
-        if (!hasStalledWork) {
-            return;
-        }
-
-        Log.alert('[SequentialQueue] Queue stuck with no leader flushing it; self-promoting to leader to recover.', {
-            persistedRequestsLength: getAllPersistedRequests().length,
-        });
-        promoteToLeader();
-        flush();
-    }, CONST.NETWORK.STUCK_QUEUE_LEADER_PROMOTION_TIMEOUT_MS);
-}
-
-/**
  * @param shouldResetPromise Determines whether the isReadyPromise should be reset.
  * A READ request will wait until all the WRITE requests are done, using the isReadyPromise promise.
  * Resetting can cause unresolved READ requests to hang if tied to the old promise,
@@ -408,14 +364,8 @@ function flush(shouldResetPromise = true) {
         // process the queue, so resolve here — otherwise READs parked on waitForIdle() would
         // hang forever on this tab after any write.
         resolveIsReadyPromise?.();
-        // Safety net: a stale/ghost leader GUID can leave the only live tab permanently unable to
-        // flush. If we're still not the leader after a delay and there's queued work, self-promote.
-        scheduleStuckQueueCheck();
         return;
     }
-
-    // We are the leader, so any pending stuck-queue self-promotion check is no longer needed.
-    clearStuckQueueTimer();
 
     Log.info('[SequentialQueue] Starting queue processing', false, {
         persistedRequestsLength,

@@ -2442,10 +2442,6 @@ const CONST = {
         SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
-        // How long the queue may sit with pending requests while this tab is not the leader before we
-        // assume the leader is a stale/ghost tab and self-promote to flush. Generous so a legitimately
-        // busy leader in another tab flushes well before this fires.
-        STUCK_QUEUE_LEADER_PROMOTION_TIMEOUT_MS: 30 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
