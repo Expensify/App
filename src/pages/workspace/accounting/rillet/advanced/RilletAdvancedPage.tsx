@@ -131,7 +131,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     />
                 </OfflineWithFeedback>
             </Accordion>
-            {true && (
+            {isExpensifyCardsEnabled && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
@@ -165,7 +165,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </Accordion>
                 </>
             )}
-            {true && (
+            {isTravelInvoicingEnabled && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
