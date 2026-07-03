@@ -1,9 +1,12 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useReducer, useRef, useState} from 'react';
+import {isMobile, isMobileWebKit} from '@libs/Browser';
+
+import CONST from '@src/CONST';
+
 import type {LayoutRectangle} from 'react-native';
 import type Webcam from 'react-webcam';
-import {isMobile, isMobileWebKit} from '@libs/Browser';
-import CONST from '@src/CONST';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useReducer, useRef, useState} from 'react';
 
 /**
  * Preload camera permission state at module load so first render can use a cached value.

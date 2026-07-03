@@ -1,5 +1,3 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {MarkTransactionViolationAsResolvedParams, RejectExpenseReportParams, RejectMoneyRequestParams, SetNameValuePairParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -23,6 +21,7 @@ import {
     generateReportID,
     getDisplayedReportID,
     getParsedComment,
+    getReimbursableTotal,
     getReportTransactions,
     hasOutstandingChildRequest,
     isIOUReport,
@@ -30,7 +29,9 @@ import {
 } from '@libs/ReportUtils';
 import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import {notifyNewAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +40,11 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
@@ -218,6 +224,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         total: (report?.total ?? 0) + transactionAmount,
+                        reimbursableTotal: getReimbursableTotal(report) + transactionAmount,
                         pendingFields: {
                             total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
@@ -248,6 +255,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: report?.total ?? 0,
+                    reimbursableTotal: getReimbursableTotal(report),
                     pendingFields: {total: null},
                 },
             });
@@ -375,6 +383,7 @@ function prepareRejectMoneyRequestData(
 
         if (existingOpenReport) {
             const originalRejectedReportTotal = existingOpenReport?.total ?? 0;
+            const originalRejectedReimbursableTotal = getReimbursableTotal(existingOpenReport);
             movedToReport = {
                 ...existingOpenReport,
                 total: originalRejectedReportTotal - transactionAmount,
@@ -406,6 +415,7 @@ function prepareRejectMoneyRequestData(
                     value: {
                         ...movedToReport,
                         total: (movedToReport?.total ?? 0) - transactionAmount,
+                        reimbursableTotal: getReimbursableTotal(movedToReport) - transactionAmount,
                     },
                 },
                 {
@@ -444,6 +454,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                     value: {
                         total: originalRejectedReportTotal,
+                        reimbursableTotal: originalRejectedReimbursableTotal,
                         pendingFields: {total: null},
                     },
                 },
@@ -636,6 +647,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: (report?.total ?? 0) + transactionAmount,
+                    reimbursableTotal: getReimbursableTotal(report) + transactionAmount,
                 },
             },
             {
@@ -674,6 +686,7 @@ function prepareRejectMoneyRequestData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 total: report?.total ?? 0,
+                reimbursableTotal: getReimbursableTotal(report),
             },
         });
 

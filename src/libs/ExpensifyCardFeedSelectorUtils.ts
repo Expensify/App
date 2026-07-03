@@ -1,9 +1,12 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isAdminSelector} from '@src/selectors/Domain';
 import type {CardList, Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+
 import {
     getDomainNameFromExpensifyCardSettings,
     getFundIdFromSettingsKey,
