@@ -25,6 +25,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, inferFieldRequirementsDirection, saveRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -45,6 +46,7 @@ import {View} from 'react-native';
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
     categoryName?: string;
+    direction?: FieldRequirementsDirection;
     testID: string;
 };
 
@@ -85,7 +87,7 @@ function getValidationError(
     return '';
 }
 
-function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFieldsRulePageBaseProps) {
+function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDirection, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -130,24 +132,24 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             return;
         }
 
-        if (formCategory === categoryName && formDirection) {
-            initializedDraftForRuleKeyRef.current = `${formDirection}${CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR}${categoryName}`;
+        const editDirection = routeDirection ?? (formCategory === categoryName && formDirection ? formDirection : undefined) ?? inferFieldRequirementsDirection(category);
+        const ruleKey = `${editDirection}${CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR}${categoryName}`;
+
+        if (initializedDraftForRuleKeyRef.current === ruleKey) {
             return;
         }
 
-        const draftDirection = inferFieldRequirementsDirection(category);
-        const ruleKey = `${draftDirection}${CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR}${categoryName}`;
-
-        if (initializedDraftForRuleKeyRef.current === ruleKey) {
+        if (formCategory === categoryName && formDirection === editDirection) {
+            initializedDraftForRuleKeyRef.current = ruleKey;
             return;
         }
 
         initializedDraftForRuleKeyRef.current = ruleKey;
         setDraftRequireFieldsRule({
             [INPUT_IDS.CATEGORY]: categoryName,
-            ...getRequireFieldsFormFromCategory(category, draftDirection),
+            ...getRequireFieldsFormFromCategory(category, editDirection),
         });
-    }, [category, categoryName, formCategory, formDirection, isEditing]);
+    }, [category, categoryName, routeDirection, formCategory, formDirection, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -293,6 +295,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap, styles.gap3]}>
                             <FieldRequirementsDirectionToggle
                                 direction={direction}
+                                disabled={!canWriteRules}
                                 onSelect={handleDirectionChange}
                             />
                             <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.theFollowing')}</Text>

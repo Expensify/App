@@ -1540,6 +1540,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
+        direction: string;
     };
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: {
         policyID: string;
@@ -1547,6 +1548,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT]: {
         policyID: string;
         categoryName: string;
+        direction: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
         policyID: string;

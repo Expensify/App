@@ -9,6 +9,7 @@ import {updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
+import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -22,9 +23,10 @@ import React from 'react';
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
     categoryName?: string;
+    direction?: FieldRequirementsDirection;
 };
 
-function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFieldsRuleCategoryPageBaseProps) {
+function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: RequireFieldsRuleCategoryPageBaseProps) {
     const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -44,7 +46,8 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute = isEditing ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
+    const backToRoute =
+        isEditing && categoryName && direction ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName, direction) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         const selectedCategory = value ? policyCategories?.[value] : undefined;

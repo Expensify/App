@@ -19,6 +19,7 @@ import {
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
     setPolicyCategoryItemizedReceiptsRequired,
+    setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryReceiptsRequired,
 } from './actions/Policy/Category';
 import {setDraftRequireFieldsRule} from './actions/User';
@@ -62,8 +63,12 @@ function parseRequireFieldsRuleKey(ruleKey: string): {
     return {direction, categoryName};
 }
 
-function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string): Route {
-    return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
+function isFieldRequirementsDirection(value: string): value is FieldRequirementsDirection {
+    return value === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE || value === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
+}
+
+function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string, direction: FieldRequirementsDirection): Route {
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName, direction);
 }
 
 function isWaiveReceiptThreshold(value: number | null | undefined): boolean {
@@ -76,14 +81,6 @@ function hasExplicitReceiptThreshold(value: number | null | undefined): value is
 
 function hasCategoryReceiptOverride(value: number | null | undefined): boolean {
     return value !== null && value !== undefined;
-}
-
-function categoryHasLegacyReceiptRules(category: PolicyCategory | undefined): boolean {
-    if (!category) {
-        return false;
-    }
-
-    return hasCategoryReceiptOverride(category.maxAmountNoReceipt) || hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt);
 }
 
 function categoryHasRequireDirectionFields(category: PolicyCategory): boolean {
@@ -211,6 +208,14 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
         return;
     }
 
+    const receiptWaiveTurnedOn = effectiveForm.requireReceipt && !initialForm.requireReceipt;
+    const itemizedWaiveTurnedOn = effectiveForm.requireItemizedReceipt && !initialForm.requireItemizedReceipt;
+
+    if (receiptWaiveTurnedOn && !itemizedWaiveTurnedOn && !isWaiveReceiptThreshold(category?.maxAmountNoItemizedReceipt)) {
+        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
+        return;
+    }
+
     if (effectiveForm.requireReceipt !== initialForm.requireReceipt) {
         if (effectiveForm.requireReceipt) {
             setPolicyCategoryReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE);
@@ -242,8 +247,20 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
         return;
     }
 
-    const shouldDeleteRequireDirection = !direction || direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
-    const shouldDeleteWaiveDirection = !direction || direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
+    if (!direction) {
+        if (categoryHasRequireDirectionFields(category)) {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE, categoryName));
+        }
+
+        if (categoryHasWaiveDirectionFields(category)) {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE, categoryName));
+        }
+
+        return;
+    }
+
+    const shouldDeleteRequireDirection = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    const shouldDeleteWaiveDirection = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
 
     if (shouldDeleteRequireDirection) {
         if (category.areCommentsRequired) {
@@ -459,7 +476,7 @@ function createRequireFieldsTableItem({
                 [INPUT_IDS.CATEGORY]: categoryName,
                 ...getRequireFieldsFormFromCategory(category, direction),
             });
-            onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName));
+            onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, direction));
         },
     };
 }
@@ -540,13 +557,15 @@ function getRequireFieldsTableData({
 }
 
 export {
-    categoryHasLegacyReceiptRules,
+    categoryHasRequireDirectionFields,
+    categoryHasWaiveDirectionFields,
     deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsFormFromCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsTableData,
     inferFieldRequirementsDirection,
+    isFieldRequirementsDirection,
     parseRequireFieldsRuleKey,
     saveRequireFieldsRule,
 };
