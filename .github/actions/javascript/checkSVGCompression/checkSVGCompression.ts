@@ -1,7 +1,8 @@
-import type {CompressionSummary} from '@scripts/compressSvg';
-import compressSvg from '@scripts/compressSvg';
+import type {CompressionSummary} from '@scripts/compressSvg.mjs';
+import compressSvg from '@scripts/compressSvg.mjs';
 
 import * as core from '@actions/core';
+import {pathToFileURL} from 'url';
 
 async function run() {
     try {
@@ -20,7 +21,7 @@ async function run() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

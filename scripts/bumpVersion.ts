@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 import * as versionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
@@ -206,15 +205,6 @@ async function run(semanticVersionLevel: SemverLevel) {
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
     await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
     return newVersion;
-}
-
-if (require.main === module) {
-    // Get and validate SEMVER_LEVEL input
-    const semanticVersionLevel = process.argv.at(2) ?? 'BUILD';
-    if (!versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
-        throw new Error(`Invalid semver level ${semanticVersionLevel}. Must be one of: ${Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).join(', ')}`);
-    }
-    run(semanticVersionLevel);
 }
 
 export default run;
