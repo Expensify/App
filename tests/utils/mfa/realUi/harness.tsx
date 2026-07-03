@@ -20,7 +20,7 @@ function MfaControlsCapture() {
     const {executeScenario} = useMultifactorAuthentication();
     useEffect(() => {
         controlsHolder.current = {executeScenario};
-    });
+    }, [executeScenario]);
     return null;
 }
 
