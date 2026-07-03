@@ -313,4 +313,38 @@ describe('getBestMatchingPath', () => {
             getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee'),
         ).toBe('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee');
     });
+
+    it('redirects legacy Expensify Card details paths to the new card-details dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456?backTo=/home')).toBe('/workspaces/p123/expensify-card/card-details/456?backTo=/home');
+    });
+
+    it('redirects legacy Expensify Card details nested edit paths to the new card-details dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/limit-type')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit-type');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/name')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/name');
+    });
+
+    it('does not rewrite Expensify Card keyword sibling routes that share the single-segment shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings')).toBe('/workspaces/p123/expensify-card/settings');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/choose-bank-account')).toBe('/workspaces/p123/expensify-card/choose-bank-account');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/select-feed')).toBe('/workspaces/p123/expensify-card/select-feed');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new')).toBe('/workspaces/p123/expensify-card/issue-new');
+    });
+
+    it('does not rewrite Expensify Card sibling subtrees', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/frequency')).toBe('/workspaces/p123/expensify-card/settings/frequency');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/account')).toBe('/workspaces/p123/expensify-card/settings/account');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new/rules/max-amount')).toBe('/workspaces/p123/expensify-card/issue-new/rules/max-amount');
+    });
+
+    it('does not rewrite Expensify Card numeric fundID work-email paths', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email')).toBe('/workspaces/p123/expensify-card/789/work-email');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
+    });
+
+    it('does not rewrite the already-migrated Expensify Card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
+    });
 });
