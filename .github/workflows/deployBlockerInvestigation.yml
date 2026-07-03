@@ -72,10 +72,10 @@ jobs:
         if: steps.validate.outputs.valid == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
-          display_report: "true"
+          display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          prompt: "/investigate-deploy-blocker ISSUE_URL: ${{ env.ISSUE_URL }}"
+          prompt: '/investigate-deploy-blocker ISSUE_URL: ${{ env.ISSUE_URL }}'
           claude_args: |
             --model claude-opus-4-8
             --effort xhigh
