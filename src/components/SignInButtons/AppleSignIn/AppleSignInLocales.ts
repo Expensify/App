@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {ValueOf} from 'type-fest';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {ValueOf} from 'type-fest';
 
 /**
  * The set of locales supported by Apple Sign In.
