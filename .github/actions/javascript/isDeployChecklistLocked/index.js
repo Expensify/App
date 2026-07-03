@@ -39414,9 +39414,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const DeployChecklistUtils_1 = __nccwpck_require__(2141);
+const core = __importStar(__nccwpck_require__(2186));
 const run = function () {
     return (0, DeployChecklistUtils_1.getDeployChecklist)()
         .then(({ labels, number }) => {

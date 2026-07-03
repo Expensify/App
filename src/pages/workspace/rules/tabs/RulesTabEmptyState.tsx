@@ -1,12 +1,17 @@
-import type {ImageStyle} from 'expo-image';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import ScrollView from '@components/ScrollView';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageStyle} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type RulesTabEmptyStateProps = {
     illustration: IconAsset;

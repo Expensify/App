@@ -1,14 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
-import type {CSSProperties, ReactNode} from 'react';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {PDFPreviewer} from 'react-fast-pdf';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import LoadingIndicator from '@components/LoadingIndicator';
 import MultiGestureCanvas from '@components/MultiGestureCanvas';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -16,14 +10,29 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobile} from '@libs/Browser';
+
 import variables from '@styles/variables';
+
 import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Dimensions} from '@src/types/utils/Layout';
-import PDFPasswordForm from './PDFPasswordForm';
+
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties, ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {PDFPreviewer} from 'react-fast-pdf';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 import type {PDFViewProps} from './types';
+
+import PDFPasswordForm from './PDFPasswordForm';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
@@ -61,13 +70,10 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
         });
     };
 
-    const scaleChange = useCallback(
-        (scale: number) => {
-            onScaleChanged?.(scale);
-            actions?.onScaleChanged?.(scale);
-        },
-        [actions, onScaleChanged],
-    );
+    const scaleChange = (scale: number) => {
+        onScaleChanged?.(scale);
+        actions?.onScaleChanged?.(scale);
+    };
 
     return (
         <View

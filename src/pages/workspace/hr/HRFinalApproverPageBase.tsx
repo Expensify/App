@@ -1,20 +1,26 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
+
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Beta from '@src/types/onyx/Beta';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type HRFinalApproverProviderConfig = {
     testID: string;

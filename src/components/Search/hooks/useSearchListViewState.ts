@@ -1,10 +1,9 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import {useRef} from 'react';
 import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -12,12 +11,19 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {FlashListRef} from '@shopify/flash-list';
+
+import {useRef} from 'react';
 
 type UseSearchListViewStateParams = {
     /** The source rows the view renders. Drives exit-animation tracking. */

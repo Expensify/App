@@ -1,12 +1,17 @@
-import React from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type ConfirmationUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
 
