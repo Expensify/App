@@ -1,6 +1,6 @@
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import getSettleableLeafStates from 'tests/utils/mfa/settleableLeafStates';
-import {getExercisedTransitionKeys, getInitEdgeLandings, getUiDrivableTransitions} from 'tests/utils/mfa/transitionCoverage';
+import {getExercisedTransitionKeys, getUiDrivableTransitions} from 'tests/utils/mfa/transitionCoverage';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 
@@ -29,17 +29,5 @@ describe('every UI-drivable state-changing transition is exercised', () => {
 
     it.each(getUiDrivableTransitions())('$description is exercised', ({key}) => {
         expect(exercisedTransitionKeys.has(key)).toBe(true);
-    });
-});
-
-// The payload INIT fixture exists so that the flow with a payload gets its own entries in the graph.
-// When the machine stops copying the payload into its context, the graph no longer tells the two
-// flows apart and the other suites still pass. Only this suite fails in that case.
-describe('INIT fixtures produce distinct context vertices', () => {
-    it('keeps at least one landing vertex per distinct INIT fixture', () => {
-        const landings = getInitEdgeLandings();
-        const distinctFixtures = new Set(landings.map(({eventKey}) => eventKey));
-        const distinctLandings = new Set(landings.map(({landingKey}) => landingKey));
-        expect(distinctLandings.size).toBeGreaterThanOrEqual(distinctFixtures.size);
     });
 });

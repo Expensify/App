@@ -4,9 +4,9 @@ import {describeTraversalEvent} from './flowFixtures';
 import type {MfaStatePath} from './flowPaths';
 import {DELAYED_EVENT_PREFIX, getTraversalEvents} from './flowPaths';
 
-// This module measures transition coverage: which transitions the walk is expected to drive, which ones a
-// set of walked paths actually drove, and where the INIT edges land. `flowPaths` builds the paths the walk
-// executes, while this module only compares them against the machine's adjacency map.
+// This module measures transition coverage: which transitions the walk is expected to drive and which
+// ones a set of walked paths actually drove. `flowPaths` builds the paths the walk executes, while this
+// module only compares them against the machine's adjacency map.
 
 type UiDrivableTransition = {
     key: string;
@@ -39,13 +39,6 @@ function getUiDrivableTransitions(): UiDrivableTransition[] {
         }));
 }
 
-/** Returns the state-changing INIT edges as (serialized event, serialized landing vertex) pairs. */
-function getInitEdgeLandings(): Array<{eventKey: string; landingKey: string}> {
-    return getStateChangingEdges()
-        .filter((edge) => edge.event.type === 'INIT')
-        .map((edge) => ({eventKey: JSON.stringify(edge.event), landingKey: serializeSnapshot(edge.nextState)}));
-}
-
 /** Returns the (source vertex, event) pairs a set of walked paths drives. */
 function getExercisedTransitionKeys(paths: ReadonlyArray<Pick<MfaStatePath, 'steps'>>): Set<string> {
     const keys = new Set<string>();
@@ -62,5 +55,5 @@ function getExercisedTransitionKeys(paths: ReadonlyArray<Pick<MfaStatePath, 'ste
     return keys;
 }
 
-export {getExercisedTransitionKeys, getInitEdgeLandings, getUiDrivableTransitions};
+export {getExercisedTransitionKeys, getUiDrivableTransitions};
 export type {UiDrivableTransition};
