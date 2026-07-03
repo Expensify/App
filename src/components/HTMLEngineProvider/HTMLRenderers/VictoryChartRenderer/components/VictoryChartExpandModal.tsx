@@ -1,12 +1,17 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import Modal from '@components/Modal';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import VictoryChartContent from './VictoryChartContent';
 
 type VictoryChartExpandModalProps = {
