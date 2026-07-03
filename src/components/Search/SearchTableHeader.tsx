@@ -1,14 +1,19 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SortableTableHeader from './SortableTableHeader';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
+
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
+
+import SortableTableHeader from './SortableTableHeader';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
@@ -107,6 +112,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+        translationKey: 'common.tagGLCode',
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
         translationKey: 'common.reimbursable',
     },
@@ -145,6 +155,18 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
@@ -271,6 +293,18 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

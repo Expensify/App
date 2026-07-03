@@ -1,5 +1,6 @@
-import type {ComponentType} from 'react';
 import type {Route} from '@src/ROUTES';
+
+import type {ComponentType} from 'react';
 
 type SubPageProps = {
     /** value indicating whether user is editing one of the sub pages */

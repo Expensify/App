@@ -1,3 +1,11 @@
+import Navigation from '@libs/Navigation/Navigation';
+import getMemoryInfo from '@libs/telemetry/getMemoryInfo';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 /**
  * Browser crash diagnostics (web only).
  *
@@ -12,12 +20,7 @@
  */
 import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import getMemoryInfo from '@libs/telemetry/getMemoryInfo';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 
 const STORAGE_KEY_PREFIX = 'crashDiagnostics_session_';
 const SAMPLE_INTERVAL_MS = 15 * 1000;

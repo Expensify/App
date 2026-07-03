@@ -1,6 +1,3 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,11 +8,11 @@ import ScrollView from '@components/ScrollView';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import SpendRuleRestrictionTypeToggleRevamp from '@components/SpendRules/SpendRuleRestrictionTypeToggleRevamp';
 import Text from '@components/Text';
+
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import Tab from '@libs/actions/Tab';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
@@ -32,15 +30,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRulePageBaseProps = {
     policyID: string;
@@ -68,7 +74,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
-    const {isDevelopment} = useEnvironment();
 
     const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
@@ -120,6 +125,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
     const openMaxAmountCurrencyMismatchModal = () => {
         showConfirmModal({
+            id: 'spend-rule-max-amount-currency-mismatch-modal',
             title: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchTitle'),
             prompt: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
@@ -135,6 +141,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
     const openCurrenciesCurrencyMismatchModal = () => {
         showConfirmModal({
+            id: 'spend-rule-currencies-currency-mismatch-modal',
             title: translate('workspace.rules.spendRules.currenciesCurrencyMismatchTitle'),
             prompt: translate('workspace.rules.spendRules.currenciesCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
@@ -392,15 +399,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         icon: isRulesRevampEnabled ? icons.CoinsButton : undefined,
     });
 
-    const currenciesMenuItem = isDevelopment
-        ? renderEditableMenuItem({
-              description: translate('workspace.rules.spendRules.permittedCurrencies'),
-              title: currenciesMenuTitle,
-              onPress: chooseCurrencies,
-              sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR,
-              icon: isRulesRevampEnabled ? icons.MoneyCircle : undefined,
-          })
-        : null;
+    const currenciesMenuItem = renderEditableMenuItem({
+        description: translate('workspace.rules.spendRules.permittedCurrencies'),
+        title: currenciesMenuTitle,
+        onPress: chooseCurrencies,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR,
+        icon: isRulesRevampEnabled ? icons.MoneyCircle : undefined,
+    });
 
     const revampFormContent = (
         <>
