@@ -320,6 +320,8 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: true,
+                    // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
+                    areCompanyCardsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -366,6 +368,8 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: true,
+                    // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
+                    areCompanyCardsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -399,6 +403,8 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({
                 policy: {
                     areConnectionsEnabled: true,
+                    // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
+                    areCompanyCardsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -444,6 +450,8 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: false,
+                    // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
+                    areCompanyCardsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -558,7 +566,8 @@ describe('useGettingStartedItems', () => {
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
-            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+            // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
@@ -898,7 +907,8 @@ describe('useGettingStartedItems', () => {
         it('should order both card rows as company cards then Expensify cards when both are enabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areExpensifyCardsEnabled: true, areRulesEnabled: true},
+                // Rules (setupRules) only render for a control policy, so the type must be CORPORATE here.
+                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areExpensifyCardsEnabled: true, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
