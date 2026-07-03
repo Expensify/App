@@ -1,15 +1,20 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type TextInputFilterContentProps = {
     filterKey:

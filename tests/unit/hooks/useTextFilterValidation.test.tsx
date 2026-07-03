@@ -1,11 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {SearchTextFilterKeys} from '@components/Search/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 
 function wrapper({children}: {children: React.ReactNode}) {

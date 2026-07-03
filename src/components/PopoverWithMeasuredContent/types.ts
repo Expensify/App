@@ -1,4 +1,5 @@
 import type PopoverProps from '@components/Popover/types';
+
 import type {AnchorDimensions, AnchorPosition} from '@styles/index';
 
 type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {

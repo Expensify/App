@@ -1,8 +1,12 @@
-import {useEffect} from 'react';
 import type {SearchTextFilterKeys} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {isValidInputLength} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
 
 const FILTER_MAX_LENGTH: Partial<Record<SearchTextFilterKeys, number>> = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: CONST.DESCRIPTION_LIMIT,

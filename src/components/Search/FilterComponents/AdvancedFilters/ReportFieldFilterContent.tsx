@@ -1,12 +1,16 @@
-import React, {useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import ReportFieldBase from '@components/Search/FilterComponents/ReportField';
 import type {ReportFieldHandle} from '@components/Search/FilterComponents/ReportField';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
 
 type ReportFieldFilterContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;

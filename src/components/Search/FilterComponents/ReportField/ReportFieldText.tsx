@@ -1,10 +1,13 @@
-import React from 'react';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey} from '@components/Search/types';
 import TextInput from '@components/TextInput';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
+
+import React from 'react';
 
 type ReportFieldTextProps = {
     filterKey: ReportFieldTextKey;

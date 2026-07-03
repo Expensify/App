@@ -1,11 +1,16 @@
-import React from 'react';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import React from 'react';
+
 import BankAccountSelector from './BankAccountSelector';
 import CardSelector from './CardSelector';
 import CategorySelector from './CategorySelector';
