@@ -613,11 +613,11 @@ function updateRilletSyncReimbursedReports(policyID: string, enabled: RilletSync
     write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
 }
 
-function updateRilletBillPaymentAccount(policyID: string, accountCode: RilletSync['billPaymentAccountCode'], oldAccountCode?: RilletSync['billPaymentAccountCode']) {
-    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE, accountCode, oldAccountCode ?? null);
+function updateRilletBillPaymentAccount(policyID: string, billPaymentAccountCode: RilletSync['billPaymentAccountCode'], oldBillPaymentAccountCode?: RilletSync['billPaymentAccountCode']) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE, billPaymentAccountCode, oldBillPaymentAccountCode ?? null);
     const parameters: UpdateRilletBillPaymentAccountParams = {
         policyID,
-        accountCode,
+        billPaymentAccountCode,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
 }
@@ -631,11 +631,15 @@ function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: Ril
     write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_EXPENSIFY_CARD_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateRilletSettlementsAccount(policyID: string, bankAccountID: RilletSync['settlementsBankAccountID'], oldBankAccountID?: RilletSync['settlementsBankAccountID']) {
-    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+function updateRilletSettlementsAccount(
+    policyID: string,
+    settlementsBankAccountID: RilletSync['settlementsBankAccountID'],
+    oldSettlementsBankAccountID?: RilletSync['settlementsBankAccountID'],
+) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, settlementsBankAccountID, oldSettlementsBankAccountID ?? null);
     const parameters: UpdateRilletSettlementsAccountParams = {
         policyID,
-        bankAccountID,
+        settlementsBankAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }

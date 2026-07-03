@@ -1,15 +1,14 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {
     clearRilletErrorField,
     updateRilletAutoSync,
@@ -22,11 +21,17 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -126,7 +131,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     />
                 </OfflineWithFeedback>
             </Accordion>
-            {isExpensifyCardsEnabled && (
+            {true && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
@@ -160,7 +165,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </Accordion>
                 </>
             )}
-            {isTravelInvoicingEnabled && (
+            {true && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
