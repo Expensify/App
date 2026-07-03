@@ -1,13 +1,19 @@
-import {NavigationContext, useIsFocused} from '@react-navigation/native';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, Dimensions} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
+
 import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
+
+import {NavigationContext, useIsFocused} from '@react-navigation/native';
+import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
+
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;

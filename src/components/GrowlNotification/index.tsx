@@ -1,19 +1,25 @@
+import Icon from '@components/Icon';
+import * as Pressables from '@components/Pressable';
+import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setIsReady} from '@libs/Growl';
+import type {GrowlRef} from '@libs/Growl';
+
+import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {ForwardedRef} from 'react';
+import type {SvgProps} from 'react-native-svg';
+
 import React, {useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
-import type {SvgProps} from 'react-native-svg';
-import Icon from '@components/Icon';
-import * as Pressables from '@components/Pressable';
-import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {setIsReady} from '@libs/Growl';
-import type {GrowlRef} from '@libs/Growl';
-import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
 const INACTIVE_POSITION_Y = -255;
