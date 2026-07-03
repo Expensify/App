@@ -1,5 +1,5 @@
 ---
-title: Understand Billing Terms and Definitions
+title: Learn About Billing Terms and Definitions
 description: Learn what common subscription billing terms mean in Expensify, including plans, subscriptions, members, seats, payment methods, and billing settings.
 keywords: [billing terms, billing glossary, subscription, plan, active member, unique member, seats, payment card, Expensify Card]
 internalScope: Audience is workspace owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
@@ -9,7 +9,7 @@ platform: new
 order: 2
 ---
 
-# Understand Billing Terms and Definitions
+# Learn About Billing Terms and Definitions
 
 Subscription billing uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret billing information, compare subscription options, and understand how your subscription is calculated.
 
@@ -37,7 +37,7 @@ Subscription types include:
 
 Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
 
-To learn more, see [How Billing, Plans and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Overview-of-How-Subscriptions-Plans-and-Billing-Work).
+To learn more, see [Learn How Billing and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work).
 
 ---
 

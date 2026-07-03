@@ -1,5 +1,5 @@
 ---
-title: Overview of How Subscriptions Plans and Billing Work
+title: Learn How Billing and Subscriptions Work
 description: Learn how Workspaces, plans, subscriptions, billing, and pricing work together in Expensify.
 keywords: [Expensify billing, plans, subscriptions, billing overview, Workspace billing]
 internalScope: Audience is anyone using or evaluating Expensify. Covers the relationship between plans, subscriptions, pricing, and billing. Does not cover changing plans, subscription management, or billing tasks.
@@ -7,7 +7,7 @@ contentType: concept
 order: 1
 ---
 
-# Overview of How Subscriptions Plans and Billing Work
+# Learn How Billing and Subscriptions Work
 
 Expensify organizes billing around three core concepts: your workspace plan, your subscription, and your organization's Expensify Card usage. Together, these determine the features available to your organization and the pricing you qualify for.
 
@@ -20,7 +20,7 @@ Expensify offers two workspace plans:
 - **Collect**: Designed for small teams that need expense management and reimbursements.
 - **Control**: Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
 
-To learn which plan is right for your organization, see [Compare the Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
+To learn which plan is right for your organization, see [Compare the Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
 ## What is a subscription?
 
@@ -38,7 +38,7 @@ Organizations with an annual subscription qualify for different pricing tiers ba
 
 Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
 
-To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
 
 ## How your monthly bill is calculated
 
@@ -57,4 +57,4 @@ Each Workspace has an owner, sometimes called the billing owner, who is responsi
 
 Workspace owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
-To learn more, see [Understand Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership-and-Billing-Permissions).
+To learn more, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).

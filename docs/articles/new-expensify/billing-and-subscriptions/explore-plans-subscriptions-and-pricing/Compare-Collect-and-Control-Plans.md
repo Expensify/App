@@ -61,7 +61,7 @@ The table below summarizes the most important differences. For the complete, up-
 
 Your workspace plan is one factor that determines your subscription cost. Pricing also depends on your subscription type and, for Control Workspaces, your organization's Expensify Card usage.
 
-To learn how plans, subscription pricing, and the Expensify Card discount work, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+To learn how plans, subscription pricing, and the Expensify Card discount work, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
 
 # FAQ
 
@@ -69,7 +69,7 @@ To learn how plans, subscription pricing, and the Expensify Card discount work, 
 
 Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan.
 
-To learn more, see [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-plan-and-subscription/Change-Your-Workspace-Plan).
+To learn more, see [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan).
 
 ## Does every Workspace need a plan?
 
@@ -79,4 +79,4 @@ Yes. Every Workspace is created with either the Collect or Control plan.
 
 Yes. The Expensify Card is available with both plans. However, only the Control plan offers subscription pricing that nets a discount on qualifying Expensify Card usage.
 
-To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).  
+To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).  

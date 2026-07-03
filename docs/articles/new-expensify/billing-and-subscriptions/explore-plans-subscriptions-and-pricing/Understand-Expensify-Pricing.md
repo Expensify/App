@@ -144,7 +144,7 @@ Legacy Collect pricing is:
 
 Legacy Collect subscriptions use active members for billing instead of unique members.
 
-To learn about the difference between active members and unique members, see [Understand Billing Terms and Definitions](/articles/new-expensify/billing-and-subscriptions/Understand-Billing-Terms-and-Definitions#what-member-terms-mean).
+To learn about the difference between active members and unique members, see [Learn About Billing Terms and Definitions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Terms-and-Definitions#what-member-terms-mean).
 
 ---
 

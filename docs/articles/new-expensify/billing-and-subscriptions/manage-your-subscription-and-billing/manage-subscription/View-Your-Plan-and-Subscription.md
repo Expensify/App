@@ -32,8 +32,8 @@ Workspace Admins can view the workspace plan under **Overview > Plan type**.
 
 ## Related articles
 
- - [How Subscriptions Plans and Billing Work](/articles/new-expensify/billing-and-subscriptions/Overview-of-How-Subscriptions-Plans-and-Billing-Work)
- - [Change Your Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-plan-and-subscription/Change-Your-Workspace-Plan)
+ - [Learn How Billing and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work)
+ - [Change Your Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan)
 
 ---
 
@@ -43,8 +43,8 @@ Workspace Admins can view the workspace plan under **Overview > Plan type**.
 
 Control pricing depends on your subscription type and your organization's qualifying Expensify Card usage, so it's displayed as a starting rate per active member. The lowest rate applies when you have an annual subscription and qualifying Expensify Card usage. 
 
-To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
 
 ## How do I find the workspace owner?
 
-To find the owner of a workspace you're a member of, see [What is a Workspace Owner](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership-and-Billing-Permissions).
+To find the owner of a workspace you're a member of, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).

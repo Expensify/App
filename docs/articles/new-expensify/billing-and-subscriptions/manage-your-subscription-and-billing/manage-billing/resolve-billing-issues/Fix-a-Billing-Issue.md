@@ -13,7 +13,7 @@ If Expensify can't process your subscription payment, a message appears at the t
 
 Only the **Workspace owner** can resolve billing issues.
 
-For common reasons why billing fails, see [Understand Why Billing Issues Occur](/articles/new-expensify/billing-and-subscriptions/manage-billing/resolve-billing-issues/Understand-Why-Billing-Issues-Occur). 
+For common reasons why billing fails, see [Understand Why Billing Issues Occur](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/resolve-billing-issues/Understand-Why-Billing-Issues-Occur). 
 
 ---
 

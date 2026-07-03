@@ -11,7 +11,7 @@ platform: new
 
 Billing issues occur when Expensify can't successfully process payment for your Workspace subscription. When this happens, the workspace owner is notified. Expensify displays a notification in the app explaining the problem and what action is required.
 
-This article explains why billing issues occur. For instructions on resolving a specific billing issue, see [Fix a Billing Issue.](/articles/new-expensify/billing-and-subscriptions/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue)
+This article explains why billing issues occur. For instructions on resolving a specific billing issue, see [Fix a Billing Issue.](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue)
 
 ---
 
@@ -42,7 +42,7 @@ Depending on the reason payment couldn't be processed, you might see messages su
  - Your subscription payment is overdue.
  - A payment dispute is preventing the charge from being processed.
 
-For instructions on resolving a specific billing issue, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue).
+For instructions on resolving a specific billing issue, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue).
 
 ---
 
