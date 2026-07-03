@@ -1,5 +1,7 @@
-import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/core';
+
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import FOCUSABLE_SELECTOR from './focusableSelector';
 import hasFocusableAttributes from './focusGuards';

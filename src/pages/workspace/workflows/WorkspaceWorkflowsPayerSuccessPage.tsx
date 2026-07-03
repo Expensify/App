@@ -1,13 +1,18 @@
-import React, {useEffect} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ScrollView from '@components/ScrollView';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearShareBankAccount} from '@userActions/BankAccounts';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
 
 function WorkspaceWorkflowsPayerSuccessPage() {
     const {translate} = useLocalize();

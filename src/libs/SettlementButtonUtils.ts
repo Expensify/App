@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
 
 /**
  * Retrieves SettlementButton payment methods.
