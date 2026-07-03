@@ -264,11 +264,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-            // Defer the redirect by a tick with setTimeout(0). Navigating synchronously here (in the same frame this
-            // page mounts from Workflows) collapses the two navigations into a single commit while Onyx is still
-            // hydrating achData. On small screens that detaches/unmounts this page mid-load and resets achData to its
-            // defaults. Letting the current frame finish so the first navigation commits and Onyx settles makes the
-            // redirect a clean push, keeping the page mounted.
+            // Defer the redirect by a tick with setTimeout(0). Navigating synchronously here — in the same frame this
+            // page mounts from the Workflows navigation — collapses the two navigations into a single commit. On small
+            // screens that detaches and unmounts this page, which resets its achData-derived local state to defaults.
+            // Deferring lets the first navigation commit before we push the validation route, so the redirect stays a
+            // clean push and the page remains mounted.
             setTimeout(() => {
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo}));
             }, 0);
