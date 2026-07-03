@@ -45,7 +45,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     // even when the responsive layout flips after the growl is dismissed.
     const progress = useSharedValue(0);
     // Guards against double-firing the action's onPress while the slide-out animation
-    // is still on screen. Reset whenever new growl content arrives.
+    // is still on screen. Fresh per growl — the parent remounts this component for every show().
     const isActionPressedRef = useRef(false);
 
     const theme = useTheme();
@@ -99,25 +99,23 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     };
 
     useEffect(() => {
-        isActionPressedRef.current = false;
-
-        // Snap to fully offscreen before sliding in so the slide-in direction matches the
-        // current placement (from above for top, from below for bottom).
-        progress.set(0);
         fling(1);
 
         const autoDismissTimeoutId = setTimeout(triggerDismiss, duration);
         return () => clearTimeout(autoDismissTimeoutId);
-    }, [bodyText, type, action, duration, fling, progress, triggerDismiss]);
+        // Mount-only: the parent remounts this component (key=nonce) for every new growl, so the
+        // slide-in + auto-dismiss timer must arm exactly once per growl. Re-running on dep identity
+        // changes (e.g. theme/layout re-renders recreating `fling`/`triggerDismiss`) would replay
+        // the slide-in and reset the timer.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
     const flingGesture = Gesture.Fling()
         .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
         .runOnJS(true)
-        .onStart(() => {
-            triggerDismiss();
-        });
+        .onStart(triggerDismiss);
 
     return (
         <View style={styles.growlNotificationWrapper}>
@@ -126,42 +124,45 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                 inactiveY={inactiveY}
                 useBottomPosition={useBottomPosition}
             >
-                <PressableWithoutFeedback
-                    accessibilityLabel={bodyText}
-                    sentryLabel="GrowlNotification-Dismiss"
-                    onPress={triggerDismiss}
-                >
-                    <GestureDetector gesture={flingGesture}>
-                        <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
+                <GestureDetector gesture={flingGesture}>
+                    <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
+                        {/* The dismiss target covers only the icon + text; the action Button is a sibling
+                            (not nested inside a pressable) so it stays independently focusable for screen
+                            readers and its press can't bubble into a dismiss. */}
+                        <PressableWithoutFeedback
+                            accessibilityLabel={bodyText}
+                            sentryLabel="GrowlNotification-Dismiss"
+                            onPress={triggerDismiss}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                        >
                             <Icon
                                 src={types[type].icon}
                                 fill={types[type].iconColor}
                             />
                             <Text style={styles.growlNotificationText}>{bodyText}</Text>
-                            {!!action && (
-                                <Button
-                                    medium
-                                    text={action.label}
-                                    accessibilityLabel={action.label}
-                                    sentryLabel="GrowlNotification-Action"
-                                    onPress={() => {
-                                        if (isActionPressedRef.current) {
-                                            return;
-                                        }
-                                        isActionPressedRef.current = true;
-                                        triggerDismiss();
-                                        action.onPress();
-                                    }}
-                                    innerStyles={styles.bgTransparent}
-                                    textStyles={styles.growlNotificationActionText}
-                                    shouldUseDefaultHover={false}
-                                    hoverStyles={styles.growlNotificationActionHovered}
-                                    isNested
-                                />
-                            )}
-                        </View>
-                    </GestureDetector>
-                </PressableWithoutFeedback>
+                        </PressableWithoutFeedback>
+                        {!!action && (
+                            <Button
+                                medium
+                                text={action.label}
+                                accessibilityLabel={action.label}
+                                sentryLabel="GrowlNotification-Action"
+                                onPress={() => {
+                                    if (isActionPressedRef.current) {
+                                        return;
+                                    }
+                                    isActionPressedRef.current = true;
+                                    triggerDismiss();
+                                    action.onPress();
+                                }}
+                                innerStyles={styles.bgTransparent}
+                                textStyles={styles.growlNotificationActionText}
+                                shouldUseDefaultHover={false}
+                                hoverStyles={styles.growlNotificationActionHovered}
+                            />
+                        )}
+                    </View>
+                </GestureDetector>
             </GrowlNotificationContainer>
         </View>
     );
