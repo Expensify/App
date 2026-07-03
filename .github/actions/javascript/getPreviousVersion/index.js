@@ -25929,8 +25929,8 @@ var GitUtils_default = {
 };
 
 // .github/actions/javascript/getPreviousVersion/getPreviousVersion.ts
-import { pathToFileURL } from "url";
 import { readFileSync as readFileSync2 } from "fs";
+import { pathToFileURL } from "url";
 function run() {
   const semverLevel = getInput("SEMVER_LEVEL", { required: true });
   if (!semverLevel || !isValidSemverLevel(semverLevel)) {

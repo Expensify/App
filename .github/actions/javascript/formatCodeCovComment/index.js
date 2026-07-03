@@ -25737,13 +25737,11 @@ var GithubUtils = class {
 };
 var GithubUtils_default = GithubUtils;
 
-// .github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts
-import { pathToFileURL } from "url";
-
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
 
 // .github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts
+import { pathToFileURL } from "url";
 function extractCoverageDeltaTable(body) {
   const tableHeaderRegex = /[|\s]*\[?Files with missing lines\]?(?:\([^)]*\))?[|\s]*Coverage Δ[|\s]*/i;
   const tableMatch = body.match(tableHeaderRegex);

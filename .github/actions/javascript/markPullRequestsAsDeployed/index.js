@@ -26345,14 +26345,12 @@ var GithubUtils = class {
 };
 var GithubUtils_default = GithubUtils;
 
-// .github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts
-import { pathToFileURL } from "url";
-
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
 
 // .github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts
 var import_memoize = __toESM(require_memoize(), 1);
+import { pathToFileURL } from "url";
 function getDeployTableMessage(platformResult) {
   switch (platformResult) {
     case "success":

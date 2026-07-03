@@ -6,6 +6,7 @@ import type {PackageJson} from 'type-fest';
 
 import * as core from '@actions/core';
 import {readFileSync} from 'fs';
+import {pathToFileURL} from 'url';
 
 function run() {
     const semverLevel = core.getInput('SEMVER_LEVEL', {required: true});
@@ -24,7 +25,7 @@ function run() {
     return previousVersion;
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

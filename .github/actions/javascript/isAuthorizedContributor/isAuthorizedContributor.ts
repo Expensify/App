@@ -4,6 +4,7 @@ import isTeamMember from '@github/libs/isTeamMember';
 
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import {pathToFileURL} from 'url';
 
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR', 'COLLABORATOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
@@ -156,7 +157,7 @@ async function run(): Promise<void> {
     core.setOutput('IS_INTERNAL', isInternal);
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run().catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         core.setFailed(message);

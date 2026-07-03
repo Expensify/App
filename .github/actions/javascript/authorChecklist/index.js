@@ -69278,14 +69278,12 @@ var GithubUtils = class {
 };
 var GithubUtils_default = GithubUtils;
 
-// .github/actions/javascript/authorChecklist/authorChecklist.ts
-import { pathToFileURL } from "url";
-
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
 
 // .github/actions/javascript/authorChecklist/authorChecklist.ts
 var import_escapeRegExp = __toESM(require_escapeRegExp(), 1);
+import { pathToFileURL } from "url";
 
 // .github/libs/promiseSome.ts
 function promiseSome(promises3, callbackFn) {

@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import {context, getOctokit} from '@actions/github';
+import {pathToFileURL} from 'url';
 
 type OctokitClient = ReturnType<typeof getOctokit>;
 
@@ -80,7 +81,7 @@ async function run(): Promise<void> {
     console.log(`Generated preview comment with ${routes.length} updated article(s)`);
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

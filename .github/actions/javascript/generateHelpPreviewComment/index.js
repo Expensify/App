@@ -20003,9 +20003,6 @@ function endGroup() {
   issue("endgroup");
 }
 
-// .github/actions/javascript/generateHelpPreviewComment/generateHelpPreviewComment.ts
-import { pathToFileURL } from "url";
-
 // node_modules/@actions/github/lib/context.js
 import { readFileSync, existsSync as existsSync2 } from "fs";
 import { EOL as EOL5 } from "os";
@@ -23753,6 +23750,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // .github/actions/javascript/generateHelpPreviewComment/generateHelpPreviewComment.ts
+import { pathToFileURL } from "url";
 var DOCS_DIRECTORY_PREFIX = "docs/";
 var MARKDOWN_EXTENSION = ".md";
 var INCLUDED_STATUSES = /* @__PURE__ */ new Set(["added", "modified", "renamed"]);
