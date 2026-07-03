@@ -37,7 +37,8 @@ function isRuleModule(value: unknown): value is Rule.RuleModule {
 /** Dynamically import the shipped `no-onyx-connect` rule, which is ESM with relative imports. */
 async function loadNoOnyxConnectRule(): Promise<Rule.RuleModule> {
     const require = createRequire(__filename);
-    const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify/package.json'));
+    // Resolve the package entry rather than its package.json, since eslint-config-expensify's `exports` map doesn't expose ./package.json.
+    const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify'));
     const ruleFile = path.join(expensifyConfigDirectory, 'eslint-plugin-expensify', 'no-onyx-connect.js');
     const imported: unknown = await import(ruleFile);
     if (isRuleModule(imported)) {

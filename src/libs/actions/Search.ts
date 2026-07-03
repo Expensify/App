@@ -22,6 +22,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
@@ -1647,12 +1648,12 @@ function handleBulkPayItemSelected(params: {
     }
 
     if (isDelegateAccessRestricted) {
-        showDelegateNoAccessModal();
+        deferModalPresentationAfterPopoverDismiss(showDelegateNoAccessModal);
         return;
     }
 
     if (isAccountLocked) {
-        showLockedAccountModal();
+        deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
         return;
     }
 

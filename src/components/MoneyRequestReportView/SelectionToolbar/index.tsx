@@ -262,7 +262,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 onSelectionModePaymentSelect={onSelectionModePaymentSelect}
                                 selectionModeKYCSuccess={selectionModeKYCSuccess}
                                 onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                                    if (shouldBlockAction()) {
+                                    if (shouldBlockAction(undefined, true)) {
                                         return;
                                     }
                                     triggerKYCFlow({policy: selectedPolicy});

@@ -16,6 +16,10 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
+    __esModule: true,
+    default: (callback: () => void) => callback(),
+}));
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
