@@ -1,19 +1,24 @@
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import {isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {View} from 'react-native';
 
 type EditGPSTripButtonProps = MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT];
 

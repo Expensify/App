@@ -1,12 +1,15 @@
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type SliderProps = {
     onSliderRatioChange: (ratio: number) => void;

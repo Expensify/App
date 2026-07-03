@@ -1,26 +1,32 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import Text from '@components/Text';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {applyTrimmedTrip, resetTripTrim} from '@libs/actions/GPSDraftDetails';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateTrimmedEndPoint, getGpsPoints, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import useGPSWaypointMarkers from '@pages/iou/request/step/IOURequestStepDistanceGPS/useGPSWaypointMarkers';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import Slider from './Slider';
 
 type IOURequestStepGPSTripEditProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT>;
