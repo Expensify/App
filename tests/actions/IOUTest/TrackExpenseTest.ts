@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {
     convertBulkTrackedExpensesToIOU,
     deleteTrackExpense,
@@ -33,8 +36,6 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type {RenderAPI} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {format} from 'date-fns';

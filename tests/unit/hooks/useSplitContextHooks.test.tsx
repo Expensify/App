@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import {
     AttachmentCarouselPagerActionsContext,
     AttachmentCarouselPagerStateContext,
@@ -20,7 +22,6 @@ import {useMultifactorAuthenticationState} from '@components/MultifactorAuthenti
 import type {PropsWithChildren} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 
-import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 
 /**

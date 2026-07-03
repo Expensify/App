@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
+
 import useAssignCard from '@hooks/useAssignCard';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
@@ -9,8 +12,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

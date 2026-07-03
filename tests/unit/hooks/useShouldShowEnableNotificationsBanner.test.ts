@@ -1,3 +1,5 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
 
 import useShouldShowEnableNotificationsBanner from '@pages/inbox/report/useShouldShowEnableNotificationsBanner';
@@ -5,7 +7,6 @@ import useShouldShowEnableNotificationsBanner from '@pages/inbox/report/useShoul
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 const CONCIERGE_REPORT_ID = '1';

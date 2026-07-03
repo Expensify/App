@@ -1,3 +1,5 @@
+import {render, renderHook} from '@testing-library/react-native';
+
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 
@@ -11,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {Ref} from 'react';
 
-import {render, renderHook} from '@testing-library/react-native';
 import {createRef, useImperativeHandle} from 'react';
 import Onyx from 'react-native-onyx';
 

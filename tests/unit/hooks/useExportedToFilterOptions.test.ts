@@ -1,10 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate} from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

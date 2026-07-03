@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 
 import * as UserActions from '@libs/actions/User';
@@ -7,7 +9,6 @@ import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMe
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';

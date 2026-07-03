@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -25,7 +27,6 @@ import type * as reactNavigationNativeImport from '@react-navigation/native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());

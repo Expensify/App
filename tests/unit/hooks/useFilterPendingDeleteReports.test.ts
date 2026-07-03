@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useFilterPendingDeleteReports, {selectPendingDeleteReportKeys} from '@hooks/useFilterPendingDeleteReports';
 
 import CONST from '@src/CONST';
@@ -5,8 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
-
-import {renderHook} from '@testing-library/react-native';
 
 const onyxData: Record<string, unknown> = {};
 

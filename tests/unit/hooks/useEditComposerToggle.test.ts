@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,8 +14,6 @@ import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActio
 import CONST from '@src/CONST';
 
 import type {RefObject} from 'react';
-
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

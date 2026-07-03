@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 
@@ -8,7 +10,6 @@ import type * as OptionsListUtils from '@libs/OptionsListUtils';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 type SearchSelectorConfig = Parameters<typeof usePersonalDetailSearchSelector>[0];

@@ -1,3 +1,5 @@
+import {cleanup, render, screen} from '@testing-library/react-native';
+
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
@@ -5,7 +7,6 @@ import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
 
 import CONST from '@src/CONST';
 
-import {cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@hooks/useHasLoggedIntoMobileApp');

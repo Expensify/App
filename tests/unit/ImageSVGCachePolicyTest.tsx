@@ -1,4 +1,5 @@
 import {render} from '@testing-library/react-native';
+
 import React from 'react';
 
 import ImageSVGAndroid from '../../src/components/ImageSVG/index.android';

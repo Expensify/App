@@ -1,10 +1,11 @@
+import {render} from '@testing-library/react-native';
+
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({

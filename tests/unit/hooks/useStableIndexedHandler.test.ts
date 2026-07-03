@@ -1,6 +1,6 @@
-import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
-
 import {renderHook} from '@testing-library/react-native';
+
+import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 
 describe('useStableIndexedHandler', () => {
     it('returns the same handler reference for the same index across renders', () => {

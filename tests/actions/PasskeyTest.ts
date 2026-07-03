@@ -1,3 +1,5 @@
+import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@libs/actions/Passkey';
 import type {BackendPasskeyCredential} from '@libs/actions/Passkey';
 
@@ -5,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocalPasskeyCredentialsEntry, PasskeyCredential} from '@src/types/onyx';
 
-import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';

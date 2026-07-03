@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -18,7 +20,6 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type * as NativeNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
 
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';

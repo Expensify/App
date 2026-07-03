@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -13,7 +15,6 @@ import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {act, render, screen} from '@testing-library/react-native';
 import React, {Profiler, useCallback, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 

@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useOnyx from '@hooks/useOnyx';
@@ -9,7 +11,6 @@ import {openAgentsPage} from '@userActions/Agent';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({

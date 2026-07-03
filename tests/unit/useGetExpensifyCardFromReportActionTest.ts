@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 
 import usePolicy from '@hooks/usePolicy';
@@ -10,7 +12,6 @@ import useGetExpensifyCardFromReportAction from '@src/hooks/useGetExpensifyCardF
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction} from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

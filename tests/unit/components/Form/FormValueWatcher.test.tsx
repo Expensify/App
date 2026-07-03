@@ -1,10 +1,11 @@
+import {render} from '@testing-library/react-native';
+
 import FormValueWatcher from '@components/Form/FormValueWatcher';
 import type {FormOnyxValues} from '@components/Form/types';
 
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 type TestFormID = typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM;

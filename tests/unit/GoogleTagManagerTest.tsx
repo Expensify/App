@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
@@ -13,7 +15,6 @@ import type {FundList} from '@src/types/onyx';
 import type * as NativeNavigation from '@react-navigation/native';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';

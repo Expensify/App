@@ -1,10 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useLetterAvatars from '@hooks/useLetterAvatars';
 
 import * as UserAvatarCatalog from '@libs/Avatars/UserAvatarCatalog';
 
 import type {SvgProps} from 'react-native-svg';
 
-import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 
 const mockAvatarComponent: React.FC<SvgProps> = React.memo((props: SvgProps) =>

@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
@@ -9,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CopyPolicySettings as CopyPolicySettingsState, PersonalDetailsList, Policy} from '@src/types/onyx';
 
-import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

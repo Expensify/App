@@ -1,9 +1,9 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useViolations from '@hooks/useViolations';
 
 import CONST from '@src/CONST';
 import type {TransactionViolation} from '@src/types/onyx';
-
-import {renderHook} from '@testing-library/react-native';
 
 describe('useViolations', () => {
     describe('violationsByField grouping', () => {

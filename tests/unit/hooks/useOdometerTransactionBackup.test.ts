@@ -1,10 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useOdometerTransactionBackup from '@pages/iou/request/step/IOURequestStepDistance/hooks/useOdometerTransactionBackup';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';

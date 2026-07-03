@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -11,7 +13,6 @@ import CONST from '@src/CONST';
 import type ReactNative from 'react-native';
 
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React, {useState} from 'react';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour

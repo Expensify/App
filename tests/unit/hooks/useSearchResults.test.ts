@@ -1,8 +1,8 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useSearchResults from '@hooks/useSearchResults';
 
 import CONST from '@src/CONST';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 type Item = {id: number; name: string};
 

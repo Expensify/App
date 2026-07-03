@@ -1,8 +1,9 @@
+import {render} from '@testing-library/react-native';
+
 import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import type {ButtonKeyboardShortcutProps} from '@src/components/ButtonComposed/types';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 // ── Keyboard-shortcut wiring ───────────────────────────────────────────────────

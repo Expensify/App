@@ -1,11 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useSelectionListScroll from '@components/SelectionList/hooks/useSelectionListScroll';
 
 import Log from '@libs/Log';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
-
-import {renderHook} from '@testing-library/react-native';
 
 type MockItem = {keyForList: string};
 

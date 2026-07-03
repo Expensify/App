@@ -1,3 +1,5 @@
+import {act, cleanup, render} from '@testing-library/react-native';
+
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
@@ -10,7 +12,6 @@ import ROUTES from '@src/ROUTES';
 
 import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 
-import {act, cleanup, render} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';

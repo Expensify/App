@@ -1,7 +1,8 @@
+import {render} from '@testing-library/react-native';
+
 import type {LayoutChangeEvent, View as RNView, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

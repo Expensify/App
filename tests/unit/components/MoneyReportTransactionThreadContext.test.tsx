@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {MoneyReportTransactionThreadProvider, useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +12,6 @@ import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {PropsWithChildren} from 'react';
 import type {OnyxKey, ResultMetadata, UseOnyxResult} from 'react-native-onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@hooks/useOnyx', () => ({

@@ -1,10 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import usePermissions from '@src/hooks/usePermissions';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

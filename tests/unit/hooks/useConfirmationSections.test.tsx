@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useConfirmationSections from '@components/MoneyRequestConfirmationList/hooks/useConfirmationSections';
 
@@ -7,7 +9,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';

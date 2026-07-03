@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
 
 import AddAgentAvatarPage from '@pages/settings/Agents/Fields/AddAgentAvatarPage';
@@ -5,7 +7,6 @@ import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPa
 
 import ROUTES from '@src/ROUTES';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 const mockConsumeNavigationToken = jest.fn<boolean, []>();

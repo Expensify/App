@@ -1,3 +1,5 @@
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
+
 import type * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -14,7 +16,6 @@ import type {ReactNode} from 'react';
 import type {Pressable as RNPressable, Text as RNText, View as RNView} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({

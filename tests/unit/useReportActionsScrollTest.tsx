@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 
 import type Navigation from '@libs/Navigation/Navigation';
@@ -10,7 +12,6 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
-import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

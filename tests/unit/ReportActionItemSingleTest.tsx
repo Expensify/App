@@ -1,3 +1,5 @@
+import {act, screen, waitFor} from '@testing-library/react-native';
+
 import Text from '@components/Text';
 
 import {setHasRadio} from '@libs/NetworkState';
@@ -9,7 +11,6 @@ import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {act, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';

@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
@@ -21,7 +23,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';

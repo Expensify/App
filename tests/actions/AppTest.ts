@@ -1,15 +1,16 @@
+import {waitFor} from '@testing-library/react-native';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import ONYXKEYS from '@src/ONYXKEYS';
 import '@libs/Navigation/AppNavigator/AuthScreens';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type Request from '../../src/types/onyx/Request';

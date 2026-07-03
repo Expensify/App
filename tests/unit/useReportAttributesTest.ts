@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useReportAttributes from '@hooks/useReportAttributes';
 
 import CONST from '@src/CONST';
@@ -5,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

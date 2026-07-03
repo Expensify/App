@@ -1,9 +1,10 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import useTransactionReportForConfirmation from '@components/MoneyRequestConfirmationList/hooks/useTransactionReportForConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';

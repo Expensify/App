@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -9,7 +11,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {act, render} from '@testing-library/react-native';
 import React from 'react';
 
 import TestNavigationContainer from '../utils/TestNavigationContainer';

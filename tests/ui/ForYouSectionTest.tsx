@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
 
@@ -12,7 +14,6 @@ import type {TransactionViolations} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

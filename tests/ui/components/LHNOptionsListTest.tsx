@@ -1,3 +1,5 @@
+import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
@@ -15,7 +17,6 @@ import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type * as ReactNavigation from '@react-navigation/native';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

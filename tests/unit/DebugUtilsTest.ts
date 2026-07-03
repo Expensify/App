@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import DateUtils from '@libs/DateUtils';
@@ -14,7 +16,6 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type ReportActionName from '../../src/types/onyx/ReportActionName';

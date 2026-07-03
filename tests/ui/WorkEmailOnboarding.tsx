@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -28,7 +30,6 @@ import type {Response as OnyxResponse} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

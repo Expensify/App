@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 
 import Clipboard from '@libs/Clipboard';
@@ -6,8 +8,6 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import SelectionScraper from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
-
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@libs/Clipboard', () => ({
     __esModule: true,

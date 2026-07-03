@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 
 import Navigation from '@navigation/Navigation';
@@ -8,7 +10,6 @@ import type {Report} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

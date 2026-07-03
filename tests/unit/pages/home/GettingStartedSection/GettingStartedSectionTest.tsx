@@ -1,3 +1,5 @@
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
@@ -10,7 +12,6 @@ import type {PolicyCategories} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

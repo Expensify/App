@@ -1,8 +1,9 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

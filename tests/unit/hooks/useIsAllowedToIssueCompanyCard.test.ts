@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 
@@ -5,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain} from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';

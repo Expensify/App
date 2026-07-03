@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
@@ -5,8 +8,6 @@ import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthenticatio
 
 import CONST from '@src/CONST';
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@libs/API');

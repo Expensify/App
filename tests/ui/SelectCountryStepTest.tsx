@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import SelectionList from '@components/SelectionList';
 
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import {act, render} from '@testing-library/react-native';
 import React from 'react';
 
 const mockUseState = React.useState;

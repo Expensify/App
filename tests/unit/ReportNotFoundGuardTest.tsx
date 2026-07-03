@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ReportNotFoundGuard from '@pages/inbox/ReportNotFoundGuard';
@@ -6,7 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';

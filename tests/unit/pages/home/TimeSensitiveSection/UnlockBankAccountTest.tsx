@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 
@@ -8,7 +10,6 @@ import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';

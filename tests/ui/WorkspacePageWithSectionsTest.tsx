@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -12,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
-import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';

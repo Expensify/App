@@ -1,3 +1,5 @@
+import {act, render, screen, waitFor} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
@@ -7,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
-import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

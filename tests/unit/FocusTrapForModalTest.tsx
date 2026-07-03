@@ -1,8 +1,9 @@
+import {render} from '@testing-library/react-native';
+
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web';
 
 import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@libs/LauncherStack', () => ({

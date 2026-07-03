@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
@@ -8,7 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

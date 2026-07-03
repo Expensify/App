@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
 import Lightbox from '@components/Lightbox';
@@ -7,7 +9,6 @@ import CONST from '@src/CONST';
 import type {View as RNView} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

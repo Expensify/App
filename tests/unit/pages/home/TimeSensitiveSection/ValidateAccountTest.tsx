@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -6,7 +8,6 @@ import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection
 
 import type * as NativeNavigation from '@react-navigation/native';
 
-import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';

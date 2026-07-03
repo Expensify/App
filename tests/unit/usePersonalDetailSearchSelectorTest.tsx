@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import usePersonalDetailSearchSelectorBase from '@hooks/usePersonalDetailSearchSelector/base';
 
 import {getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
@@ -8,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

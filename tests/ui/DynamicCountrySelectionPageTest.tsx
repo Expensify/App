@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import SelectionList from '@components/SelectionList';
 
 import searchOptions from '@libs/searchOptions';
@@ -10,7 +12,6 @@ import CONST from '@src/CONST';
 import type * as ReactNavigation from '@react-navigation/native';
 import type {ComponentProps} from 'react';
 
-import {act, render} from '@testing-library/react-native';
 import React from 'react';
 
 import createMock from '../utils/createMock';

@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelector from '@components/Search/FilterComponents/UserSelector';
 import SelectionList from '@components/SelectionList';
@@ -9,7 +11,6 @@ import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));

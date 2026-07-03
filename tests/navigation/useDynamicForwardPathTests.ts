@@ -1,8 +1,8 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 
 import type {DynamicRouteSuffix} from '@src/ROUTES';
-
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());

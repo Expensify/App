@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import usePolicyData from '@hooks/usePolicyData';
@@ -7,7 +9,6 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportActions, Transaction} from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';

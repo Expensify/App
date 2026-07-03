@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import SelectionList from '@components/SelectionList';
 import StateSelectorModal from '@components/StatePicker/StateSelectorModal';
 
@@ -6,7 +8,6 @@ import StringUtils from '@libs/StringUtils';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import {act, render} from '@testing-library/react-native';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 

@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import type {UseConfirmationValidationParams} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 import useConfirmationValidation from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 
@@ -5,8 +7,6 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-
-import {renderHook} from '@testing-library/react-native';
 
 import createRandomPolicy from '../../utils/collections/policies';
 

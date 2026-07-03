@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -8,7 +10,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {StackActions, TabActions} from '@react-navigation/native';
-import {renderHook} from '@testing-library/react-native';
 
 import createRandomPolicy from '../../utils/collections/policies';
 

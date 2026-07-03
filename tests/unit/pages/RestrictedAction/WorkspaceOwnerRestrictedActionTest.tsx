@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceOwnerRestrictedActionNative from '@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.native';
@@ -5,7 +7,6 @@ import ROUTES from '@src/ROUTES';
 
 import type ReactNative from 'react-native';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 // Jest resolves index.native.tsx by default in the RN test environment; load web implementation explicitly.

@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+import {renderHook} from '@testing-library/react-native';
+
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
 
@@ -35,9 +39,6 @@ import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
-import {renderHook} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';

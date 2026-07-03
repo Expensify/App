@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 
 import {clearExportDownload} from '@libs/actions/Export';
@@ -5,8 +7,6 @@ import {clearExportDownload} from '@libs/actions/Export';
 import CONST from '@src/CONST';
 
 import type {ReactElement} from 'react';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 const mockClearExportDownload = jest.mocked(clearExportDownload);
 

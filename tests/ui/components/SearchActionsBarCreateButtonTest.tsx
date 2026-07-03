@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -15,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {getUnixTime, subDays} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';

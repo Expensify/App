@@ -1,8 +1,9 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';

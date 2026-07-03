@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -38,9 +42,6 @@ import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Tr
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type {RenderAPI} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
 
 import {deepEqual} from 'fast-equals';

@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Session from '@libs/actions/Session';
@@ -6,7 +8,6 @@ import SignUpWelcomeForm from '@pages/signin/SignUpWelcomeForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

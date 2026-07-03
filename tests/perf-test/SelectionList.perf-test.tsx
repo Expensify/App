@@ -1,3 +1,6 @@
+import type {RenderResult} from '@testing-library/react-native';
+import {fireEvent} from '@testing-library/react-native';
+
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -6,11 +9,9 @@ import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 
 import variables from '@styles/variables';
 
-import type {RenderResult} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import type ReactNative from 'react-native';
 
-import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measureRenders} from 'reassure';
 

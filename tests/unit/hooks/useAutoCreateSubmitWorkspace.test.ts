@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -13,8 +15,6 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
-
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useOnyx', () => {
     return {__esModule: true, default: jest.fn(() => [undefined])};

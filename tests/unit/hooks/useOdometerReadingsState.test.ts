@@ -1,9 +1,9 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useOdometerReadingsState from '@pages/iou/request/step/IOURequestStepDistance/hooks/useOdometerReadingsState';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 import createRandomTransaction from '../../utils/collections/transaction';
 

@@ -1,8 +1,9 @@
+import {render} from '@testing-library/react-native';
+
 import Icon from '@components/Icon';
 
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 const SAMPLE_DEFAULT_ID = 'default-avatar_1';

@@ -1,10 +1,10 @@
+import type {RenderAPI} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
+
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {RenderAPI} from '@testing-library/react-native';
-
-import {render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

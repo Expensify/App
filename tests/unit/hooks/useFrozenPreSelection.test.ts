@@ -1,8 +1,8 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 
 import CONST from '@src/CONST';
-
-import {renderHook} from '@testing-library/react-native';
 
 type Item = {
     keyForList: string;

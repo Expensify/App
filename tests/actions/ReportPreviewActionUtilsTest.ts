@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -11,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type {InvoiceTestData} from '../data/Invoice';

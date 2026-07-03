@@ -1,3 +1,5 @@
+import {fireEvent, screen} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
@@ -12,7 +14,6 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
-import {fireEvent, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';

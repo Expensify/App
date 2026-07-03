@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
 import useLocalize from '@hooks/useLocalize';
@@ -5,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

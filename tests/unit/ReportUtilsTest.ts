@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {beforeAll} from '@jest/globals';
+import {act, renderHook} from '@testing-library/react-native';
+
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -211,9 +215,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {beforeAll} from '@jest/globals';
-import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
 

@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 
@@ -12,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {render, screen} from '@testing-library/react-native';
 import {View as MockedAvatarData} from 'react-native';
 import Onyx from 'react-native-onyx';
 

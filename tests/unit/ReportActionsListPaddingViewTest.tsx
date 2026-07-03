@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import Text from '@components/Text';
 
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
@@ -12,7 +14,6 @@ import type {Report} from '@src/types/onyx';
 
 import type {ViewStyle} from 'react-native';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 

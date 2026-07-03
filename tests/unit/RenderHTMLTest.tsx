@@ -1,7 +1,8 @@
+import {render} from '@testing-library/react-native';
+
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

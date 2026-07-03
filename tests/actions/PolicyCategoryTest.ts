@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import usePolicyData from '@hooks/usePolicyData';
@@ -19,7 +21,6 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategory} from '@src/types/onyx';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 

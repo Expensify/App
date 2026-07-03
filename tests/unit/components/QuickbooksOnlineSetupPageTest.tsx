@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 
 // This test exercises the native (in-app WebView) variant; jest resolves the `.native` entry point by default.
@@ -5,7 +7,6 @@ import QuickbooksOnlineSetupPage from '@pages/workspace/accounting/qbo/Quickbook
 
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
@@ -17,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';

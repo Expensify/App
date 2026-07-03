@@ -1,3 +1,5 @@
+import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
+
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 
 import DateUtils from '@libs/DateUtils';
@@ -7,7 +9,6 @@ import CONST from '@src/CONST';
 import type * as ReactNavigationNative from '@react-navigation/native';
 import type {ComponentType, ReactNode} from 'react';
 
-import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 
 type MockPressableProps = {testID?: string; accessibilityLabel?: string; role?: string; onPress?: () => void; children?: ReactNode};

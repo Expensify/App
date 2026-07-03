@@ -1,8 +1,9 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 const ACCOUNT_ID_ALICE = 1;

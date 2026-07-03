@@ -1,3 +1,14 @@
+/**
+ * Contracts asserted:
+ *   - approvalRowState state machine: HIDDEN / LOADING / READY / HIDDEN_EMPTY
+ *   - paymentRowState state machine: same transitions
+ *   - cardRows assembled from getDisplayableExpensifyCards (cardID, lastFour, query per card)
+ *   - query builders are called with the current user's accountID
+ *   - awaitingApprovalQuery / repaidLast30DaysQuery are exposed on the return value
+ *   - search() is dispatched when focused and online; suppressed when offline
+ */
+import {act, renderHook} from '@testing-library/react-native';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 
@@ -16,17 +27,6 @@ import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
-
-/**
- * Contracts asserted:
- *   - approvalRowState state machine: HIDDEN / LOADING / READY / HIDDEN_EMPTY
- *   - paymentRowState state machine: same transitions
- *   - cardRows assembled from getDisplayableExpensifyCards (cardID, lastFour, query per card)
- *   - query builders are called with the current user's accountID
- *   - awaitingApprovalQuery / repaidLast30DaysQuery are exposed on the return value
- *   - search() is dispatched when focused and online; suppressed when offline
- */
-import {act, renderHook} from '@testing-library/react-native';
 
 // Constants
 

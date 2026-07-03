@@ -1,3 +1,6 @@
+import type {RenderAPI} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import DateUtils from '@libs/DateUtils';
@@ -14,10 +17,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
 
-import type {RenderAPI} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';

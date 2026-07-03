@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 
 import CONST from '@src/CONST';
@@ -5,7 +7,6 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

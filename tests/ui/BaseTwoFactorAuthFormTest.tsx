@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 
@@ -9,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React, {createRef} from 'react';
 import Onyx from 'react-native-onyx';
 

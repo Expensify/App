@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useTodoCounts from '@hooks/useTodoCounts';
 
 import CONST from '@src/CONST';
@@ -5,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

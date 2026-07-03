@@ -1,8 +1,8 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useReportWasDeleted from '@pages/inbox/hooks/useReportWasDeleted';
 
 import type {Report} from '@src/types/onyx';
-
-import {renderHook} from '@testing-library/react-native';
 
 describe('useReportWasDeleted', () => {
     const createReport = (reportID: string, parentReportID?: string): Report =>

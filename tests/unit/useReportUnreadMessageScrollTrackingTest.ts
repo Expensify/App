@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import type Navigation from '@libs/Navigation/Navigation';
 
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -5,8 +7,6 @@ import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportU
 import CONST from '@src/CONST';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');

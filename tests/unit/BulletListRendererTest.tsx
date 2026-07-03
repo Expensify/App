@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import BulletItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import NumberedItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/NumberedItemRenderer';
 import OLRenderer from '@components/HTMLEngineProvider/HTMLRenderers/OLRenderer';
@@ -8,7 +10,6 @@ import CONST from '@src/CONST';
 
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));

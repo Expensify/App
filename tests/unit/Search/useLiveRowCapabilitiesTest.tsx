@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 
@@ -8,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';

@@ -1,3 +1,5 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import useMappedPersonalDetails from '@hooks/useMappedPersonalDetails';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -5,7 +7,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 const ACCOUNT_ID_ALICE = 1;

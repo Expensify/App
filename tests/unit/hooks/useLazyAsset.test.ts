@@ -1,10 +1,11 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import useLazyAsset, {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {SvgProps} from 'react-native-svg/lib/typescript';
 
-import {renderHook, waitFor} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@components/Icon/PlaceholderIcon', () => {

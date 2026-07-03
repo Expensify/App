@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {act, renderHook} from '@testing-library/react-native';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {generateTransactionID} from '@libs/actions/Transaction';
@@ -20,8 +23,6 @@ import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/Trans
 
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';

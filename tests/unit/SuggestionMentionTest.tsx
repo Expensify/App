@@ -1,3 +1,5 @@
+import {act, render, waitFor} from '@testing-library/react-native';
+
 import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -20,7 +22,6 @@ import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
-import {act, render, waitFor} from '@testing-library/react-native';
 import React from 'react';
 
 type MentionSuggestionsProps = {

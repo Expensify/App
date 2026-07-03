@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -14,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
 
-import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 const CONFIRM_TEXT = 'Start';

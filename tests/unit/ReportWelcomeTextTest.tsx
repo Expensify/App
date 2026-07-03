@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import ReportWelcomeText from '@components/ReportWelcomeText';
 
 import CONST from '@src/CONST';
@@ -6,7 +8,6 @@ import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

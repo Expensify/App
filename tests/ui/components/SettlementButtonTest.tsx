@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
@@ -18,7 +20,6 @@ import type {BankAccountList, Beta, LastPaymentMethod, Policy, Report} from '@sr
 
 import type {ValueOf} from 'type-fest';
 
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import PublicScreens from '@libs/Navigation/AppNavigator/PublicScreens';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
@@ -6,7 +8,6 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

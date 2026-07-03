@@ -1,10 +1,11 @@
+import {render} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
 
 import type QuickbooksOnlineSetupPageType from '@pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage';
 
 import ROUTES from '@src/ROUTES';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 type RunAfterTransitionsArg = {callback: () => void};

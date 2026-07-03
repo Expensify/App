@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import HapticFeedback from '@libs/HapticFeedback';
 
 import colors from '@styles/theme/colors';
@@ -9,7 +11,6 @@ import type {ButtonVariant} from '@src/components/ButtonComposed/context';
 import type {ButtonProps} from '@src/components/ButtonComposed/types';
 import CONST from '@src/CONST';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ActivityIndicator as RNActivityIndicator, StyleSheet, Text, View} from 'react-native';

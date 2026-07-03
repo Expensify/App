@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import fileDownload from '@libs/fileDownload';
@@ -6,7 +8,6 @@ import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hoo
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/fileDownload');

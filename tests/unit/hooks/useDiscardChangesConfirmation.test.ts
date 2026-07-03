@@ -1,7 +1,7 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 type MockBeforeRemoveEvent = {
     data: {action: {type: string}};

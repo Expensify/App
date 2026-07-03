@@ -1,9 +1,10 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
 
 import CONST from '@src/CONST';
 
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import {act, renderHook} from '@testing-library/react-native';
 
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(),

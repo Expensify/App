@@ -1,11 +1,11 @@
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {computeTimeAmount, formatTimeMerchant, isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type {RenderAPI} from '@testing-library/react-native';
 
 import Onyx from 'react-native-onyx';
 

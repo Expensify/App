@@ -1,9 +1,9 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import {renderHook} from '@testing-library/react-native';
 
 const onyxData: Record<string, unknown> = {};
 

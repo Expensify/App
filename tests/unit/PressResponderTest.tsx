@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressResponder from '@components/Pressable/PressResponder/PressResponder';
@@ -8,7 +10,6 @@ import Text from '@components/Text';
 import type {ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 
-import {render} from '@testing-library/react-native';
 import React, {useImperativeHandle} from 'react';
 import {View} from 'react-native';
 

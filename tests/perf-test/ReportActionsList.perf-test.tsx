@@ -1,3 +1,5 @@
+import {act, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type Navigation from '@libs/Navigation/Navigation';
@@ -15,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {act, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 

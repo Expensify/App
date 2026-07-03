@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ConfirmWhisperContent from '@pages/inbox/report/actionContents/ConfirmWhisperContent';
@@ -7,7 +9,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
-import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -20,7 +22,6 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type * as Navigation from '@react-navigation/native';
 import type {ReactElement} from 'react';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';

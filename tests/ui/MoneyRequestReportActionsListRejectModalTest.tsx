@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
@@ -12,7 +14,6 @@ import type {Policy, Report, ReportAction, Session, Transaction} from '@src/type
 import type * as CoreNavigation from '@react-navigation/core';
 
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

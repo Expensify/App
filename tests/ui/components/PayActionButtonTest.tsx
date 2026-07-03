@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import PayActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/PayActionButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
@@ -13,7 +15,6 @@ import type {Report} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
-import {act, render} from '@testing-library/react-native';
 import React from 'react';
 
 const TEST_IOU_REPORT_ID = '1001';

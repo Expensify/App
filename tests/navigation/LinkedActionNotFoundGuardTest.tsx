@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
+import {act, render} from '@testing-library/react-native';
+
 import CONST from '@src/CONST';
 import LinkedActionNotFoundGuard from '@src/pages/inbox/LinkedActionNotFoundGuard';
 import type {ReportAction} from '@src/types/onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
-import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

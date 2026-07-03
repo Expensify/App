@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -39,8 +42,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type {InvoiceTestData} from '../../data/Invoice';

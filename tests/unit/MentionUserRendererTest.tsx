@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -17,8 +20,6 @@ import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import type {ComponentType, ReactNode} from 'react';
 import type {TText} from 'react-native-render-html';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

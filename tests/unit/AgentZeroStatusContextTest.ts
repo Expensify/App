@@ -1,3 +1,5 @@
+import {act, renderHook, waitFor} from '@testing-library/react-native';
+
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 
 import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
@@ -10,7 +12,6 @@ import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {act, renderHook, waitFor} from '@testing-library/react-native';
 import fs from 'fs';
 import path from 'path';
 import React from 'react';

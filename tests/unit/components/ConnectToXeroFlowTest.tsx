@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow/index.native';
 
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
@@ -6,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

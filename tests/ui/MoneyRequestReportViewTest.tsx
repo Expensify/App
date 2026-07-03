@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+import {render} from '@testing-library/react-native';
+
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 
@@ -19,8 +22,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-import {render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

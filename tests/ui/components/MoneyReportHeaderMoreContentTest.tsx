@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import MoneyReportHeaderMoreContent from '@components/MoneyReportHeaderMoreContent';
 import MoneyReportHeaderNextStep from '@components/MoneyReportHeaderNextStep';
 
@@ -10,7 +12,6 @@ import type {Policy, Report} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 import createRandomPolicy from '../../utils/collections/policies';

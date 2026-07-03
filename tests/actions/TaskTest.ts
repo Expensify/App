@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {act, renderHook} from '@testing-library/react-native';
+
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -32,9 +36,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';

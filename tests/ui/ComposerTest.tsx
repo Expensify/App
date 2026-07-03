@@ -1,3 +1,5 @@
+import {act, render} from '@testing-library/react-native';
+
 import Composer from '@components/Composer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -6,7 +8,6 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

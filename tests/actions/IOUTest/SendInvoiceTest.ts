@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -12,8 +15,6 @@ import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type {RenderAPI} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';

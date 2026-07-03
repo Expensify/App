@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
@@ -7,7 +9,6 @@ import WorkspaceDuplicateSelectFeaturesForm from '@pages/workspace/duplicate/Wor
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

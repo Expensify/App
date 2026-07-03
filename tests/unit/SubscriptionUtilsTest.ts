@@ -1,3 +1,5 @@
+import {act} from '@testing-library/react-native';
+
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {
@@ -31,7 +33,6 @@ import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {act} from '@testing-library/react-native';
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 

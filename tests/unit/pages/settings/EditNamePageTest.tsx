@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -8,7 +10,6 @@ import EditNamePage from '@pages/settings/Agents/Fields/EditNamePage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({

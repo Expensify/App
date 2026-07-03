@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
@@ -9,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';

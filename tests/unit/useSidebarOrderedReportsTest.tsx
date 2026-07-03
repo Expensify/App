@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -11,7 +13,6 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
-import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

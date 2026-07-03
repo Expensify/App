@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -8,8 +10,6 @@ import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSec
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-import {renderHook} from '@testing-library/react-native';
 
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 

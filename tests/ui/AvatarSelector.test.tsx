@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import AvatarSelector from '@components/AvatarSelector';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,7 +10,6 @@ import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

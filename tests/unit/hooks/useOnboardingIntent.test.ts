@@ -1,9 +1,10 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

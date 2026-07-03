@@ -1,6 +1,6 @@
-import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
-
 import {renderHook} from '@testing-library/react-native';
+
+import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 
 type MockItem = {
     keyForList: string;

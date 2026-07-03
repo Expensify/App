@@ -1,3 +1,5 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 // Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
@@ -15,7 +17,6 @@ import type {PropsWithChildren, ReactNode} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 
 import {NavigationContext} from '@react-navigation/core';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 

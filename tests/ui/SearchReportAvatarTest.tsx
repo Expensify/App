@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
 
 import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
@@ -14,7 +16,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
 
-import {render, screen} from '@testing-library/react-native';
 import {View as MockedAvatarData} from 'react-native';
 import Onyx from 'react-native-onyx';
 

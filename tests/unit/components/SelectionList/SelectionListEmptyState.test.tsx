@@ -1,8 +1,9 @@
+import {render, screen} from '@testing-library/react-native';
+
 import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 
 import type ReactNative from 'react-native';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

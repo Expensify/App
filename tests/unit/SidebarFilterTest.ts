@@ -1,3 +1,5 @@
+import {screen} from '@testing-library/react-native';
+
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 
@@ -5,7 +7,6 @@ import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 
-import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';

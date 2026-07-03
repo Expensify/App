@@ -1,9 +1,10 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';

@@ -1,3 +1,5 @@
+import {fireEvent, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -15,7 +17,6 @@ import type {Report} from '@src/types/onyx';
 
 import type Animated from 'react-native-reanimated';
 
-import {fireEvent, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';

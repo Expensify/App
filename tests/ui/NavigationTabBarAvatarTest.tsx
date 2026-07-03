@@ -1,3 +1,5 @@
+import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
@@ -6,7 +8,6 @@ import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 
-import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 // Mock responsive layout to force wide layout

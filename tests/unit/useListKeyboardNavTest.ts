@@ -1,8 +1,8 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 
 import type Navigation from '@libs/Navigation/Navigation';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};

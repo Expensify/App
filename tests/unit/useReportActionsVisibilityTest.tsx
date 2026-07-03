@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
@@ -10,7 +12,6 @@ import type {ReportActions} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import {getFakeReportAction} from '../utils/ReportTestUtils';

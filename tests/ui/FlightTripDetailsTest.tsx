@@ -1,9 +1,9 @@
+import {render, screen} from '@testing-library/react-native';
+
 import FlightTripDetails from '@pages/Travel/FlightTripDetails';
 
 import CONST from '@src/CONST';
 import type {Reservation} from '@src/types/onyx/Transaction';
-
-import {render, screen} from '@testing-library/react-native';
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,

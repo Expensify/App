@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useSearchSelectorBase from '@hooks/useSearchSelector/base';
 
 import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
@@ -10,7 +12,6 @@ import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValue
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

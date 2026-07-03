@@ -1,6 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
 
-import {renderHook} from '@testing-library/react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 /**

@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useOnyx from '@hooks/useOnyx';
 
 import * as OptionsListUtilsModule from '@libs/OptionsListUtils';
@@ -8,8 +10,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 import type * as ReactNavigation from '@react-navigation/native';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 import type SelectedOption from '../../src/pages/NewChatPage/types';
 

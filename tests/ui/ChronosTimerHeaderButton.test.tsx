@@ -1,3 +1,5 @@
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -9,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

@@ -1,6 +1,7 @@
+import {render, screen} from '@testing-library/react-native';
+
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 const REPORT_ID = '42';

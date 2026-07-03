@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {waitFor} from '@testing-library/react-native';
+
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {detachReceipt, replaceReceipt} from '@libs/actions/IOU/Receipt';
@@ -16,8 +19,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';

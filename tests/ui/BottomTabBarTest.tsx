@@ -1,3 +1,5 @@
+import {cleanup, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import DebugTabView from '@components/Navigation/DebugTabView';
@@ -21,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

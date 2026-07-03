@@ -1,3 +1,5 @@
+import {act, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -16,7 +18,6 @@ import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';

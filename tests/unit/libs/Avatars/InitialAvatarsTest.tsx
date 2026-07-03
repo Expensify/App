@@ -1,8 +1,9 @@
+import {render} from '@testing-library/react-native';
+
 import Icon from '@components/Icon';
 
 import {DEFAULT_INITIAL, getInitialAvatarSvg, getInitialFromText} from '@libs/Avatars/InitialAvatars';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 describe('getInitialFromText', () => {

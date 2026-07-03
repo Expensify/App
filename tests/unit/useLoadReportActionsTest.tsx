@@ -1,8 +1,8 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useLoadReportActions from '@hooks/useLoadReportActions';
 
 import type Navigation from '@libs/Navigation/Navigation';
-
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 

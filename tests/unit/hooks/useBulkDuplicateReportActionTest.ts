@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import type {SelectedReports} from '@components/Search/types';
 
 import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
@@ -8,8 +11,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({

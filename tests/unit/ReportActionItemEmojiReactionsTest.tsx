@@ -1,9 +1,3 @@
-import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
-
-import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
-
-import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
-
 /**
  * Regression test for dual-format reaction key reads in getEmojiReactionDetails.
  * Validates that hex-keyed, name-keyed, and mixed reaction maps all produce the
@@ -11,6 +5,13 @@ import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
  * consumed by EmojiReactionBubble.
  */
 import {render, screen} from '@testing-library/react-native';
+
+import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
+
+import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
+
+import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
+
 import React from 'react';
 
 const USER_ACCOUNT_ID = 12345;

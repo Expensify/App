@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useSelectionListTextInput from '@components/SelectionList/hooks/useSelectionListTextInput';
 
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
@@ -5,8 +7,6 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import CONST from '@src/CONST';
 
 import type {TextInputKeyPressEvent} from 'react-native';
-
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useSyncFocus/useSyncFocusImplementation', () => ({
     focusedItemRef: {focus: jest.fn()},

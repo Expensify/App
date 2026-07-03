@@ -1,8 +1,9 @@
+import {render, screen} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 import {translateLocal} from '../../utils/TestHelper';

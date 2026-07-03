@@ -1,9 +1,9 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 

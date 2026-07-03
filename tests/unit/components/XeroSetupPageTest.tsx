@@ -1,9 +1,10 @@
+import {render, screen} from '@testing-library/react-native';
+
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 
 // This test exercises the native (in-app WebView) variant; jest resolves the `.native` entry point by default.
 import XeroSetupPage from '@pages/workspace/accounting/xero/XeroSetupPage/index.native';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 

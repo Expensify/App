@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useAncestors from '@hooks/useAncestors';
 
 import * as ReportUtils from '@libs/ReportUtils';
@@ -10,7 +12,6 @@ import type {Report, ReportAction, ReportActions, ReportActionsDrafts} from '@sr
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 
 import {getFakeReport, getFakeReportAction} from '../../../../utils/LHNTestUtils';

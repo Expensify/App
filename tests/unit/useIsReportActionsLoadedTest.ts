@@ -1,9 +1,10 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 const REPORT_ID = '1';

@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useOriginalReportID from '@hooks/useOriginalReportID';
@@ -8,7 +10,6 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 describe('useOriginalReportID', () => {

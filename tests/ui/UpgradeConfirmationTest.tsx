@@ -1,3 +1,5 @@
+import {cleanup, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,7 +10,6 @@ import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

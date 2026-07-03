@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import LinkButton from '@src/components/ButtonComposed/composed/LinkButton';
 import ButtonDoubleLineText from '@src/components/ButtonComposed/primitives/ButtonDoubleLineText';
 import ButtonIcon from '@src/components/ButtonComposed/primitives/ButtonIcon';
@@ -6,7 +8,6 @@ import CONST from '@src/CONST';
 import colors from '@src/styles/theme/colors';
 import variables from '@src/styles/variables';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 const LABEL = 'test-link';

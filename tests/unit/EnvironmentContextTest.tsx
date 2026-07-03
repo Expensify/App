@@ -1,8 +1,9 @@
+import {render, waitFor} from '@testing-library/react-native';
+
 import EnvironmentProvider, {EnvironmentActionsContext} from '@components/EnvironmentContextProvider';
 
 import CONST from '@src/CONST';
 
-import {render, waitFor} from '@testing-library/react-native';
 import React from 'react';
 
 // Mock getEnvironment and getEnvironmentURL

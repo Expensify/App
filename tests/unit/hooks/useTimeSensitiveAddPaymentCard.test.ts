@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 
 import {shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
@@ -7,7 +9,6 @@ import useTimeSensitiveAddPaymentCard from '@pages/home/TimeSensitiveSection/hoo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

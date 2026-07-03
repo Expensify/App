@@ -1,9 +1,10 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 function mockTranslate(key: string): string {

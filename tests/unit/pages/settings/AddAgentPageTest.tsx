@@ -1,3 +1,5 @@
+import {render} from '@testing-library/react-native';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,7 +12,6 @@ import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pen
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({

@@ -1,11 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useSearchSnapshot from '@components/Search/hooks/useSearchSnapshot';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
-
-import {renderHook} from '@testing-library/react-native';
 
 const onyxData: Record<string, unknown> = {};
 

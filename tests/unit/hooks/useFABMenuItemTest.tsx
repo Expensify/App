@@ -1,10 +1,11 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import {FABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import type {FABMenuContextType} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 
 import type {PropsWithChildren} from 'react';
 
-import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 
 function createMockContext(overrides: Partial<FABMenuContextType> = {}): FABMenuContextType {

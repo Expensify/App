@@ -1,3 +1,5 @@
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -9,7 +11,6 @@ import type {ReportAction} from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';

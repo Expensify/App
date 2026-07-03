@@ -1,10 +1,10 @@
+import type {RenderAPI} from '@testing-library/react-native';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type {RenderAPI} from '@testing-library/react-native';
 
 import Onyx from 'react-native-onyx';
 

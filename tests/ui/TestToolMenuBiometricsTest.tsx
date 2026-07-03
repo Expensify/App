@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import TestToolMenu from '@components/TestToolMenu';
 
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
@@ -5,8 +8,6 @@ import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/V
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;

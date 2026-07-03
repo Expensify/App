@@ -1,10 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 
 import {getReportOwnerAsAttendee} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {createRandomReport} from 'tests/utils/collections/reports';
 import createRandomTransaction from 'tests/utils/collections/transaction';

@@ -1,10 +1,3 @@
-import usePageRefresh from '@hooks/usePageRefresh';
-
-import CONST from '@src/CONST';
-import lazyRetry from '@src/utils/lazyRetry';
-
-import type {ComponentType} from 'react';
-
 /**
  * Regression tests for the Safari PWA ChunkLoadError crash loop.
  *
@@ -20,6 +13,13 @@ import type {ComponentType} from 'react';
  *   - Third failure                          → reject to error boundary (loop prevention).
  */
 import {renderHook} from '@testing-library/react-native';
+
+import usePageRefresh from '@hooks/usePageRefresh';
+
+import CONST from '@src/CONST';
+import lazyRetry from '@src/utils/lazyRetry';
+
+import type {ComponentType} from 'react';
 
 type ComponentImport<T> = () => Promise<{default: T}>;
 

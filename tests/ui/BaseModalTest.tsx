@@ -1,8 +1,9 @@
+import {render} from '@testing-library/react-native';
+
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 
 import CONST from '@src/CONST';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 describe('BaseModal', () => {

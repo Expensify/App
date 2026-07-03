@@ -1,3 +1,5 @@
+import {act, renderHook, waitFor} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SelectedTransactions} from '@components/Search/types';
 
@@ -16,7 +18,6 @@ import type {ReportAction, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';

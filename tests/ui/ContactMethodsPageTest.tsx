@@ -1,3 +1,5 @@
+import {render, screen, waitFor} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 
 import ContactMethodsPage from '@pages/settings/Profile/Contacts/ContactMethodsPage';
@@ -9,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

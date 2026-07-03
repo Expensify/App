@@ -1,3 +1,5 @@
+import {render, screen} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 
@@ -8,7 +10,6 @@ import CONST from '@src/CONST';
 
 import type {SvgProps} from 'react-native-svg';
 
-import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 import {translateLocal} from '../../utils/TestHelper';

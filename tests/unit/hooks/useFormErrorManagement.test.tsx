@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useFormErrorManagement from '@components/MoneyRequestConfirmationList/hooks/useFormErrorManagement';
 
@@ -8,7 +10,6 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type * as ReactNavigationModule from '@react-navigation/native';
 
-import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

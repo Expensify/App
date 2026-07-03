@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import {act, renderHook} from '@testing-library/react-native';
+
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';

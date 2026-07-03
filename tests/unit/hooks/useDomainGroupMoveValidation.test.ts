@@ -1,3 +1,5 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import useDomainGroupMoveValidation from '@pages/domain/Members/useDomainGroupMoveValidation';
 
 import CONST from '@src/CONST';
@@ -5,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DomainSecurityGroup} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
-import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

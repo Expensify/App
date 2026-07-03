@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
@@ -7,7 +9,6 @@ import type * as SubscriptionUtilsModule from '@libs/SubscriptionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';

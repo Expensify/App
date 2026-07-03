@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -5,7 +7,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getRootState: jest.fn(() => undefined),

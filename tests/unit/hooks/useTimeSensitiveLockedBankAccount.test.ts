@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
+
 import useTimeSensitiveLockedBankAccount from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveLockedBankAccount';
 
 import CONST from '@src/CONST';
@@ -5,8 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccount, BankAccountList} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

@@ -1,3 +1,5 @@
+import {fireEvent, screen} from '@testing-library/react-native';
+
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
@@ -17,7 +19,6 @@ import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID
 
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 
-import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';

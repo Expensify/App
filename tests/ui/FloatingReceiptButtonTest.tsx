@@ -1,3 +1,5 @@
+import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
+
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 
 import colors from '@styles/theme/colors';
@@ -5,7 +7,6 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 import {NavigationContainer} from '@react-navigation/native';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 describe('FloatingReceiptButton hover', () => {

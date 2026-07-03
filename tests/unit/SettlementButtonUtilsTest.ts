@@ -1,11 +1,11 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
 import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 
 import CONST from '@src/CONST';
-
-import {renderHook} from '@testing-library/react-native';
 
 const mockTranslate = jest.fn((key: string) => key);
 

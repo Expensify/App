@@ -1,9 +1,10 @@
+import {render} from '@testing-library/react-native';
+
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 import * as PersonalDetails from '@userActions/PersonalDetails';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');

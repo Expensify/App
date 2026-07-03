@@ -1,3 +1,5 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -5,8 +7,6 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {addKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 
 import CONST from '@src/CONST';
-
-import {act, renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useArrowKeyFocusManager', () => jest.fn());
 jest.mock('@libs/KeyboardShortcut/KeyDownPressListener', () => ({

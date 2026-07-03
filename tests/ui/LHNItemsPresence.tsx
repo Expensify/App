@@ -1,3 +1,5 @@
+import {act, screen} from '@testing-library/react-native';
+
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -18,7 +20,6 @@ import type {ComponentType} from 'react';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {act, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 
 import {chatReportR14932} from '../../__mocks__/reportData/reports';

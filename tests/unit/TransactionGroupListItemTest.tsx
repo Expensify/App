@@ -1,3 +1,5 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -12,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as CoreNavigation from '@react-navigation/core';
 
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import React, {act} from 'react';
 import Onyx from 'react-native-onyx';
 

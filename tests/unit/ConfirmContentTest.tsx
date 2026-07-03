@@ -1,6 +1,7 @@
+import {render} from '@testing-library/react-native';
+
 import ConfirmContent from '@components/ConfirmContent';
 
-import {render} from '@testing-library/react-native';
 import React from 'react';
 
 type ButtonProps = {
