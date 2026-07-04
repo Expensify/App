@@ -216,6 +216,7 @@ type DeleteTrackExpenseParams = {
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -2805,6 +2806,7 @@ function deleteTrackExpense({
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
+    policy,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2839,6 +2841,7 @@ function deleteTrackExpense({
             allTransactionViolationsParam,
             currentUserAccountID,
             currentUserEmail,
+            policy,
         });
         return urlToNavigateBack;
     }

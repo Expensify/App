@@ -1787,6 +1787,139 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@email.com';
 
+        // Reviewer's Jun 21..25 scenario: delete first (Jun 21) and last (Jun 25), offline.
+        // Expected title after both deletes: "Trip from Jun 22 to Jun 24, 2025".
+        it('recomputes title after deleting BOTH the first AND the last expense in a TRIP report (offline)', async () => {
+            const policyID = 'policy-trip-multi-delete';
+            const titleField = {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                name: 'Title',
+                type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                deletable: false,
+                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+            const policy = {
+                ...createRandomPolicy(102, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(201, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                total: -50000,
+                currency: CONST.CURRENCY.USD,
+                reportName: 'Trip from Jun 21 to Jun 25, 2025',
+            };
+            const makeTxn = (n: number, day: string): Transaction => ({
+                ...createRandomTransaction(2000 + n),
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                created: `2025-06-${day}`,
+                merchant: `Expense ${day}`,
+                reimbursable: true,
+            });
+            const t21 = makeTxn(1, '21');
+            const t22 = makeTxn(2, '22');
+            const t23 = makeTxn(3, '23');
+            const t24 = makeTxn(4, '24');
+            const t25 = makeTxn(5, '25');
+
+            const makeAction = (t: Transaction, n: number): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ({
+                ...createRandomReportAction(2000 + n),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {amount: t.amount, currency: t.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: t.transactionID},
+                message: undefined,
+                previousMessage: undefined,
+            });
+            const a21 = makeAction(t21, 1);
+            const a25 = makeAction(t25, 5);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t21.transactionID}`, t21);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t22.transactionID}`, t22);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t23.transactionID}`, t23);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t24.transactionID}`, t24);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t25.transactionID}`, t25);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [a21.reportActionID]: a21,
+                [a25.reportActionID]: a25,
+            });
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+
+            // Delete Jun 21 first. Every production caller is now threading `policy` through, mirrored here.
+            deleteMoneyRequest({
+                transactionID: t21.transactionID,
+                reportAction: a21,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                policy,
+            });
+            await waitForBatchedUpdates();
+
+            const afterFirstDelete = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // Delete Jun 25 next. Sticky pending-DELETE from iter 1 keeps Jun 21 excluded from the recompute.
+            deleteMoneyRequest({
+                transactionID: t25.transactionID,
+                reportAction: a25,
+                transactions: {},
+                violations: {},
+                iouReport: afterFirstDelete,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                policy,
+            });
+            await waitForBatchedUpdates();
+
+            const afterSecondDelete = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(afterFirstDelete?.reportName).toBe('Trip from Jun 22 to Jun 25, 2025');
+            expect(afterSecondDelete?.reportName).toBe('Trip from Jun 22 to Jun 24, 2025');
+
+            mockFetch?.resume?.();
+        });
+
         it('recomputes {report:autoreporting:start/end} when the oldest expense in a TRIP report is deleted (offline)', async () => {
             const policyID = 'policy-trip-delete';
             const titleField = {

@@ -968,6 +968,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                policy,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -1003,6 +1004,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
+        policy,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.

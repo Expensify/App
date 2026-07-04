@@ -391,6 +391,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
                     currentUserEmail: email ?? '',
+                    policy,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
@@ -454,6 +455,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,
+        policy,
     ]);
 
     const hideDeleteModal = () => {

@@ -338,9 +338,10 @@ function cleanUpMoneyRequest(
     isChatIOUReportArchived: boolean | undefined,
     originalReportID: string | undefined,
     isSingleTransactionView = false,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
 ) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
-        prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false);
+        prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false, undefined, undefined, policy);
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
         transactionID,
