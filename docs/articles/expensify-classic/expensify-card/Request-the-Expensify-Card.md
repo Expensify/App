@@ -25,7 +25,7 @@ The Expensify Card is currently available only to companies that meet the follow
 
 ## 2. Request the Card
 If a card limit hasn’t been assigned to you, look for the task on your account homepage that says: **"Ask your admin for the card!"**
-- Completing this task sends an in-product notification to your admin team requesting the card.
+- Completing this task submits a card request for your account and lets your admins know you're interested in receiving an Expensify Card.
 - Once assigned a card limit, you’ll receive an email notification. Follow these steps:
   1. Click the link in the email.
   2. Provide your shipping address on your account homepage.
