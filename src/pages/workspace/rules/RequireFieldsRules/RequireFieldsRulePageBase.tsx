@@ -24,7 +24,13 @@ import {clearDraftRequireFieldsRule, setDraftRequireFieldsRule, updateDraftRequi
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, inferFieldRequirementsDirection, saveRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+import {
+    getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleValidationError,
+    inferFieldRequirementsDirection,
+    saveRequireFieldsRule,
+} from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -35,9 +41,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
-import type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
+import type {RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -49,43 +54,6 @@ type RequireFieldsRulePageBaseProps = {
     direction?: FieldRequirementsDirection;
     testID: string;
 };
-
-function getValidationError(
-    form: RequireFieldsRuleForm | null | undefined,
-    category: PolicyCategory | undefined,
-    policy: Policy | undefined,
-    translate: ReturnType<typeof useLocalize>['translate'],
-): string {
-    if (!form?.[INPUT_IDS.CATEGORY]) {
-        return translate('workspace.rules.requireFieldsRule.confirmErrorCategory');
-    }
-
-    const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
-    const direction = effectiveForm[INPUT_IDS.DIRECTION];
-    const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
-
-    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
-        const hasReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_RECEIPT];
-        const hasItemizedReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
-
-        if (!hasReceipt && !hasItemizedReceipt) {
-            return translate('workspace.rules.requireFieldsRule.confirmErrorDoNotRequireField');
-        }
-
-        return '';
-    }
-
-    const hasDescription = !!effectiveForm[INPUT_IDS.REQUIRE_DESCRIPTION];
-    const hasAttendees = isAttendeeFieldApplicable && !!effectiveForm[INPUT_IDS.REQUIRE_ATTENDEES];
-    const hasReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_RECEIPT];
-    const hasItemizedReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
-
-    if (!hasDescription && !hasAttendees && !hasReceipt && !hasItemizedReceipt) {
-        return translate('workspace.rules.requireFieldsRule.confirmErrorField');
-    }
-
-    return '';
-}
 
 function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDirection, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
@@ -193,7 +161,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         },
     ];
 
-    const errorMessage = getValidationError(form, selectedCategory, policy, translate);
+    const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isAttendeeFieldApplicable);
 
     const handleToggleField = (fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean) => {
         if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT && value) {

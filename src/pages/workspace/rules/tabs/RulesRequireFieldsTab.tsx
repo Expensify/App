@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -6,15 +7,19 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import RulesTabEmptyState from './RulesTabEmptyState';
 
@@ -29,6 +34,7 @@ type RulesRequireFieldsTabProps = {
 function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal}: RulesRequireFieldsTabProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
@@ -65,13 +71,27 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         />
     );
 
+    if (arePolicyCategoriesLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'RulesRequireFieldsTab'};
+
+        return (
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <ActivityIndicator
+                    color={theme.spinner}
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        );
+    }
+
     return (
         <WorkspaceRequireFieldsTable
             rulesData={requireFieldsTableData}
             selectionEnabled={canWriteRules}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
-            emptyStateContent={arePolicyCategoriesLoading ? undefined : requireFieldsEmptyState}
+            emptyStateContent={requireFieldsEmptyState}
         />
     );
 }

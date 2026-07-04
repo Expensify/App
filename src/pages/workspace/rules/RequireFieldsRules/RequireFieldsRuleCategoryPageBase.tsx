@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasRequireFieldsRuleForDirection, getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -50,13 +50,25 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
         isEditing && categoryName && direction ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName, direction) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
+        const formDirection = form?.[INPUT_IDS.DIRECTION] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
         const selectedCategory = value ? policyCategories?.[value] : undefined;
         const draftForm = {
             ...form,
             [INPUT_IDS.CATEGORY]: value,
         };
+        const effectiveDraftForm = selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm;
 
-        updateDraftRequireFieldsRule(selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm);
+        if (!isEditing && value && selectedCategory && categoryHasRequireFieldsRuleForDirection(selectedCategory, formDirection)) {
+            updateDraftRequireFieldsRule({
+                ...effectiveDraftForm,
+                [INPUT_IDS.CATEGORY]: value,
+                [INPUT_IDS.DIRECTION]: formDirection,
+            });
+            Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, value, formDirection));
+            return;
+        }
+
+        updateDraftRequireFieldsRule(effectiveDraftForm);
     };
 
     return (
