@@ -18,21 +18,21 @@
  *
  * The old `Button` component is not affected – migration can be gradual.
  */
-import React from "react";
+import React from 'react';
 
-import ButtonComponent from "./Button";
-import ButtonIcon from "./primitives/ButtonIcon";
-import ButtonKeyboardShortcut from "./primitives/ButtonKeyboardShortcut";
-import ButtonText from "./primitives/ButtonText";
+import ButtonComponent from './Button';
+import ButtonIcon from './primitives/ButtonIcon';
+import ButtonKeyboardShortcut from './primitives/ButtonKeyboardShortcut';
+import ButtonText from './primitives/ButtonText';
 
 function ButtonBase(props: React.ComponentProps<typeof ButtonComponent>) {
-  return <ButtonComponent {...props} />;
+    return <ButtonComponent {...props} />;
 }
 
 const Button = Object.assign(ButtonBase, {
-  Icon: ButtonIcon,
-  Text: ButtonText,
-  KeyboardShortcut: ButtonKeyboardShortcut,
+    Icon: ButtonIcon,
+    Text: ButtonText,
+    KeyboardShortcut: ButtonKeyboardShortcut,
 });
 
 export default Button;

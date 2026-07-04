@@ -1,16 +1,16 @@
-import validateSubmitShortcut from "@components/Button/validateSubmitShortcut";
-import type { ButtonKeyboardShortcutProps } from "@components/ButtonComposed/types";
-import withNavigationFallback from "@components/withNavigationFallback";
+import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
+import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
+import withNavigationFallback from '@components/withNavigationFallback';
 
-import useActiveElementRole from "@hooks/useActiveElementRole";
-import useKeyboardShortcut from "@hooks/useKeyboardShortcut";
+import useActiveElementRole from '@hooks/useActiveElementRole';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 
-import CONST from "@src/CONST";
+import CONST from '@src/CONST';
 
-import type { GestureResponderEvent } from "react-native";
+import type {GestureResponderEvent} from 'react-native';
 
-import { useIsFocused } from "@react-navigation/native";
-import { useCallback, useMemo } from "react";
+import {useIsFocused} from '@react-navigation/native';
+import {useCallback, useMemo} from 'react';
 
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
@@ -26,61 +26,42 @@ const accessibilityRoles: string[] = Object.values(CONST.ROLE);
  *   </Button>
  */
 function ButtonKeyboardShortcut({
-  isDisabled = false,
-  isLoading = false,
-  onPress = () => {},
-  pressOnEnter,
-  allowBubble,
-  enterKeyEventListenerPriority,
-  isPressOnEnterActive = false,
+    isDisabled = false,
+    isLoading = false,
+    onPress = () => {},
+    pressOnEnter,
+    allowBubble,
+    enterKeyEventListenerPriority,
+    isPressOnEnterActive = false,
 }: ButtonKeyboardShortcutProps) {
-  const isFocused = useIsFocused();
-  const activeElementRole = useActiveElementRole();
+    const isFocused = useIsFocused();
+    const activeElementRole = useActiveElementRole();
 
-  const shouldDisableEnterShortcut = useMemo(
-    () =>
-      accessibilityRoles.includes(activeElementRole ?? "") &&
-      activeElementRole !== CONST.ROLE.PRESENTATION,
-    [activeElementRole],
-  );
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
 
-  const keyboardShortcutCallback = useCallback(
-    (event?: GestureResponderEvent | KeyboardEvent) => {
-      if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
-        return;
-      }
-      onPress();
-    },
-    [isDisabled, isLoading, onPress],
-  );
+    const keyboardShortcutCallback = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+                return;
+            }
+            onPress();
+        },
+        [isDisabled, isLoading, onPress],
+    );
 
-  const config = useMemo(
-    () => ({
-      isActive:
-        pressOnEnter &&
-        !shouldDisableEnterShortcut &&
-        (isFocused || isPressOnEnterActive),
-      shouldBubble: allowBubble,
-      priority: enterKeyEventListenerPriority,
-      shouldPreventDefault: false,
-    }),
-    [
-      pressOnEnter,
-      shouldDisableEnterShortcut,
-      isFocused,
-      isPressOnEnterActive,
-      allowBubble,
-      enterKeyEventListenerPriority,
-    ],
-  );
+    const config = useMemo(
+        () => ({
+            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+            shouldBubble: allowBubble,
+            priority: enterKeyEventListenerPriority,
+            shouldPreventDefault: false,
+        }),
+        [pressOnEnter, shouldDisableEnterShortcut, isFocused, isPressOnEnterActive, allowBubble, enterKeyEventListenerPriority],
+    );
 
-  useKeyboardShortcut(
-    CONST.KEYBOARD_SHORTCUTS.ENTER,
-    keyboardShortcutCallback,
-    config,
-  );
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 
-  return null;
+    return null;
 }
 
 export default withNavigationFallback(ButtonKeyboardShortcut);
