@@ -83,17 +83,55 @@ function hasCategoryReceiptOverride(value: number | null | undefined): boolean {
     return value !== null && value !== undefined;
 }
 
+type RequireFieldsPendingFieldKey = 'areCommentsRequired' | 'areAttendeesRequired' | 'maxAmountNoReceipt' | 'maxAmountNoItemizedReceipt';
+
+function isRequireFieldsFieldPendingDelete(category: PolicyCategory, field: RequireFieldsPendingFieldKey): boolean {
+    return category.pendingFields?.[field] === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function isDescriptionRequiredForCategory(category: PolicyCategory): boolean {
+    return !!category.areCommentsRequired && !isRequireFieldsFieldPendingDelete(category, 'areCommentsRequired');
+}
+
+function isAttendeesRequiredForCategory(category: PolicyCategory): boolean {
+    return !!category.areAttendeesRequired && !isRequireFieldsFieldPendingDelete(category, 'areAttendeesRequired');
+}
+
+function isReceiptRequireOverrideForCategory(category: PolicyCategory): boolean {
+    return (
+        hasCategoryReceiptOverride(category.maxAmountNoReceipt) &&
+        hasExplicitReceiptThreshold(category.maxAmountNoReceipt) &&
+        !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt')
+    );
+}
+
+function isItemizedReceiptRequireOverrideForCategory(category: PolicyCategory): boolean {
+    return (
+        hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) &&
+        hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt) &&
+        !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt')
+    );
+}
+
+function isReceiptWaivedForCategory(category: PolicyCategory): boolean {
+    return isWaiveReceiptThreshold(category.maxAmountNoReceipt) && !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt');
+}
+
+function isItemizedReceiptWaivedForCategory(category: PolicyCategory): boolean {
+    return isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt) && !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt');
+}
+
 function categoryHasRequireDirectionFields(category: PolicyCategory): boolean {
     return (
-        !!category.areCommentsRequired ||
-        !!category.areAttendeesRequired ||
-        (hasCategoryReceiptOverride(category.maxAmountNoReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) ||
-        (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt))
+        isDescriptionRequiredForCategory(category) ||
+        isAttendeesRequiredForCategory(category) ||
+        isReceiptRequireOverrideForCategory(category) ||
+        isItemizedReceiptRequireOverrideForCategory(category)
     );
 }
 
 function categoryHasWaiveDirectionFields(category: PolicyCategory): boolean {
-    return isWaiveReceiptThreshold(category.maxAmountNoReceipt) || isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt);
+    return isReceiptWaivedForCategory(category) || isItemizedReceiptWaivedForCategory(category);
 }
 
 function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
@@ -123,19 +161,19 @@ function isRequireFieldEnabled(category: PolicyCategory | undefined, field: Requ
 
     switch (field) {
         case INPUT_IDS.REQUIRE_DESCRIPTION:
-            return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && !!category.areCommentsRequired;
+            return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && isDescriptionRequiredForCategory(category);
         case INPUT_IDS.REQUIRE_ATTENDEES:
-            return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && !!category.areAttendeesRequired;
+            return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && isAttendeesRequiredForCategory(category);
         case INPUT_IDS.REQUIRE_RECEIPT:
             if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
-                return isWaiveReceiptThreshold(category.maxAmountNoReceipt);
+                return isReceiptWaivedForCategory(category);
             }
-            return hasExplicitReceiptThreshold(category.maxAmountNoReceipt);
+            return isReceiptRequireOverrideForCategory(category);
         case INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT:
             if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
-                return isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt);
+                return isItemizedReceiptWaivedForCategory(category);
             }
-            return hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt);
+            return isItemizedReceiptRequireOverrideForCategory(category);
         default:
             return false;
     }
@@ -368,10 +406,14 @@ function getRequireFieldsRuleDescription(
     }
 }
 
-function getRequireFieldsPendingAction(pendingFields: PolicyCategories[string]['pendingFields']): PendingAction | undefined {
-    const pendingActions = [pendingFields?.areCommentsRequired, pendingFields?.areAttendeesRequired, pendingFields?.maxAmountNoReceipt, pendingFields?.maxAmountNoItemizedReceipt].filter(
-        (pendingAction): pendingAction is PendingAction => !!pendingAction,
-    );
+function getRequireFieldsPendingActionForDirection(category: PolicyCategory, direction: FieldRequirementsDirection): PendingAction | undefined {
+    const pendingFields = category.pendingFields;
+    const fieldKeys: RequireFieldsPendingFieldKey[] =
+        direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE
+            ? ['areCommentsRequired', 'areAttendeesRequired', 'maxAmountNoReceipt', 'maxAmountNoItemizedReceipt']
+            : ['maxAmountNoReceipt', 'maxAmountNoItemizedReceipt'];
+
+    const pendingActions = fieldKeys.map((field) => pendingFields?.[field]).filter((pendingAction): pendingAction is PendingAction => !!pendingAction);
 
     return pendingActions.find((pendingAction) => isPendingDeleteOrUpdate(pendingAction)) ?? pendingActions.at(0);
 }
@@ -398,11 +440,11 @@ function getRequireFieldsRuleDescriptionsForCategory(
     const descriptions: string[] = [];
 
     if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
-        if (category.areCommentsRequired) {
+        if (isDescriptionRequiredForCategory(category)) {
             descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION, undefined, convertToDisplayString, policyCurrency, direction));
         }
 
-        if (hasCategoryReceiptOverride(category.maxAmountNoReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) {
+        if (isReceiptRequireOverrideForCategory(category)) {
             descriptions.push(
                 getRequireFieldsRuleDescription(
                     translate,
@@ -415,7 +457,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
             );
         }
 
-        if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+        if (isItemizedReceiptRequireOverrideForCategory(category)) {
             descriptions.push(
                 getRequireFieldsRuleDescription(
                     translate,
@@ -428,14 +470,14 @@ function getRequireFieldsRuleDescriptionsForCategory(
             );
         }
 
-        if (category.areAttendeesRequired) {
+        if (isAttendeesRequiredForCategory(category)) {
             descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES, undefined, convertToDisplayString, policyCurrency, direction));
         }
 
         return descriptions;
     }
 
-    if (isWaiveReceiptThreshold(category.maxAmountNoReceipt)) {
+    if (isReceiptWaivedForCategory(category)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -448,7 +490,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+    if (isItemizedReceiptWaivedForCategory(category)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -492,7 +534,7 @@ function createRequireFieldsTableItem({
     onNavigate: (route: Route) => void;
 }): RequireFieldsTableItem {
     const ruleKey = getRequireFieldsRuleKey(direction, categoryName);
-    const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
+    const pendingAction = getRequireFieldsPendingActionForDirection(category, direction);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
     const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
     const typeLabel = getRequireFieldsTypeLabel(direction, translate);
@@ -526,7 +568,6 @@ function getRequireFieldsTableData({
     translate,
     convertToDisplayString,
     localeCompare,
-    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
@@ -534,7 +575,6 @@ function getRequireFieldsTableData({
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
-    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): RequireFieldsTableItem[] {
     if (!policy?.id || !policyCategories) {
@@ -550,14 +590,7 @@ function getRequireFieldsTableData({
             continue;
         }
 
-        const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
-        const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-        if (!isOffline && isPendingDelete) {
-            continue;
-        }
-
-        if (!categoryHasAnyRequireFieldsRule(category) && !isPendingDelete) {
+        if (!categoryHasAnyRequireFieldsRule(category)) {
             continue;
         }
 
@@ -585,16 +618,6 @@ function getRequireFieldsTableData({
                 createRequireFieldsTableItem({
                     ...tableItemParams,
                     direction: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
-                }),
-            );
-        }
-
-        if (!categoryHasAnyRequireFieldsRule(category) && isPendingDelete) {
-            const direction = inferFieldRequirementsDirection(category);
-            rules.push(
-                createRequireFieldsTableItem({
-                    ...tableItemParams,
-                    direction,
                 }),
             );
         }
