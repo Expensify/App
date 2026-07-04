@@ -196,28 +196,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     const errorMessage = getValidationError(form, selectedCategory, policy, translate);
 
     const handleToggleField = (fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean) => {
-        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
-            if (fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT && value) {
-                updateDraftRequireFieldsRule({
-                    [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: true,
-                    [INPUT_IDS.REQUIRE_RECEIPT]: true,
-                });
-                return;
-            }
-
-            if (fieldKey === INPUT_IDS.REQUIRE_RECEIPT && !value) {
-                updateDraftRequireFieldsRule({
-                    [INPUT_IDS.REQUIRE_RECEIPT]: false,
-                    [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: false,
-                });
-                return;
-            }
-        }
-
-        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE && fieldKey === INPUT_IDS.REQUIRE_RECEIPT && value) {
+        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT && value) {
             updateDraftRequireFieldsRule({
-                [INPUT_IDS.REQUIRE_RECEIPT]: true,
                 [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: true,
+                [INPUT_IDS.REQUIRE_RECEIPT]: true,
             });
             return;
         }
@@ -331,14 +313,25 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                         .filter((field) => field.isVisible)
                         .map((field) => {
                             const isChecked = !!effectiveForm?.[field.key];
-                            const toggleField = () => handleToggleField(field.key, !isChecked);
+                            const isReceiptDisabledWhileItemizedRequired =
+                                direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE &&
+                                field.key === INPUT_IDS.REQUIRE_RECEIPT &&
+                                isChecked &&
+                                !!effectiveForm?.[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
+                            const isFieldDisabled = !canWriteRules || isReceiptDisabledWhileItemizedRequired;
+                            const toggleField = () => {
+                                if (isFieldDisabled) {
+                                    return;
+                                }
+                                handleToggleField(field.key, !isChecked);
+                            };
 
                             return (
                                 <MenuItem
                                     key={field.key}
                                     title={field.label}
                                     onPress={toggleField}
-                                    disabled={!canWriteRules}
+                                    disabled={isFieldDisabled}
                                     interactive={canWriteRules}
                                     shouldShowRightComponent
                                     rightComponent={
@@ -348,7 +341,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                                                 onPress={toggleField}
                                                 accessibilityLabel={field.label}
                                                 accessible={false}
-                                                disabled={!canWriteRules}
+                                                disabled={isFieldDisabled}
                                             />
                                         </View>
                                     }
