@@ -848,6 +848,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
@@ -889,6 +890,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         betas,
         delegateEmail,
         currentSearchKey,
+        personalDetails,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {

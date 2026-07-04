@@ -2263,6 +2263,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                ownerLogin: undefined,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -2303,6 +2304,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -2877,6 +2879,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
             delegateEmail: undefined,
+            ownerLogin: undefined,
         });
 
         beforeEach(() => {
@@ -3063,6 +3066,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3114,6 +3118,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3161,6 +3166,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3284,6 +3290,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3314,6 +3321,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3342,6 +3350,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3400,6 +3409,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3449,6 +3459,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         amountOwed: 0,
                         ownerBillingGracePeriodEnd: undefined,
                         delegateEmail: undefined,
+                        ownerLogin: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3579,6 +3590,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
 

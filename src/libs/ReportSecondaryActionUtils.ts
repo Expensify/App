@@ -293,6 +293,7 @@ function isApproveAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     report: Report,
+    ownerLogin: string | undefined,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     reportMetadata: OnyxEntry<ReportMetadata>,
@@ -331,7 +332,7 @@ function isApproveAction(
     }
     const isExpenseReport = isExpenseReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
-        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
     );
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
@@ -1004,7 +1005,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, reportMetadata, policy)) {
+    if (isApproveAction(currentUserLogin, currentUserAccountID, report, submitterLogin, reportTransactions, violations, reportMetadata, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
