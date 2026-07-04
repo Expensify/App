@@ -1,7 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -11,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -21,6 +18,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -29,9 +27,12 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isDraftReport} from '@libs/ReportUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +40,13 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
@@ -149,7 +157,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 ?.filter((u) => u.accountID !== personalDetail.accountID)
                                 .map((u) => ({
                                     login: u.login ?? '',
-                                    accountID: u.accountID,
                                 })) ?? [],
                         personalDetails,
                         newReportObject: report,

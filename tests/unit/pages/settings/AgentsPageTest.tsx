@@ -1,11 +1,17 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
+import {render, screen} from '@testing-library/react-native';
+
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+
 import AgentsPage from '@pages/settings/Agents/AgentsPage';
+
 import {openAgentsPage} from '@userActions/Agent';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
     openAgentsPage: jest.fn(),
@@ -102,6 +108,13 @@ jest.mock('@components/SelectionList', () => {
 
 jest.mock('@components/SelectionList/ListItem/UserListItem', () => 'UserListItem');
 
+jest.mock('@components/RenderHTML', () => {
+    function MockRenderHTML({html}: {html: string}) {
+        return html;
+    }
+    return MockRenderHTML;
+});
+
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     function MockNotFoundPage() {
         return 'NotFoundPage';
@@ -177,11 +190,10 @@ describe('AgentsPage', () => {
             },
         });
 
-        const {toJSON} = render(<AgentsPage />);
-        const output = JSON.stringify(toJSON());
+        render(<AgentsPage />);
 
-        expect(output).toContain('Test Agent');
-        expect(output).not.toContain('agentsPage.emptyAgents.title');
+        expect(screen.getByText('Test Agent')).toBeOnTheScreen();
+        expect(screen.queryByText('agentsPage.emptyAgents.title')).not.toBeOnTheScreen();
     });
 
     it('excludes agents whose personal details are missing from the list', () => {

@@ -1,13 +1,21 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {format, parseISO} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
+import DateUtils from './DateUtils';
+import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
@@ -35,6 +43,7 @@ Onyx.connectWithoutView({
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
 
 function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
@@ -280,13 +289,6 @@ function getDistanceMerchant(
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
 
-function ensureRateDefined(rate: number | undefined): asserts rate is number {
-    if (rate !== undefined) {
-        return;
-    }
-    throw new Error('All default P2P rates should have a rate defined');
-}
-
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
@@ -296,16 +298,16 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
  * @returns The rate and unit in MileageRate object.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
-    const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
-    const mileageRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate];
-    ensureRateDefined(mileageRate.rate);
+    const defaultRate = getStoredDefaultP2PMileageRate();
+    const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: DEFAULT_P2P_RATE_CENTS_PER_MILE, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    const rate = transaction && getCurrency(transaction) === currency ? (transaction.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
 
-    // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
+    // If a distance expense is being edited, the defaultP2PRate may not have been loaded yet, so use data from the existing transaction.
+    const fallbackUnit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     return {
-        ...mileageRate,
-        currency: currencyWithExistingRate,
         rate,
+        unit: defaultRate ? p2pRate.unit : fallbackUnit,
+        currency: defaultRate ? currency : getCurrency(transaction),
     };
 }
 
@@ -345,15 +347,31 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 }
 
 /**
+ * Returns whether the distance custom unit rate ID is unset or represents a non-workspace rate (P2P or placeholder).
+ */
+function isUnsetDistanceCustomUnitRateID(customUnitRateID: string | undefined): boolean {
+    if (!customUnitRateID) {
+        return true;
+    }
+
+    return customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || customUnitRateID === CONST.CUSTOM_UNITS.UNSET_DISTANCE_RATE_ID;
+}
+
+/**
  * Checks if a mileage rate is eligible for a given expense date.
  * A rate is eligible if the date falls within its startDate/endDate bounds (inclusive).
  * Missing bounds mean unbounded in that direction.
  */
 function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean {
-    if (rate.startDate && expenseDate < rate.startDate) {
+    const normalizedExpenseDate = DateUtils.formatWithUTCTimeZone(expenseDate, CONST.DATE.FNS_FORMAT_STRING);
+    if (!normalizedExpenseDate) {
+        return true;
+    }
+
+    if (rate.startDate && normalizedExpenseDate < rate.startDate) {
         return false;
     }
-    if (rate.endDate && expenseDate > rate.endDate) {
+    if (rate.endDate && normalizedExpenseDate > rate.endDate) {
         return false;
     }
     return true;
@@ -603,6 +621,30 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
 }
 
 /**
+ * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
+ */
+function isCustomUnitRateOutOfDateRange({
+    customUnitRateID,
+    policy,
+    expenseDate,
+}: {
+    customUnitRateID: string | undefined;
+    policy: OnyxEntry<Policy>;
+    expenseDate: string | undefined;
+}): boolean {
+    if (!expenseDate || isUnsetDistanceCustomUnitRateID(customUnitRateID) || !policy?.customUnits || !customUnitRateID) {
+        return false;
+    }
+
+    const mileageRate = getRateByCustomUnitRateID({customUnitRateID, policy});
+    if (!mileageRate || mileageRate.enabled === false) {
+        return false;
+    }
+
+    return !isRateEligibleForDate(mileageRate, expenseDate);
+}
+
+/**
  * Returns whether the calculated distance expense amount (distance * rate) is within the backend's safe limit.
  * The backend WAF rejects amounts exceeding 12 digits (999,999,999,999 cents).
  *
@@ -639,6 +681,29 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate']): string {
+    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+
+    try {
+        if (rate.startDate && rate.endDate) {
+            return translate('iou.rateValidDateRange', {
+                startDate: format(parseISO(rate.startDate), dateFormat),
+                endDate: format(parseISO(rate.endDate), dateFormat),
+            });
+        }
+        if (rate.startDate) {
+            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat)});
+        }
+        if (rate.endDate) {
+            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat)});
+        }
+    } catch {
+        return '';
+    }
+
+    return '';
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -661,8 +726,11 @@ export default {
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
     prepareTextForDisplay,
+    isCustomUnitRateOutOfDateRange,
     isRateEligibleForDate,
+    isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
+    getRateDateLabel,
 };
 
 export type {MileageRate};

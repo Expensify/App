@@ -1,8 +1,3 @@
-import type {NavigatorScreenParams} from '@react-navigation/native';
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {
@@ -15,10 +10,12 @@ import {
     useWideRHPActions,
     useWideRHPState,
 } from '@components/WideRHPContextProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
@@ -31,14 +28,28 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
+import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import type {NavigatorScreenParams} from '@react-navigation/native';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated, DeviceEventEmitter} from 'react-native';
+
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
 
@@ -54,6 +65,14 @@ function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
         <PINContextProvider>
             <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator {...props} />
         </PINContextProvider>
+    );
+}
+
+function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
+    return (
+        <SearchAdvancedFiltersProvider>
+            <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
+        </SearchAdvancedFiltersProvider>
     );
 }
 
@@ -156,9 +175,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
                 // to avoid not found showing briefly in confirmation page when RHP is closing
-                InteractionManager.runAfterInteractions(() => {
-                    abandonReviewDuplicateTransactions();
-                });
+                TransitionTracker.runAfterTransitions({callback: () => abandonReviewDuplicateTransactions()});
             },
         }),
         [navigation, route.params?.screen],
@@ -237,7 +254,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                 listeners={{
                                     beforeRemove: () => {
-                                        InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
+                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(true), waitForUpcomingTransition: true});
                                     },
                                 }}
                             />
@@ -404,7 +421,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
-                                component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
+                                component={SearchAdvancedFiltersWithContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}

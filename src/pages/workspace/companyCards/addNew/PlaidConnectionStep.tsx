@@ -1,33 +1,39 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type PlaidConnectionStepProps = {
     feed?: CompanyCardFeedWithDomainID;
@@ -144,18 +150,6 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     JSON.stringify(metadata?.accounts),
                                     '',
                                 );
-                                InteractionManager.runAfterInteractions(() => {
-                                    setAssignCardStepAndData({
-                                        cardToAssign: {
-                                            plaidAccessToken: publicToken,
-                                            institutionId: plaidConnectedFeed,
-                                            plaidConnectedFeedName,
-                                            plaidAccounts: metadata?.accounts,
-                                        },
-                                        currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
-                                    });
-                                });
-                                return;
                             }
                             setAssignCardStepAndData({
                                 cardToAssign: {

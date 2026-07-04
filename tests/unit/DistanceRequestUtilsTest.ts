@@ -1,7 +1,10 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type Transaction from '@src/types/onyx/Transaction';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -389,6 +392,80 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
             expect(result.customUnitRateID).toBeUndefined();
         });
+
+        describe('output currency resolution', () => {
+            // getRate resolves the currency as `policy.outputCurrency ?? personalPolicyOutputCurrency ?? personal policy ?? USD`.
+            // Every caller that threads personalPolicyOutputCurrency relies on this precedence, and it's what lets the
+            // getPersonalPolicy() fallback be removed later: a caller that passes the currency must get the same result.
+            // A non-P2P rate ID that doesn't resolve to any policy rate + `isMovingTransactionFromTrackExpense` forces the
+            // mileage rate to be undefined, so the returned `currency` falls through to the resolved policy currency.
+            const unresolvedRateTransaction = {
+                ...createRandomTransaction(1),
+                comment: {customUnit: {customUnitRateID: 'nonexistent-rate-id'}},
+            } as Transaction;
+
+            it('uses personalPolicyOutputCurrency when no policy currency is available', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('EUR');
+            });
+
+            it('prefers the policy outputCurrency over personalPolicyOutputCurrency', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: {...FAKE_POLICY, outputCurrency: 'GBP'},
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('GBP');
+            });
+
+            it('falls back to USD when neither a policy currency nor personalPolicyOutputCurrency is provided', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                });
+                expect(result.currency).toBe(CONST.CURRENCY.USD);
+            });
+        });
+    });
+
+    describe('getRateForP2P', () => {
+        // These tests run with the default P2P mileage rate unloaded (it's fetched asynchronously when a
+        // distance request starts), which is the case for flows that don't start a new distance request,
+        // such as editing an existing distance expense.
+        it('falls back to the existing transaction currency and unit when the default P2P rate is not loaded', () => {
+            // Given an existing P2P distance expense in GBP measured in kilometers, with its own saved rate
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: 'GBP',
+                comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, defaultP2PRate: 45}},
+            } as Transaction;
+
+            // When reading the P2P rate for that transaction's currency
+            const result = DistanceRequestUtils.getRateForP2P('GBP', transaction);
+
+            // Then it preserves the transaction's currency, unit, and saved rate instead of flipping to USD/miles
+            expect(result.currency).toBe('GBP');
+            expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(result.rate).toBe(45);
+        });
+
+        it('falls back to USD and miles for a brand-new request with no transaction', () => {
+            // Given a brand-new distance request that has no transaction yet
+            // When reading the P2P rate
+            const result = DistanceRequestUtils.getRateForP2P('GBP', undefined);
+
+            // Then it falls back to the hardcoded USD/miles default
+            expect(result.currency).toBe(CONST.CURRENCY.USD);
+            expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            expect(result.rate).toBe(67);
+        });
     });
 
     describe('getDistanceMerchant', () => {
@@ -452,6 +529,28 @@ describe('DistanceRequestUtils', () => {
         it('should return out-of-policy message for workspace expenses with invalid rate', () => {
             const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+    });
+
+    describe('isRateEligibleForDate', () => {
+        const boundedRate = {
+            customUnitRateID: 'rate_1',
+            rate: 65,
+            unit: distanceUnit,
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+        };
+
+        it('should treat a DB timestamp on the inclusive end date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-12-31 10:00:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp on the inclusive start date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-01-01 08:30:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp after the end date as ineligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2026-01-01 00:00:00')).toBe(false);
         });
     });
 });

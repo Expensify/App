@@ -1,15 +1,14 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -20,11 +19,19 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomMembersNavigatorParamList,
 } from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
@@ -49,17 +56,18 @@ type WithReportOrNotFoundOnyxProps = {
 type ScreenProps =
     | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT>
     | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>
-    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>
-    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
-    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
+    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>
+    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_INVITE>
+    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS>
+    | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE>
     | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>
     | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE>
-    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY>
-    | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>
+    | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS>
     | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT>
     | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 

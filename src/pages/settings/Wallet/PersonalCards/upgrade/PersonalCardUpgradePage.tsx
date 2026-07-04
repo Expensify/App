@@ -1,8 +1,7 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -11,13 +10,20 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useState} from 'react';
+
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 

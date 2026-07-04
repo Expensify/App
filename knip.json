@@ -28,7 +28,7 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js"],
+            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
@@ -67,6 +67,7 @@
         "@dword-design/eslint-plugin-import-alias",
         "tsconfig-paths",
         "@vercel/ncc",
+        "bun",
         "shellcheck",
         "patch-package",
         "diff-so-fancy"

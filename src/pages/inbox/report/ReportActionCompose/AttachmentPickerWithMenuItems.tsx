@@ -1,7 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
@@ -10,6 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -24,6 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,16 +29,18 @@ import {
     canCreateTaskInReport,
     getPayeeName,
     hasViolations as hasViolationsReportUtils,
-    isPaidGroupPolicy,
     isPolicyExpenseChat,
+    isReportInGroupPolicy,
     isReportOwner,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +49,13 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import ExpandCollapseButton from './ExpandCollapseButton';
 
 type MoneyRequestOptions = Record<
@@ -320,7 +327,7 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
+        if (!isPolicyExpenseChat(report) || !isReportInGroupPolicy(report) || !isReportOwner(report)) {
             return [];
         }
 

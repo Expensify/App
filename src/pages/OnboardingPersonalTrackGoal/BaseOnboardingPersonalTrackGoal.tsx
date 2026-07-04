@@ -1,6 +1,3 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +5,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,13 +13,22 @@ import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {setOnboardingPersonalTrackGoal} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
 
 const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_GOALS);
@@ -31,15 +38,22 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL);
-    const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
-    const [somethingElseText, setSomethingElseText] = useState('');
+    const [selectedGoalOverride, setSelectedGoalOverride] = useState<string | null>(null);
+    const [somethingElseTextOverride, setSomethingElseTextOverride] = useState<string | null>(null);
     const [inputError, setInputError] = useState('');
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [personalTrackGoal] = useOnyx(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL);
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+
+    // Restore a previously made selection (e.g. after the user refreshes the next step and navigates back) from the persisted Onyx value.
+    // Predefined goals are stored as their constant; "Something else" stores the free text the user typed.
+    const restoredGoal = personalTrackGoal ? (personalTrackGoalOptions.find((option) => option === personalTrackGoal) ?? CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) : null;
+    const selectedGoal = selectedGoalOverride ?? restoredGoal;
+    const somethingElseText = somethingElseTextOverride ?? (restoredGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE ? (personalTrackGoal ?? '') : '');
 
     const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
 
@@ -109,7 +123,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 success={isSelected}
                                 shouldRemoveHoverBackground={isSelected}
                                 onPress={() => {
-                                    setSelectedGoal(goal);
+                                    setSelectedGoalOverride(goal);
                                     setInputError('');
                                     if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
                                         completeTrackGoalSelection(goal);
@@ -126,7 +140,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
                                 value={somethingElseText}
                                 onChangeText={(text) => {
-                                    setSomethingElseText(text);
+                                    setSomethingElseTextOverride(text);
                                     setInputError('');
                                 }}
                             />

@@ -1,13 +1,16 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {ValueOf} from 'type-fest';
+
 import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
+import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
-import type {Reservation} from './Transaction';
+import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
@@ -36,7 +39,11 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
-    /** ID of the `IOU` report */
+    /**
+     * ID of the IOU/expense report the action belongs to. Temporary fallback for resolving the report when the
+     * backend omits `reportID` on hydrated IOU actions. Remove once the backend reliably sends `reportID`.
+     * See https://github.com/Expensify/App/issues/93882.
+     */
     IOUReportID?: string;
 
     /** ID of the expense report */
@@ -74,28 +81,22 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-} & (
-    | {
-          /** How much was transaction */
-          amount: number;
 
-          /** Currency of the transaction money */
-          currency: string;
+    /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
+    accountNumber?: string;
 
-          /** Only exists when we are sending money */
-          IOUDetails?: IOUDetails;
-      }
-    | {
-          /** How much was transaction */
-          amount?: number;
+    /** True when the submitter marked the report as payment received outside Expensify */
+    isSubmitterMarkedPaymentReceived?: boolean;
 
-          /** Currency of the transaction money */
-          currency?: string;
+    /** How much was transaction */
+    amount?: number;
 
-          /** Only exists when we are sending money */
-          IOUDetails: IOUDetails;
-      }
-);
+    /** Currency of the transaction money */
+    currency?: string;
+
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -118,6 +119,9 @@ type Decision = {
 type OriginalMessageSmartScanFailed = {
     /** Fields that are missing */
     missingFields: string[];
+
+    /** LLM-friendly explanation of the scan failure that activates the Explain button */
+    reasoning?: string;
 };
 
 /** Model of `add comment` report action */
@@ -142,6 +146,9 @@ type OriginalMessageAddComment = {
 
     /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
     humanAgentAccountID?: number;
+
+    /** The AgentZero request ID that produced this comment, surfaced for internal tracing in non-production builds */
+    agentZeroRequestID?: string;
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -585,7 +592,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate amount in cents for the custom unit rate */
     rate?: number;
 
-    /** Unit of the custom unit (e.g. "mi", "km") */
+    /**
+     * Distance unit ('mi' or 'km'). Used by custom-unit rate change logs and
+     * commuter-exclusion change logs.
+     */
     unit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
@@ -606,11 +616,17 @@ type OriginalMessagePolicyChangeLog = {
     /** Previous end date of the custom unit rate (yyyy-MM-dd) */
     oldEndDate?: string;
 
-    /** Tax percentage of the new tax rate linked to distance rate */
+    /** Tax percentage of the new tax rate linked to distance rate or category */
     newTaxPercentage?: string;
 
-    /** Tax percentage of the old tax rate linked to distance rate */
+    /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
+
+    /** Name of the new tax rate (without percentage) for category default tax rate */
+    newTaxName?: string;
+
+    /** Name of the old tax rate (without percentage) for category default tax rate */
+    oldTaxName?: string;
 
     /** Added/Updated tag name */
     tagName?: string;
@@ -809,6 +825,9 @@ type OriginalMessagePolicyChangeLog = {
 /** Amount operators for spend rules */
 type SpendRuleAmountOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN | typeof CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO;
 
+/** Currency operators for spend rules */
+type SpendRuleCurrencyOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+
 /** Model of an Expensify card spend rule change log action (add, update, or remove) */
 type OriginalMessageSpendRuleChangeLog = {
     /** Spend rule action */
@@ -828,6 +847,24 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Previous list of categories when a spend rule was updated */
     oldCategories?: string[];
+
+    /** Currencies included in the spend rule */
+    currencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
+
+    /** Old currencies included in the spend rule */
+    oldCurrencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
 
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
@@ -867,6 +904,15 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Currency of the spend rule */
     currency?: string;
+};
+
+/** Model of a policy copy change log action */
+type OriginalMessagePolicyChangeCopyLog = {
+    /** The ID of the source policy from which the user copied settings */
+    sourcePolicyID?: string;
+
+    /** The quantity of the item copied from source policy */
+    quantity?: number;
 };
 
 /** Model of `join policy` report action */
@@ -952,6 +998,12 @@ type OriginalMessageModifiedExpense = {
     /** Old expense reimbursable */
     oldReimbursable?: string;
 
+    /** Edited accounting-system vendor on the transaction's comment NVP. `null` means the vendor was cleared. */
+    vendor?: TransactionCommentVendor | null;
+
+    /** Previous accounting-system vendor on the transaction's comment NVP. `null` means there was no prior vendor. */
+    oldVendor?: TransactionCommentVendor | null;
+
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
@@ -983,6 +1035,15 @@ type OriginalMessageModifiedExpense = {
     personalRulesModifiedFields?: PersonalRulesModifiedFields;
 
     /** The Concierge reasoning for the action */
+    reasoning?: string;
+};
+
+/** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
+type OriginalMessageConciergeAutoMatchVendor = {
+    /** Display name of the matched vendor */
+    vendorName?: string;
+
+    /** LLM-consumable explanation of why this vendor was matched — surfaced behind the "Explain" link */
     reasoning?: string;
 };
 
@@ -1227,8 +1288,11 @@ type OriginalMessageReimbursed = {
     /** Raw payment method field as stored by Auth (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set on real-time Pusher updates */
     method?: string;
 
-    /** Last 4 digits of the debit bank account used to fund the payment */
+    /** Last 4 digits of the debit bank account used to fund the payment - set by the openReport path */
     debitBankAccountLast4?: string;
+
+    /** Masked number (e.g., 'XXXXXX1234') of the debit bank account used to fund the payment - set on real-time Pusher updates */
+    accountNumber?: string;
 
     /** Last 4 digits of the credit bank account receiving the payment */
     creditBankAccountLast4?: string;
@@ -1624,6 +1688,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
@@ -1689,7 +1754,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & OldDotOriginalMessageMap &
-    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> & {
+    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
+    Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;

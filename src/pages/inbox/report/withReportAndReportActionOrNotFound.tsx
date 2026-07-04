@@ -1,11 +1,10 @@
-import type {ComponentType} from 'react';
-import React, {useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -13,15 +12,22 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useMemo} from 'react';
+
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
-    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.ROOT
+    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT
 > & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;

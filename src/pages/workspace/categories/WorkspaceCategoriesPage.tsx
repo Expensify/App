@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -15,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
+
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -33,6 +32,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -43,17 +43,23 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
@@ -216,12 +222,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const navigateToCategory = useCallback(
         (category: PolicyCategories[string]) => {
             const path = isQuickSettingsFlow
-                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
                 : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
 
             Navigation.navigate(path);
         },
-        [backTo, isQuickSettingsFlow, policyId],
+        [isQuickSettingsFlow],
     );
 
     const handleCategoryToggle = useCallback(
@@ -257,7 +263,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [categories, policy?.rules?.approvalRules]);
 
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
@@ -564,14 +570,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceCategoriesPage', isOffline, isPolicyCategoriesUndefined: policyCategories === undefined};
 
-    useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
-            return;
-        }
-
-        clearTableSelection();
-    }, [clearTableSelection, isMobileSelectionModeEnabled]);
-
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
@@ -714,7 +712,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             selectedKeys={selectedCategoryKeys}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                            onRowSelectionChange={setSelectedCategoryKeys}
                             EmptyStateComponent={emptyStateContent}
                         />
                     </>

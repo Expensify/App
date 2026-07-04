@@ -1,13 +1,17 @@
-import React, {useEffect} from 'react';
-import type {ActivityIndicatorProps as RNActivityIndicatorProps} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import useTheme from '@hooks/useTheme';
+
 import logAppStateOnLongLoading from '@libs/AppState';
 import type {ExtraLoadingContext} from '@libs/AppState';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {ActivityIndicatorProps as RNActivityIndicatorProps} from 'react-native';
+
+import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 
 type ActivityIndicatorProps = RNActivityIndicatorProps & {
     /** The ID of the test to be used for testing */

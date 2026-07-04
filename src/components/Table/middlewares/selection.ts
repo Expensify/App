@@ -1,20 +1,36 @@
-import type {Dispatch, SetStateAction} from 'react';
-import {useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+
+import type {Dispatch, SetStateAction} from 'react';
+
+import {useCallback, useEffect, useRef, useState} from 'react';
+
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
+    /** The number of non-disabled items in the original (pre-search/filter) data */
+    originalSelectableCount: number;
+
     /** The list of selected keys */
     selectedKeys: string[];
 
+    /** The list of actively applied filters */
+    currentFilters: Record<string, unknown>;
+
     /** Callback that is fired when the selection of rows in the table changes */
     onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+
+    /** Whether the selection mode should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
 };
 
 type SelectionMethods = {
@@ -39,8 +55,20 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
     mobileSelectionModalRowKey: string | null;
 };
 
-export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+export default function useSelection<DataType extends TableData>({
+    data,
+    originalSelectableCount,
+    selectedKeys,
+    currentFilters,
+    onRowSelectionChange,
+    shouldEnableSelectionInNarrowPaneModal,
+}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+    // When a table opts into selection inside a narrow pane modal (RHP), the selection-mode auto-sync keys off the real
+    // screen size (isSmallScreenWidth) so it behaves correctly there (shouldUseNarrowLayout is always true in an RHP).
+    // Otherwise it keeps the original shouldUseNarrowLayout behavior, so central-pane tables are unaffected.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
@@ -49,33 +77,55 @@ export default function useSelection<DataType extends TableData>({data, selected
     // the user confirms the selection
     const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
-    const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
+    const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
-    // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
+    const clearSelection = useCallback(() => {
+        onRowSelectionChange?.([]);
+    }, [onRowSelectionChange]);
+
+    // Disable selection mode when the Android hardware back button is pressed
+    const androidBackButtonDisableSelectionMode = useCallback(() => {
+        if (!isSelectionModeEnabled) {
+            return false;
+        }
+
+        clearSelection();
+        turnOffMobileSelectionMode();
+        return true;
+    }, [isSelectionModeEnabled, clearSelection]);
+
+    useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
+
+    // Sync the selection mode with the screen size & selection state
     useEffect(() => {
-        if (shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length) {
+        const isMobileMissingSelectionMode = selectionUsesNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
+        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !selectionUsesNarrowLayout;
+        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !originalSelectableCount;
+
+        if (isMobileMissingSelectionMode) {
             turnOnMobileSelectionMode();
-        } else if (!shouldUseNarrowLayout && isSelectionModeEnabled && !selectedKeys.length) {
+        } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
+    }, [selectionUsesNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
-    // When there are no more items to be selected, turn off selection mode on mobile
+    // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
+    const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
     useEffect(() => {
-        if (selectableKeys.length || !isSelectionModeEnabled) {
+        if (!wasSelectionModeEnabled || isSelectionModeEnabled) {
             return;
         }
 
-        turnOffMobileSelectionMode();
-    }, [selectableKeys.length, isSelectionModeEnabled]);
+        clearSelection();
+    }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
-    /**
-     * Clear all of the currently selected keys
-     */
-    const clearSelection = () => {
-        onRowSelectionChange?.([]);
-    };
+    // When the table filters change, clear the current selection
+    useEffect(() => clearSelection(), [currentFilters, clearSelection]);
+
+    // When the table unmounts, clear the selection. Should only run on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => () => onRowSelectionChange?.([]), []);
 
     /**
      * When the select all checkbox is toggled, select or deselect all of the
@@ -100,6 +150,10 @@ export default function useSelection<DataType extends TableData>({data, selected
      * on or off
      */
     const handleSingleRowSelection = (keyForList: string) => {
+        if (!selectableKeys.includes(keyForList)) {
+            return;
+        }
+
         const keyIndex = selectedKeys.indexOf(keyForList);
         const isCurrentlySelected = keyIndex !== -1;
 
@@ -108,6 +162,11 @@ export default function useSelection<DataType extends TableData>({data, selected
 
         if (isCurrentlySelected) {
             onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
+            return;
+        }
+
+        const item = data.find((row) => row.keyForList === keyForList);
+        if (item?.disabled || item?.isSelectionDisabled) {
             return;
         }
 

@@ -1,14 +1,21 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {SidebarOrderedReportsContextProvider, useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+
 import SidebarUtils from '@libs/SidebarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock dependencies
@@ -16,6 +23,8 @@ jest.mock('@libs/SidebarUtils', () => ({
     sortReportsToDisplayInLHN: jest.fn(),
     getReportsToDisplayInLHN: jest.fn(),
     updateReportsToDisplayInLHN: jest.fn(),
+    filterReportsForInboxTab: jest.fn((reportIDs: string[]) => reportIDs),
+    getInboxTabCounts: jest.fn(() => ({})),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),

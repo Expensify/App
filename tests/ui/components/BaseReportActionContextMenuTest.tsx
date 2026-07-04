@@ -1,11 +1,15 @@
 import {act, render, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({
@@ -84,7 +88,6 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
-jest.mock('@hooks/useRestoreInputFocus', () => () => {});
 jest.mock(
     '@hooks/useStyleUtils',
     () => () =>
@@ -188,9 +191,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'parentIOUAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -215,9 +218,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'iouAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
