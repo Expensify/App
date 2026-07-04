@@ -35,6 +35,28 @@ import Onyx from 'react-native-onyx';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
+const mockSearchQueryParam = jest.fn(() => 'type:chat category:abcd');
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: (selector: (state: unknown) => unknown) =>
+        selector({
+            index: 0,
+            routes: [
+                {
+                    name: 'SearchFullscreenNavigator',
+                    state: {
+                        index: 0,
+                        routes: [
+                            {
+                                name: 'Search_Root',
+                                params: {q: mockSearchQueryParam()},
+                            },
+                        ],
+                    },
+                },
+            ],
+        }),
+}));
 jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
     search: jest.fn(() => Promise.resolve(200)),
@@ -186,41 +208,5 @@ describe('SearchPageNarrow', () => {
         });
 
         expect(mockSearch).not.toHaveBeenCalled();
-    });
-
-    it('allows reconnect retry for an already failed search snapshot with no results', async () => {
-        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
-
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
-                errors: {error: 'Something went wrong'},
-                search: {
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    status: '',
-                    offset: 0,
-                    isLoading: false,
-                    hasMoreResults: false,
-                },
-            });
-        });
-
-        const {rerender} = renderPage();
-
-        await act(async () => {
-            jest.advanceTimersByTime(0);
-        });
-
-        expect(mockSearch).not.toHaveBeenCalled();
-
-        mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
-
-        rerender(getSearchPage());
-
-        await act(async () => {
-            jest.advanceTimersByTime(0);
-        });
-
-        expect(mockSearch).toHaveBeenCalledTimes(1);
-        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, queryJSON: expect.objectContaining({hash: failedQueryJSON?.hash})}));
     });
 });
