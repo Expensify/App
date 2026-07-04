@@ -247,17 +247,18 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
  * Returns the formatted card name for a company card. Returns an empty string
  * if the card is not a real card, but a cash expense
  */
-function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList, feedCountry?: string) {
     const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
+    const card = cardID ? cards?.[cardID] : undefined;
 
-    if (!cardID || !cards?.[cardID]) {
-        return formattedTransactionCardName;
+    // feedCountry travels with the transaction, so a travel card belonging to another member (absent from the viewer's card
+    // list) still shows the localized travel name instead of the server string.
+    if (isTravelCardTransaction(feedCountry, card)) {
+        return translate('cardTransactions.travelInvoicing');
     }
 
-    const card = cards[cardID];
-
-    if (isTravelCard(card)) {
-        return translate('cardTransactions.travelInvoicing');
+    if (!card) {
+        return formattedTransactionCardName;
     }
 
     if (isExpensifyCard(card)) {
@@ -1744,6 +1745,15 @@ function isTravelCard(card: Card | undefined): boolean {
 }
 
 /**
+ * A transaction is on a travel card when the backend stamps its feedCountry, which travels with the transaction so the icon
+ * resolves even for another member's card that isn't in the viewer's own card list. Falls back to the card object for old
+ * cached transactions that predate the feedCountry field.
+ */
+function isTravelCardTransaction(feedCountry: string | undefined, card: Card | undefined): boolean {
+    return feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US || isTravelCard(card);
+}
+
+/**
  * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
  * (physical + virtual pairs) so only the physical card is shown per domain.
  *
@@ -1965,6 +1975,7 @@ export {
     getBankName,
     isSelectedFeedExpired,
     isTravelCard,
+    isTravelCardTransaction,
     getCompanyFeeds,
     hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
