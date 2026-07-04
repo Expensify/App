@@ -1,15 +1,23 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type * as ReactNavigation from '@react-navigation/native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useNetwork from '@hooks/useNetwork';
+
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import StaticSearchTypeMenu from '@pages/Search/SearchPageNarrow/StaticSearchTypeMenu';
 import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -115,7 +123,7 @@ describe('Search saved-search tab highlight', () => {
             throw new Error('Failed to build saved query JSON');
         }
 
-        (useNetwork as jest.Mock).mockReturnValue({isOffline: false});
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {
@@ -146,7 +154,7 @@ describe('Search saved-search tab highlight', () => {
             throw new Error('Failed to build saved query JSON');
         }
 
-        (useNetwork as jest.Mock).mockReturnValue({isOffline: false});
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {

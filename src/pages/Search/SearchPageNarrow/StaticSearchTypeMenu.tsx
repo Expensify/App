@@ -1,26 +1,29 @@
-// Static twin of SearchTypeMenuNarrow - used for fast perceived performance.
-// Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
-// when strictly necessary. UI must stay visually identical to the interactive version.
-import React from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import staticPolicyInfoSelector from './staticPolicyInfoSelector';
+import type {SaveSearch} from '@src/types/onyx';
 
-type SavedSearchMinimal = {
-    name: string;
-    query: string;
-    pendingAction?: string;
-};
+import type {OnyxEntry} from 'react-native-onyx';
+
+// Static twin of SearchTypeMenuNarrow - used for fast perceived performance.
+// Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
+// when strictly necessary. UI must stay visually identical to the interactive version.
+import React from 'react';
+
+import staticPolicyInfoSelector from './staticPolicyInfoSelector';
 
 function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, searches: Record<string, SearchTypeMenuItem>): string {
     const reportsSearch = searches[CONST.SEARCH.SEARCH_KEYS.REPORTS];
@@ -30,7 +33,7 @@ function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, search
     return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
 }
 
-function getActiveSavedSearch(savedSearches: Record<string, SavedSearchMinimal> | undefined, hash: number, isOffline: boolean): {key: string; title: string} | undefined {
+function getActiveSavedSearch(savedSearches: OnyxEntry<SaveSearch>, hash: number, isOffline: boolean): {key: string; title: string} | undefined {
     if (!savedSearches) {
         return undefined;
     }
@@ -74,7 +77,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
         tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
     }
 
-    const activeSavedSearch = getActiveSavedSearch(savedSearches as Record<string, SavedSearchMinimal> | undefined, queryJSON.hash, isOffline);
+    const activeSavedSearch = getActiveSavedSearch(savedSearches, queryJSON.hash, isOffline);
     if (activeSavedSearch) {
         tabs.push({key: activeSavedSearch.key, icon: expensifyIcons.Bookmark, title: activeSavedSearch.title});
     }
