@@ -11,6 +11,7 @@ import type {TableHandle} from '@components/Table';
 import type {RoomMemberRowData, RoomMembersTableColumnKey} from '@components/Tables/RoomMembersTable';
 import RoomMembersTable from '@components/Tables/RoomMembersTable';
 
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -116,6 +117,20 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         selector: personalDetailsSelector(firstSelectedMember),
     });
 
+    const clearTableSelection = useCallback(() => {
+        setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
+    }, [setSelectedMembers]);
+
+    // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
+    const onRowSelectionChange = useCallback(
+        (keys: string[]) => {
+            setSelectedMembers(keys.map(Number));
+        },
+        [setSelectedMembers],
+    );
+
+    useCleanupSelectedOptions(clearTableSelection);
+
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
 
@@ -157,9 +172,9 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             removeFromRoom(report, selectedMembers);
         }
         clearTableSearch();
-        setSelectedMembers([]);
+        clearTableSelection();
         clearUserSearchPhrase();
-    }, [clearTableSearch, report, selectedMembers, setSelectedMembers]);
+    }, [clearTableSearch, clearTableSelection, report, selectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -195,7 +210,15 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         if (!isFocusedScreen || !shouldShowSearchBar || isLoading) {
             return;
         }
-        tableRef.current?.updateSearchString(userSearchPhrase ?? '');
+
+        const phrase = userSearchPhrase ?? '';
+        const currentSearchString = tableRef.current?.getActiveSearchString?.() ?? '';
+
+        if (currentSearchString === phrase) {
+            return;
+        }
+
+        tableRef.current?.updateSearchString(phrase);
     }, [isFocusedScreen, isLoading, shouldShowSearchBar, userSearchPhrase]);
 
     useEffect(() => {
@@ -209,7 +232,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [clearTableSearch, isFocusedScreen, shouldShowSearchBar]);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedMembers([]),
+        onClearSelection: clearTableSelection,
         onNavigationCallBack: () => {
             clearTableSearch();
             navigateBackToReportDetails();
@@ -274,7 +297,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     ]);
 
     const selectedKeys = selectedMembers.map(String);
-    const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
 
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
 
@@ -353,7 +375,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                     )}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
-                            setSelectedMembers([]);
+                            clearTableSelection();
                             turnOffMobileSelectionMode();
                             return;
                         }
