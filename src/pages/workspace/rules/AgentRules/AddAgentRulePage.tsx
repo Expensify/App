@@ -134,10 +134,13 @@ function AddAgentRulePage({
         });
     };
 
-    const compactInputStyles = [{height: variables.agentRulePromptInputHeight, minHeight: variables.agentRulePromptInputHeight}];
+    const shouldUseFormScrollView = shouldUseScrollableLayout || isRulesRevampEnabled;
+    const revampInputMaxHeightStyle = {maxHeight: variables.agentRulePromptInputHeight};
+    const revampInputWrapperStyles = [styles.flex1, styles.mnh0, revampInputMaxHeightStyle];
+    const revampInputFlexStyles = [styles.flex1, styles.mnh0];
     const expandedInputWrapperStyles = [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
-    const inputWrapperStyles = isRulesRevampEnabled ? compactInputStyles : expandedInputWrapperStyles;
-    const inputFlexStyles = isRulesRevampEnabled ? undefined : [styles.flex1];
+    const inputWrapperStyles = isRulesRevampEnabled ? revampInputWrapperStyles : expandedInputWrapperStyles;
+    const inputFlexStyles = isRulesRevampEnabled ? revampInputFlexStyles : [styles.flex1];
 
     return (
         <AccessOrNotFoundWrapper
@@ -150,7 +153,7 @@ function AddAgentRulePage({
                 testID="AddAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout}
+                shouldEnableMaxHeight={shouldUseFormScrollView}
             >
                 <HeaderWithBackButton title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')} />
                 <FormProvider
@@ -160,8 +163,8 @@ function AddAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.nextButton') : translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={shouldUseScrollableLayout}
-                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldUseScrollView={shouldUseFormScrollView}
+                    submitFlexEnabled={shouldUseFormScrollView ? undefined : false}
                     shouldSubmitButtonStickToBottom={isRulesRevampEnabled}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
@@ -169,7 +172,7 @@ function AddAgentRulePage({
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
-                    <View style={isRulesRevampEnabled ? undefined : styles.flex1}>
+                    <View style={isRulesRevampEnabled ? [styles.flex1, styles.mnh0] : styles.flex1}>
                         <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -183,9 +186,9 @@ function AddAgentRulePage({
                                 multiline
                                 shouldLabelStayOnSingleLine
                                 containerStyles={inputFlexStyles}
-                                touchableInputWrapperStyle={isRulesRevampEnabled ? compactInputStyles : [styles.flex1]}
-                                textInputContainerStyles={isRulesRevampEnabled ? compactInputStyles : [styles.flex1]}
-                                inputStyle={isRulesRevampEnabled ? [...compactInputStyles, styles.textAlignVerticalTop] : [styles.flex1, styles.textAlignVerticalTop]}
+                                touchableInputWrapperStyle={isRulesRevampEnabled ? revampInputWrapperStyles : [styles.flex1]}
+                                textInputContainerStyles={isRulesRevampEnabled ? revampInputFlexStyles : [styles.flex1]}
+                                inputStyle={isRulesRevampEnabled ? [...revampInputFlexStyles, styles.textAlignVerticalTop] : [styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
