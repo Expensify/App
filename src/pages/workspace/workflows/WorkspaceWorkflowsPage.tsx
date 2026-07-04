@@ -51,7 +51,7 @@ import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRRea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canAccessSubmitWorkspaceFeatures,
     canMemberRead,
@@ -200,8 +200,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
-        () => getDisplayNameOrDefault(getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? ''), policy?.achAccount?.reimburser),
-        [policy?.achAccount?.reimburser],
+        () =>
+            temporaryGetDisplayNameOrDefault({
+                passedPersonalDetails: getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? ''),
+                defaultValue: policy?.achAccount?.reimburser,
+                translate,
+            }),
+        [policy?.achAccount?.reimburser, translate],
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
