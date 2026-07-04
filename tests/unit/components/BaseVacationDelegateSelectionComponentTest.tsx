@@ -4,11 +4,15 @@
  *  - new accounts (personal details missing, e.g. after cache clear) for both email and phone-number logins
  */
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
+
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import React from 'react';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -29,10 +33,17 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({FallbackAvatar: 'fallback-avatar'})),
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({
+        FallbackAvatar: 'fallback-avatar',
+    })),
 }));
 
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
+
+// `useInitialSelection` relies on React Navigation's `useFocusEffect`, which requires a
+// NavigationContainer. In these unit tests we render the component in isolation, so stub the hook
+// to synchronously return the current selection (identity) and skip the focus-effect machinery.
+jest.mock('@hooks/useInitialSelection', () => jest.fn((selection: string | undefined) => selection));
 
 jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
     jest.fn(() => ({

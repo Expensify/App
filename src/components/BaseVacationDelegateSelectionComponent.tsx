@@ -99,29 +99,35 @@ function BaseVacationDelegateSelectionComponent({
     }, [debouncedSearchTerm]);
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? '');
+    const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? currentVacationDelegate);
     const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
-    const pinnedDelegateOption =
-        pinnedVacationDelegate && pinnedDelegatePersonalDetails
-            ? {
-                  ...pinnedDelegatePersonalDetails,
-                  text: pinnedDelegatePersonalDetails?.displayName ?? pinnedVacationDelegate,
-                  alternateText: pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate,
-                  login: pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate,
-                  keyForList: `vacationDelegate-${pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate}`,
-                  isDisabled: false,
-                  isSelected: pinnedVacationDelegate === currentVacationDelegate,
-                  shouldShowSubscript: undefined,
-                  icons: [
-                      {
-                          source: pinnedDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                          name: formatPhoneNumber(pinnedDelegatePersonalDetails?.login ?? ''),
-                          type: CONST.ICON_TYPE_AVATAR,
-                          id: pinnedDelegatePersonalDetails?.accountID,
-                      },
-                  ],
-              }
-            : undefined;
+    const pinnedDelegateLogin = pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate;
+
+    // Pin the current delegate even when personal details are missing (e.g. right after a cache
+    // clear). Without this fallback the pinned row would be dropped entirely — the raw login and
+    // DEFAULT_MISSING_ID keep the previously selected delegate visible on the page.
+    const pinnedDelegateOption = pinnedVacationDelegate
+        ? {
+              ...(pinnedDelegatePersonalDetails ?? {}),
+              text: Str.removeSMSDomain(pinnedDelegatePersonalDetails?.displayName ?? pinnedVacationDelegate),
+              alternateText: pinnedDelegateLogin,
+              login: pinnedDelegateLogin,
+              keyForList: `vacationDelegate-${pinnedDelegateLogin}`,
+              isDisabled: false,
+              isSelected: pinnedVacationDelegate === currentVacationDelegate,
+              shouldShowSubscript: undefined,
+              accountID: pinnedDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
+              icons: [
+                  {
+                      source: pinnedDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
+                      name: formatPhoneNumber(pinnedDelegateLogin),
+                      type: CONST.ICON_TYPE_AVATAR,
+                      id: pinnedDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
+                  },
+              ],
+          }
+        : undefined;
+
     const shouldShowPinnedVacationDelegate = !!pinnedDelegateOption && (!searchValue || !!filterOption(pinnedDelegateOption, debouncedSearchTerm));
     const filterPinnedVacationDelegateFromOptions = (options: typeof availableOptions.recentOptions) => {
         if (!shouldShowPinnedVacationDelegate || !pinnedVacationDelegate) {
@@ -223,7 +229,7 @@ function BaseVacationDelegateSelectionComponent({
                             shouldShowLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
                             searchValueForFocusSync={debouncedSearchTerm}
-                            initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${initialVacationDelegate}` : undefined}
+                            initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${pinnedDelegateLogin}` : undefined}
                             initialScrollIndex={0}
                             shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
