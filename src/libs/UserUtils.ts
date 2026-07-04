@@ -98,7 +98,9 @@ function isDeviceLogin(login: NewLogin) {
 }
 
 function getDeviceLogins(logins: OnyxEntry<Logins>) {
-    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+    return Object.values(logins ?? {})
+        ?.filter(isDeviceLogin)
+        .sort((a, b) => getLastLogin(b).localeCompare(getLastLogin(a)));
 }
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
