@@ -55,7 +55,7 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TCS.path);
 
-    const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
+    const errorMessage = getLatestErrorMessage(travelProvisioning);
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
     const policyID = route.params.policyID;
@@ -95,6 +95,8 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
 
                 // Handle verification required error - show modal and reject to close Safari window if open
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
+                    // The modal communicates the error, so clear the provisioning error to avoid also showing it inline behind the modal
+                    cleanupTravelProvisioningSession();
                     showConfirmModal({
                         title: translate('travel.verifyCompany.title'),
                         titleStyles: styles.textHeadlineH1,
@@ -117,7 +119,7 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
                     return Promise.reject(new Error('Verification required'));
                 }
 
-                // Handle general API failure
+                // Any other backend failure surfaces its error inline via the travelProvisioning Onyx key set by the backend
                 if (response?.jsonCode !== 200) {
                     return Promise.reject(new Error('Request failed'));
                 }

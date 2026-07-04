@@ -8,10 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
-
-type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
-type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus, FinancialForceReportExportStatus} from '@src/types/onyx/Policy';
 
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
@@ -512,7 +509,7 @@ function updateFinancialForceParentTagMapping(
         parentTagMapping,
         previousValue ?? undefined,
     );
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, parentTagMapping}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, mappingType: parentTagMapping}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, previousValue?: boolean) {
@@ -520,13 +517,8 @@ function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, 
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceReportExportStatus(policyID: string, status: FinancialForceReportExportStatus, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(
-        policyID,
-        CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS,
-        status,
-        previousStatus ?? undefined,
-    );
+function updateFinancialForceReportExportStatus(policyID: string, status: FinancialForceReportExportStatus, previousStatus: FinancialForceConnectionConfig['export']['exportStatus'] | null) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS, status, previousStatus ?? undefined);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }
 

@@ -11,7 +11,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isReportArchivedByID, isSelfDM} from '@libs/ReportUtils';
+import {isArchivedReport, isExpenseReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
     getChildTransactions,
@@ -23,12 +23,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from './useSplitEffectivePolicy';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -66,6 +68,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -78,9 +81,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
 
@@ -154,7 +159,17 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
                 const selfDMReport = isSelfDM(report) ? report : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
                 const splitExpenseEditTransactionReport = transactionReport ?? selfDMReport;
-                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, currentUserPersonalDetails.accountID, {
+                // We intentionally don't pass `searchSnapshotPolicy` here (unlike the on-page split flow in
+                // `useSplitEffectivePolicy`). This preserves the pre-refactor behavior: `initSplitExpense` resolved
+                // the policy from the report policy and the transaction's customUnit only, never from a search-results
+                // snapshot. The snapshot-aware branch lives on the split pages, where the mileage rate is rendered.
+                const splitEffectivePolicy = getSplitEffectivePolicy({
+                    policy,
+                    transaction: splitExpenseEditTransaction,
+                    policyForCustomUnit: findSplitPolicyForCustomUnit(allPolicies, splitExpenseEditTransaction),
+                    fallbackPolicy: policyForMovingExpenses,
+                });
+                initSplitExpense(splitExpenseEditTransaction, splitExpenseEditTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {
                     navigateToEditSplitExpense: true,
                     isProduction,
                 });
@@ -214,8 +229,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 }
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
-                const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? getOriginalMessage(originalTransactionIouActions.at(0))?.IOUReportID : undefined;
-                const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? originalTransactionIouActions.at(0)?.reportID : undefined;
+                const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
+                const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const splitExpensesTotal = allChildTransactions.reduce((total, childTransaction) => {
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
                     return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
@@ -259,6 +276,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     allSnapshots,
                     transactionData: {
@@ -295,12 +313,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 if (!action) {
                     continue;
                 }
-                const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
-                const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
+                const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
+                const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
-                const isChatIOUReportArchived = isReportArchivedByID(archivedReportsIDSet, chatIOUReportID);
+                const isChatIOUReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`]);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
@@ -332,9 +352,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
             allReports,
+            allReportActions,
             allSnapshots,
             allTransactions,
-            archivedReportsIDSet,
             currentUserPersonalDetails,
             currentSearchQueryJSON,
             currentSearchResults?.data,
@@ -351,6 +371,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyTags,
             personalDetails,
             selfDMReportID,
+            allPolicies,
+            policyForMovingExpenses,
+            restrictedActionPolicyID,
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,

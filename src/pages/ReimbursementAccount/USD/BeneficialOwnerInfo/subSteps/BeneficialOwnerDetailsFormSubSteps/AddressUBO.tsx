@@ -47,7 +47,7 @@ function AddressUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}:
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}

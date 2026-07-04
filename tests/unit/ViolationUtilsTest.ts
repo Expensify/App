@@ -945,6 +945,38 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
+
+        it('should add categoryOutOfPolicy when the transaction has a category that is not in policy', () => {
+            transaction.category = 'Office Supplies';
+            policyCategories = {Food: {name: 'Food', enabled: true}};
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(categoryOutOfPolicyViolation);
+        });
+
+        it('should remove a stale missingCategory violation when categories are not required', () => {
+            // e.g. after the workspace disables categories: a leftover missingCategory must clear optimistically.
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [missingCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(missingCategoryViolation);
+        });
     });
 
     describe('policyRequiresTags', () => {
@@ -1141,7 +1173,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
-        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -1165,10 +1197,10 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Meals'}});
         });
 
-        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should keep existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -1193,7 +1225,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });
@@ -1422,7 +1454,6 @@ describe('getViolationsOnyxData', () => {
         };
 
         const ownerAccountID = 123;
-        const otherAccountID = 456;
 
         let iouReport: Report;
 
@@ -1461,7 +1492,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
-                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''}],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -1480,8 +1511,8 @@ describe('getViolationsOnyxData', () => {
         it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1502,8 +1533,8 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [missingAttendeesViolation];
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1552,6 +1583,57 @@ describe('getViolationsOnyxData', () => {
                 iouReport,
             });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        describe('owner identified via report ownerAccountID', () => {
+            const ownerLogin = 'owner@example.com';
+
+            beforeEach(async () => {
+                // Seed personal details so the report owner's accountID resolves to a login via getLoginByAccountID.
+                // This populates the allPersonalDetails cache that PersonalDetailsUtils reads from.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
+                await waitForBatchedUpdates();
+            });
+
+            it('should not add missingAttendees violation for a single non-owner attendee when the owner is resolved from ownerAccountID', () => {
+                // The report owner (owner@example.com) is NOT in the attendee list, so the single attendee is a genuine
+                // non-owner. Without owner-aware identification, the count-based fallback would wrongly flag this as missing.
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should add missingAttendees violation when the only attendee is the report owner resolved from ownerAccountID', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: ownerLogin, displayName: 'Owner', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
         });
 
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
@@ -1787,6 +1869,38 @@ describe('getViolationsOnyxData', () => {
 
             it('should remove taxOutOfPolicy violation when taxCode becomes valid', () => {
                 transaction.taxCode = 'TAX_10';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when the transaction has no tax code', () => {
+                // An expense whose tax was deleted has an empty tax code; re-enabling tax tracking must not flag it.
+                transaction.taxCode = '';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove a stale taxOutOfPolicy violation when the tax code has been cleared', () => {
+                transaction.taxCode = '';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 transactionViolations = [taxOutOfPolicyViolation];
                 const result = ViolationsUtils.getViolationsOnyxData({
@@ -2037,14 +2151,16 @@ describe('getViolationsOnyxData', () => {
     describe('inactiveVendor violation', () => {
         let isBetaEnabledSpy: jest.SpyInstance;
 
-        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
+        // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
+        // hydrating (`data.vendors` absent, so `isMatchingVendorListLoaded` returns false).
+        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
             ({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                        data: {vendors},
+                        data: vendors ? {vendors} : {},
                     },
                 },
             }) as unknown as Policy;
@@ -2179,6 +2295,46 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('does not add the violation while the QBO vendor list is still hydrating (vendors undefined)', () => {
+            // Given a QBO-configured workspace whose vendor list has not yet synced (data.vendors is undefined)
+            policy = policyWithQBOVendorFeature(null);
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+
+            // When violations are recomputed
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then no inactive-vendor violation is added — we can't know whether the assigned vendor is missing until the list loads
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
+            // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
+            policy = policyWithQBOVendorFeature(null);
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+
+            // When violations are recomputed
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then the existing violation is not stripped — stripping it pre-hydration would briefly hide a legitimate violation
+            expect(result.value).toContainEqual(inactiveVendorViolation);
         });
     });
     describe('shouldRemoveRejectedExpenseViolation (move transaction / explicit removal)', () => {

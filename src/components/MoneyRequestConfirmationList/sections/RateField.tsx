@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -63,9 +64,12 @@ function RateField({
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
+    const {isSearchRouterDisplayed} = useSearchRouterState();
+
+    const shouldMountMileageRateTooltip = !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed && !shouldDisplayDistanceRateError;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
-        !!shouldShowRateAutoUpdatedTooltip,
+        shouldMountMileageRateTooltip,
     );
 
     return (
@@ -108,7 +112,8 @@ function RateField({
             disabled={didConfirm}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
-            shouldRenderTooltip={shouldShowProductTrainingTooltip}
+            shouldRenderTooltip={shouldMountMileageRateTooltip}
+            shouldDisplayEducationalTooltip={shouldShowProductTrainingTooltip}
             renderTooltipContent={renderProductTrainingTooltip}
             tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
             tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}

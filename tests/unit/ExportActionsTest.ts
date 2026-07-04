@@ -78,6 +78,26 @@ describe('Export actions', () => {
         expect(value).toEqual(expect.objectContaining({state: 'ready', reportCount: 5}));
     });
 
+    test('exportReportsToPDF sets optimistic Onyx data with state preparing and returns exportID', async () => {
+        const exportID = Export.exportReportsToPDF(['1', '2']);
+        await waitForBatchedUpdates();
+
+        expect(typeof exportID).toBe('string');
+        expect(exportID.length).toBeGreaterThan(0);
+
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(value).toEqual(expect.objectContaining({state: 'preparing'}));
+    });
+
+    test('exportReportsToPDF failureData sets failed state on failure', async () => {
+        mockFetch.fail?.();
+        const exportID = Export.exportReportsToPDF(['1']);
+        await waitForBatchedUpdates();
+
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(value).toEqual(expect.objectContaining({state: 'failed'}));
+    });
+
     test('clearStaleExportDownloads clears ready/failed entries but preserves preparing ones', async () => {
         const key1 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1` as const;
         const key2 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2` as const;
