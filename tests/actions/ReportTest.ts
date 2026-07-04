@@ -188,6 +188,8 @@ const TEST_INTRO_SELECTED: OnyxTypes.IntroSelected = {
     isInviteOnboardingComplete: false,
 };
 
+const getMockFetch = (fetch: typeof global.fetch) => fetch as MockFetch;
+
 describe('actions/Report', () => {
     beforeAll(() => {
         PusherHelper.setup();
@@ -2600,7 +2602,7 @@ describe('actions/Report', () => {
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const mockFetchData = fetch as MockFetch;
+        const mockFetchData = getMockFetch(fetch);
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
@@ -2676,7 +2678,7 @@ describe('actions/Report', () => {
     it('should set hasOnceLoadedReportActions for parent report metadata when creating a new report', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const mockFetchData = fetch as MockFetch;
+        const mockFetchData = getMockFetch(fetch);
         const policy = {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
@@ -3074,7 +3076,7 @@ describe('actions/Report', () => {
                 ...createRandomReport(1, undefined),
                 description: '<h1>test</h1>',
             };
-            const mockFetch = fetch as MockFetch;
+            const mockFetch = getMockFetch(fetch);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -3773,7 +3775,7 @@ describe('actions/Report', () => {
             const ownerAccountID = 999;
             const ownerEmail = 'submitter@test.com';
             const adminEmail = 'admin@test.com';
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
 
             const expenseReport: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -4050,7 +4052,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}`, targetPolicy);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail, accountID: ownerAccountID}});
 
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
             global.fetch = mockFetch;
             mockFetch.pause?.();
 
@@ -4315,7 +4317,7 @@ describe('actions/Report', () => {
         it('correctly implements RedBrickRoad error handling for MoveIOUReportToPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
             const ownerAccountID = 999;
             const ownerEmail = 'submitter@test.com';
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
 
             const iouReport: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -7841,7 +7843,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, {}, true);
             await waitForBatchedUpdates();
 
-            const openReportCalls = (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);
+            const openReportCalls = getMockFetch(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);
             expect(openReportCalls.length).toBeGreaterThanOrEqual(1);
             const openReportParamsList = openReportCalls.map((call) => {
                 const body = (call.at(1) as RequestInit)?.body;
@@ -7861,7 +7863,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-            const addCommentCalls = (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.ADD_COMMENT}?`);
+            const addCommentCalls = getMockFetch(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.ADD_COMMENT}?`);
             const addCommentBody = (addCommentCalls.at(-1)?.at(1) as RequestInit)?.body;
             const addCommentParams = addCommentBody instanceof FormData ? Object.fromEntries(addCommentBody) : {};
             expect(addCommentParams.reportID).toBe(MOCK_FALLBACK_DM_REPORT_ID);
@@ -8534,7 +8536,7 @@ describe('actions/Report', () => {
         });
 
         it('should remove optimistically added participants on failure rollback', async () => {
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
             global.fetch = mockFetch;
 
             const REPORT_ID = '3';
@@ -8821,7 +8823,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             global.fetch = TestHelper.getGlobalFetchMock();
-            mockFetch = global.fetch as MockFetch;
+            mockFetch = getMockFetch(global.fetch);
             // Clear the queue before each test to avoid test pollution
             SequentialQueue.resetQueue();
         });
