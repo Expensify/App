@@ -307,8 +307,9 @@ function PaymentMethodList({
                 const isCardBroken = isCardConnectionBroken(card);
                 const isCardInactiveState = isCardInactive(card);
                 const shouldShowCardConnectionMessage = shouldShowConnectionStatus && (isCardBroken || shouldShowRBR || isCardInactiveState);
+                const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card);
                 let cardLastSyncText: string | undefined;
-                if (shouldShowConnectionStatus) {
+                if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
                         cardLastSyncText = translate('walletPage.cardLastSynced', datetimeToRelative(card.lastScrape));
                     } else {
