@@ -559,11 +559,11 @@ describe('SequentialQueue - offline read reconciliation', () => {
      * The mutated lastReadTime that the queue sends for the ReadNewestAction is captured for assertions.
      */
     function mockProcessWithMiddleware(commentServerTime: string | undefined, capture: {readLastReadTime?: string}) {
-        return jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(((request: AnyRequest): Promise<Response | void> => {
+        return jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(((request: AnyRequest): Promise<Response<OnyxKey> | void> => {
             if (request.command === WRITE_COMMANDS.ADD_COMMENT && commentServerTime !== undefined) {
                 return Promise.resolve({
                     onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {lastVisibleActionCreated: commentServerTime}}],
-                } as Response);
+                } as Response<OnyxKey>);
             }
             if (request.command === WRITE_COMMANDS.READ_NEWEST_ACTION) {
                 capture.readLastReadTime = typeof request.data?.lastReadTime === 'string' ? request.data.lastReadTime : undefined;
