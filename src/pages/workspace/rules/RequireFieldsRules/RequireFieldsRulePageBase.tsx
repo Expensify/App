@@ -204,6 +204,14 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
             return;
         }
 
+        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && fieldKey === INPUT_IDS.REQUIRE_RECEIPT && !value) {
+            updateDraftRequireFieldsRule({
+                [INPUT_IDS.REQUIRE_RECEIPT]: false,
+                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: false,
+            });
+            return;
+        }
+
         updateDraftRequireFieldsRule({[fieldKey]: value});
     };
 
@@ -313,25 +321,14 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                         .filter((field) => field.isVisible)
                         .map((field) => {
                             const isChecked = !!effectiveForm?.[field.key];
-                            const isReceiptDisabledWhileItemizedRequired =
-                                direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE &&
-                                field.key === INPUT_IDS.REQUIRE_RECEIPT &&
-                                isChecked &&
-                                !!effectiveForm?.[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
-                            const isFieldDisabled = !canWriteRules || isReceiptDisabledWhileItemizedRequired;
-                            const toggleField = () => {
-                                if (isFieldDisabled) {
-                                    return;
-                                }
-                                handleToggleField(field.key, !isChecked);
-                            };
+                            const toggleField = () => handleToggleField(field.key, !isChecked);
 
                             return (
                                 <MenuItem
                                     key={field.key}
                                     title={field.label}
                                     onPress={toggleField}
-                                    disabled={isFieldDisabled}
+                                    disabled={!canWriteRules}
                                     interactive={canWriteRules}
                                     shouldShowRightComponent
                                     rightComponent={
@@ -341,7 +338,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                                                 onPress={toggleField}
                                                 accessibilityLabel={field.label}
                                                 accessible={false}
-                                                disabled={isFieldDisabled}
+                                                disabled={!canWriteRules}
                                             />
                                         </View>
                                     }
