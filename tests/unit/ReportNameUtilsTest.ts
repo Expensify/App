@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -12,10 +10,16 @@ import {
     getPolicyExpenseChatName,
     getReportName as getSimpleReportName,
 } from '@libs/ReportNameUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -46,6 +50,7 @@ describe('ReportNameUtils', () => {
             reportActions,
             currentUserAccountID: currentUserID,
             currentUserLogin,
+            isTrackIntentUser: false,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -556,6 +561,7 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
                 currentUserLogin: '',
                 allPolicyTags: policyTagsCollection,
+                isTrackIntentUser: false,
             });
 
             expect(name).toContain('Cost Center');

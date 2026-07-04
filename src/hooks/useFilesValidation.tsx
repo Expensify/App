@@ -1,17 +1,21 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {getFileValidationErrorText, hasHeicOrHeifExtension, resizeImageIfNeeded, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import type {FileValidationError} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
@@ -53,7 +57,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const pendingAfterHide = useRef<() => void>(() => {});
     const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const validFilesToUploadRef = useRef<FileObject[]>([]);
-    const currentValidationState = useRef<ValidationState>({isValidatingReceipts: false, isValidatingMultipleFiles: false});
+    const currentValidationState = useRef<ValidationState>({
+        isValidatingReceipts: false,
+        isValidatingMultipleFiles: false,
+    });
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
@@ -95,7 +102,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         collectedErrors.current = [];
         originalFileOrder.current.clear();
         validFilesToUploadRef.current = [];
-        currentValidationState.current = {isValidatingReceipts: false, isValidatingMultipleFiles: false};
+        currentValidationState.current = {
+            isValidatingReceipts: false,
+            isValidatingMultipleFiles: false,
+        };
     };
 
     const runPendingAfterHide = () => {
@@ -108,7 +118,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         if (!error) {
             return '';
         }
-        const fileValidationErrorText = getFileValidationErrorText(translate, error, {isValidatingReceipt: currentValidationState.current.isValidatingReceipts});
+        const fileValidationErrorText = getFileValidationErrorText(translate, error, {
+            isValidatingReceipt: currentValidationState.current.isValidatingReceipts,
+        });
         const prompt = fileValidationErrorText.reason;
         if (error.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
@@ -122,7 +134,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const showErrorModal = async (error: FileValidationError, currentIndex: number, allErrors: FileValidationError[]) => {
-        const fileValidationErrorText = getFileValidationErrorText(translate, error, {isValidatingReceipt: currentValidationState.current.isValidatingReceipts});
+        const fileValidationErrorText = getFileValidationErrorText(translate, error, {
+            isValidatingReceipt: currentValidationState.current.isValidatingReceipts,
+        });
 
         const result = await showConfirmModal({
             title: fileValidationErrorText.title,
@@ -320,9 +334,15 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 } else {
                     const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
                     if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
-                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
+                        collectedErrors.current.push({
+                            error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE,
+                            isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                        });
                     } else {
-                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
+                        collectedErrors.current.push({
+                            error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED,
+                            isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                        });
                     }
                 }
             }
@@ -398,7 +418,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             }
-            const error = {error: CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles};
+            const error = {
+                error: CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED,
+                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+            };
             showErrorModal(error, 0, [error]);
         } else {
             validateAndResizeFiles(files, items ?? [], validationState);
@@ -419,7 +442,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                   onPassword={() => {
                       validatedPDFs.current.push(file);
                       if (currentValidationState.current.isValidatingReceipts === true) {
-                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
+                          collectedErrors.current.push({
+                              error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE,
+                          });
                       } else {
                           validFiles.current.push(file);
                       }
@@ -427,7 +452,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                   }}
                   onLoadError={() => {
                       validatedPDFs.current.push(file);
-                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                      collectedErrors.current.push({
+                          error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED,
+                      });
                       checkIfAllValidatedAndProceed();
                   }}
               />

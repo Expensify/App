@@ -1,20 +1,25 @@
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useMemo} from 'react';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {useMemo} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilesValidation from './useFilesValidation';
 import useIsAnonymousUser from './useIsAnonymousUser';
@@ -38,7 +43,9 @@ function useReceiptScanDrop() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);
@@ -122,7 +129,11 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    return {initScanRequest, auxiliaryUI: PDFValidationComponent, isDragDisabled: isAnonymousUser};
+    return {
+        initScanRequest,
+        auxiliaryUI: PDFValidationComponent,
+        isDragDisabled: isAnonymousUser,
+    };
 }
 
 export default useReceiptScanDrop;

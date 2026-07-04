@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+
 import type {FundList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 describe('shouldRenderTransferOwnerButton', () => {
     it('should return true if the user has debit card funds', () => {
