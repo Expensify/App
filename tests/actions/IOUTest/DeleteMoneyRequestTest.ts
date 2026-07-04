@@ -1787,8 +1787,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@email.com';
 
-        // Reviewer's Jun 21..25 scenario: delete first (Jun 21) and last (Jun 25), offline.
-        // Expected title after both deletes: "Trip from Jun 22 to Jun 24, 2025".
         it('recomputes title after deleting BOTH the first AND the last expense in a TRIP report (offline)', async () => {
             const policyID = 'policy-trip-multi-delete';
             const titleField = {
@@ -1862,7 +1860,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            // Delete Jun 21 first. Every production caller is now threading `policy` through, mirrored here.
             deleteMoneyRequest({
                 transactionID: t21.transactionID,
                 reportAction: a21,
@@ -1888,7 +1885,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 });
             });
 
-            // Delete Jun 25 next. Sticky pending-DELETE from iter 1 keeps Jun 21 excluded from the recompute.
             deleteMoneyRequest({
                 transactionID: t25.transactionID,
                 reportAction: a25,
@@ -2024,8 +2020,94 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 });
             });
 
-            // Pending-delete transaction excluded → start/end come from the remaining Jan 15 expense.
             expect(updatedReport?.reportName).toBe('Trip from Jan 15 to Jan 15, 2025');
+            mockFetch?.resume?.();
+        });
+
+        it('preserves the stored title on cross-currency delete (indeterminate total gate)', async () => {
+            const policyID = 'policy-trip-cross-currency-delete';
+            const ORIGINAL_TITLE = 'Trip $100.00';
+            const titleField = {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                name: 'Title',
+                type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                defaultValue: 'Trip {report:total}',
+                deletable: false,
+                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+            const policy = {
+                ...createRandomPolicy(103, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(301, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+                reportName: ORIGINAL_TITLE,
+            };
+            const eurTxn: Transaction = {
+                ...createRandomTransaction(3001),
+                amount: -8500,
+                currency: CONST.CURRENCY.EUR,
+                reportID: expenseReport.reportID,
+                created: '2025-06-21',
+                merchant: 'Cross-currency purchase',
+                reimbursable: true,
+            };
+            const eurAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(3001),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {amount: eurTxn.amount, currency: eurTxn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: eurTxn.transactionID},
+                message: undefined,
+                previousMessage: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${eurTxn.transactionID}`, eurTxn);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[eurAction.reportActionID]: eurAction});
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            deleteMoneyRequest({
+                transactionID: eurTxn.transactionID,
+                reportAction: eurAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                policy,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedReport = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(updatedReport?.reportName).toBe(ORIGINAL_TITLE);
             mockFetch?.resume?.();
         });
     });

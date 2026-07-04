@@ -57,7 +57,6 @@ type DeleteMoneyRequestFunctionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    // Optional; when passed, the surviving report's formula title is recomputed post-delete.
     policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
@@ -169,6 +168,9 @@ function prepareToCleanUpMoneyRequest(
     const unheldAmountDiff =
         getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, isExpenseReportType) : 0), 0) ?? 0);
 
+    const wasAlreadyIndeterminate = iouReport?.pendingFields?.total === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    let didUpdateOptimisticTotal = false;
+
     if (iouReport && isExpenseReportType) {
         // Capture previous fresh reimbursable totals before mutating, so the diffs apply whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
@@ -177,6 +179,7 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport = {...iouReport};
 
         if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency && canEditTotal) {
+            didUpdateOptimisticTotal = true;
             // Because of the Expense reports are stored as negative values, we add the total from the amount
             updatedIOUReport.total += amountDiff;
 
@@ -211,11 +214,20 @@ function prepareToCleanUpMoneyRequest(
                 }
             }
         }
+    } else if (iouReport && !canEditTotal) {
+        updatedIOUReport = {...iouReport};
     } else {
-        updatedIOUReport =
-            iouReport && !canEditTotal
-                ? {...iouReport}
-                : updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, amountDiff, currency, true, false, isTransactionOnHold, unheldAmountDiff);
+        updatedIOUReport = updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            amountDiff,
+            currency,
+            true,
+            false,
+            isTransactionOnHold,
+            unheldAmountDiff,
+        );
+        didUpdateOptimisticTotal = true;
     }
 
     if (updatedIOUReport) {
@@ -224,9 +236,7 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
 
-        // Overlay the transaction as DELETE so the Formula engine excludes it — otherwise transaction-
-        // derived parts (e.g. `{report:autoreporting:start}`) stay stuck on the deleted date until BE responds.
-        if (!shouldDeleteIOUReport && transaction?.transactionID && policy) {
+        if (!shouldDeleteIOUReport && transaction?.transactionID && policy && didUpdateOptimisticTotal && !wasAlreadyIndeterminate) {
             const overlay = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
             updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, overlay);
         }
