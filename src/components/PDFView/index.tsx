@@ -28,7 +28,8 @@ import type {LayoutChangeEvent} from 'react-native';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
+import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 import type {PDFViewProps} from './types';
 
@@ -36,6 +37,8 @@ import PDFPasswordForm from './PDFPasswordForm';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
+const PDF_MIN_SCALE = 1;
+const PDF_SCROLL_DISABLED_SCALE = 2;
 const PDF_ZOOM_RANGE = {max: 5};
 
 type MobilePDFGestureCanvasProps = {
@@ -49,10 +52,40 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
     const [canvasSize, setCanvasSize] = useState<Dimensions>();
     const isPagerScrollingFallback = useSharedValue(false);
     const isScrollEnabledFallback = useSharedValue(true);
+    const isTransformGestureActive = useSharedValue(false);
     const state = useAttachmentCarouselPagerState();
     const actions = useAttachmentCarouselPagerActions();
     const [shouldDisablePDFScroll, setShouldDisablePDFScroll] = useState(false);
     const shouldDisablePDFScrollRef = useRef(false);
+    const scaleRef = useRef(PDF_MIN_SCALE);
+    const isTransformingRef = useRef(false);
+    const lastScaleChangeSignalRef = useRef(PDF_MIN_SCALE);
+
+    const updateShouldDisablePDFScroll = (shouldBlockScroll: boolean) => {
+        if (shouldDisablePDFScrollRef.current === shouldBlockScroll) {
+            return;
+        }
+
+        shouldDisablePDFScrollRef.current = shouldBlockScroll;
+        setShouldDisablePDFScroll(shouldBlockScroll);
+    };
+
+    const notifyScaleChanged = (scale: number) => {
+        if (lastScaleChangeSignalRef.current === scale) {
+            return;
+        }
+
+        lastScaleChangeSignalRef.current = scale;
+        onScaleChanged?.(scale);
+        actions?.onScaleChanged?.(scale);
+    };
+
+    const updatePDFGestureState = () => {
+        const shouldBlockScroll = isTransformingRef.current || scaleRef.current > PDF_MIN_SCALE;
+
+        updateShouldDisablePDFScroll(shouldBlockScroll);
+        notifyScaleChanged(shouldBlockScroll ? PDF_SCROLL_DISABLED_SCALE : PDF_MIN_SCALE);
+    };
 
     const updateCanvasSize = ({
         nativeEvent: {
@@ -73,16 +106,21 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
     };
 
     const scaleChange = (scale: number) => {
-        const isZoomed = scale > 1;
-
-        if (shouldDisablePDFScrollRef.current !== isZoomed) {
-            shouldDisablePDFScrollRef.current = isZoomed;
-            setShouldDisablePDFScroll(isZoomed);
-        }
-
-        onScaleChanged?.(scale);
-        actions?.onScaleChanged?.(scale);
+        scaleRef.current = scale;
+        updatePDFGestureState();
     };
+
+    const transformGestureStateChange = (isTransforming: boolean) => {
+        isTransformingRef.current = isTransforming;
+        updatePDFGestureState();
+    };
+
+    useAnimatedReaction(
+        () => isTransformGestureActive.get(),
+        (isTransforming) => {
+            scheduleOnRN(transformGestureStateChange, isTransforming);
+        },
+    );
 
     return (
         <View
@@ -97,6 +135,7 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
                     pagerRef={state?.pagerRef}
                     isUsedInCarousel={!!state?.pagerRef}
                     shouldDisableTransformationGestures={state?.isPagerScrolling ?? isPagerScrollingFallback}
+                    isTransformGestureActive={isTransformGestureActive}
                     isPagerScrollEnabled={state?.isScrollEnabled ?? isScrollEnabledFallback}
                     onTap={actions?.onTap}
                     onScaleChanged={scaleChange}

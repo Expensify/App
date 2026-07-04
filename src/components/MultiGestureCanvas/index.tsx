@@ -47,6 +47,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap) */
     shouldDisableTransformationGestures?: SharedValue<boolean>;
 
+    /** A shared value updated while transform gestures or transform animations are active. */
+    isTransformGestureActive?: SharedValue<boolean>;
+
     /** A shared value to enable/disable the pager scroll */
     isPagerScrollEnabled: SharedValue<boolean>;
 
@@ -86,6 +89,7 @@ function MultiGestureCanvas({
     pagerRef,
     isUsedInCarousel,
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
+    isTransformGestureActive: isTransformGestureActiveProp,
     isPagerScrollEnabled,
     onTap,
     onScaleChanged,
@@ -100,6 +104,8 @@ function MultiGestureCanvas({
     const contentSize = contentSizeProp ?? defaultContentSize;
     const shouldDisableTransformationGesturesFallback = useSharedValue(false);
     const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
+    const isTransformGestureActiveFallback = useSharedValue(false);
+    const isTransformGestureActive = isTransformGestureActiveProp ?? isTransformGestureActiveFallback;
 
     const zoomRange = useMemo(
         () => ({
@@ -205,6 +211,7 @@ function MultiGestureCanvas({
         reset,
         stopAnimation,
         onScaleChanged,
+        isTransformGestureActive,
         onTap,
         shouldDisableTransformationGestures,
     });
@@ -244,6 +251,7 @@ function MultiGestureCanvas({
         pinchScale,
         stopAnimation,
         onScaleChanged,
+        isTransformGestureActive,
         shouldDisableTransformationGestures,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 

@@ -25,6 +25,7 @@ type MultiGestureCanvasVariables = {
     minContentScale: number;
     maxContentScale: number;
     shouldDisableTransformationGestures: SharedValue<boolean>;
+    isTransformGestureActive: SharedValue<boolean>;
     isSwipingDownToClose: SharedValue<boolean>;
     zoomScale: SharedValue<number>;
     totalScale: SharedValue<number>;
