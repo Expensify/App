@@ -1,6 +1,7 @@
+import type {TranslationPaths} from '@src/languages/types';
+
 import type {Ref} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {TranslationPaths} from '@src/languages/types';
 
 type BaseTwoFactorAuthFormRef = {
     validateAndSubmitForm: () => void;
