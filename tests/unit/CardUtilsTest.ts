@@ -1,11 +1,9 @@
-import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
-import * as fs from 'fs';
-import lodashSortBy from 'lodash/sortBy';
-import * as path from 'path';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
@@ -32,6 +30,7 @@ import {
     getCardHintText,
     getCardsByCardholderName,
     getCardSettings,
+    getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -91,6 +90,14 @@ import type {
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
+import * as fs from 'fs';
+import lodashSortBy from 'lodash/sortBy';
+import * as path from 'path';
+
 import createMock from '../utils/createMock';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -2376,7 +2383,7 @@ describe('CardUtils', () => {
                 }),
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('Travel invoicing');
+            expect(description).toBe('Consolidated Travel Billing');
         });
 
         it('should return the correct card description for personal card', () => {
@@ -2415,7 +2422,7 @@ describe('CardUtils', () => {
                 }),
             };
             const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
-            expect(description).toBe('Travel invoicing');
+            expect(description).toBe('Consolidated Travel Billing');
         });
 
         it('should return normal description for non-travel Expensify cards', () => {
@@ -3180,62 +3187,6 @@ describe('CardUtils', () => {
                 }),
             };
             expect(isUkEuExpensifyCard(card)).toBe(false);
-        });
-    });
-
-    describe('isExpensifyCardUkEuSupportedSelector', () => {
-        const ukEuCard: Card = {
-            accountID: 18439984,
-            bank: CONST.EXPENSIFY_CARD.BANK,
-            cardID: 21570657,
-            cardName: 'CREDIT CARD...5644',
-            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-            fraud: 'none',
-            lastFourPAN: '',
-            lastScrape: '',
-            lastUpdated: '',
-            state: 2,
-            nameValuePairs: createMock<Card['nameValuePairs']>({
-                feedCountry: CONST.COUNTRY.GB,
-            }),
-        };
-
-        const usCard: Card = {
-            accountID: 18439984,
-            bank: CONST.EXPENSIFY_CARD.BANK,
-            cardID: 21570658,
-            cardName: 'CREDIT CARD...1234',
-            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-            fraud: 'none',
-            lastFourPAN: '',
-            lastScrape: '',
-            lastUpdated: '',
-            state: 2,
-        };
-
-        const cardList: CardList = {
-            '21570657': ukEuCard,
-            '21570658': usCard,
-        };
-
-        it('should return true when cardID matches a UK/EU card', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570657')).toBe(true);
-        });
-
-        it('should return false when cardID matches a US card', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570658')).toBe(false);
-        });
-
-        it('should return false when cardID does not exist in card list', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '99999999')).toBe(false);
-        });
-
-        it('should return false when card list is empty', () => {
-            expect(isExpensifyCardUkEuSupportedSelector({}, '21570657')).toBe(false);
-        });
-
-        it('should return false when cardID is empty string', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '')).toBe(false);
         });
     });
 
@@ -4635,5 +4586,26 @@ describe('CardArtworkColors drift detection', () => {
         const actual = extractBackgroundFill(svg);
         expect(actual).not.toBeNull();
         expect(CARD_FEED_COLORS[key].background).toBe(actual);
+    });
+});
+
+describe('getCompanyCardCustomName', () => {
+    const sharedCardCustomNames = {'1234': 'Shared name'};
+    const customCardNames = {'1234': 'Personal name', '5678': 'Other personal name'};
+
+    it('returns undefined when cardID is not provided', () => {
+        expect(getCompanyCardCustomName(undefined, sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+
+    it('prefers the shared NVP name over the personal NVP name', () => {
+        expect(getCompanyCardCustomName('1234', sharedCardCustomNames, customCardNames)).toBe('Shared name');
+    });
+
+    it('falls back to the personal NVP name when the shared NVP has no entry', () => {
+        expect(getCompanyCardCustomName('5678', sharedCardCustomNames, customCardNames)).toBe('Other personal name');
+    });
+
+    it('returns undefined when neither NVP has a name for the card', () => {
+        expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
     });
 });

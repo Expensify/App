@@ -1,9 +1,11 @@
-import Onyx from 'react-native-onyx';
 import {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({

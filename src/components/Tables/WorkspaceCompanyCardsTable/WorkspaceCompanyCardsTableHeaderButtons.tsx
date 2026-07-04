@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
@@ -17,6 +14,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import type {ActiveSorting} from '@components/Table/types';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
@@ -27,15 +25,24 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionError';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;

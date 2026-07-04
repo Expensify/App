@@ -1,8 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import CONST from '@src/CONST';
+
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
-import CONST from '@src/CONST';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type Args = {
     /** The report ID */
