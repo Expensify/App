@@ -6,7 +6,7 @@ import {isValidInputLength} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import {useEffect} from 'react';
+import {useEffect, useEffectEvent} from 'react';
 
 const FILTER_MAX_LENGTH: Partial<Record<SearchTextFilterKeys, number>> = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: CONST.DESCRIPTION_LIMIT,
@@ -20,9 +20,13 @@ function useTextFilterValidation(filterKey: SearchTextFilterKeys, value: string 
     const {isValid, byteLength} = isValidInputLength(value?.trim() ?? '', maxLength);
     const error = !isValid ? translate('common.error.characterLimitExceedCounter', byteLength, maxLength) : undefined;
 
+    const onErrorCallback = useEffectEvent((err?: string) => onError?.(err));
+
     useEffect(() => {
-        onError?.(error);
-    }, [error, onError]);
+        onErrorCallback(error);
+    }, [error]);
+
+    useEffect(() => () => onErrorCallback(), []);
 
     return error;
 }
