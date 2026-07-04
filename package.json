@@ -67,6 +67,7 @@
     "storybook-build": "ENV=production storybook build -o dist/docs",
     "storybook-build-staging": "ENV=staging storybook build -o dist/docs",
     "gh-actions-build": "bun .github/scripts/buildActions.ts",
+    "build-jest-shims": "ts-node jest/buildEsmShims.ts",
     "analyze-packages": "ANALYZE_BUNDLE=true tsx ./node_modules/.bin/webpack-cli --config config/webpack/webpack.common.ts --env file=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",

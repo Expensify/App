@@ -1,11 +1,9 @@
-import CONST from '@github/libs/CONST';
-
 /**
  * This script is used for categorizing upwork costs into cost buckets for accounting purposes.
  *
  * To run this script from the root of E/App:
  *
- * ts-node ./scripts/aggregateGitHubDataFromUpwork.js <path_to_csv> <github_pat> <output_path>
+ * node scripts/runTsNodeEsm.mjs scripts/aggregateGitHubDataFromUpwork.mts <path_to_csv> <github_pat> <output_path>
  *
  * The input file must be a CSV with a single column containing just the GitHub issue number. The CSV must have a single header row.
  */
@@ -14,6 +12,9 @@ import {paginateRest} from '@octokit/plugin-paginate-rest';
 import {throttling} from '@octokit/plugin-throttling';
 import {createObjectCsvWriter} from 'csv-writer';
 import fs from 'fs';
+
+// eslint-disable-next-line import/extensions -- relative imports require an explicit extension under Node's ESM resolution (this file is real ESM, see the .mts extension)
+import CONST from '../.github/libs/CONST.js';
 
 type IssueType = 'bug' | 'feature' | 'other';
 

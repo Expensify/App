@@ -22,10 +22,7 @@ module.exports = {
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
-        // @actions/*, @octokit/*, and their own transitive deps (before-after-hook, json-with-bigint,
-        // universal-user-agent) ship pure ESM as of @actions/core v3 / @actions/github v9, so they need to be
-        // transpiled to CJS by babel-jest, like the RN/Expo packages below.
-        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@shopify\/flash-list|@actions|@octokit|before-after-hook|json-with-bigint|universal-user-agent).*/)',
+        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@shopify\/flash-list).*/)',
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
@@ -59,8 +56,16 @@ module.exports = {
         // resolution. Jest's resolver doesn't do TS's "look for the .ts source behind a .js specifier" trick on its
         // own, so strip the extension here and let Jest's normal moduleFileExtensions resolution find the .ts file.
         '^(\\.{1,2}/.*)\\.js$': '$1',
+        // @actions/core v3, @actions/github v9, and these @octokit/* plugins ship pure ESM: their package.json
+        // sets "type": "module" with no "require"/"default" export fallback. Jest's require()-based module
+        // system refuses to load such a module synchronously ("Must use import to load ES Module"), regardless
+        // of transformIgnorePatterns, because that check runs before any transform. Redirect these specifiers to
+        // pre-bundled, fully self-contained CJS shims instead (see jest/buildEsmShims.ts).
+        '^@actions/core$': '<rootDir>/jest/shims/actions-core.cjs',
+        '^@actions/github/lib/utils$': '<rootDir>/jest/shims/actions-github-utils.cjs',
+        '^@actions/github$': '<rootDir>/jest/shims/actions-github.cjs',
+        '^@octokit/plugin-paginate-rest$': '<rootDir>/jest/shims/octokit-plugin-paginate-rest.cjs',
+        '^@octokit/plugin-throttling$': '<rootDir>/jest/shims/octokit-plugin-throttling.cjs',
+        '^@octokit/request-error$': '<rootDir>/jest/shims/octokit-request-error.cjs',
     },
-    // @actions/* (core, github, http-client, exec, io, ...) ship "exports" maps with only an "import"
-    // condition (no "require"/"default" fallback), which Jest's CJS-context resolver can't match on its own.
-    resolver: '<rootDir>/jest/esmExportsResolver.js',
 };

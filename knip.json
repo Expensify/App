@@ -69,7 +69,8 @@
         "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "babel-plugin-transform-import-meta"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }

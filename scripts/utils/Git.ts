@@ -1,14 +1,11 @@
-import CONST from '@github/libs/CONST';
-import GitHubUtils from '@github/libs/GithubUtils';
-
 import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
 
-import {context} from '@actions/github';
 import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import {promisify} from 'util';
 
+import importEsmOnlyGithubDeps from './esmGithubDeps';
 import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
@@ -29,6 +26,7 @@ type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd
 
 function execSync(command: string, options?: ExecSyncOptions) {
     const optionsWithEncoding: ExecSyncOptionsWithStringEncoding = {
+        maxBuffer: 1024 * 1024 * 200, // Large diffs (e.g. bundled action output) can exceed Node's 1MB default.
         ...options,
         encoding: 'utf8',
         cwd: process.cwd(),
@@ -503,11 +501,13 @@ class Git {
      */
     static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
         if (IS_CI) {
+            const {GitHubUtils, CONST, github} = await importEsmOnlyGithubDeps();
+
             const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: context.payload.pull_request?.number ?? 0,
+                pull_number: github.context.payload.pull_request?.number ?? 0,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 per_page: 100,
             });
