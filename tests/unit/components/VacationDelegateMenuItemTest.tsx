@@ -4,10 +4,14 @@
  *  - new accounts (personal details missing, e.g. after cache clear) for both email and phone-number logins
  */
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
+
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
+
 import type {PersonalDetails} from '@src/types/onyx';
+
+import React from 'react';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

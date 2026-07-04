@@ -4,12 +4,16 @@
  *  - new accounts (personal details missing, e.g. after cache clear) for both email and phone-number logins
  */
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import {setVacationDelegate} from '@libs/actions/VacationDelegate';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import VacationDelegatePage from '@pages/settings/Profile/CustomStatus/VacationDelegatePage';
+
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
 
 const mockShowConfirmModal = jest.fn();
 
