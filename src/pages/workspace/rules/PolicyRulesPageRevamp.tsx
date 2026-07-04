@@ -157,6 +157,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
+    const isAgentsTab = activeTab === RULES_TAB.AGENTS && isCustomAgentBetaEnabled;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
@@ -287,7 +288,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
-                shouldUseScrollView={activeTab === RULES_TAB.GENERAL || activeTab === RULES_TAB.AGENTS}
+                shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
                 headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
@@ -320,7 +321,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         </View>
                     </View>
                     {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
-                    <View style={[styles.flex1, styles.mnh0, styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, isTableTab && styles.mw100]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.mnh0,
+                            styles.w100,
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            (isTableTab || isAgentsTab) && styles.mw100,
+                        ]}
+                    >
                         {activeTab === RULES_TAB.GENERAL && (
                             <RulesGeneralTab
                                 policyID={policyID}
@@ -362,12 +371,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 )}
                             </View>
                         )}
-                        {activeTab === RULES_TAB.AGENTS && isCustomAgentBetaEnabled && (
-                            <RulesAgentsTab
-                                policyID={policyID}
-                                canWriteRules={canWriteRules}
-                                showReadOnlyModal={showReadOnlyModal}
-                            />
+                        {isAgentsTab && (
+                            <View style={[styles.flex1, styles.mnh0, styles.w100]}>
+                                <RulesAgentsTab
+                                    policyID={policyID}
+                                    canWriteRules={canWriteRules}
+                                    showReadOnlyModal={showReadOnlyModal}
+                                />
+                            </View>
                         )}
                     </View>
                 </View>
