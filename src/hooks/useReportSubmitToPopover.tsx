@@ -1,20 +1,28 @@
-import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSubmitToEmail} from '@libs/PolicyUtils';
+
 import ReportSubmitToContent from '@pages/ReportSubmitToContent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {RefObject} from 'react';
+
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
+import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
+import useViewportOffsetTop from './useViewportOffsetTop';
 import useWindowDimensions from './useWindowDimensions';
 
 const popoverDimensions = {
@@ -46,6 +54,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
     const isInLandscapeMode = useIsInLandscapeMode();
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -67,6 +76,10 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const pendingSearchSubmitOpenOptionsRef = useRef<ReportSubmitToPopoverOpenOptions | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [isVisible, setIsVisible] = useState(false);
+    const wasPopoverVisible = usePrevious(isVisible);
+    // Do not mount the submit-to popover modal until first open. Avoids a second RN Modal in the tree
+    // while the More menu is open on iOS (which blocks follow-up confirm dialogs such as Cancel payment).
+    const shouldRenderSubmitToPopover = wasPopoverVisible || isVisible;
     const [isDismissGuardActive, setIsDismissGuardActive] = useState(false);
     const [isSearchSubmitFlow, setIsSearchSubmitFlow] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -189,18 +202,33 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover],
     );
 
-    const innerContainerStyle = useMemo(
+    const popoverContainerStyle = useMemo(() => (isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}), [isSmallScreenWidth, styles.w100]);
+
+    const outerStyle = useMemo(
         () => ({
-            ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}),
-            ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+            ...(isSmallScreenWidth ? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop) : {}),
+            ...popoverContainerStyle,
         }),
-        [isSmallScreenWidth, isBottomDockedInLandscape, windowHeight, styles],
+        [StyleUtils, isSmallScreenWidth, popoverContainerStyle, viewportOffsetTop, windowHeight],
     );
 
-    const reportSubmitToPopover = useMemo(
-        () => (
+    const innerContainerStyle = useMemo(
+        () => ({
+            ...popoverContainerStyle,
+            ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+        }),
+        [popoverContainerStyle, isBottomDockedInLandscape, windowHeight, styles],
+    );
+
+    const reportSubmitToPopover = useMemo(() => {
+        if (!shouldRenderSubmitToPopover) {
+            return null;
+        }
+
+        return (
             <PopoverWithMeasuredContent
                 innerContainerStyle={innerContainerStyle}
+                outerStyle={outerStyle}
                 anchorRef={anchorRef}
                 isVisible={isVisible}
                 onClose={closeReportSubmitToPopover}
@@ -214,11 +242,12 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
                 shouldUseModalPaddingStyle
+                avoidKeyboard
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.pt4]}
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.flex1, styles.w100, styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -233,28 +262,31 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                     />
                 </View>
             </PopoverWithMeasuredContent>
-        ),
-        [
-            StyleUtils,
-            styles.flexColumn,
-            styles.pt4,
-            innerContainerStyle,
-            submitToPopoverContentHeight,
-            isVisible,
-            closeReportSubmitToPopover,
-            handleReportSubmitToPopoverModalHide,
-            anchorPosition,
-            anchorAlignment,
-            anchorRef,
-            report,
-            policy,
-            isLoadingReportData,
-            handleCombinedSubmitSuccess,
-            isSearchSubmitFlow,
-            handleSearchSubmitWithManagerEmail,
-            submitToContentKey,
-        ],
-    );
+        );
+    }, [
+        StyleUtils,
+        styles.flexColumn,
+        styles.flex1,
+        styles.pt4,
+        styles.w100,
+        innerContainerStyle,
+        outerStyle,
+        submitToPopoverContentHeight,
+        shouldRenderSubmitToPopover,
+        isVisible,
+        closeReportSubmitToPopover,
+        handleReportSubmitToPopoverModalHide,
+        anchorPosition,
+        anchorAlignment,
+        anchorRef,
+        report,
+        policy,
+        isLoadingReportData,
+        handleCombinedSubmitSuccess,
+        isSearchSubmitFlow,
+        handleSearchSubmitWithManagerEmail,
+        submitToContentKey,
+    ]);
 
     return {
         anchorRef,

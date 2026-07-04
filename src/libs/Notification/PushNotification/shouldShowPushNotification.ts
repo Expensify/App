@@ -1,12 +1,17 @@
-import type {PushPayload} from '@ua/react-native-airship';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
+
 import * as Report from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
+
+import type {PushPayload} from '@ua/react-native-airship';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import parsePushNotificationPayload from './parsePushNotificationPayload';
 
 // We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
