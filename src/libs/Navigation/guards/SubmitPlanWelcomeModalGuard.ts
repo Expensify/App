@@ -5,6 +5,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
@@ -29,8 +31,33 @@ let isSubmitMigrationModalShownLoaded = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 
+const SUBMIT_PLAN_WELCOME_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens);
+
+/**
+ * The submit-plan-welcome modal is a dynamic route that can only attach to the screens listed in
+ * DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens. When we proactively open the modal on app boot,
+ * the active route can be any screen (e.g. `/settings/troubleshoot` after "Clear cache and restart"),
+ * and stacking the suffix onto a non-entry screen resolves to NotFound. Fall back to HOME (a valid
+ * entry screen) whenever the active route isn't an allowed base.
+ */
+function getValidModalBasePath(): string {
+    const activeRoute = Navigation.getActiveRoute();
+    if (!activeRoute) {
+        return ROUTES.HOME;
+    }
+    try {
+        const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(activeRoute as Route) ?? {})?.name;
+        if (focusedRouteName && SUBMIT_PLAN_WELCOME_ENTRY_SCREENS.has(focusedRouteName)) {
+            return activeRoute;
+        }
+    } catch {
+        // getStateFromPath can throw for unparseable paths; fall back to HOME below.
+    }
+    return ROUTES.HOME;
+}
+
 function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
-    return createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+    return createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path, basePath ?? getValidModalBasePath());
 }
 
 function resetSessionFlag() {
