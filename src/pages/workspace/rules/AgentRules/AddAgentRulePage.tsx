@@ -132,7 +132,9 @@ function AddAgentRulePage({
                         return;
                     }
 
-                    navigateBackToAgentsTab();
+                    if (isRulesRevampEnabled) {
+                        navigateBackToAgentsTab();
+                    }
                 });
             },
         });
