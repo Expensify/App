@@ -7857,7 +7857,6 @@ const translations = {
                 enforcedBy: 'Agent rules are enforced by',
                 ruleBotName: 'RuleBot',
                 addRule: 'Add agent rule',
-                addAgentRuleCta: '+ Add Agent Rule',
                 findRule: 'Find agent rule',
                 addRuleTitle: 'Add rule',
                 newRuleTitle: 'New rule',

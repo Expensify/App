@@ -14,6 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getAgentRuleDisplayTitle, getVisibleAgentRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 
@@ -51,19 +52,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
     // ruleBotAccountID stays set on the policy after RuleBot is removed from the workspace, so also require it to still be an active member before showing the "enforced by" line.
     const isRuleBotActiveMember = isPolicyMemberWithoutPendingDelete(ruleBot?.login, policy);
 
-    const sortedRules = Object.entries(agentRules ?? {})
-        .filter(([, rule]) => !!rule)
-        .map(([ruleID, rule]) => ({...rule, ruleID}))
-        .sort((a, b) => {
-            if (a.created && b.created) {
-                return a.created < b.created ? 1 : -1;
-            }
-            return 0;
-        });
-
-    // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
-    // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
-    const visibleRules = sortedRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const visibleRules = getVisibleAgentRules(agentRules, isOffline);
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -112,7 +101,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                                     onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
-                                        title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
+                                        title={getAgentRuleDisplayTitle(rule)}
                                         numberOfLinesTitle={1}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv2]}
                                         shouldShowRightIcon

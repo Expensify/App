@@ -28,5 +28,5 @@ function getVisibleAgentRules(agentRules: AgentRulesCollection, isOffline: boole
     return getSortedAgentRules(agentRules).filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
-export {getAgentRuleDisplayTitle, getSortedAgentRules, getVisibleAgentRules};
+export {getAgentRuleDisplayTitle, getVisibleAgentRules};
 export type {AgentRuleWithID};
