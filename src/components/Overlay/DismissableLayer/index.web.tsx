@@ -1,7 +1,6 @@
 import useAriaHideSiblings from '@components/Overlay/hooks/useAriaHideSiblings';
 import useBodyScrollLock from '@components/Overlay/hooks/useBodyScrollLock';
 import useEscapeKeydown from '@components/Overlay/hooks/useEscapeKeydown';
-import {useIsModalCovering} from '@components/Overlay/hooks/useOverlaySelectors';
 import usePointerDownOutside from '@components/Overlay/hooks/usePointerDownOutside';
 import asHostElement from '@components/Overlay/libs/asHostElement';
 import dismissableLayerStore, {nextLayerMountId, pushDismissableLayer, selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
@@ -173,10 +172,11 @@ function ModalLayer(props: DismissableLayerProps) {
 
 function FloatingLayer(props: DismissableLayerProps) {
     const {isTop} = useLayerStack('floating');
-    const isCovered = useIsModalCovering();
+    // Gate on stack z-order only — a covering v2 modal has a higher mountId so this layer is already
+    // not-top; modal-cover *closing* is a consumer concern (Popover/PopoverMenu v2), not this gate.
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {
-        isEscapeActive: isTop && !isCovered,
-        isPointerOutsideActive: isTop && !isCovered,
+        isEscapeActive: isTop,
+        isPointerOutsideActive: isTop,
     });
     return (
         <LayerHost

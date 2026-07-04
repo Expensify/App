@@ -233,26 +233,13 @@ describe('LayerHost wrapper — outside-click invariant', () => {
     });
 });
 
-describe('FloatingLayer — outside-pointer gating while covered', () => {
+describe('FloatingLayer — dismissable regardless of modal cover', () => {
     afterEach(() => {
         mockIsCovering = false;
     });
 
-    it('disables the outside-pointer listener when a modal covers the topmost floating layer', () => {
+    it('keeps a topmost floating layer dismissable even when useIsModalCovering() reports true (cover-close is a consumer concern, not the gate)', () => {
         mockIsCovering = true;
-        jest.mocked(usePointerDownOutside).mockClear();
-
-        render(
-            <DismissableLayer.Floating onDismiss={jest.fn()}>
-                <ModalContent>Floating</ModalContent>
-            </DismissableLayer.Floating>,
-        );
-
-        expect(jest.mocked(usePointerDownOutside).mock.calls.at(-1)?.[2]).toEqual({isActive: false});
-    });
-
-    it('enables the outside-pointer listener when the floating layer is topmost and uncovered', () => {
-        mockIsCovering = false;
         jest.mocked(usePointerDownOutside).mockClear();
 
         render(
