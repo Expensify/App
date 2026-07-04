@@ -3,14 +3,12 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
+import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
-import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
-
-type FieldRequirementsDirection = ValueOf<typeof CONST.FIELD_REQUIREMENTS_DIRECTION>;
 
 type FieldRequirementsDirectionToggleProps = {
     direction: FieldRequirementsDirection;

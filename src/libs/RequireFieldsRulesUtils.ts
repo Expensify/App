@@ -691,6 +691,7 @@ export {
     deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     getRequireFieldsTableData,
     inferFieldRequirementsDirection,

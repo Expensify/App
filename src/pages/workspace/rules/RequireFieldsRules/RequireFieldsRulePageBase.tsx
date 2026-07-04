@@ -27,6 +27,7 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     inferFieldRequirementsDirection,
     saveRequireFieldsRule,
@@ -101,7 +102,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         }
 
         const editDirection = routeDirection ?? (formCategory === categoryName && formDirection ? formDirection : undefined) ?? inferFieldRequirementsDirection(category);
-        const ruleKey = `${editDirection}${CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR}${categoryName}`;
+        const ruleKey = getRequireFieldsRuleKey(editDirection, categoryName);
 
         if (initializedDraftForRuleKeyRef.current === ruleKey) {
             return;
@@ -183,7 +184,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         updateDraftRequireFieldsRule({[fieldKey]: value});
     };
 
-    const handleDirectionChange = (newDirection: typeof direction) => {
+    const handleDirectionChange = (newDirection: FieldRequirementsDirection) => {
         updateDraftRequireFieldsRule({
             [INPUT_IDS.DIRECTION]: newDirection,
             ...getRequireFieldsFormFromCategory(selectedCategory, newDirection),
@@ -264,7 +265,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName, direction)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.Folder}
