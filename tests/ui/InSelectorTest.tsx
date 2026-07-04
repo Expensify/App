@@ -40,8 +40,6 @@ jest.mock('@libs/OptionsListUtils', () => ({
     getAlternateText: () => '',
 }));
 
-type SectionData = {reportID?: string; keyForList: string; isSelected?: boolean};
-
 describe('InSelector', () => {
     const mockedSelectionList = jest.mocked(SelectionListWithSections);
 
@@ -52,7 +50,7 @@ describe('InSelector', () => {
             text: `Report ${index}`,
         }));
 
-    const getSections = () => mockedSelectionList.mock.lastCall?.[0].sections as Array<{data: SectionData[]}>;
+    const getSections = () => mockedSelectionList.mock.lastCall?.[0].sections ?? [];
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
