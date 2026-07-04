@@ -1,10 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isSupportAuthToken} from '@libs/Network/NetworkStore';
+
 import {showSupportalPermissionDenied} from '@userActions/App';
+
 import type Request from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 /**

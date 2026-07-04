@@ -1,5 +1,5 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
@@ -10,6 +10,7 @@ import type {HRConnectionName} from '@libs/HRUtils';
 import {formatList} from '@libs/Localize';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -20,6 +21,8 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, GustoConnectionConfig, MergeHRConnectionConfig, PolicyConnectionSyncProgress, PolicyConnectionSyncStage, ZenefitsConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type HRCardConfig = MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsConnectionConfig | undefined;
 

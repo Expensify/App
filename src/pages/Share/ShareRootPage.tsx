@@ -1,13 +1,13 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
+
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
@@ -17,13 +17,19 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {close as closeModal} from '@userActions/Modal';
 import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Alert, AppState, View} from 'react-native';
+
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';

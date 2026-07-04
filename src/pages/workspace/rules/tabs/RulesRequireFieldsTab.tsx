@@ -1,5 +1,5 @@
-import React from 'react';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,10 +8,15 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import RulesTabEmptyState from './RulesTabEmptyState';
 
 type RulesRequireFieldsTabProps = {

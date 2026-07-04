@@ -1,5 +1,7 @@
 import type {ThemeVars} from 'storybook/theming';
+
 import {create} from 'storybook/theming/create';
+
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
 import colors from '../src/styles/theme/colors';
 
