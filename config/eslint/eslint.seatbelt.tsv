@@ -1996,6 +1996,10 @@
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/createSharedValueMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../rspack/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rspack/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rspack/RspackPreloadPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rspack/rspack.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../webpack/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../webpack/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../webpack/webpack.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
