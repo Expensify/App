@@ -131,7 +131,18 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     );
 
     const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+        const isSavedSearchActive =
+            hash !== undefined &&
+            !!savedSearches &&
+            Object.entries(savedSearches).some(([key, item]) => {
+                if (Number(key) !== hash) {
+                    return false;
+                }
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
+                    return false;
+                }
+                return true;
+            });
 
         if (isSavedSearchActive) {
             return -1;
@@ -169,7 +180,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, isOffline]);
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 
