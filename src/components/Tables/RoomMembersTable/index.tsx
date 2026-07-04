@@ -14,8 +14,6 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
 
-import RoomMembersSearchBar from './RoomMembersSearchBar';
-import RoomMembersTableBody from './RoomMembersTableBody';
 import RoomMembersTableRow from './RoomMembersTableRow';
 
 type RoomMembersTableColumnKey = 'member' | 'actions';
@@ -50,9 +48,12 @@ type RoomMembersTableProps = {
 
     /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Callback when the active search string changes */
+    onSearchStringChange?: (searchString: string) => void;
 };
 
-export default function RoomMembersTable({ref, members, selectionEnabled, selectedKeys, shouldShowSearchBar, onRowSelectionChange}: RoomMembersTableProps) {
+export default function RoomMembersTable({ref, members, selectionEnabled, selectedKeys, shouldShowSearchBar, onRowSelectionChange, onSearchStringChange}: RoomMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -99,10 +100,11 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
             isItemInSearch={isItemInSearch}
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            onSearchStringChange={onSearchStringChange}
         >
-            {shouldShowSearchBar && <RoomMembersSearchBar label={translate('selectionList.findMember')} />}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('selectionList.findMember')} />}
             <Table.Header />
-            <RoomMembersTableBody contentContainerStyle={styles.flexGrow1} />
+            <Table.Body contentContainerStyle={styles.flexGrow1} />
         </Table>
     );
 }

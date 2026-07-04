@@ -27,7 +27,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
+import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -399,6 +399,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                             selectedKeys={selectedKeys}
                             shouldShowSearchBar={shouldShowSearchBar}
                             onRowSelectionChange={onRowSelectionChange}
+                            onSearchStringChange={updateUserSearchPhrase}
                         />
                     </View>
                 )}

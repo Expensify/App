@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
 
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps} from './types';
@@ -162,6 +162,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     onRowSelectionChange,
+    onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -181,6 +182,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
+
+    useEffect(() => {
+        onSearchStringChange?.(activeSearchString);
+    }, [activeSearchString, onSearchStringChange]);
 
     const {
         activeSorting,
