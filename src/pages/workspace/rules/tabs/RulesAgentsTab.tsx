@@ -7,7 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -23,7 +23,6 @@ import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -44,10 +43,11 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     const policy = usePolicy(policyID);
     const personalDetailsList = usePersonalDetails();
     const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const agentRules = policy?.rules?.agentRules;
-    const hasRules = !isEmptyObject(agentRules);
     const visibleRules = getVisibleAgentRules(agentRules, isOffline);
+    const hasRules = visibleRules.length > 0;
 
     const ruleBotAccountID = policy?.ruleBotAccountID;
     const ruleBot = ruleBotAccountID ? personalDetailsList?.[ruleBotAccountID] : undefined;
@@ -84,6 +84,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
                 title={translate('workspace.rules.agentRulesEmptyState.title')}
                 subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
                 buttonText={translate('workspace.rules.agentRulesEmptyState.cta')}
+                buttonIcon={icons.Plus}
                 onPress={handleAddAgentRule}
                 isDisabled={!canWriteRules}
             />

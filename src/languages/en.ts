@@ -7663,7 +7663,7 @@ const translations = {
             agentRulesEmptyState: {
                 title: 'No agent rules added',
                 subtitle: 'Create a rule to automate your workspace policies.',
-                cta: '+ Add AI rule',
+                cta: 'Add AI rule',
             },
             flagForReviewRule: {
                 title: 'Flag for review',

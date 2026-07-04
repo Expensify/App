@@ -19,11 +19,12 @@ type RulesTabEmptyStateProps = {
     title: string;
     subtitle: string;
     buttonText: string;
+    buttonIcon?: IconAsset;
     onPress: () => void;
     isDisabled: boolean;
 };
 
-function RulesTabEmptyState({illustration, headerContentStyles, title, subtitle, buttonText, onPress, isDisabled}: RulesTabEmptyStateProps) {
+function RulesTabEmptyState({illustration, headerContentStyles, title, subtitle, buttonText, buttonIcon, onPress, isDisabled}: RulesTabEmptyStateProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -40,7 +41,6 @@ function RulesTabEmptyState({illustration, headerContentStyles, title, subtitle,
                 title={title}
                 subtitle={subtitle}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
-                minModalHeight={0}
                 cardContentStyles={styles.ph0}
                 containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
                 buttons={[
@@ -48,6 +48,7 @@ function RulesTabEmptyState({illustration, headerContentStyles, title, subtitle,
                         buttonText,
                         buttonAction: onPress,
                         success: true,
+                        icon: buttonIcon,
                         isDisabled,
                     },
                 ]}

@@ -22,7 +22,6 @@ import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -42,7 +41,8 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
     const personalDetailsList = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const agentRules = policy?.rules?.agentRules;
-    const hasRules = !isEmptyObject(agentRules);
+    const visibleRules = getVisibleAgentRules(agentRules, isOffline);
+    const hasRules = visibleRules.length > 0;
 
     // RuleBot is the agent the backend provisions on the first Agent rule and stores on the policy.
     const ruleBotAccountID = policy?.ruleBotAccountID;
@@ -51,8 +51,6 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
 
     // ruleBotAccountID stays set on the policy after RuleBot is removed from the workspace, so also require it to still be an active member before showing the "enforced by" line.
     const isRuleBotActiveMember = isPolicyMemberWithoutPendingDelete(ruleBot?.login, policy);
-
-    const visibleRules = getVisibleAgentRules(agentRules, isOffline);
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
