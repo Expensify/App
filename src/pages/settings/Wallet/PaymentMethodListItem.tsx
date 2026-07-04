@@ -176,9 +176,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
 
     let badgeText: string | undefined;
-    if (item.connectionStatus) {
-        badgeText = undefined;
-    } else if (isInLockedState) {
+    if (isInLockedState) {
         badgeText = translate('common.locked');
     } else if (isNeedingAction) {
         badgeText = translate('common.review');
