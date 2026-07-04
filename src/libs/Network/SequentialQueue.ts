@@ -16,7 +16,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
+import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 
@@ -178,12 +178,15 @@ function process(): Promise<void> {
     // Offline ReadNewestAction carries a stale lastReadTime from when the user opened the report
     // offline. If the user also sent messages offline, those messages get server-assigned timestamps
     // that are later than the stale lastReadTime, causing the report to appear unread after reconnect.
-    // Only bump when we know the same report had offline comments processed earlier in this queue flush.
+    // Only bump when the same report had offline comments processed earlier in this queue flush.
     if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
         const reportID = requestToProcess.data?.reportID;
         if (typeof reportID === 'string' && reportsWithProcessedOfflineComments.has(reportID)) {
             const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
-            if (recordedTime) {
+            const currentLastReadTime = typeof requestToProcess.data?.lastReadTime === 'string' ? requestToProcess.data.lastReadTime : '';
+            // Only ever move the read forward. A stale/older recorded time must never pull lastReadTime
+            // back behind what the read already covers.
+            if (recordedTime && recordedTime > currentLastReadTime) {
                 requestToProcess.data = {
                     ...requestToProcess.data,
                     lastReadTime: recordedTime,
@@ -207,8 +210,13 @@ function process(): Promise<void> {
                 const reportID = requestToProcess.data?.reportID;
                 if (typeof reportID === 'string') {
                     let serverTimestamp = '';
-                    // The report's lastVisibleActionCreated in the server response carries the server-assigned
-                    // timestamp of the just-processed offline comment, which is what we need to reconcile.
+                    // For ADD_COMMENT/ADD_ATTACHMENT/ADD_TEXT_AND_ATTACHMENT the just-created comment is the
+                    // newest action, so the report update in the server response carries the comment's
+                    // server-assigned timestamp in lastVisibleActionCreated — exactly what we need to reconcile
+                    // the following read. We read only the report key (not report actions) because it already
+                    // reflects this value, and we intentionally do NOT fall back to a local "now" when it's
+                    // absent: "now" can be later than the true comment time and over-bump past another user's
+                    // message that arrived while offline.
                     for (const update of response?.onyxData ?? []) {
                         if (update.key !== `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
                             continue;
@@ -222,12 +230,8 @@ function process(): Promise<void> {
                         }
                     }
 
-                    if (!serverTimestamp) {
-                        serverTimestamp = getDBTimeWithSkew();
-                    }
-
                     const currentMax = reportsWithProcessedOfflineComments.get(reportID) ?? '';
-                    if (serverTimestamp > currentMax) {
+                    if (serverTimestamp && serverTimestamp > currentMax) {
                         reportsWithProcessedOfflineComments.set(reportID, serverTimestamp);
                     }
                 }
@@ -456,6 +460,13 @@ function flush(shouldResetPromise = true) {
                 });
 
                 isSequentialQueueRunning = false;
+
+                // Offline-comment tracking is only meaningful within a single queue drain. Clear it once the
+                // queue is fully drained so a stale entry can't leak across flushes and bump an unrelated read.
+                if (!hasRemainingRequests) {
+                    reportsWithProcessedOfflineComments.clear();
+                }
+
                 // Use isOfflineNetwork() — not isQueuePaused — to decide whether to resolve isReadyPromise.
                 // isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync).
                 // For shouldPauseQueue, WRITEs are still pending so READs must wait (don't resolve).

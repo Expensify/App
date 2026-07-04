@@ -1,4 +1,5 @@
 import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as NetworkState from '@libs/NetworkState';
 
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
@@ -12,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 import type Request from '../../src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
+import type Response from '../../src/types/onyx/Response';
 import type {MockFetch} from '../utils/TestHelper';
 
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
@@ -546,6 +548,121 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
 
     // The failure→retry→no-loss story (a dropped duplicate is a subset of the durable, retryable in-flight
     // request) rests on the queue's existing retry/backoff, which is exercised in tests/unit/APITest.ts.
+});
+
+describe('SequentialQueue - offline read reconciliation', () => {
+    const reportID = '123456';
+
+    /**
+     * Mocks the network layer so that an offline AddComment resolves with a report onyxData update carrying
+     * the given server-assigned lastVisibleActionCreated, and every other command resolves with no data.
+     * The mutated lastReadTime that the queue sends for the ReadNewestAction is captured for assertions.
+     */
+    function mockProcessWithMiddleware(commentServerTime: string | undefined, capture: {readLastReadTime?: string}) {
+        return jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(((request: AnyRequest): Promise<Response | void> => {
+            if (request.command === WRITE_COMMANDS.ADD_COMMENT && commentServerTime !== undefined) {
+                return Promise.resolve({
+                    onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {lastVisibleActionCreated: commentServerTime}}],
+                } as Response);
+            }
+            if (request.command === WRITE_COMMANDS.READ_NEWEST_ACTION) {
+                capture.readLastReadTime = typeof request.data?.lastReadTime === 'string' ? request.data.lastReadTime : undefined;
+            }
+            return Promise.resolve();
+        }) as typeof RequestModule.processWithMiddleware);
+    }
+
+    const buildComment = (): AnyRequest => ({command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID}, initiatedOffline: true});
+    const buildRead = (lastReadTime: string): AnyRequest => ({command: WRITE_COMMANDS.READ_NEWEST_ACTION, data: {reportID, lastReadTime}, initiatedOffline: true});
+
+    let offlineSpy: jest.SpyInstance;
+    beforeEach(() => {
+        // The reconciliation only runs while draining online (the reconnect path), so keep process() unblocked.
+        offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+    });
+    afterEach(() => {
+        offlineSpy.mockRestore();
+    });
+
+    it('bumps a following offline ReadNewestAction forward to the offline comment server time', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const capture: {readLastReadTime?: string} = {};
+        const processSpy = mockProcessWithMiddleware(commentServerTime, capture);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(staleReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(commentServerTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('never moves a ReadNewestAction backward when the read already covers a newer time than the comment', async () => {
+        const commentServerTime = '2026-01-01 09:00:00.000';
+        const newerReadTime = '2026-01-01 11:00:00.000';
+        const capture: {readLastReadTime?: string} = {};
+        const processSpy = mockProcessWithMiddleware(commentServerTime, capture);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(newerReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // The recorded comment time is older, so the read keeps its own (newer) lastReadTime.
+            expect(capture.readLastReadTime).toBe(newerReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('does not bump the read when the report had no offline comment, so a later message from another user stays unread', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const capture: {readLastReadTime?: string} = {};
+        // No comment is pushed, so nothing is recorded for the report.
+        const processSpy = mockProcessWithMiddleware(undefined, capture);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildRead(staleReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(staleReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('does not leak a recorded comment time across queue flushes (map is cleared on drain)', async () => {
+        const commentServerTime = '2026-01-01 12:00:00.000';
+        const earlierReadTime = '2026-01-01 08:00:00.000';
+        const capture: {readLastReadTime?: string} = {};
+        const processSpy = mockProcessWithMiddleware(commentServerTime, capture);
+        try {
+            // Flush 1: an offline comment drains with NO following read. The recorded entry must be cleared.
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // Flush 2: a read arrives whose own time is earlier than flush 1's comment time. A leaked entry
+            // would over-bump it forward to the stale comment time; a cleared map leaves it untouched.
+            await SequentialQueue.push(buildRead(earlierReadTime));
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(earlierReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
 });
 
 describe('SequentialQueue - QueueFlushedData', () => {
