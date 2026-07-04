@@ -278,6 +278,37 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
+        it('should set report loading state in failure data for new invoice chat report', () => {
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: baseTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    hasOnceLoadedReportActions: true,
+                    isLoadingInitialReportActions: false,
+                },
+            });
+        });
+
         it('should return correct invoice information with existing chat report', () => {
             // Given: Existing invoice chat report
             const existingInvoiceChatReport = {
