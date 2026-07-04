@@ -99,15 +99,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [selectedTags, setSelectedTags] = useFilteredSelection(currentPolicyTag?.tags, filterFunction);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
-    const canSelectMultiple = useMemo(() => {
-        if (!canWriteTags) {
-            return false;
-        }
-        if (hasDependentTags) {
-            return false;
-        }
-        return isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    }, [canWriteTags, hasDependentTags, isSmallScreenWidth, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -450,7 +441,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     <WorkspaceViewTagsTable
                         tags={tagRows}
                         hasDependentTags={hasDependentTags}
-                        selectionEnabled={canSelectMultiple}
+                        selectionEnabled={canWriteTags && !hasDependentTags}
                         selectedKeys={selectedTags}
                         onRowSelectionChange={setSelectedTags}
                     />

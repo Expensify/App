@@ -72,8 +72,6 @@ function ReportFieldsListValuesPage({
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const canSelectMultiple = canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
-
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
         let reportFieldDisabledValues: boolean[];
@@ -122,7 +120,7 @@ function ReportFieldsListValuesPage({
     const listValueRows = useMemo<ReportFieldListValueRowData[]>(
         () =>
             listValues.map((value, index) => ({
-                keyForList: String(index),
+                keyForList: value,
                 value,
                 name: value,
                 index,
@@ -163,7 +161,7 @@ function ReportFieldsListValuesPage({
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
 
     const handleDeleteValues = useCallback(() => {
-        const valuesToDelete = selectedKeys.map(Number);
+        const valuesToDelete = selectedKeys.map((value) => listValues.indexOf(value)).filter((index) => index !== -1);
 
         if (reportFieldID) {
             removeReportFieldListValue({
@@ -211,12 +209,15 @@ function ReportFieldsListValuesPage({
                     },
                 });
             }
-            const enabledValues = selectedKeys.filter((key) => !disabledListValues?.at(Number(key)));
+            const enabledValues = selectedKeys.filter((value) => {
+                const index = listValues.indexOf(value);
+                return index !== -1 && !disabledListValues?.at(index);
+            });
 
             if (enabledValues.length > 0) {
-                const valuesToDisable = selectedKeys.reduce<number[]>((acc, key) => {
-                    const index = Number(key);
-                    if (!disabledListValues?.at(index)) {
+                const valuesToDisable = selectedKeys.reduce<number[]>((acc, value) => {
+                    const index = listValues.indexOf(value);
+                    if (index !== -1 && !disabledListValues?.at(index)) {
                         acc.push(index);
                     }
 
@@ -249,12 +250,15 @@ function ReportFieldsListValuesPage({
                 });
             }
 
-            const disabledValues = selectedKeys.filter((key) => disabledListValues?.at(Number(key)));
+            const disabledValues = selectedKeys.filter((value) => {
+                const index = listValues.indexOf(value);
+                return index !== -1 && disabledListValues?.at(index);
+            });
 
             if (disabledValues.length > 0) {
-                const valuesToEnable = selectedKeys.reduce<number[]>((acc, key) => {
-                    const index = Number(key);
-                    if (disabledListValues?.at(index)) {
+                const valuesToEnable = selectedKeys.reduce<number[]>((acc, value) => {
+                    const index = listValues.indexOf(value);
+                    if (index !== -1 && disabledListValues?.at(index)) {
                         acc.push(index);
                     }
 
@@ -369,7 +373,7 @@ function ReportFieldsListValuesPage({
                 {!shouldShowEmptyState && headerContent}
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}
-                    selectionEnabled={canSelectMultiple}
+                    selectionEnabled={canWriteReportFields}
                     selectedKeys={selectedKeys}
                     onRowSelectionChange={setSelectedKeys}
                     EmptyStateComponent={emptyStateContent}

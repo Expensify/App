@@ -373,7 +373,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         <RoomMembersTable
                             ref={tableRef}
                             members={members}
-                            selectionEnabled={canSelectMultiple}
+                            selectionEnabled
                             selectedKeys={selectedKeys}
                             shouldShowSearchBar={shouldShowSearchBar}
                             onRowSelectionChange={onRowSelectionChange}
