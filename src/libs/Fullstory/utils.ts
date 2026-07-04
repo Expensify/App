@@ -82,7 +82,8 @@ function getDaysTillDate(endDate: Date | undefined): number | undefined {
         return;
     }
 
-    return Math.ceil((endDate.getTime() - Date.now()) / MS_PER_DAY);
+    const diffInDays = (endDate.getTime() - Date.now()) / MS_PER_DAY;
+    return diffInDays >= 0 ? Math.ceil(diffInDays) : Math.floor(diffInDays);
 }
 
 function getFreeTrialEndDate(dateString: string | undefined): Date | undefined {
@@ -226,4 +227,15 @@ function buildPageViewedEvent(screenName: string, entryPoint: string): Fullstory
     /* eslint-enable @typescript-eslint/naming-convention */
 }
 
-export {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep, trackFullstoryEvent};
+type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date'> & {
+    free_trial_end_date?: string;
+};
+
+function getComparableFullstoryUserVars(userVars: FullstoryUserVars): ComparableFullstoryUserVars {
+    return {
+        ...userVars,
+        free_trial_end_date: userVars.free_trial_end_date?.toISOString(),
+    };
+}
+
+export {buildFullstoryUserVars, buildPageViewedEvent, getComparableFullstoryUserVars, getOnboardingStep, trackFullstoryEvent};

@@ -2,12 +2,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
-import type {FullstoryUserVars} from './libs/Fullstory/types';
-
 import useOnyx from './hooks/useOnyx';
 import getEnvironment from './libs/Environment/getEnvironment';
 import FS from './libs/Fullstory';
-import {buildFullstoryUserVars} from './libs/Fullstory/utils';
+import {buildFullstoryUserVars, getComparableFullstoryUserVars} from './libs/Fullstory/utils';
 import {shallowCompare} from './libs/ObjectUtils';
 import ONYXKEYS from './ONYXKEYS';
 
@@ -28,7 +26,7 @@ function FullstoryUserContextHandler() {
 
     const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
 
-    const previousUserVars = useRef<OnyxEntry<FullstoryUserVars>>(undefined);
+    const previousUserVars = useRef<ReturnType<typeof getComparableFullstoryUserVars> | undefined>(undefined);
     const previousAccountID = useRef<number | undefined>(undefined);
     const sessionURLRetryAttempts = useRef(0);
 
@@ -82,11 +80,13 @@ function FullstoryUserContextHandler() {
                             userMetadata,
                         });
 
-                        if (shallowCompare(previousUserVars.current, userVars)) {
+                        const comparableUserVars = getComparableFullstoryUserVars(userVars);
+
+                        if (shallowCompare(previousUserVars.current, comparableUserVars)) {
                             return;
                         }
 
-                        previousUserVars.current = userVars;
+                        previousUserVars.current = comparableUserVars;
                         FS.setUserVars(userVars);
                     });
                 })
