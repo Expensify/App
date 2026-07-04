@@ -237,7 +237,12 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
 
         if (!shouldDeleteIOUReport && transaction?.transactionID && policy && didUpdateOptimisticTotal && !wasAlreadyIndeterminate) {
-            const overlay = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+            const overlay: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+            for (const priorTxn of transactionPendingDelete ?? []) {
+                if (priorTxn?.transactionID) {
+                    overlay[priorTxn.transactionID] = {...priorTxn, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                }
+            }
             updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, overlay);
         }
     }
