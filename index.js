@@ -2,7 +2,6 @@
  * @format
  */
 // import of polyfills should always be first
-import './src/polyfills/NitroFetch';
 import './src/polyfills/PromiseWithResolvers';
 import './src/polyfills/requestIdleCallback';
 import {AppRegistry} from 'react-native';
