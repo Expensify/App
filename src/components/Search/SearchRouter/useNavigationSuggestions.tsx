@@ -613,12 +613,14 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     text: translate('travel.bookTravel'),
                     icon: icons.Suitcase,
                     action: () =>
-                        interceptAnonymousUser(() => {
-                            if (shouldOpenTravelDirectly) {
-                                openTravelDotLink(travelEnabledPolicy?.id);
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
+                        replaceTopmostModalWithAction(() => {
+                            interceptAnonymousUser(() => {
+                                if (shouldOpenTravelDirectly) {
+                                    openTravelDotLink(travelEnabledPolicy?.id);
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
+                            });
                         }),
                     keyForList: 'create_travel',
                 },
