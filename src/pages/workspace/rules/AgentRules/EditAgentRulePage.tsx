@@ -23,6 +23,8 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import variables from '@styles/variables';
+
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
@@ -31,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -51,6 +53,7 @@ function EditAgentRulePage({
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
@@ -117,6 +120,10 @@ function EditAgentRulePage({
         return <NotFoundPage />;
     }
 
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
+        ? [styles.flex1, styles.mnh0, {maxHeight: variables.agentRulePromptInputHeight}]
+        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -128,7 +135,7 @@ function EditAgentRulePage({
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout}
+                shouldEnableMaxHeight={shouldUseScrollableLayout || shouldUseExpandedRevampFormLayout}
             >
                 <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 <FormProvider
@@ -140,6 +147,7 @@ function EditAgentRulePage({
                     style={[styles.flex1, styles.ph5]}
                     shouldUseScrollView={shouldUseScrollableLayout}
                     submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldSubmitButtonStickToBottom={shouldUseExpandedRevampFormLayout}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
@@ -157,7 +165,7 @@ function EditAgentRulePage({
                     }
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                        <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.PROMPT}
