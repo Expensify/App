@@ -7,6 +7,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -74,24 +75,27 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const selectedOptions: OptionData[] = value.map((id) => {
+    const buildReportOption = (id: string, isSelected: boolean): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
-        const report = getSelectedOptionData(
-            createOptionFromReport(
-                {...reportData, reportID: id},
-                personalDetails,
-                privateIsArchived,
-                reportPolicy,
-                sortedActions,
-                reportAttributesDerived,
-                undefined,
-                undefined,
-                undefined,
-                isTrackIntentUser,
+        const report = {
+            ...getSelectedOptionData(
+                createOptionFromReport(
+                    {...reportData, reportID: id},
+                    personalDetails,
+                    privateIsArchived,
+                    reportPolicy,
+                    sortedActions,
+                    reportAttributesDerived,
+                    undefined,
+                    undefined,
+                    undefined,
+                    isTrackIntentUser,
+                ),
             ),
-        );
+            isSelected,
+        };
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -101,7 +105,14 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             {isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
         );
         return {...report, alternateText};
-    });
+    };
+
+    const selectedOptions: OptionData[] = value.map((id) => buildReportOption(id, true));
+
+    // Snapshot the reports that were already selected when the filter first opened. On a long list these stay
+    // pinned to the top so they're easy to find, but items toggled during the current session are NOT re-pinned:
+    // they keep their position so selecting doesn't scroll/jump the list (https://github.com/Expensify/App/issues/61414).
+    const initialValue = useInitialValue(() => value);
 
     const defaultOptions =
         isLoading || !ready || !options
@@ -130,9 +141,16 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const sections: SelectionListSections = [];
 
     if (!isLoading) {
+        // Only float the initially-selected reports to the top of a long list. Keying the pinned section on the
+        // snapshot (instead of the live `value`) means items toggled during this session stay put (see #61414).
+        const shouldMoveSelectedToTop = chatOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+        const pinnedReportIDs = shouldMoveSelectedToTop ? initialValue : [];
+        const pinnedReportIDSet = new Set(pinnedReportIDs);
+        const pinnedSelectedOptions = pinnedReportIDs.map((id) => buildReportOption(id, value.includes(id)));
+
         const formattedResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
-            selectedOptions,
+            cleanSearchTerm === '' ? pinnedSelectedOptions : selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
             privateIsArchivedMap,
@@ -146,8 +164,12 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
         sections.push(formattedResults.section);
 
+        // Mark reports as selected in place based on the live `value`, so the checkmark toggles without reordering.
+        // When the search term is empty, drop only the pinned reports (they already appear in the top section above).
         const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (value.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !value.includes(report.reportID));
+        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports
+            .filter((report) => !pinnedReportIDSet.has(report.reportID))
+            .map((report) => (value.includes(report.reportID) ? getSelectedOptionData(report) : report));
         const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
 
         sections.push({
