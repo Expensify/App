@@ -35,7 +35,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -54,6 +54,7 @@ function AddAgentRulePage({
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
     const policy = usePolicy(policyID);
     const formRef = useRef<FormRef>(null);
     const linkPressedRef = useRef(false);
@@ -134,13 +135,9 @@ function AddAgentRulePage({
         });
     };
 
-    const shouldUseFormScrollView = shouldUseScrollableLayout || isRulesRevampEnabled;
-    const revampInputMaxHeightStyle = {maxHeight: variables.agentRulePromptInputHeight};
-    const revampInputWrapperStyles = [styles.flex1, styles.mnh0, revampInputMaxHeightStyle];
-    const revampInputFlexStyles = [styles.flex1, styles.mnh0];
-    const expandedInputWrapperStyles = [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
-    const inputWrapperStyles = isRulesRevampEnabled ? revampInputWrapperStyles : expandedInputWrapperStyles;
-    const inputFlexStyles = isRulesRevampEnabled ? revampInputFlexStyles : [styles.flex1];
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
+        ? [styles.flex1, styles.mnh0, {maxHeight: variables.agentRulePromptInputHeight}]
+        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
 
     return (
         <AccessOrNotFoundWrapper
@@ -153,7 +150,7 @@ function AddAgentRulePage({
                 testID="AddAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseFormScrollView}
+                shouldEnableMaxHeight={shouldUseScrollableLayout || shouldUseExpandedRevampFormLayout}
             >
                 <HeaderWithBackButton title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')} />
                 <FormProvider
@@ -163,16 +160,16 @@ function AddAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.nextButton') : translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={shouldUseFormScrollView}
-                    submitFlexEnabled={shouldUseFormScrollView ? undefined : false}
-                    shouldSubmitButtonStickToBottom={isRulesRevampEnabled}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldSubmitButtonStickToBottom={shouldUseExpandedRevampFormLayout}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
-                    <View style={isRulesRevampEnabled ? [styles.flex1, styles.mnh0] : styles.flex1}>
+                    <View style={styles.flex1}>
                         <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -185,10 +182,10 @@ function AddAgentRulePage({
                                 onKeyPress={handleKeyPress}
                                 multiline
                                 shouldLabelStayOnSingleLine
-                                containerStyles={inputFlexStyles}
-                                touchableInputWrapperStyle={isRulesRevampEnabled ? revampInputWrapperStyles : [styles.flex1]}
-                                textInputContainerStyles={isRulesRevampEnabled ? revampInputFlexStyles : [styles.flex1]}
-                                inputStyle={isRulesRevampEnabled ? [...revampInputFlexStyles, styles.textAlignVerticalTop] : [styles.flex1, styles.textAlignVerticalTop]}
+                                containerStyles={[styles.flex1]}
+                                touchableInputWrapperStyle={[styles.flex1]}
+                                textInputContainerStyles={[styles.flex1]}
+                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
