@@ -22,7 +22,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<RequireFieldsTableItem>) => (
         <WorkspaceRequireFieldsTableRow
-            key={item.ruleID}
+            key={item.keyForList}
             item={item}
             rowIndex={rowIndex}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
