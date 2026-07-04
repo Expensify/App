@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListItem';
 import type {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,18 +17,25 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIssueNewCardData} from '@libs/actions/Card';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION>;
 
@@ -115,6 +122,8 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="SpendRuleSelectionPage"
@@ -141,13 +150,18 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                 )}
 
                 {isLoadedAndEmpty && (
-                    <GenericEmptyStateComponent
-                        headerMedia={illustrations.EmptyShelves}
-                        headerContentStyles={styles.emptyShelvesIllustration}
-                        title={translate('workspace.card.issueNewCard.spendRulesEmptyStateTitle')}
-                        subtitle={translate('workspace.card.issueNewCard.spendRulesEmptyStateSubtitle')}
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                    />
+                    <ScrollView
+                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                        addBottomSafeAreaPadding
+                    >
+                        <GenericEmptyStateComponent
+                            headerMedia={illustrations.EmptyShelves}
+                            headerContentStyles={styles.emptyShelvesIllustration}
+                            title={translate('workspace.card.issueNewCard.spendRulesEmptyStateTitle')}
+                            subtitle={translate('workspace.card.issueNewCard.spendRulesEmptyStateSubtitle')}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
+                        />
+                    </ScrollView>
                 )}
 
                 {isLoadedWithContent && (

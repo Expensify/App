@@ -1,7 +1,3 @@
-import {Str} from 'expensify-common';
-import type {PropsWithChildren} from 'react';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -13,19 +9,30 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {PropsWithChildren} from 'react';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
@@ -63,19 +70,19 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
-    useEffect(() => {
-        if (!doesDomainExist) {
+    useFocusEffect(() => {
+        if (!doesDomainExist || domain?.validated || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
-    }, [domainAccountID, domainName, doesDomainExist]);
+    });
 
     useEffect(() => {
-        if (!doesDomainExist) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         resetDomainValidationError(domainAccountID);
-    }, [domainAccountID, doesDomainExist]);
+    }, [domainAccountID, doesDomainExist, domain?.validated]);
 
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     if (isLoadingDomain) {
@@ -88,6 +95,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
+
+    if (domain.validated) {
+        return (
+            <NotFoundPage
+                onLinkPress={() => Navigation.dismissModal()}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return (
@@ -131,6 +147,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                         <CopyableTextField
                                             value={domain.validateCode}
                                             isLoading={domain.isValidateCodeLoading}
+                                            style={styles.copyableTextFieldMinHeight}
                                         />
                                     )}
                                 </View>

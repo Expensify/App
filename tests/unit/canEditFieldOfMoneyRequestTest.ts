@@ -1,11 +1,15 @@
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createInvoiceReport} from '../utils/collections/reports';
@@ -64,13 +68,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const reportAction = {
                 ...randomReportAction,
+                reportID: IOUReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
                     ...randomReportAction.originalMessage,
-                    IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount,
@@ -189,13 +193,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const reportAction = {
                 ...randomReportAction,
+                reportID: String(IOUReportID),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
                     ...randomReportAction.originalMessage,
-                    IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: EXPENSE_AMOUNT,
@@ -365,10 +369,10 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const dewReportAction = {
                 ...createRandomReportAction(7),
+                reportID: IOU_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
-                    IOUReportID: IOU_REPORT_ID,
                     IOUTransactionID: IOU_TRANSACTION_ID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: EXPENSE_AMOUNT,
@@ -540,14 +544,15 @@ describe('canEditFieldOfMoneyRequest', () => {
             const PER_DIEM_IOU_TRANSACTION_ID = '99';
             const PER_DIEM_CUSTOM_UNIT_ID = 'perDiemUnit1';
             const PER_DIEM_POLICY_ID = '55';
+            const selfDMReportID = 'self-dm-report-1';
 
             const perDiemReportAction = {
                 ...createRandomReportAction(1),
+                reportID: selfDMReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
                     IOUTransactionID: PER_DIEM_IOU_TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -648,13 +653,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
         const reportAction = {
             ...randomReportAction,
+            reportID: RECEIPT_IOU_REPORT_ID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
                 ...randomReportAction.originalMessage,
-                IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
                 type: CONST.IOU.ACTION.CREATE,
                 amount: RECEIPT_AMOUNT,

@@ -1,30 +1,37 @@
-import {useEvent, useEventListener} from 'expo';
-import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
-import {useVideoPlayer, VideoView} from 'expo-video';
-import debounce from 'lodash/debounce';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useIsPopoverVisible} from '@components/PopoverMenu/v2';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+import {useFullScreenActions, useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
+
 import useNetwork from '@hooks/useNetwork';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
+import type {RefObject} from 'react';
+
+import {useEvent, useEventListener} from 'expo';
+import {useVideoPlayer, VideoView} from 'expo-video';
+import debounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import type VideoPlayerProps from './types';
+
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
@@ -59,11 +66,13 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
         usePlaybackActionsContext();
-    const {isFullScreenRef} = useFullScreenState();
+    const {isFullScreen, isFullScreenRef} = useFullScreenState();
+    const {setIsFullScreen} = useFullScreenActions();
     const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
-    const [isVideoOffline, setIsVideoOffline] = useState(false);
+    // A player mounted while already offline should not auto-play content retained in the browser cache.
+    const [isVideoOffline, setIsVideoOffline] = useState(() => isOffline);
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const [duration, setDuration] = useState(videoDuration);
@@ -94,7 +103,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
     const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
 
-    const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
+    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
@@ -161,8 +170,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
     }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isVideoOffline && currentTime + bufferedPosition <= 0;
-    }, [bufferedPosition, currentTime, isVideoOffline]);
+        return isVideoOffline && !isPlaying;
+    }, [isPlaying, isVideoOffline]);
+
     const {updateVolume} = useVolumeActions();
     const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
@@ -172,6 +182,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     });
 
     const togglePlayCurrentVideo = useCallback(() => {
+        if (isOffline) {
+            return;
+        }
+
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, report, reportID);
             return;
@@ -195,7 +209,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
+    }, [isOffline, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {
@@ -294,7 +308,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         setHasErrorIconVisible(false);
         if (isFirstLoad) {
             setIsFirstLoad(false);
-            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading) {
+            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading && !isOffline) {
                 playVideo();
             }
         }
@@ -323,6 +337,42 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         }
         setDuration(videoPlayerRef.current.duration);
     }, [videoPlayerRef.current.duration]);
+
+    const isActuallyFullScreen = useCallback(() => {
+        if (typeof document === 'undefined') {
+            return isFullScreen;
+        }
+
+        if (document.fullscreenElement) {
+            return true;
+        }
+
+        if (videoViewRef.current?.nativeRef?.current instanceof HTMLVideoElement) {
+            return Reflect.get(videoViewRef.current.nativeRef.current, 'webkitDisplayingFullscreen') === true;
+        }
+        return false;
+    }, [isFullScreen, videoViewRef]);
+
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const syncFullScreenState = () => {
+            if (isActuallyFullScreen()) {
+                return;
+            }
+            setIsFullScreen(false);
+        };
+
+        document.addEventListener('fullscreenchange', syncFullScreenState);
+        document.addEventListener('webkitfullscreenchange', syncFullScreenState as EventListener);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', syncFullScreenState);
+            document.removeEventListener('webkitfullscreenchange', syncFullScreenState as EventListener);
+        };
+    }, [isActuallyFullScreen, setIsFullScreen]);
 
     useEffect(() => {
         mountedVideoPlayersRef.current.push(url);
@@ -430,6 +480,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
+        // Read via ref so fullscreen toggle does NOT re-run this effect and trigger cleanup,
+        // which would move the shared element away from the attachment modal mid-fullscreen.
         if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
@@ -512,7 +564,13 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                 accessibilityRole="button"
                                 accessible={false}
                                 onPress={() => {
-                                    if (isFullScreenRef.current) {
+                                    const currentlyFullScreen = isActuallyFullScreen();
+
+                                    if (isFullScreen && !currentlyFullScreen) {
+                                        setIsFullScreen(false);
+                                    }
+
+                                    if (currentlyFullScreen) {
                                         return;
                                     }
                                     if (!canUseTouchScreen) {
@@ -554,14 +612,13 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             fullscreenOptions={{enable: true}}
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
-                                            nativeControls={isFullScreenRef.current}
+                                            nativeControls={isFullScreen}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}
                                             contentFit="contain"
                                             onFullscreenEnter={() => {
-                                                isFullScreenRef.current = true;
-
+                                                setIsFullScreen(true);
                                                 if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
                                                     return;
                                                 }
@@ -570,13 +627,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                                 videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
                                             }}
                                             onFullscreenExit={() => {
-                                                isFullScreenRef.current = false;
-
+                                                setIsFullScreen(false);
                                                 if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
                                                     videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
                                                 }
-
-                                                // Sync volume updates in full screen mode after leaving it
                                                 updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);
                                             }}
                                         />

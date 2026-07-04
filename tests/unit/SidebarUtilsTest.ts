@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
@@ -10,7 +10,9 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +20,11 @@ import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, 
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomPolicy from '../utils/collections/policies';
@@ -2715,12 +2722,12 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: '5186125925096828',
                     originalMessage: {
                         amount: -200,
                         currency: 'ETB',
                         type: 'track',
                         participantAccountIDs: [20232605],
-                        IOUReportID: '5186125925096828',
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -3173,7 +3180,6 @@ describe('SidebarUtils', () => {
                         comment: '',
                         currency: 'VND',
                         IOUTransactionID: '7823889167761419930',
-                        IOUReportID: '0',
                         type: 'track',
                         participantAccountIDs: [20337430, 0],
                         lastModified: '2025-07-25 07:39:02.550',
@@ -3378,11 +3384,11 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: iouReport.reportID,
                     originalMessage: {
                         amount: -200,
                         currency: iouReport.currency,
                         type: CONST.IOU.TYPE.CREATE,
-                        IOUReportID: iouReport.reportID,
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -3488,11 +3494,11 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: iouReport.reportID,
                     originalMessage: {
                         amount: -200,
                         currency: iouReport.currency,
                         type: CONST.IOU.TYPE.CREATE,
-                        IOUReportID: iouReport.reportID,
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,

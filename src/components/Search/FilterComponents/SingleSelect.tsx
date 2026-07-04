@@ -1,12 +1,16 @@
-import React, {Activity, useState} from 'react';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React, {Activity, useState} from 'react';
+
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type SingleSelectItem<T> = {
@@ -15,15 +19,9 @@ type SingleSelectItem<T> = {
     searchableText?: string;
 };
 
-type SingleSelectProps<T> = SearchFilterCommonProps & {
+type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
-
-    /** The currently selected item */
-    value: SingleSelectItem<T> | undefined;
-
-    /** Function to call when changes are applied */
-    onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
     isSearchable?: boolean;
