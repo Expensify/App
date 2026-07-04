@@ -459,32 +459,19 @@ function getRequireFieldsRuleDescriptionsForCategory(
     return descriptions;
 }
 
-function getRequireFieldsTypeLabelForCategory(category: PolicyCategory, translate: LocaleContextProps['translate']): string {
-    if (categoryHasRequireDirectionFields(category)) {
+function getRequireFieldsTypeLabel(direction: FieldRequirementsDirection, translate: LocaleContextProps['translate']): string {
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
         return translate('workspace.rules.requireFieldsTable.typeLabelRequire');
     }
 
     return translate('workspace.rules.requireFieldsTable.typeLabelDoNotRequire');
 }
 
-function getCombinedRequireFieldsRuleDescriptionsForCategory(
-    category: PolicyCategory,
-    translate: LocaleContextProps['translate'],
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policyCurrency: string,
-): string[] {
-    const descriptions = [
-        ...getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE),
-        ...getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE),
-    ];
-
-    return descriptions;
-}
-
 function createRequireFieldsTableItem({
     policyID,
     categoryName,
     category,
+    direction,
     translate,
     convertToDisplayString,
     policyCurrency,
@@ -493,24 +480,25 @@ function createRequireFieldsTableItem({
     policyID: string;
     categoryName: string;
     category: PolicyCategory;
+    direction: FieldRequirementsDirection;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     policyCurrency: string;
     onNavigate: (route: Route) => void;
 }): RequireFieldsTableItem {
+    const ruleKey = getRequireFieldsRuleKey(direction, categoryName);
     const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
     const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
-    const typeLabel = getRequireFieldsTypeLabelForCategory(category, translate);
-    const editDirection = inferFieldRequirementsDirection(category);
-    const ruleDescriptions = getCombinedRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency);
+    const typeLabel = getRequireFieldsTypeLabel(direction, translate);
+    const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, direction);
     const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
 
     return {
-        keyForList: categoryName,
-        ruleID: categoryName,
+        keyForList: ruleKey,
+        ruleID: ruleKey,
         categoryName,
-        direction: editDirection,
+        direction,
         typeLabel,
         conditionText,
         ruleDescription,
@@ -520,9 +508,9 @@ function createRequireFieldsTableItem({
         action: () => {
             setDraftRequireFieldsRule({
                 [INPUT_IDS.CATEGORY]: categoryName,
-                ...getRequireFieldsFormFromCategory(category, editDirection),
+                ...getRequireFieldsFormFromCategory(category, direction),
             });
-            onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, editDirection));
+            onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, direction));
         },
     };
 }
@@ -568,20 +556,53 @@ function getRequireFieldsTableData({
             continue;
         }
 
-        rules.push(
-            createRequireFieldsTableItem({
-                policyID,
-                categoryName,
-                category,
-                translate,
-                convertToDisplayString,
-                policyCurrency,
-                onNavigate,
-            }),
-        );
+        const tableItemParams = {
+            policyID,
+            categoryName,
+            category,
+            translate,
+            convertToDisplayString,
+            policyCurrency,
+            onNavigate,
+        };
+
+        if (categoryHasRequireDirectionFields(category)) {
+            rules.push(
+                createRequireFieldsTableItem({
+                    ...tableItemParams,
+                    direction: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+                }),
+            );
+        }
+
+        if (categoryHasWaiveDirectionFields(category)) {
+            rules.push(
+                createRequireFieldsTableItem({
+                    ...tableItemParams,
+                    direction: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                }),
+            );
+        }
+
+        if (!categoryHasAnyRequireFieldsRule(category) && isPendingDelete) {
+            const direction = inferFieldRequirementsDirection(category);
+            rules.push(
+                createRequireFieldsTableItem({
+                    ...tableItemParams,
+                    direction,
+                }),
+            );
+        }
     }
 
-    return rules.sort((a, b) => localeCompare(a.conditionText, b.conditionText));
+    return rules.sort((a, b) => {
+        const conditionComparison = localeCompare(a.conditionText, b.conditionText);
+        if (conditionComparison !== 0) {
+            return conditionComparison;
+        }
+
+        return localeCompare(a.typeLabel, b.typeLabel);
+    });
 }
 
 export {
