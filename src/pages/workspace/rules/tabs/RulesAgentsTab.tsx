@@ -1,13 +1,13 @@
 import Badge from '@components/Badge';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
+import Section from '@components/Section';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -42,7 +42,6 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     const policy = usePolicy(policyID);
     const personalDetailsList = usePersonalDetails();
     const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const agentRules = policy?.rules?.agentRules;
     const hasRules = !isEmptyObject(agentRules);
@@ -89,37 +88,47 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
         );
     }
 
+    const renderTitle = () => (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.agentRules.title')}</Text>
+            <Badge
+                text={translate('common.beta')}
+                success
+            />
+        </View>
+    );
+
+    const renderSubtitle = () => (
+        <View style={[styles.mt2, styles.gap2]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.agentRules.revampSubtitle')}</Text>
+            {!!ruleBotAccountID && isRuleBotActiveMember && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1Half, styles.flexWrap]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.agentRules.enforcedBy')}</Text>
+                    <UserPill
+                        accountID={ruleBotAccountID}
+                        avatar={ruleBot?.avatar}
+                        displayName={ruleBotDisplayName}
+                        email={ruleBot?.login}
+                        style={styles.flexShrink1}
+                    />
+                </View>
+            )}
+        </View>
+    );
+
     return (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+            contentContainerStyle={styles.flexGrow1}
             addBottomSafeAreaPadding
         >
-            <View style={[styles.borderedContentCard, styles.pv4, styles.ph4, styles.gap3, styles.mt3]}>
-                <View style={styles.gap2}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Text style={[styles.textHeadline, styles.textStrong, {color: theme.text}]}>{translate('workspace.rules.agentRules.title')}</Text>
-                        <Badge
-                            text={translate('common.beta')}
-                            isCondensed
-                            success
-                        />
-                    </View>
-                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.agentRules.revampSubtitle')}</Text>
-                    {!!ruleBotAccountID && isRuleBotActiveMember && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1Half, styles.flexWrap]}>
-                            <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.agentRules.enforcedBy')}</Text>
-                            <UserPill
-                                accountID={ruleBotAccountID}
-                                avatar={ruleBot?.avatar}
-                                displayName={ruleBotDisplayName}
-                                email={ruleBot?.login}
-                                style={styles.flexShrink1}
-                            />
-                        </View>
-                    )}
-                </View>
-                <View style={styles.gap2}>
+            <Section
+                isCentralPane
+                renderTitle={renderTitle}
+                renderSubtitle={renderSubtitle}
+                containerStyles={styles.mh5}
+            >
+                <View style={[styles.mt6, styles.gap2]}>
                     {visibleRules.map((rule) => (
                         <OfflineWithFeedback
                             key={rule.ruleID}
@@ -130,7 +139,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
                             <MenuItemWithTopDescription
                                 title={getAgentRuleDisplayTitle(rule)}
                                 numberOfLinesTitle={1}
-                                wrapperStyle={[styles.componentBG, styles.ph4, styles.pv2, styles.borderRadiusNormal]}
+                                wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.justifyContentCenter]}
                                 shouldShowRightIcon
                                 onPress={() => handleEditAgentRule(rule.ruleID, rule.pendingAction)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_ITEM}
@@ -139,18 +148,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
                         </OfflineWithFeedback>
                     ))}
                 </View>
-                <MenuItem
-                    title={translate('workspace.rules.agentRules.addAgentRuleCta')}
-                    titleStyle={styles.textStrong}
-                    icon={icons.Plus}
-                    iconHeight={20}
-                    iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
-                    onPress={handleAddAgentRule}
-                    disabled={!canWriteRules}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AGENT_RULE}
-                />
-            </View>
+            </Section>
         </ScrollView>
     );
 }
