@@ -320,6 +320,7 @@ const computeReportName = (
         reportActions,
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
+        translate: translateLocal,
         conciergeReportID,
         isTrackIntentUser: false,
     });
@@ -18413,7 +18414,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18427,7 +18428,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18437,7 +18438,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -18451,7 +18452,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
