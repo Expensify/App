@@ -1222,11 +1222,55 @@ function getTopmostSearchReportID(state = navigationRef.getRootState()): string 
     return params?.reportID;
 }
 
+/**
+ * Native narrow-layout: open an expense (its transaction thread) with the parent report as a REAL stack
+ * entry underneath, shown as a single forward slide.
+ *
+ * The ReportsSplitNavigator only renders its last two routes, so committing the report and the expense
+ * together shifts that window by two — react-native-screens finds no shared anchor and animates a backward
+ * pop. Instead this pushes the expense first (a normal forward push, with the chat staying in the window as
+ * the anchor), then on the next frame splices the parent report directly BENEATH the expense with a targeted
+ * reset. The expense keeps its key and stays the native top, so the report is inserted with no animation and
+ * the user sees only the single expense slide. Back pops expense -> report -> chat because the state really
+ * is [..., chat, report, expense].
+ */
+function openExpenseOverParentReport(parentReportID: string, childReportID: string, backTo: string) {
+    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
+    navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+
+    setNavigationActionToMicrotaskQueue(() => {
+        const rootState = navigationRef.getRootState();
+        const tabNavigator = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const reportsSplitNavigator = tabNavigator?.state?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const splitState = reportsSplitNavigator?.state;
+        const topRoute = splitState?.routes.at(-1);
+        if (!splitState?.key || !topRoute) {
+            return;
+        }
+        const topParams = topRoute.params;
+        const topReportID = topRoute.name === SCREENS.REPORT && !!topParams && 'reportID' in topParams ? topParams.reportID : undefined;
+        const belowRoute = splitState.routes.at(-2);
+        const belowParams = belowRoute?.params;
+        const belowReportID = belowRoute?.name === SCREENS.REPORT && !!belowParams && 'reportID' in belowParams ? belowParams.reportID : undefined;
+        // Only insert once the expense we pushed is actually on top, and not if the parent is already beneath it.
+        if (topReportID !== childReportID || belowReportID === parentReportID) {
+            return;
+        }
+        const routes = [...splitState.routes.slice(0, -1), {name: SCREENS.REPORT, params: {reportID: parentReportID, backTo}}, topRoute];
+        navigationRef.dispatch({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the inserted parent route is keyless; react-navigation mints its key on reset while every existing route (incl. the expense kept on top) retains its key, so nothing underneath remounts
+            ...CommonActions.reset({...splitState, routes, index: routes.length - 1} as Parameters<typeof CommonActions.reset>[0]),
+            target: splitState.key,
+        });
+    });
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
     popToSidebar,
     navigate,
+    openExpenseOverParentReport,
     setParams,
     dismissModal,
     dismissModalWithReport,

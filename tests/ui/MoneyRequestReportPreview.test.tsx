@@ -413,6 +413,7 @@ describe('MoneyRequestReportPreview', () => {
 
     describe('pressing a transaction in the carousel', () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate');
+        const openExpenseOverParentReportSpy = jest.spyOn(Navigation, 'openExpenseOverParentReport');
 
         // Give every transaction its own thread report so the assertion proves the *pressed* card
         // drives navigation, instead of every card sharing one parent-report handler.
@@ -443,9 +444,9 @@ describe('MoneyRequestReportPreview', () => {
         beforeEach(() => {
             navigateSpy.mockImplementation(() => {});
             jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
-            // The narrow path defers the expense push to a microtask (to avoid the iOS backward animation); run it
-            // synchronously here so the sequence of navigate calls can be asserted deterministically.
-            jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback) => callback());
+            // The narrow path delegates to openExpenseOverParentReport (its native-stack mechanics are covered by
+            // on-device testing); mock it so the component's delegation can be asserted directly.
+            openExpenseOverParentReportSpy.mockImplementation(() => {});
         });
 
         afterEach(() => {
@@ -477,21 +478,17 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
-        it('pushes the report then the pressed expense so OS/swipe back returns to the report on narrow layouts', async () => {
+        it('opens the pressed expense with the parent report beneath it so OS/swipe back returns to the report on narrow layouts', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // Push the report onto the stack first, then the expense on top (the second push is deferred to a
-            // microtask so it composes as a forward push instead of the backward iOS animation the synchronous
-            // double-push produced). Keeping the report as a real stack entry makes the OS/hardware back and the
-            // iOS swipe-back return to the report, matching the header back button.
-            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
-            expect(navigateSpy).toHaveBeenCalledTimes(2);
-            expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
-            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, reportRoute));
+            // On narrow layouts the expense opens with the parent report placed as a real stack entry beneath it
+            // (a single forward slide), so the OS/hardware back and the iOS swipe-back return to the report,
+            // matching the header back button.
+            expect(openExpenseOverParentReportSpy).toHaveBeenCalledWith(mockIOUReport.reportID, `thread_${mockSecondTransactionID}`, '');
         });
 
         it('seeds the optimistic transaction thread before opening an existing (possibly uncached) expense', async () => {
@@ -535,16 +532,16 @@ describe('MoneyRequestReportPreview', () => {
             // The press fetches the IOU report's actions and waits, rather than falling back to the parent report.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
             expect(navigateSpy).not.toHaveBeenCalled();
+            expect(openExpenseOverParentReportSpy).not.toHaveBeenCalled();
 
-            // Once the actions arrive the thread resolves and the pressed expense opens (report pushed underneath).
+            // Once the actions arrive the thread resolves and the pressed expense opens (report placed underneath).
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
                 await waitForBatchedUpdatesWithAct();
             });
 
-            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, reportRoute));
+            expect(openExpenseOverParentReportSpy).toHaveBeenCalledWith(mockIOUReport.reportID, `thread_${mockSecondTransactionID}`, '');
         });
 
         it('falls back to opening the parent report when the pressed expense has no thread', async () => {

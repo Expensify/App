@@ -207,20 +207,13 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // On narrow layouts the wide RHP is unavailable, so push the report onto the stack first and then the
-            // expense on top of it. Keeping the report as a real stack entry makes the OS/hardware back and the
-            // iOS swipe-back return to the report — matching the header back button.
+            // On narrow layouts the wide RHP is unavailable. Open the expense with the parent report as a real
+            // stack entry underneath (so OS/hardware back and the iOS swipe-back return to the report, matching the
+            // header back button) as a single forward slide — see openExpenseOverParentReport for the mechanics.
             if (isSmallScreenWidth) {
                 const backTo = Navigation.getActiveRoute();
                 if (iouReportID) {
-                    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
-                    Navigation.navigate(reportRoute);
-                    // Defer the expense push to the next microtask so the report push commits first. Firing both
-                    // navigations synchronously races the shared Report navigator state, which iOS animates as a
-                    // backward pop; sequencing them keeps it a forward push (the wide path cascades the same way).
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
-                    });
+                    Navigation.openExpenseOverParentReport(iouReportID, childReportID, backTo);
                 } else {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, backTo));
                 }
