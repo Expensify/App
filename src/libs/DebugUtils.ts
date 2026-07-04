@@ -1153,6 +1153,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    feedCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,

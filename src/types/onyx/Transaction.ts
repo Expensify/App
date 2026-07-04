@@ -671,6 +671,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The display name of the purchaser card, if any */
         cardName?: string;
 
+        /** The Expensify Card program the card belongs to (e.g. `TRAVEL_US`), used to derive the travel icon without needing the card in the viewer's own list */
+        feedCountry?: string;
+
         /** The masked PAN of the purchaser card, if any */
         cardNumber?: string;
 
