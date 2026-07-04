@@ -1,8 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -10,6 +12,8 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type BuildConfirmActionParams = {
     /** IOU type being confirmed (submit / split / track / pay / invoice) */

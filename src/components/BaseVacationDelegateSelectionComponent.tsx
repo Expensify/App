@@ -1,20 +1,25 @@
-import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {searchUserInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import DelegatorList from './DelegatorList';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -72,12 +77,11 @@ function BaseVacationDelegateSelectionComponent({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
+    const initialVacationDelegate = useInitialSelection(currentVacationDelegate || undefined, {resetOnFocus: true});
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
 
     const excludeLogins = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        ...(currentVacationDelegate && {[currentVacationDelegate]: true}),
         ...additionalExcludeLogins,
     };
 
@@ -94,67 +98,73 @@ function BaseVacationDelegateSelectionComponent({
         searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const sectionsList = (() => {
-        const list = [];
-
-        const delegateLogin = delegatePersonalDetails?.login ?? currentVacationDelegate;
-        const delegateOption = currentVacationDelegate
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? '');
+    const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
+    const pinnedDelegateOption =
+        pinnedVacationDelegate && pinnedDelegatePersonalDetails
             ? {
-                  ...(delegatePersonalDetails ?? {}),
-                  text: Str.removeSMSDomain(delegatePersonalDetails?.displayName ?? currentVacationDelegate),
-                  alternateText: delegateLogin,
-                  login: delegateLogin,
-                  keyForList: `vacationDelegate-${delegateLogin}`,
+                  ...pinnedDelegatePersonalDetails,
+                  text: pinnedDelegatePersonalDetails?.displayName ?? pinnedVacationDelegate,
+                  alternateText: pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate,
+                  login: pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate,
+                  keyForList: `vacationDelegate-${pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate}`,
                   isDisabled: false,
-                  isSelected: true,
+                  isSelected: pinnedVacationDelegate === currentVacationDelegate,
                   shouldShowSubscript: undefined,
-                  accountID: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
                   icons: [
                       {
-                          source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                          name: formatPhoneNumber(delegateLogin),
+                          source: pinnedDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
+                          name: formatPhoneNumber(pinnedDelegatePersonalDetails?.login ?? ''),
                           type: CONST.ICON_TYPE_AVATAR,
-                          id: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
+                          id: pinnedDelegatePersonalDetails?.accountID,
                       },
                   ],
               }
             : undefined;
-
-        // Only pin the current delegate when it matches the search term, mirroring how the hook filters the other sections
-        if (delegateOption && filterOption(delegateOption, debouncedSearchTerm)) {
-            list.push({
-                title: undefined,
-                sectionIndex: 0,
-                data: [delegateOption],
-            });
+    const shouldShowPinnedVacationDelegate = !!pinnedDelegateOption && (!searchValue || !!filterOption(pinnedDelegateOption, debouncedSearchTerm));
+    const filterPinnedVacationDelegateFromOptions = (options: typeof availableOptions.recentOptions) => {
+        if (!shouldShowPinnedVacationDelegate || !pinnedVacationDelegate) {
+            return options;
         }
+        return options.filter((option) => option.login?.toLowerCase() !== pinnedVacationDelegate.toLowerCase());
+    };
 
-        if (availableOptions.recentOptions.length) {
-            list.push({
-                title: translate('common.recents'),
-                sectionIndex: 1,
-                data: availableOptions.recentOptions,
-            });
-        }
+    const sectionsList = [];
 
-        if (availableOptions.personalDetails.length) {
-            list.push({
-                title: translate('common.contacts'),
-                sectionIndex: 2,
-                data: availableOptions.personalDetails,
-            });
-        }
+    if (pinnedDelegateOption && shouldShowPinnedVacationDelegate) {
+        sectionsList.push({
+            title: undefined,
+            sectionIndex: 0,
+            data: [pinnedDelegateOption],
+        });
+    }
 
-        if (availableOptions.userToInvite) {
-            list.push({
-                title: undefined,
-                sectionIndex: 3,
-                data: [availableOptions.userToInvite],
-            });
-        }
+    const recentOptions = filterPinnedVacationDelegateFromOptions(availableOptions.recentOptions);
+    if (recentOptions.length) {
+        sectionsList.push({
+            title: translate('common.recents'),
+            sectionIndex: 1,
+            data: recentOptions,
+        });
+    }
 
-        return list;
-    })();
+    const personalDetails = filterPinnedVacationDelegateFromOptions(availableOptions.personalDetails);
+    if (personalDetails.length) {
+        sectionsList.push({
+            title: translate('common.contacts'),
+            sectionIndex: 2,
+            data: personalDetails,
+        });
+    }
+
+    if (availableOptions.userToInvite) {
+        sectionsList.push({
+            title: undefined,
+            sectionIndex: 3,
+            data: [availableOptions.userToInvite],
+        });
+    }
 
     const sections = sectionsList.map((section) => ({
         ...section,
@@ -164,13 +174,12 @@ function BaseVacationDelegateSelectionComponent({
             alternateText: getDelegateAlternateText(option.login, option.alternateText),
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
-            isSelected: option.isSelected ?? undefined,
+            isSelected: option.login === currentVacationDelegate,
             login: option.login ?? undefined,
             shouldShowSubscript: undefined,
         })),
     }));
 
-    const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = (() => {
         if (sections.length > 0) {
             return '';
@@ -213,6 +222,10 @@ function BaseVacationDelegateSelectionComponent({
                             textInputOptions={textInputOptions}
                             shouldShowLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
+                            searchValueForFocusSync={debouncedSearchTerm}
+                            initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${initialVacationDelegate}` : undefined}
+                            initialScrollIndex={0}
+                            shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             shouldShowTextInput
                         />

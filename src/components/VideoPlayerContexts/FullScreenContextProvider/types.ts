@@ -1,6 +1,7 @@
-import type {RefObject} from 'react';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';
+
+import type {RefObject} from 'react';
 
 type ResponsiveLayoutProperties = WindowDimensions & {
     responsiveLayoutResults: Partial<ResponsiveLayoutResult>;
