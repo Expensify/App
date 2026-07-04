@@ -44,7 +44,6 @@ const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, button
                 {...buttonProps}
             >
                 <ButtonKeyboardShortcut
-                    pressOnEnter
                     isPressOnEnterActive
                     {...props}
                 />
@@ -65,28 +64,12 @@ describe('ButtonKeyboardShortcut', () => {
     // ── Registration ───────────────────────────────────────────────────────────
 
     describe('registration', () => {
-        it('registers an Enter listener when pressOnEnter is true', () => {
-            // Given a ButtonKeyboardShortcut with pressOnEnter enabled
-            renderShortcut({pressOnEnter: true});
+        it('registers an Enter listener when mounted and active', () => {
+            // Given a mounted ButtonKeyboardShortcut (active via isPressOnEnterActive)
+            renderShortcut();
 
             // Then useKeyboardShortcut was called and the callback was captured
             expect(enterKeyCallback).toBeDefined();
-        });
-
-        it('does not register an Enter listener when pressOnEnter is false', () => {
-            // Given a ButtonKeyboardShortcut with pressOnEnter disabled
-            renderShortcut({pressOnEnter: false});
-
-            // Then no callback was registered (mock guards on config.isActive)
-            expect(enterKeyCallback).toBeUndefined();
-        });
-
-        it('does not register an Enter listener when pressOnEnter is omitted', () => {
-            // Given a ButtonKeyboardShortcut without pressOnEnter
-            renderShortcut({pressOnEnter: undefined});
-
-            // Then no callback was registered
-            expect(enterKeyCallback).toBeUndefined();
         });
     });
 
@@ -171,10 +154,7 @@ describe('ButtonKeyboardShortcut', () => {
         // Given the primitive rendered in isolation (default context), so no parent Button markup interferes
         const {toJSON} = render(
             <NavigationContainer>
-                <ButtonKeyboardShortcut
-                    pressOnEnter
-                    isPressOnEnterActive
-                />
+                <ButtonKeyboardShortcut isPressOnEnterActive />
             </NavigationContainer>,
         );
 

@@ -21,11 +21,11 @@ const accessibilityRoles: string[] = Object.values(CONST.ROLE);
  *
  * Usage:
  *   <Button onPress={submit} isDisabled={isDisabled}>
- *     <ButtonKeyboardShortcut pressOnEnter />
+ *     <ButtonKeyboardShortcut />
  *     <ButtonText>Submit</ButtonText>
  *   </Button>
  */
-function ButtonKeyboardShortcut({pressOnEnter, allowBubble, enterKeyEventListenerPriority, isPressOnEnterActive = false}: ButtonKeyboardShortcutProps) {
+function ButtonKeyboardShortcut({allowBubble, enterKeyEventListenerPriority, isPressOnEnterActive = false}: ButtonKeyboardShortcutProps) {
     // The press handler and disabled/loading state come from the parent Button context.
     const {onPress, isDisabled, isLoading} = useButtonContext();
 
@@ -46,12 +46,12 @@ function ButtonKeyboardShortcut({pressOnEnter, allowBubble, enterKeyEventListene
 
     const config = useMemo(
         () => ({
-            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+            isActive: !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
             shouldBubble: allowBubble,
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        [pressOnEnter, shouldDisableEnterShortcut, isFocused, isPressOnEnterActive, allowBubble, enterKeyEventListenerPriority],
+        [shouldDisableEnterShortcut, isFocused, isPressOnEnterActive, allowBubble, enterKeyEventListenerPriority],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);

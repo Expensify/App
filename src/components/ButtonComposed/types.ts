@@ -58,9 +58,6 @@ type ButtonBehaviorProps = {
  * Props for the ButtonKeyboardShortcut primitive — the Enter-key shortcut configuration.
  */
 type ButtonKeyboardShortcutProps = {
-    /** Call the onPress function when Enter key is pressed */
-    pressOnEnter?: boolean;
-
     /** The priority to assign the enter key event listener. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
