@@ -196,6 +196,32 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     const errorMessage = getValidationError(form, selectedCategory, policy, translate);
 
     const handleToggleField = (fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean) => {
+        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+            if (fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT && value) {
+                updateDraftRequireFieldsRule({
+                    [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: true,
+                    [INPUT_IDS.REQUIRE_RECEIPT]: true,
+                });
+                return;
+            }
+
+            if (fieldKey === INPUT_IDS.REQUIRE_RECEIPT && !value) {
+                updateDraftRequireFieldsRule({
+                    [INPUT_IDS.REQUIRE_RECEIPT]: false,
+                    [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: false,
+                });
+                return;
+            }
+        }
+
+        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE && fieldKey === INPUT_IDS.REQUIRE_RECEIPT && value) {
+            updateDraftRequireFieldsRule({
+                [INPUT_IDS.REQUIRE_RECEIPT]: true,
+                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: true,
+            });
+            return;
+        }
+
         updateDraftRequireFieldsRule({[fieldKey]: value});
     };
 

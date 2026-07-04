@@ -208,12 +208,17 @@ function applyRequireFieldsReceiptOverrides(
     shouldApplyReceipt: boolean,
     shouldApplyItemizedReceipt: boolean,
 ) {
-    const receiptTarget = getReceiptOverrideTarget(category?.maxAmountNoReceipt, direction, shouldApplyReceipt);
+    let receiptTarget = getReceiptOverrideTarget(category?.maxAmountNoReceipt, direction, shouldApplyReceipt);
     let itemizedTarget = getReceiptOverrideTarget(category?.maxAmountNoItemizedReceipt, direction, shouldApplyItemizedReceipt);
 
     // Match DynamicCategoryRequireReceiptsOverPage: waiving receipt also waives itemized when itemized is not already waived.
     if (receiptTarget === CONST.DISABLED_MAX_EXPENSE_VALUE && itemizedTarget === undefined && !isWaiveReceiptThreshold(category?.maxAmountNoItemizedReceipt)) {
         itemizedTarget = CONST.DISABLED_MAX_EXPENSE_VALUE;
+    }
+
+    // Match DynamicCategoryRequireItemizedReceiptsOverPage: requiring itemized also requires receipt.
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && itemizedTarget === 0 && receiptTarget !== 0 && category?.maxAmountNoReceipt !== 0) {
+        receiptTarget = 0;
     }
 
     const receiptWillSet = typeof receiptTarget === 'number';
