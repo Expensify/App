@@ -14,12 +14,14 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getAgentRuleDisplayTitle, getVisibleAgentRules, navigateToAgentRuleEdit, navigateToNewAgentRule} from '@libs/AgentRulesUtils';
+import {getAgentRuleDisplayTitle, getVisibleAgentRules} from '@libs/AgentRulesUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 
 import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -58,7 +60,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
             return;
         }
 
-        navigateToNewAgentRule(policyID);
+        Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
     };
 
     const handleEditAgentRule = (ruleID: string, pendingAction?: PendingAction) => {
@@ -71,7 +73,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
             return;
         }
 
-        navigateToAgentRuleEdit(policyID, ruleID);
+        Navigation.navigate(ROUTES.RULES_AGENT_EDIT.getRoute(policyID, ruleID));
     };
 
     if (!hasRules) {

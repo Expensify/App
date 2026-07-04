@@ -1,9 +1,5 @@
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {AgentRule} from '@src/types/onyx/Policy';
-
-import Navigation from './Navigation/Navigation';
 
 type AgentRulesCollection = Record<string, AgentRule> | undefined;
 
@@ -32,21 +28,5 @@ function getVisibleAgentRules(agentRules: AgentRulesCollection, isOffline: boole
     return getSortedAgentRules(agentRules).filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
-function getAgentRuleNavigationRoute(policyID: string, ruleID: string): Route {
-    return ROUTES.RULES_AGENT_EDIT.getRoute(policyID, ruleID);
-}
-
-function navigateToAgentRuleEdit(policyID: string, ruleID: string) {
-    Navigation.navigate(getAgentRuleNavigationRoute(policyID, ruleID));
-}
-
-function navigateToNewAgentRule(policyID: string) {
-    Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
-}
-
-function navigateToAgentsTab(policyID: string) {
-    Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-}
-
-export {getAgentRuleDisplayTitle, getAgentRuleNavigationRoute, getSortedAgentRules, getVisibleAgentRules, navigateToAgentRuleEdit, navigateToAgentsTab, navigateToNewAgentRule};
+export {getAgentRuleDisplayTitle, getSortedAgentRules, getVisibleAgentRules};
 export type {AgentRuleWithID};

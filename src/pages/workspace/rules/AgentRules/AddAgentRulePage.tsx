@@ -16,7 +16,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Tab from '@libs/actions/Tab';
-import {navigateToAgentsTab} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -80,7 +79,7 @@ function AddAgentRulePage({
     const navigateBackToAgentsTab = () => {
         if (isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            navigateToAgentsTab(policyID);
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
             return;
         }
 
@@ -122,7 +121,11 @@ function AddAgentRulePage({
                     shouldCenterIcon: true,
                     iconWidth: variables.iconSizeUltraLarge,
                     iconHeight: variables.iconSizeUltraLarge,
-                    iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
+                    iconAdditionalStyles: {
+                        borderRadius: variables.iconSizeUltraLarge / 2,
+                        overflow: 'hidden',
+                        marginTop: 12,
+                    },
                 }).then(() => {
                     if (linkPressedRef.current) {
                         Navigation.navigate(ROUTES.SETTINGS_AGENTS);

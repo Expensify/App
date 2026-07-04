@@ -16,7 +16,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Tab from '@libs/actions/Tab';
-import {navigateToAgentsTab} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -28,6 +27,7 @@ import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
@@ -59,7 +59,7 @@ function EditAgentRulePage({
     const navigateBackToAgentsTab = () => {
         if (isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            navigateToAgentsTab(policyID);
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
             return;
         }
 
