@@ -1,17 +1,22 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useImperativeHandle, useRef, useState} from 'react';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {isValidRecoveryCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useImperativeHandle, useRef, useState} from 'react';
+
 import type {TwoFactorAuthFormProps} from './types';
 
 type BaseTwoFactorAuthFormProps = {
