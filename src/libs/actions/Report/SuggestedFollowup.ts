@@ -29,6 +29,7 @@ const CONCIERGE_RESPONSE_DELAY_MS = 4000;
  * @param reportAction - The report action containing the followup-list
  * @param selectedFollowup - The followup object containing the question text and optional pre-generated response
  * @param timezoneParam - The user's timezone
+ * @param conciergeReportID - The Concierge report ID, used to detect whether the comment is posted in the Concierge chat
  * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveSuggestedFollowup(
@@ -40,6 +41,7 @@ function resolveSuggestedFollowup(
     currentUserAccountID: number,
     currentUserEmail: string | undefined,
     delegateAccountID: number | undefined,
+    conciergeReportID: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -77,7 +79,7 @@ function resolveSuggestedFollowup(
             timezoneParam,
             currentUserAccountID,
             delegateAccountID,
-            conciergeReportID: undefined,
+            conciergeReportID,
         });
         return;
     }
@@ -100,7 +102,7 @@ function resolveSuggestedFollowup(
             pregeneratedResponse: selectedFollowup.response,
         },
         delegateAccountID,
-        conciergeReportID: undefined,
+        conciergeReportID,
     });
 
     // Use the full delay as createdOffset so the Concierge response timestamp is
@@ -187,7 +189,10 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`,
-            value: {reportActionID: reportAction.reportActionID, createdAt: Date.now()},
+            value: {
+                reportActionID: reportAction.reportActionID,
+                createdAt: Date.now(),
+            },
         },
     ]);
 }
