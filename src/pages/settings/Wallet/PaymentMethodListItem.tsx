@@ -191,6 +191,17 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     // Card state pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
+        if (item.isCardFrozen) {
+            return (
+                <Badge
+                    text={translate('cardPage.frozen')}
+                    icon={icons.FreezeCard}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                    iconStyles={[styles.mr1]}
+                />
+            );
+        }
         if (item.connectionStatus) {
             return (
                 <ConnectionStatusBadge
@@ -206,17 +217,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     text={translate('paymentMethodList.defaultPaymentMethod')}
                     isCondensed
                     badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        if (item.isCardFrozen) {
-            return (
-                <Badge
-                    text={translate('cardPage.frozen')}
-                    icon={icons.FreezeCard}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                    iconStyles={[styles.mr1]}
                 />
             );
         }
