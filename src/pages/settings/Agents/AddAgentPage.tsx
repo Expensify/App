@@ -44,8 +44,6 @@ import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
-const SUBMIT_BUTTON_HEIGHT = 56;
-
 function AddAgentPage({route}: AddAgentPageProps) {
     const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
@@ -132,7 +130,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={SUBMIT_BUTTON_HEIGHT}>
+            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
                     onBackButtonPress={() => Navigation.goBack()}

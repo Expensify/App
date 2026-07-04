@@ -117,10 +117,10 @@ function FormAlertWithSubmitButton({
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const shouldDisplaySubmitButtonAndFooterInOneRow = isInLandscapeMode && shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode;
+    const shouldDisplayButtonAndFooterInOneRow = isInLandscapeMode && shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode;
     const style = [
-        !shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding && !shouldDisplaySubmitButtonAndFooterInOneRow ? styles.mb3 : {},
-        shouldDisplaySubmitButtonAndFooterInOneRow ? [styles.flex1] : undefined,
+        !shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding && !shouldDisplayButtonAndFooterInOneRow ? styles.mb3 : undefined,
+        shouldDisplayButtonAndFooterInOneRow ? styles.flex1 : {},
         buttonStyles,
     ];
 
@@ -140,7 +140,7 @@ function FormAlertWithSubmitButton({
             errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
-                <View style={shouldDisplaySubmitButtonAndFooterInOneRow ? [styles.flexRow, styles.gap3] : undefined}>
+                <View style={shouldDisplayButtonAndFooterInOneRow ? [styles.flexRow, styles.gap3] : undefined}>
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button

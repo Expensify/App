@@ -1,7 +1,7 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -22,7 +22,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
-import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 
 import {Str} from 'expensify-common';
-import React, {useRef} from 'react';
+import React from 'react';
 import {Platform, View} from 'react-native';
 
 type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
@@ -78,9 +77,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
         handleSubmit({[INPUT_IDS.PROMPT]: textarea.value.trim()});
     });
 
-    const formWrapperRef = useRef<FormRef>(null);
-    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, isInLandscapeMode);
-
     return (
         <ScreenWrapper
             testID={EditPromptPage.displayName}
@@ -106,7 +102,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 shouldValidateOnChange
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                ref={formWrapperRef}
             >
                 <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}>
                     <InputWrapper
@@ -120,7 +115,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         containerStyles={[styles.h100]}
                         touchableInputWrapperStyle={[styles.flex1]}
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        onFocus={handleInputFocus}
                     />
                 </View>
             </FormProvider>
