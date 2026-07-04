@@ -38,7 +38,6 @@ import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
-import ExpensifyCardContextProvider from '@pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
 
 import * as Modal from '@userActions/Modal';
@@ -174,7 +173,6 @@ function AuthScreens() {
                         FullScreenContextProvider,
                         SearchRouterContextProvider,
                         ProductTrainingContextProvider,
-                        ExpensifyCardContextProvider,
                         TravelCVVContextProvider,
                         KYCWallContextProvider,
                         WideRHPContextProvider,
