@@ -6641,7 +6641,11 @@ function computeOptimisticReportName(
     reportTransactions: Record<string, Transaction>,
     currencyList?: CurrencyList,
 ): string | null {
-    return computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, currencyList)?.value ?? null;
+    const result = computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, currencyList);
+    if (!result || result.hasUnresolvedTokens) {
+        return null;
+    }
+    return result.value;
 }
 
 /**

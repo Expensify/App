@@ -851,6 +851,34 @@ describe('CustomFormula', () => {
         });
     });
 
+    describe('ReportUtils.computeOptimisticReportName()', () => {
+        const titleField = {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'Title',
+            type: CONST.REPORT_FIELD_TYPES.FORMULA,
+            defaultValue: 'Total: {report:total:EUR}',
+            deletable: false,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        };
+        const groupPolicy = createMock<Policy>({
+            id: 'p-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+        });
+        const usdReport = createMock<Report>({reportID: 'r-1', policyID: 'p-1', total: -10000, currency: CONST.CURRENCY.USD});
+
+        test('returns null when the formula leaves any tokenised part unresolved', () => {
+            // `{report:total:EUR}` on a USD report with no conversion falls back to the raw token → wrapper must return null.
+            expect(ReportUtils.computeOptimisticReportName(usdReport, groupPolicy, 'p-1', {})).toBeNull();
+        });
+    });
+
     describe('User formula parts', () => {
         const mockUserContext: FormulaContext = {report: createMock<Report>({reportID: '1'}), policy: undefined};
 

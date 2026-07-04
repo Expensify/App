@@ -1203,8 +1203,6 @@ function recalculateOptimisticReportName(
         transactionsRecord[id] = transaction;
     }
 
-    // Discard partial recomputes — the BE renders unresolvable parts (e.g. cross-currency `{report:total}`)
-    // better, so keep the stored title until it responds and avoid a flicker to raw formula text.
     const result = computeOptimisticReportNameWithMetadata(iouReport, policy, iouReport.policyID, transactionsRecord);
     if (!result || result.hasUnresolvedTokens) {
         return undefined;
