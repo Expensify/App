@@ -323,7 +323,7 @@ function ReportFieldsListValuesPage({
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pv4]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
             <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
         </View>
     );

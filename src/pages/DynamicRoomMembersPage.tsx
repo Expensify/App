@@ -328,7 +328,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         isSplitButton={false}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                         isDisabled={!selectedMembers.length}
                     />
                 ) : (
@@ -338,7 +338,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         text={translate('workspace.invite.member')}
                         icon={icons.Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                     />
                 )}
             </View>
@@ -391,7 +391,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         reasonAttributes={reasonAttributes}
                     />
                 ) : (
-                    <View style={[styles.w100, styles.mt3, styles.flex1]}>
+                    <View style={[styles.w100, styles.flex1]}>
                         <RoomMembersTable
                             ref={tableRef}
                             members={members}
