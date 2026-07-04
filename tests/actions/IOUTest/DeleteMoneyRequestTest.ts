@@ -2207,5 +2207,144 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(updatedReport?.reportName).toBe('Trip from Jun 22 to Jun 24, 2025');
             mockFetch?.resume?.();
         });
+
+        it('persists the pending-total marker on cross-currency delete so a follow-up same-currency delete inherits sticky-indeterminate', async () => {
+            const policyID = 'policy-cross-currency-persist';
+            const ORIGINAL_TITLE = 'Trip $100.00';
+            const titleField = {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                name: 'Title',
+                type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                defaultValue: 'Trip {report:total}',
+                deletable: false,
+                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+            const policy = {
+                ...createRandomPolicy(105, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(501, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+                reportName: ORIGINAL_TITLE,
+            };
+            const eurTxn: Transaction = {
+                ...createRandomTransaction(5001),
+                amount: -8500,
+                currency: CONST.CURRENCY.EUR,
+                reportID: expenseReport.reportID,
+                created: '2025-06-21',
+                merchant: 'Cross-currency purchase',
+                reimbursable: true,
+            };
+            const usdTxn: Transaction = {
+                ...createRandomTransaction(5002),
+                amount: -2000,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                created: '2025-06-22',
+                merchant: 'USD purchase',
+                reimbursable: true,
+            };
+            const eurAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(5001),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {amount: eurTxn.amount, currency: eurTxn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: eurTxn.transactionID},
+                message: undefined,
+                previousMessage: undefined,
+            };
+            const usdAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(5002),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {amount: usdTxn.amount, currency: usdTxn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: usdTxn.transactionID},
+                message: undefined,
+                previousMessage: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${eurTxn.transactionID}`, eurTxn);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${usdTxn.transactionID}`, usdTxn);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [eurAction.reportActionID]: eurAction,
+                [usdAction.reportActionID]: usdAction,
+            });
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
+            await waitForBatchedUpdates();
+
+            mockFetch?.pause?.();
+            // Iter 1: cross-currency delete → total unchanged → marker must be persisted to Onyx.
+            deleteMoneyRequest({
+                transactionID: eurTxn.transactionID,
+                reportAction: eurAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                policy,
+            });
+            await waitForBatchedUpdates();
+
+            const afterFirst = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(afterFirst?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(afterFirst?.reportName).toBe(ORIGINAL_TITLE);
+
+            // Iter 2: same-currency delete. Its own totals would be computable, but the sticky marker
+            // from iter 1 must make it inherit indeterminate → recompute skipped → title preserved.
+            deleteMoneyRequest({
+                transactionID: usdTxn.transactionID,
+                reportAction: usdAction,
+                transactions: {},
+                violations: {},
+                iouReport: afterFirst,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                policy,
+            });
+            await waitForBatchedUpdates();
+
+            const afterSecond = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(afterSecond?.reportName).toBe(ORIGINAL_TITLE);
+            mockFetch?.resume?.();
+        });
     });
 });

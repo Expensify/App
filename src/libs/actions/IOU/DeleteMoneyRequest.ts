@@ -247,6 +247,8 @@ function prepareToCleanUpMoneyRequest(
         }
     }
 
+    const isTotalIndeterminate = wasAlreadyIndeterminate || !didUpdateOptimisticTotal;
+
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
     const previewAmount = getReimbursableTotal(updatedIOUReport) + (updatedIOUReport?.nonReimbursableTotal ?? 0);
     const messageText = Localize.translateLocal(
@@ -285,6 +287,7 @@ function prepareToCleanUpMoneyRequest(
         transactionViolations,
         reportPreviewAction,
         iouReportActions,
+        isTotalIndeterminate,
     };
 }
 
@@ -736,6 +739,7 @@ function deleteMoneyRequest({
         transactionViolations,
         reportPreviewAction,
         iouReportActions,
+        isTotalIndeterminate,
     } = prepareToCleanUpMoneyRequest(
         transactionID,
         reportAction,
@@ -795,12 +799,13 @@ function deleteMoneyRequest({
         value: updatedReportAction,
     });
 
+    const shouldMarkPendingTotal = isTotalIndeterminate && !shouldDeleteIOUReport;
     if (updatedIOUReport) {
         if (iouReport?.reportID) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                value: updatedIOUReport,
+                value: {...updatedIOUReport, ...(shouldMarkPendingTotal && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
             });
         }
         if (chatReport?.reportID) {
@@ -912,6 +917,12 @@ function deleteMoneyRequest({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: null,
         });
+    } else if (shouldMarkPendingTotal && iouReport?.reportID) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {pendingFields: {total: null}},
+        });
     }
 
     successData.push({
@@ -967,7 +978,7 @@ function deleteMoneyRequest({
                 : {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: iouReport,
+                      value: {...iouReport, ...(shouldMarkPendingTotal && {pendingFields: {total: null}})},
                   },
         );
     }
