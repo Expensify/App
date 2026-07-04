@@ -113,7 +113,7 @@ function updateMultipleMoneyRequests({
     currentUserAccountID,
     delegateAccountID,
 }: UpdateMultipleMoneyRequestsParams) {
-    // Per-report running state so iterations in the same report see earlier edits (totals, txns, snapshot).
+    // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
     const optimisticTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
     const callerTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};

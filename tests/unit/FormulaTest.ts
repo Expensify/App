@@ -1,5 +1,5 @@
 import type {FormulaContext} from '@libs/Formula';
-import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
+import {compute, computeWithMetadata, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -832,6 +832,22 @@ describe('CustomFormula', () => {
         test('should return formula definition when policy or frequency is missing', () => {
             expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
             expect(compute('{report:autoreporting:end}', createMockContext(createMock<Policy>({})))).toBe('{report:autoreporting:end}');
+        });
+    });
+
+    describe('computeWithMetadata()', () => {
+        const mockCtx: FormulaContext = {report: createMock<Report>({reportID: '1'}), policy: undefined};
+
+        test('flags REPORT parts that fall back to their raw definition as unresolved', () => {
+            const result = computeWithMetadata('{report:autoreporting:end}', mockCtx);
+            expect(result.hasUnresolvedTokens).toBe(true);
+            expect(result.value).toBe('{report:autoreporting:end}');
+        });
+
+        test('leaves hasUnresolvedTokens false when every part resolves', () => {
+            const result = computeWithMetadata('Trip {user:email}', mockCtx);
+            expect(result.hasUnresolvedTokens).toBe(false);
+            expect(result.value).toBe('Trip jane@example.com');
         });
     });
 

@@ -279,7 +279,7 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
- * Compute a formula and report whether any tokenised part fell back to its raw `{...}` definition.
+ * Compute a formula and report whether any tokenized part fell back to its raw `{...}` definition.
  * Callers doing optimistic recomputes use the flag to discard outputs the BE will render better.
  */
 function computeWithMetadata(formula?: string, context?: FormulaContext): {value: string; hasUnresolvedTokens: boolean} {
@@ -317,7 +317,7 @@ function computeWithMetadata(formula?: string, context?: FormulaContext): {value
                 value = part.definition;
         }
 
-        // A tokenised part that yields its own raw {…} definition is unresolved — the BE renders it.
+        // A tokenized part that yields its own raw {…} definition is unresolved — the BE renders it.
         if (part.type !== FORMULA_PART_TYPES.FREETEXT && value === part.definition) {
             hasUnresolvedTokens = true;
         }

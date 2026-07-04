@@ -1894,8 +1894,8 @@ describe('actions/IOU/BulkEdit', () => {
         });
 
         it('carries indeterminate total across bulk iterations so a later same-currency edit does not bake in a stale total', async () => {
-            const iouReportID = 'iou-trip-sticky-indet';
-            const policyID = 'policy-trip-sticky-indet';
+            const iouReportID = 'iou-trip-sticky-indeterminate';
+            const policyID = 'policy-trip-sticky-indeterminate';
             const currencyTxnID = 'txn-currency-first';
             const amountTxnID = 'txn-amount-second';
             const ORIGINAL_REPORT_NAME = 'Original BE-computed title';
