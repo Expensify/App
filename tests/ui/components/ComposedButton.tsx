@@ -29,7 +29,7 @@ const LABEL = 'test-button';
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isHovered, isDisabled, isLoading, onPress} = useButtonContext();
+    const {variant, size, isHovered, isDisabled, isLoading} = useButtonContext();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>
@@ -37,13 +37,6 @@ function ContextReadout() {
             <Text testID="ctx-isHovered">{String(isHovered)}</Text>
             <Text testID="ctx-isDisabled">{String(isDisabled)}</Text>
             <Text testID="ctx-isLoading">{String(isLoading)}</Text>
-            {/* Pressing this invokes the context onPress, so a test can assert Button publishes its own onPress. */}
-            <Text
-                testID="ctx-onPress"
-                onPress={() => onPress()}
-            >
-                invoke
-            </Text>
         </View>
     );
 }
@@ -142,17 +135,6 @@ describe('ButtonComposed — Button', () => {
         it('propagates isLoading to children via context', () => {
             renderButton({isLoading: true});
             expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('true');
-        });
-
-        it("exposes the button's own onPress via context", () => {
-            // Given a Button with an onPress handler
-            renderButton({onPress});
-
-            // When a child invokes the context onPress
-            fireEvent.press(screen.getByTestId('ctx-onPress'));
-
-            // Then the handler passed to Button is called
-            expect(onPress).toHaveBeenCalledTimes(1);
         });
 
         it.each(['success', 'danger'] as const)('propagates variant="%s" to children via context', (variant) => {

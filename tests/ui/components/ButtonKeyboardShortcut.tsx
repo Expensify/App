@@ -1,10 +1,8 @@
 import {render} from '@testing-library/react-native';
 
-import {ButtonContext} from '@src/components/ButtonComposed/context';
-import type {ButtonContextValue} from '@src/components/ButtonComposed/context/types';
+import Button from '@src/components/ButtonComposed/Button';
 import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import type {ButtonKeyboardShortcutProps} from '@src/components/ButtonComposed/types';
-import CONST from '@src/CONST';
+import type {ButtonKeyboardShortcutProps, ButtonProps} from '@src/components/ButtonComposed/types';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -31,34 +29,26 @@ jest.mock('@hooks/useKeyboardShortcut', () =>
 });
 // ──────────────────────────────────────────────────────────────────────────────
 
-// onPress/isDisabled/isLoading are supplied by the parent Button through ButtonContext, so the
-// tests provide them via the context value rather than as props on ButtonKeyboardShortcut.
-const DEFAULT_CONTEXT: ButtonContextValue = {
-    isHovered: false,
-    variant: undefined,
-    size: CONST.BUTTON_SIZE.MEDIUM,
-    onPress: () => {},
-    isDisabled: false,
-    isLoading: false,
-};
-
 /**
- * Renders ButtonKeyboardShortcut inside a ButtonContext.Provider and a NavigationContainer.
+ * Renders ButtonKeyboardShortcut inside a real Button (which owns ButtonContext) and a NavigationContainer.
  * NavigationContainer is required because the component calls useIsFocused().
  * isPressOnEnterActive=true is the default here so the shortcut is active
  * even without a focused screen, keeping individual tests simple.
- * `context` overrides the button-context values the primitive reads (onPress/isDisabled/isLoading).
+ * `buttonProps` set the parent Button's onPress/isDisabled/isLoading, which the primitive reads from context.
  */
-const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, context: Partial<ButtonContextValue> = {}) =>
+const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, buttonProps: Omit<Partial<ButtonProps>, 'children'> = {}) =>
     render(
         <NavigationContainer>
-            <ButtonContext.Provider value={{...DEFAULT_CONTEXT, ...context}}>
+            <Button
+                accessibilityLabel="button"
+                {...buttonProps}
+            >
                 <ButtonKeyboardShortcut
                     pressOnEnter
                     isPressOnEnterActive
                     {...props}
                 />
-            </ButtonContext.Provider>
+            </Button>
         </NavigationContainer>,
     );
 
@@ -178,8 +168,15 @@ describe('ButtonKeyboardShortcut', () => {
     // ── Rendering ──────────────────────────────────────────────────────────────
 
     it('renders nothing to the DOM', () => {
-        // Given a rendered ButtonKeyboardShortcut
-        const {toJSON} = renderShortcut();
+        // Given the primitive rendered in isolation (default context), so no parent Button markup interferes
+        const {toJSON} = render(
+            <NavigationContainer>
+                <ButtonKeyboardShortcut
+                    pressOnEnter
+                    isPressOnEnterActive
+                />
+            </NavigationContainer>,
+        );
 
         // Then it contributes no nodes to the render tree
         expect(toJSON()).toBeNull();
