@@ -55,6 +55,7 @@ import useRulesTableBulkActions from './tabs/useRulesTableBulkActions';
 const RULES_TAB = CONST.TAB.RULES;
 
 type RulesTab = ValueOf<typeof RULES_TAB>;
+type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL | typeof RULES_TAB.AGENTS>;
 
 const RULES_TAB_VALUES = new Set<string>(Object.values(RULES_TAB));
 
@@ -62,8 +63,8 @@ function isRulesTab(key: string): key is RulesTab {
     return RULES_TAB_VALUES.has(key);
 }
 
-function isTableSelectionTab(tab: RulesTab): tab is Exclude<RulesTab, typeof RULES_TAB.GENERAL> {
-    return tab !== RULES_TAB.GENERAL;
+function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
+    return tab !== RULES_TAB.GENERAL && tab !== RULES_TAB.AGENTS;
 }
 
 function updateSelectionKeysIfChanged(previousKeys: string[], nextKeys: string[]) {
@@ -99,7 +100,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
     const resolvedTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const activeTab: RulesTab = resolvedTab === RULES_TAB.AGENTS && !isCustomAgentBetaEnabled ? RULES_TAB.GENERAL : resolvedTab;
-    const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<Exclude<RulesTab, typeof RULES_TAB.GENERAL>, string[]>>>({});
+    const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<TableSelectionTab, string[]>>>({});
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -130,7 +131,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     }, [activeTab]);
 
-    const updateTabSelectionKeys = useCallback((tab: Exclude<RulesTab, typeof RULES_TAB.GENERAL>, selectedRowKeys: string[]) => {
+    const updateTabSelectionKeys = useCallback((tab: TableSelectionTab, selectedRowKeys: string[]) => {
         setSelectedRuleKeysByTab((prev) => {
             const nextKeys = updateSelectionKeysIfChanged(prev[tab] ?? [], selectedRowKeys);
             if (prev[tab] === nextKeys) {

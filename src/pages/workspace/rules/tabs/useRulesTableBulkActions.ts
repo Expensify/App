@@ -38,7 +38,7 @@ const DEFAULT_SPEND_RULE_ID = 'default-rule';
 const RULES_TAB = CONST.TAB.RULES;
 
 type RulesTab = ValueOf<typeof RULES_TAB>;
-type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL>;
+type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL | typeof RULES_TAB.AGENTS>;
 
 type UseRulesTableBulkActionsParams = {
     policyID: string;
@@ -49,7 +49,7 @@ type UseRulesTableBulkActionsParams = {
 };
 
 function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
-    return tab !== RULES_TAB.GENERAL;
+    return tab !== RULES_TAB.GENERAL && tab !== RULES_TAB.AGENTS;
 }
 
 function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, canWriteRules, clearTableSelection}: UseRulesTableBulkActionsParams) {

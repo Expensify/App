@@ -15,6 +15,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Tab from '@libs/actions/Tab';
+import {navigateToAgentsTab} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,9 +50,21 @@ function EditAgentRulePage({
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
+    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
+
+    const navigateBackToAgentsTab = () => {
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+            navigateToAgentsTab(policyID);
+            return;
+        }
+
+        Navigation.goBack();
+    };
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in e)) {
@@ -75,7 +89,7 @@ function EditAgentRulePage({
         if (newPrompt !== previousPrompt) {
             updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
         }
-        Navigation.goBack();
+        navigateBackToAgentsTab();
     };
 
     const handleDelete = () => {
@@ -95,7 +109,7 @@ function EditAgentRulePage({
             }
 
             deletePolicyAgentRule(policy, ruleID);
-            Navigation.goBack();
+            navigateBackToAgentsTab();
         });
     };
 
@@ -147,8 +161,8 @@ function EditAgentRulePage({
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.PROMPT}
-                                label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                                accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                                label={describeRuleLabel}
+                                accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
                                 onKeyPress={handleKeyPress}
                                 defaultValue={agentRule.prompt}
