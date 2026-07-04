@@ -7417,6 +7417,7 @@ const translations = {
                 expenseDefaults: 'Expense defaults',
                 requireFields: 'Require fields',
                 flagForReview: 'Flag for review',
+                agents: 'Agents',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7593,11 +7594,13 @@ const translations = {
                 restrictCardSpend: 'Restrict card spend',
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
-                flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
+                flagForReviewDescription: 'Notify when your conditions are met.',
                 requireFields: 'Require fields',
-                requireFieldsDescription: 'Make sure key fields are filled in before expenses are submitted',
+                requireFieldsDescription: 'Receipts, categories, etc, when submitting.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
+                createAgentRule: 'Agent rule',
+                createAgentRuleDescription: 'Describe flexible rules that run when you need.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7656,6 +7659,11 @@ const translations = {
                 title: 'Surface expenses that need a closer look',
                 subtitle: 'Alert approvers when specific expenses are worth an extra review.',
                 cta: 'Create flag rule',
+            },
+            agentRulesEmptyState: {
+                title: 'No agent rules added',
+                subtitle: 'Create a rule to automate your workspace policies.',
+                cta: '+ Add AI rule',
             },
             flagForReviewRule: {
                 title: 'Flag for review',
@@ -7845,19 +7853,25 @@ const translations = {
             agentRules: {
                 title: 'Agent rules',
                 subtitle: 'Set rules for how AI agents handle expenses on this workspace.',
+                revampSubtitle: 'Describe flexible rules that run when you need.',
                 enforcedBy: 'Agent rules are enforced by',
                 ruleBotName: 'RuleBot',
                 addRule: 'Add agent rule',
+                addAgentRuleCta: '+ Add Agent Rule',
                 findRule: 'Find agent rule',
                 addRuleTitle: 'Add rule',
+                newRuleTitle: 'New rule',
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
+                describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
+                nextButton: 'Next',
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+                gotIt: 'Got it',
             },
         },
         planTypePage: {

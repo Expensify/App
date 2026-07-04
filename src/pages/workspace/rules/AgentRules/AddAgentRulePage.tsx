@@ -15,6 +15,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Tab from '@libs/actions/Tab';
+import {navigateToAgentsTab} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -51,6 +53,7 @@ function AddAgentRulePage({
     const shouldUseScrollableLayout = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const formRef = useRef<FormRef>(null);
     const linkPressedRef = useRef(false);
@@ -73,13 +76,23 @@ function AddAgentRulePage({
         return errors;
     };
 
+    const navigateBackToAgentsTab = () => {
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+            navigateToAgentsTab(policyID);
+            return;
+        }
+
+        Navigation.goBack();
+    };
+
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         if (!isFirstRule) {
-            Navigation.goBack();
+            navigateBackToAgentsTab();
             return;
         }
         linkPressedRef.current = false;
@@ -100,7 +113,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: translate('common.buttonConfirm'),
+                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -110,10 +123,12 @@ function AddAgentRulePage({
                     iconHeight: variables.iconSizeUltraLarge,
                     iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
                 }).then(() => {
-                    if (!linkPressedRef.current) {
+                    if (linkPressedRef.current) {
+                        Navigation.navigate(ROUTES.SETTINGS_AGENTS);
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+
+                    navigateBackToAgentsTab();
                 });
             },
         });
@@ -132,13 +147,13 @@ function AddAgentRulePage({
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight={shouldUseScrollableLayout}
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.addRuleTitle')} />
+                <HeaderWithBackButton title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')} />
                 <FormProvider
                     ref={formRef}
                     formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
-                    submitButtonText={translate('common.save')}
+                    submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.nextButton') : translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
                     shouldUseScrollView={shouldUseScrollableLayout}
                     submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
@@ -153,8 +168,10 @@ function AddAgentRulePage({
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.PROMPT}
-                                label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                                accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                                label={isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle')}
+                                accessibilityLabel={
+                                    isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle')
+                                }
                                 role={CONST.ROLE.PRESENTATION}
                                 onKeyPress={handleKeyPress}
                                 multiline

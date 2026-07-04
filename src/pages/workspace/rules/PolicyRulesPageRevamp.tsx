@@ -43,6 +43,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
+import RulesAgentsTab from './tabs/RulesAgentsTab';
 import RulesCardRestrictionsTab from './tabs/RulesCardRestrictionsTab';
 import RulesExpenseDefaultsTab from './tabs/RulesExpenseDefaultsTab';
 import RulesFlagForReviewTab from './tabs/RulesFlagForReviewTab';
@@ -84,17 +85,19 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Sparkles', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RULES_TAB_TYPE}`);
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
-    const activeTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
+    const resolvedTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
+    const activeTab: RulesTab = resolvedTab === RULES_TAB.AGENTS && !isCustomAgentBetaEnabled ? RULES_TAB.GENERAL : resolvedTab;
     const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<Exclude<RulesTab, typeof RULES_TAB.GENERAL>, string[]>>>({});
 
     const {showConfirmModal} = useConfirmModal();
@@ -217,6 +220,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             title: translate('workspace.rules.tabs.flagForReview'),
             icon: icons.Flag,
         },
+        ...(isCustomAgentBetaEnabled
+            ? [
+                  {
+                      key: RULES_TAB.AGENTS,
+                      title: translate('workspace.rules.tabs.agents'),
+                      icon: icons.Sparkles,
+                  },
+              ]
+            : []),
     ];
 
     const handleNewRule = () => {
@@ -275,7 +287,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
-                shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
+                shouldUseScrollView={activeTab === RULES_TAB.GENERAL || activeTab === RULES_TAB.AGENTS}
                 headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
@@ -349,6 +361,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     />
                                 )}
                             </View>
+                        )}
+                        {activeTab === RULES_TAB.AGENTS && isCustomAgentBetaEnabled && (
+                            <RulesAgentsTab
+                                policyID={policyID}
+                                canWriteRules={canWriteRules}
+                                showReadOnlyModal={showReadOnlyModal}
+                            />
                         )}
                     </View>
                 </View>
