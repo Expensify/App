@@ -419,14 +419,44 @@ function getRequireFieldsRuleDescription(
     }
 }
 
-function getRequireFieldsPendingActionForDirection(category: PolicyCategory, direction: FieldRequirementsDirection): PendingAction | undefined {
+function getRequireFieldsPendingFieldKeysForDirection(category: PolicyCategory, direction: FieldRequirementsDirection): RequireFieldsPendingFieldKey[] {
     const pendingFields = category.pendingFields;
-    const fieldKeys: RequireFieldsPendingFieldKey[] =
-        direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE
-            ? ['areCommentsRequired', 'areAttendeesRequired', 'maxAmountNoReceipt', 'maxAmountNoItemizedReceipt']
-            : ['maxAmountNoReceipt', 'maxAmountNoItemizedReceipt'];
+    const fieldKeys: RequireFieldsPendingFieldKey[] = [];
 
-    const pendingActions = fieldKeys.map((field) => pendingFields?.[field]).filter((pendingAction): pendingAction is PendingAction => !!pendingAction);
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+        if (pendingFields?.areCommentsRequired) {
+            fieldKeys.push('areCommentsRequired');
+        }
+
+        if (pendingFields?.areAttendeesRequired) {
+            fieldKeys.push('areAttendeesRequired');
+        }
+
+        if (pendingFields?.maxAmountNoReceipt && hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) {
+            fieldKeys.push('maxAmountNoReceipt');
+        }
+
+        if (pendingFields?.maxAmountNoItemizedReceipt && hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+            fieldKeys.push('maxAmountNoItemizedReceipt');
+        }
+
+        return fieldKeys;
+    }
+
+    if (pendingFields?.maxAmountNoReceipt && isWaiveReceiptThreshold(category.maxAmountNoReceipt)) {
+        fieldKeys.push('maxAmountNoReceipt');
+    }
+
+    if (pendingFields?.maxAmountNoItemizedReceipt && isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+        fieldKeys.push('maxAmountNoItemizedReceipt');
+    }
+
+    return fieldKeys;
+}
+
+function getRequireFieldsPendingActionForDirection(category: PolicyCategory, direction: FieldRequirementsDirection): PendingAction | undefined {
+    const fieldKeys = getRequireFieldsPendingFieldKeysForDirection(category, direction);
+    const pendingActions = fieldKeys.map((field) => category.pendingFields?.[field]).filter((pendingAction): pendingAction is PendingAction => !!pendingAction);
 
     return pendingActions.find((pendingAction) => isPendingDeleteOrUpdate(pendingAction)) ?? pendingActions.at(0);
 }
