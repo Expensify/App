@@ -6,6 +6,8 @@ import type {Fullstory} from './types';
 
 import {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory} from './common';
 
+let isFullstoryTrackingEnabled = false;
+
 const FS: Fullstory = {
     Page: FSPage,
 
@@ -40,6 +42,7 @@ const FS: Fullstory = {
             // We only use FullStory in production environment. We need to check this here
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
+            isFullstoryTrackingEnabled = false;
             getEnvironment().then((envName: string) => {
                 if (!FS.shouldInitialize(userMetadata, envName)) {
                     return;
@@ -48,6 +51,7 @@ const FS: Fullstory = {
                 FullStory.restart();
                 FullStory.consent(true);
                 FS.identify(userMetadata, envName);
+                isFullstoryTrackingEnabled = true;
             });
         } catch (e) {
             // error handler
@@ -65,6 +69,10 @@ const FS: Fullstory = {
     },
 
     event: (eventName, eventProperties) => {
+        if (!isFullstoryTrackingEnabled) {
+            return;
+        }
+
         FullStory.event(eventName, normalizeFullstoryPropertiesForNative(eventProperties ?? {}));
     },
 
