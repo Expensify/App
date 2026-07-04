@@ -113,12 +113,9 @@ function updateMultipleMoneyRequests({
     currentUserAccountID,
     delegateAccountID,
 }: UpdateMultipleMoneyRequestsParams) {
-    // Track running totals per report so multiple edits in the same report compound correctly.
+    // Per-report running state so iterations in the same report see earlier edits (totals, txns, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
-    // Track per-report optimistic transactions so formula recompute in later iterations sees earlier edits.
     const optimisticTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
-
-    // Index caller transactions by reportID — search snapshots can carry entries Onyx doesn't have.
     const callerTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
     for (const txn of Object.values(transactions ?? {})) {
         if (!txn?.reportID || !txn.transactionID) {
@@ -478,7 +475,7 @@ function updateMultipleMoneyRequests({
         const reportIDForTracking = iouReport?.reportID;
         const priorOptimisticTransactions = reportIDForTracking ? (optimisticTransactionsByReportID[reportIDForTracking] ?? {}) : {};
         const callerTransactionsForReport = reportIDForTracking ? (callerTransactionsByReportID[reportIDForTracking] ?? {}) : {};
-        // Snapshot/Onyx-known transactions form the base; prior optimistic edits override on the same ID.
+        // Caller (snapshot) base + prior-iteration overrides on ID collision.
         const additionalTransactionsForFormula = {...callerTransactionsForReport, ...priorOptimisticTransactions};
 
         const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
@@ -501,6 +498,7 @@ function updateMultipleMoneyRequests({
 
         if (updatedMoneyRequestReport) {
             if (updatedMoneyRequestReport.reportID) {
+                // Stamp the pending-total marker so later iterations on this report see the sticky-indeterminate state.
                 optimisticReportsByID[updatedMoneyRequestReport.reportID] = isTotalIndeterminate
                     ? {
                           ...updatedMoneyRequestReport,

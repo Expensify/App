@@ -19,7 +19,7 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
-    computeOptimisticReportName,
+    computeOptimisticReportNameWithMetadata,
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
@@ -295,6 +295,7 @@ function buildMinimalTransactionForFormula(
     currency?: string,
     merchant?: string,
 ): Record<string, MinimalTransaction> {
+    // Cast is safe: Formula helpers (`getCreated`, `isPartialTransaction`, …) tolerate undefined fields.
     return {
         [transactionID]: {
             transactionID,
@@ -1202,13 +1203,13 @@ function recalculateOptimisticReportName(
         transactionsRecord[id] = transaction;
     }
 
-    const computedName = computeOptimisticReportName(iouReport, policy, iouReport.policyID, transactionsRecord);
-    // Discard partial recomputes — the BE-stored title is more accurate than text containing raw {report:...}/{user:...}/{field:...} tokens
-    // (e.g. cross-currency totals only the BE can resolve).
-    if (computedName && /\{(report|user|field):[^}]*\}/i.test(computedName)) {
+    // Discard partial recomputes — the BE renders unresolvable parts (e.g. cross-currency `{report:total}`)
+    // better, so keep the stored title until it responds and avoid a flicker to raw formula text.
+    const result = computeOptimisticReportNameWithMetadata(iouReport, policy, iouReport.policyID, transactionsRecord);
+    if (!result || result.hasUnresolvedTokens) {
         return undefined;
     }
-    return computedName ?? undefined;
+    return result.value;
 }
 
 function maybeUpdateReportNameForFormulaTitle(
@@ -1220,7 +1221,7 @@ function maybeUpdateReportNameForFormulaTitle(
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
 
-    // Manual renames null out expensify_text_title in RNVP. If RNVP isn't loaded we can't tell, so skip rather than risk overwriting a manual title.
+    // Manual renames null out expensify_text_title in RNVP; if RNVP isn't loaded, skip rather than overwrite.
     if (titleField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA) {
         return iouReport;
     }
@@ -1527,8 +1528,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         }
     }
 
-    // Must run after STEP 3 so the optimistic transaction is part of the formula context.
-    // Skip when totals weren't updated — formula would bake the stale total into the title.
+    // Runs after STEP 3 so the optimistic transaction is in the formula context; the gate skips
+    // total-stale cases where the formula would bake in a wrong `{report:total}`.
     if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat && didUpdateOptimisticTotal) {
         iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, {[optimisticTransaction.transactionID]: optimisticTransaction});
     }
@@ -1723,10 +1724,11 @@ function getUpdatedMoneyRequestReportData(
     policy: OnyxEntry<OnyxTypes.Policy>,
     actorAccountID?: number,
     transactionChanges?: TransactionChanges,
-    // Overlay on Onyx in the formula context — search snapshot entries, prior bulk-edit iterations, etc.
+    // Overlaid on Onyx in the formula context — search snapshots, prior bulk-edit iterations, etc.
     additionalTransactionsForFormula: Record<string, OnyxTypes.Transaction> = {},
 ) {
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+    // Once a prior iteration made the total pending, later ones must not recompute against a stale base.
     const wasAlreadyIndeterminate = iouReport?.pendingFields?.total === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     const isTotalIndeterminate = wasAlreadyIndeterminate || calculatedDiffAmount === null;
     const diff = calculatedDiffAmount ?? 0;
@@ -1826,6 +1828,7 @@ export {
     getReportPreviewAction,
     getTransactionWithPreservedLocalReceiptSource,
     getUpdatedMoneyRequestReportData,
+    maybeUpdateReportNameForFormulaTitle,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 };

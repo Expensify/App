@@ -30,7 +30,8 @@ type FormulaPart = {
     functions: string[];
 };
 
-type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant' | 'pendingAction'>;
+// Minimal shape callers build for optimistic-title formula computation.
+type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant'>;
 
 type FormulaContext = {
     report: Report;
@@ -278,18 +279,17 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
- * Compute the value of a formula given a context
+ * Compute a formula and report whether any tokenised part fell back to its raw `{...}` definition.
+ * Callers doing optimistic recomputes use the flag to discard outputs the BE will render better.
  */
-function compute(formula?: string, context?: FormulaContext): string {
-    if (!formula || typeof formula !== 'string') {
-        return '';
-    }
-    if (!context) {
-        return '';
+function computeWithMetadata(formula?: string, context?: FormulaContext): {value: string; hasUnresolvedTokens: boolean} {
+    if (!formula || typeof formula !== 'string' || !context) {
+        return {value: '', hasUnresolvedTokens: false};
     }
 
     const parts = parse(formula);
     let result = '';
+    let hasUnresolvedTokens = false;
 
     for (const part of parts) {
         let value = '';
@@ -317,12 +317,24 @@ function compute(formula?: string, context?: FormulaContext): string {
                 value = part.definition;
         }
 
+        // A tokenised part that yields its own raw {…} definition is unresolved — the BE renders it.
+        if (part.type !== FORMULA_PART_TYPES.FREETEXT && value === part.definition) {
+            hasUnresolvedTokens = true;
+        }
+
         // Apply any functions to the computed value
         value = applyFunctions(value, part.functions);
         result += value;
     }
 
-    return result;
+    return {value: result, hasUnresolvedTokens};
+}
+
+/**
+ * Compute the value of a formula given a context.
+ */
+function compute(formula?: string, context?: FormulaContext): string {
+    return computeWithMetadata(formula, context).value;
 }
 
 /**
@@ -485,7 +497,7 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
  * Compute the value of a user formula part
  */
 function computeUserPart(part: FormulaPart): string {
-    // Currently only {user:email} is resolved client-side — modifiers like |frontPart are applied later by applyFunctions.
+    // Only {user:email} resolves client-side; modifiers like |frontPart run later in applyFunctions.
     const [field] = part.fieldPath;
     if (field?.toLowerCase() !== 'email') {
         return part.definition;
@@ -672,7 +684,6 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
 
-    // O(1) lookups instead of repeated findIndex scans.
     const indexByTransactionID = new Map<string, number>();
     for (const [i, transaction] of transactions.entries()) {
         if (!transaction?.transactionID) {
@@ -1009,6 +1020,6 @@ function resolveReportFieldValue(
     return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
 }
 
-export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
+export {FORMULA_PART_TYPES, compute, computeWithMetadata, parse, hasCircularReferences, resolveReportFieldValue};
 
 export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};

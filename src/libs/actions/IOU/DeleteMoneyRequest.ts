@@ -40,7 +40,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
-import {getReportPreviewAction} from './MoneyRequestBuilder';
+import {getReportPreviewAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 
 type DeleteMoneyRequestFunctionParams = {
     transactionID: string | undefined;
@@ -57,6 +57,8 @@ type DeleteMoneyRequestFunctionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    // Optional; when passed, the surviving report's formula title is recomputed post-delete.
+    policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 /**
@@ -75,6 +77,7 @@ function prepareToCleanUpMoneyRequest(
     shouldRemoveIOUTransactionID = true,
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
+    policy?: OnyxEntry<OnyxTypes.Policy>,
 ) {
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -220,6 +223,13 @@ function prepareToCleanUpMoneyRequest(
         const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
+
+        // Overlay the transaction as DELETE so the Formula engine excludes it — otherwise transaction-
+        // derived parts (e.g. `{report:autoreporting:start}`) stay stuck on the deleted date until BE responds.
+        if (!shouldDeleteIOUReport && transaction?.transactionID && policy) {
+            const overlay = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+            updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, overlay);
+        }
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
@@ -692,6 +702,7 @@ function deleteMoneyRequest({
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
+    policy,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -719,6 +730,7 @@ function deleteMoneyRequest({
         false,
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
+        policy,
     );
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(

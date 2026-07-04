@@ -28,6 +28,7 @@ import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
 
+import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -1779,6 +1780,120 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             });
 
             expect(deletedTransaction).toBeUndefined();
+        });
+    });
+
+    describe('deleteMoneyRequest formula title recompute', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
+
+        it('recomputes {report:autoreporting:start/end} when the oldest expense in a TRIP report is deleted (offline)', async () => {
+            const policyID = 'policy-trip-delete';
+            const titleField = {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                name: 'Title',
+                type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                deletable: false,
+                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+            const policy = {
+                ...createRandomPolicy(101, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(101, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                total: -20000,
+                currency: CONST.CURRENCY.USD,
+                reportName: 'Trip from Jan 05 to Jan 15, 2025',
+            };
+            const oldest: Transaction = {
+                ...createRandomTransaction(1001),
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                created: '2025-01-05',
+                merchant: 'Hotel',
+                reimbursable: true,
+            };
+            const newest: Transaction = {
+                ...createRandomTransaction(1002),
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                created: '2025-01-15',
+                merchant: 'Restaurant',
+                reimbursable: true,
+            };
+            const oldestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(1001),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {amount: oldest.amount, currency: oldest.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: oldest.transactionID},
+                message: undefined,
+                previousMessage: undefined,
+            };
+            const newestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(1002),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {amount: newest.amount, currency: newest.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: newest.transactionID},
+                message: undefined,
+                previousMessage: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${oldest.transactionID}`, oldest);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newest.transactionID}`, newest);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [oldestAction.reportActionID]: oldestAction,
+                [newestAction.reportActionID]: newestAction,
+            });
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
+            await waitForBatchedUpdates();
+
+            // Pause the fetch so the delete stays in the optimistic (offline) state.
+            mockFetch?.pause?.();
+            deleteMoneyRequest({
+                transactionID: oldest.transactionID,
+                reportAction: oldestAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                policy,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedReport = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // Pending-delete transaction excluded → start/end come from the remaining Jan 15 expense.
+            expect(updatedReport?.reportName).toBe('Trip from Jan 15 to Jan 15, 2025');
+            mockFetch?.resume?.();
         });
     });
 });

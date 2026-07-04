@@ -770,9 +770,7 @@ describe('CustomFormula', () => {
         });
 
         test('should include context.allTransactions whose reportID does not yet match (moved-transaction flows)', () => {
-            // Reject/Hold flows build a new optimistic report and pass the source transactions before
-            // their reportID has been rewritten. The caller supplied the transactions authoritatively,
-            // so the formula must include them regardless of the stale reportID.
+            // Reject/Hold pass source transactions before their reportID is rewritten to the new report.
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
             const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});

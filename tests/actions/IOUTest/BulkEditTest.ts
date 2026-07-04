@@ -20,17 +20,14 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const RORY_ACCOUNT_ID = 3;
 
-/** Narrows an arbitrary Onyx update value to a partial Report so we can read .reportName without an unsafe cast. */
 function isPartialReport(value: unknown): value is Partial<Report> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Narrows an arbitrary value to OnyxData (the third arg shape of API.write) so we can read .optimisticData without an unsafe cast. */
 function isOnyxData(value: unknown): value is OnyxData<OnyxKey> {
     return typeof value === 'object' && value !== null && 'optimisticData' in value;
 }
 
-/** Extracts the optimistic reportName writes for a given iouReportID across every recorded API.write call. */
 function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpyInstance, reportID: string): Array<string | undefined> {
     const targetKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     return (writeSpy.mock.calls as ReadonlyArray<readonly unknown[]>).flatMap((call) => {
@@ -1766,7 +1763,6 @@ describe('actions/IOU/BulkEdit', () => {
                 reportID: iouReportID,
                 policyID,
                 type: CONST.REPORT.TYPE.EXPENSE,
-                // Required so getUpdatedMoneyRequestReportData enters the branch that recomputes the title.
                 total: 0,
                 currency: CONST.CURRENCY.USD,
             };
@@ -1806,7 +1802,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
-            // Without cumulative tracking, iteration 2 would see stale Onyx txn1 (Jan 10) and produce "Trip from Jan 10 to Jan 15".
+            // Without cumulative tracking, iter 2 would see stale Onyx txn1 (Jan 10) → "Trip from Jan 10 to Jan 15".
             expect(iouReportNames.at(-1)).toBe('Trip from Jan 15 to Jan 15, 2025');
 
             writeSpy.mockRestore();
@@ -1872,7 +1868,6 @@ describe('actions/IOU/BulkEdit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // Currency edit triggers isTotalIndeterminate=true.
             updateMultipleMoneyRequests({
                 transactionIDs: [txnID],
                 changes: {currency: CONST.CURRENCY.EUR},
@@ -1890,7 +1885,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
-            // Without the !isTotalIndeterminate gate, the recompute would bake "Trip $100.00" (stale total) into the title.
+            // Without the gate, the recompute would bake "Trip $100.00" (stale total) into the title.
             expect(iouReportNames.at(-1)).toBe(ORIGINAL_REPORT_NAME);
 
             writeSpy.mockRestore();
@@ -1967,8 +1962,7 @@ describe('actions/IOU/BulkEdit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // Iteration 1: currency change → indeterminate. Iteration 2: same-currency amount change (would
-            // normally trigger recompute), but the sticky marker from iteration 1 must suppress it.
+            // Iter 1 (currency) → indeterminate. Iter 2 (same-currency amount) must inherit the sticky flag.
             updateMultipleMoneyRequests({
                 transactionIDs: [currencyTxnID, amountTxnID],
                 changes: {amount: 3000},
@@ -1989,7 +1983,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
-            // Every iteration's optimistic report update must preserve the BE-stored title until BE responds.
+            // Every optimistic write must preserve the BE-stored title.
             for (const name of iouReportNames) {
                 expect(name ?? ORIGINAL_REPORT_NAME).toBe(ORIGINAL_REPORT_NAME);
             }
@@ -2050,7 +2044,7 @@ describe('actions/IOU/BulkEdit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // `transactions` param carries both (mirrors mergedTransactions in SearchEditMultiplePage).
+            // `transactions` carries both (mirrors mergedTransactions in SearchEditMultiplePage).
             updateMultipleMoneyRequests({
                 transactionIDs: [onyxTxnID],
                 changes: {created: '2025-01-15'},
@@ -2071,7 +2065,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
-            // Without snapshot merging, the snapshot-only Jan 05 would be invisible and the start date would resolve to Jan 15.
+            // Without snapshot merging, snapshot-only Jan 05 would be invisible → start resolves to Jan 15.
             expect(iouReportNames.at(-1)).toBe('Trip from Jan 05 to Jan 15, 2025');
 
             writeSpy.mockRestore();
@@ -2146,7 +2140,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
-            // expensify_text_title=null signals "manually renamed". Without RNVP loaded we can't tell, so must NOT overwrite.
+            // Manual rename with RNVP unloaded must NOT be overwritten.
             expect(iouReportNames.at(-1)).toBe(MANUAL_TITLE);
 
             writeSpy.mockRestore();
@@ -2160,7 +2154,7 @@ describe('actions/IOU/BulkEdit', () => {
             const txnID = 'txn-unresolved-1';
             const BE_COMPUTED_TITLE = 'Total: €92.50';
 
-            // Cross-currency formula: Formula.compute can't resolve, falls back to the raw token.
+            // Cross-currency formula → engine can't resolve → raw token would surface without the guard.
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: policyID,
@@ -2205,7 +2199,7 @@ describe('actions/IOU/BulkEdit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // Edit an unrelated field (merchant) — totals not affected, so the gate lets the recompute through.
+            // Merchant edit leaves totals untouched, so the gate lets the recompute through.
             updateMultipleMoneyRequests({
                 transactionIDs: [txnID],
                 changes: {merchant: 'New Merchant'},
@@ -2223,7 +2217,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
-            // Title must be preserved — applying the raw "Total: {report:total:EUR}" would be worse than the BE-computed value.
+            // BE-computed title must survive — raw "Total: {report:total:EUR}" would be worse than staleness.
             expect(iouReportNames.at(-1)).toBe(BE_COMPUTED_TITLE);
 
             writeSpy.mockRestore();

@@ -6632,7 +6632,7 @@ function buildOptimisticInvoiceReport(
 }
 
 /**
- * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
+ * Optimistic report name via the policy title formula; null when the policy isn't a group policy.
  */
 function computeOptimisticReportName(
     report: Report,
@@ -6641,6 +6641,20 @@ function computeOptimisticReportName(
     reportTransactions: Record<string, Transaction>,
     currencyList?: CurrencyList,
 ): string | null {
+    return computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, currencyList)?.value ?? null;
+}
+
+/**
+ * Same as `computeOptimisticReportName` plus a `hasUnresolvedTokens` flag for callers that need to
+ * discard partial recomputes the BE will render better (e.g. cross-currency `{report:total}`).
+ */
+function computeOptimisticReportNameWithMetadata(
+    report: Report,
+    policy: OnyxEntry<Policy>,
+    policyID: string | undefined,
+    reportTransactions: Record<string, Transaction>,
+    currencyList?: CurrencyList,
+): {value: string; hasUnresolvedTokens: boolean} | null {
     if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
     }
@@ -6654,12 +6668,11 @@ function computeOptimisticReportName(
     };
 
     // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-
-    const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+    const Formula = require('./Formula') as {computeWithMetadata: (formula?: string, context?: FormulaContext) => {value: string; hasUnresolvedTokens: boolean}};
 
     // If there is no title field, use "New Report" as default (matches OldDot behavior)
     const defaultValue = titleReportField?.defaultValue ?? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
-    return Formula.compute(defaultValue, formulaContext);
+    return Formula.computeWithMetadata(defaultValue, formulaContext);
 }
 
 /**
@@ -13655,6 +13668,7 @@ export {
     isHiddenForCurrentUser,
     getReportSubtitlePrefix,
     computeOptimisticReportName,
+    computeOptimisticReportNameWithMetadata,
     getPolicyChangeMessage,
     getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
