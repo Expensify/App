@@ -62,8 +62,6 @@
         "package.json",
         "package-lock.json",
         "*.html",
-        "*.yml",
-        "*.yaml",
         "*.css",
         "*.scss",
         "*.md",
@@ -75,5 +73,13 @@
         "src/libs/SearchParser/autocompleteParser.js",
         "Mobile-Expensify",
         "modules/group-ib-fp"
+    ],
+    "overrides": [
+        {
+            "files": ["*.yml", "*.yaml"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
     ]
 }
