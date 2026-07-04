@@ -133,7 +133,7 @@ function AddAgentRulePage({
                     }
 
                     if (isRulesRevampEnabled) {
-                        navigateBackToAgentsTab();
+                        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
                     }
                 });
             },
