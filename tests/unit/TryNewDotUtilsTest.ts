@@ -1,8 +1,10 @@
-import {subDays} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import {hasBeenInNewDot30Days, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
+
+import {subDays} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 Onyx.init({keys: ONYXKEYS});

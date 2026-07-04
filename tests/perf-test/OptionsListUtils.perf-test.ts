@@ -1,16 +1,21 @@
-import {rand} from '@ngneat/falso';
-import type * as NativeNavigation from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
-import {createFilteredOptionList, createOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+
+import {createFilteredOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type Report from '@src/types/onyx/Report';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {rand} from '@ngneat/falso';
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
 import createRandomOptionData from '../utils/collections/optionData';
@@ -97,7 +102,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createOptionList(personalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports, undefined);
+const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
 const ValidOptionsConfig = {
     betas: mockedBetas,

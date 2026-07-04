@@ -1,9 +1,5 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {ImageSourcePropType} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -11,6 +7,7 @@ import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,6 +17,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,10 +37,18 @@ import {
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {ImageSourcePropType} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
@@ -98,7 +104,10 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, policy, false, isReportArchived);
+            return (
+                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, isParentReportArchived).workspaceName ??
+                getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived)
+            );
         }
 
         return currentUserPersonalDetails.login;
