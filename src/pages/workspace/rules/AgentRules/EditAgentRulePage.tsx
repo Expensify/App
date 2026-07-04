@@ -22,8 +22,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import variables from '@styles/variables';
-
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
@@ -109,7 +107,7 @@ function EditAgentRulePage({
     }
 
     const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
-        ? [styles.flex1, styles.mnh0, {maxHeight: variables.agentRulePromptInputHeight}]
+        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
         : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
 
     return (

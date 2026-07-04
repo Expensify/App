@@ -141,7 +141,7 @@ function AddAgentRulePage({
     };
 
     const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
-        ? [styles.flex1, styles.mnh0, {maxHeight: variables.agentRulePromptInputHeight}]
+        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
         : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
 
     return (
