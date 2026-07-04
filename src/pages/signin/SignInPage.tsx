@@ -19,7 +19,7 @@ import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/A
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
-import {clearSignInData} from '@userActions/Session';
+import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -157,7 +157,6 @@ function SignInPage({ref}: SignInPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -219,7 +218,7 @@ function SignInPage({ref}: SignInPageProps) {
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
-        isSupportalSession: session?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT || !!session?.isSupportAuthTokenUsed,
+        isSupportalSession: isSupportalSessionUtils(),
     });
 
     if (shouldInitiateSAMLLogin) {

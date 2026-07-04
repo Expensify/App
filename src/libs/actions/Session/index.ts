@@ -137,6 +137,10 @@ function isSupportAuthToken(): boolean {
     return session.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
+function isSupportalSession(): boolean {
+    return isSupportAuthToken() || !!session?.isSupportAuthTokenUsed;
+}
+
 /**
  * Sets the SupportToken. This method will only be used on dev.
  */
@@ -1722,4 +1726,5 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
+    isSupportalSession,
 };
