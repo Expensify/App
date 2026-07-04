@@ -17,7 +17,9 @@ import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/A
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
+
 import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
