@@ -45,7 +45,7 @@ function ConnectionStatusMessage({
 
     let statusMessageRowPadding;
     if (shouldIncludeHorizontalPadding) {
-        statusMessageRowPadding = shouldUseNarrowLayout ? styles.ph5 : {paddingLeft: 32, paddingRight: 32};
+        statusMessageRowPadding = shouldUseNarrowLayout ? styles.ph5 : styles.ph8;
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
@@ -74,7 +74,8 @@ function ConnectionStatusMessage({
             danger
             style={styles.alignSelfStart}
             text={actionText}
-            onPress={isActionDisabled ? () => {} : onActionPress}
+            onPress={onActionPress}
+            isDisabled={isActionDisabled}
         />
     ) : null;
 
