@@ -227,6 +227,7 @@ function buildPageViewedEvent(screenName: string, entryPoint: string): Fullstory
     /* eslint-enable @typescript-eslint/naming-convention */
 }
 
+/* eslint-disable @typescript-eslint/naming-convention -- The comparable snapshot preserves FullStory's external snake_case field names. */
 type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date'> & {
     free_trial_end_date?: string;
 };
@@ -237,5 +238,6 @@ function getComparableFullstoryUserVars(userVars: FullstoryUserVars): Comparable
         free_trial_end_date: userVars.free_trial_end_date?.toISOString(),
     };
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export {buildFullstoryUserVars, buildPageViewedEvent, getComparableFullstoryUserVars, getOnboardingStep, trackFullstoryEvent};

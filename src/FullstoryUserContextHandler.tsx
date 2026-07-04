@@ -1,5 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
-
 import {useEffect, useRef} from 'react';
 
 import useOnyx from './hooks/useOnyx';
