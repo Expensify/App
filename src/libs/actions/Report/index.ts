@@ -4597,7 +4597,7 @@ function shouldShowReportActionNotification(
 
     // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notification.
     const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
-    const topmostReportActions = reportActions?.[`${topmostReport?.reportID}`];
+    const topmostReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${topmostReport?.reportID}`];
     const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
     if (
         reportID === ReportActionsUtils.getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions, isOfflineNetwork()) &&
