@@ -769,7 +769,10 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
-        test('should ignore context.allTransactions for transactions belonging to other reports', () => {
+        test('should include context.allTransactions whose reportID does not yet match (moved-transaction flows)', () => {
+            // Reject/Hold flows build a new optimistic report and pass the source transactions before
+            // their reportID has been rewritten. The caller supplied the transactions authoritatively,
+            // so the formula must include them regardless of the stale reportID.
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
             const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
@@ -777,13 +780,12 @@ describe('CustomFormula', () => {
                 report: mockReport,
                 policy,
                 allTransactions: {
-                    inThisReport: createMock<Transaction>({transactionID: 'inThisReport', reportID: '123', created: '2025-01-10T12:00:00Z', merchant: 'Hotel', amount: 5000}),
-                    otherReport: createMock<Transaction>({transactionID: 'otherReport', reportID: '999', created: '2025-01-01T12:00:00Z', merchant: 'Different report', amount: 9999}),
+                    movedTxn: createMock<Transaction>({transactionID: 'movedTxn', reportID: '999-source', created: '2025-01-05T12:00:00Z', merchant: 'Rejected Hotel', amount: 5000}),
                 },
             };
 
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-10');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-10');
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-05');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-05');
         });
 
         test('should let context.allTransactions override existing Onyx transactions with the same transactionID', () => {

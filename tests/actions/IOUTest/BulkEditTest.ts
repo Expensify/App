@@ -1898,6 +1898,107 @@ describe('actions/IOU/BulkEdit', () => {
             await Onyx.clear();
         });
 
+        it('carries indeterminate total across bulk iterations so a later same-currency edit does not bake in a stale total', async () => {
+            const iouReportID = 'iou-trip-sticky-indet';
+            const policyID = 'policy-trip-sticky-indet';
+            const currencyTxnID = 'txn-currency-first';
+            const amountTxnID = 'txn-amount-second';
+            const ORIGINAL_REPORT_NAME = 'Original BE-computed title';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip {report:total}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: ORIGINAL_REPORT_NAME,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const currencyTxn: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: currencyTxnID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-10',
+            };
+
+            const amountTxn: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: amountTxnID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-11',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${currencyTxnID}`, currencyTxn);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${amountTxnID}`, amountTxn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Iteration 1: currency change → indeterminate. Iteration 2: same-currency amount change (would
+            // normally trigger recompute), but the sticky marker from iteration 1 must suppress it.
+            updateMultipleMoneyRequests({
+                transactionIDs: [currencyTxnID, amountTxnID],
+                changes: {amount: 3000},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${currencyTxnID}`]: {...currencyTxn, currency: CONST.CURRENCY.EUR},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${amountTxnID}`]: amountTxn,
+                },
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // Every iteration's optimistic report update must preserve the BE-stored title until BE responds.
+            for (const name of iouReportNames) {
+                expect(name ?? ORIGINAL_REPORT_NAME).toBe(ORIGINAL_REPORT_NAME);
+            }
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
         it('includes caller-supplied (search snapshot) transactions in the formula recompute even when not in Onyx', async () => {
             const iouReportID = 'iou-trip-snapshot';
             const policyID = 'policy-trip-snapshot';

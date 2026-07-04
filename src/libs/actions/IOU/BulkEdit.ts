@@ -501,7 +501,12 @@ function updateMultipleMoneyRequests({
 
         if (updatedMoneyRequestReport) {
             if (updatedMoneyRequestReport.reportID) {
-                optimisticReportsByID[updatedMoneyRequestReport.reportID] = updatedMoneyRequestReport;
+                optimisticReportsByID[updatedMoneyRequestReport.reportID] = isTotalIndeterminate
+                    ? {
+                          ...updatedMoneyRequestReport,
+                          pendingFields: {...updatedMoneyRequestReport.pendingFields, total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                      }
+                    : updatedMoneyRequestReport;
             }
             optimisticData.push(
                 {

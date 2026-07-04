@@ -693,7 +693,7 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
 
     if (context?.allTransactions) {
         for (const ctxTransaction of Object.values(context.allTransactions)) {
-            if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {
+            if (!ctxTransaction?.transactionID) {
                 continue;
             }
             upsert(ctxTransaction);
@@ -701,7 +701,7 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     }
 
     // context.transaction takes precedence over allTransactions on ID collision.
-    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
+    if (contextTransaction?.transactionID) {
         upsert(contextTransaction);
     }
 

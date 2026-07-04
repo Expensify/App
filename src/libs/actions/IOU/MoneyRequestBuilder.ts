@@ -1727,7 +1727,8 @@ function getUpdatedMoneyRequestReportData(
     additionalTransactionsForFormula: Record<string, OnyxTypes.Transaction> = {},
 ) {
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
-    const isTotalIndeterminate = calculatedDiffAmount === null;
+    const wasAlreadyIndeterminate = iouReport?.pendingFields?.total === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const isTotalIndeterminate = wasAlreadyIndeterminate || calculatedDiffAmount === null;
     const diff = calculatedDiffAmount ?? 0;
 
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
