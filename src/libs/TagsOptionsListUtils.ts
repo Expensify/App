@@ -1,11 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import type {Option} from './OptionsListUtils';
+
 import {insertTagIntoTransactionTagsString} from './IOUUtils';
 import {hasEnabledOptions} from './OptionsListUtils';
-import type {Option} from './OptionsListUtils';
 import {getCleanedTagName, getTagList, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';

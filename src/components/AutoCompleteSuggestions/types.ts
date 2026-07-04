@@ -1,5 +1,6 @@
-import type {ReactElement} from 'react';
 import type {Bounds} from '@src/types/utils/Layout';
+
+import type {ReactElement} from 'react';
 
 type MeasureParentContainerAndCursor = Bounds & {
     scrollValue: number;

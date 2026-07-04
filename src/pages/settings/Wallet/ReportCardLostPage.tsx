@@ -1,28 +1,33 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ReplacementReason} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const OPTIONS_KEYS = {
     DAMAGED: 'damaged',

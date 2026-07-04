@@ -295,4 +295,3 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}android-apk-artifact
           path: Expensify.apk
-

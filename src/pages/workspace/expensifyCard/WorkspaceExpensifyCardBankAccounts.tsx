@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import BankAccountVerificationView from '@components/BankAccountVerificationView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -8,6 +6,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
@@ -16,21 +15,29 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
 
