@@ -1923,6 +1923,7 @@
 "../../tests/ui/WorkspaceWorkflowsPayerRowTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/YearListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/components/BaseReportActionContextMenuTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/ui/components/Button.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/CompactMenuContextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/components/ComposedButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/ui/components/DisplayNames.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
