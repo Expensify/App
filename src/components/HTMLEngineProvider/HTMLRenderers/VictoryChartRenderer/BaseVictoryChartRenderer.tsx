@@ -1,13 +1,17 @@
-import React from 'react';
 import {ChartFontsProvider} from '@components/Charts/hooks';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
 import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
+
 import Log from '@libs/Log';
+
+import React from 'react';
+
+import type {VictoryChartRendererProps} from './types';
+
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
 import {VictoryChartProvider} from './context/VictoryChartContext';
 import processVictoryChartTree from './parsers/processVictoryChartTree';
-import type {VictoryChartRendererProps} from './types';
 import resolveVictoryChartType from './utils/resolveVictoryChartType';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {

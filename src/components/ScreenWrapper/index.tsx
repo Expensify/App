@@ -1,17 +1,10 @@
-import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
-import type {Route} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import type {ReactNode} from 'react';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, Keyboard} from 'react-native';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import {MFA_OVERLAY_SCREENS} from '@components/MultifactorAuthentication/mfaNavigation';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
@@ -29,15 +23,29 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {closeReactNativeApp} from '@userActions/HybridApp';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {Route} from '@react-navigation/native';
+import type {ReactNode} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+
+import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter, Keyboard} from 'react-native';
+
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
+import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
+
 import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
-import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 

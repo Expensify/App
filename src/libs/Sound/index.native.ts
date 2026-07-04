@@ -1,6 +1,8 @@
-import {createAudioPlayer, setAudioModeAsync} from 'expo-audio';
 import type {AudioSource} from 'expo-audio';
 import type {ValueOf} from 'type-fest';
+
+import {createAudioPlayer, setAudioModeAsync} from 'expo-audio';
+
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
 // Sound assets must be required at compile time
