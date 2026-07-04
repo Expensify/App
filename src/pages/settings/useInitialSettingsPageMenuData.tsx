@@ -16,7 +16,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
-import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
@@ -37,12 +37,14 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -65,12 +67,13 @@ type SettingsTopLevelScreens =
     | typeof SCREENS.SETTINGS.TROUBLESHOOT
     | typeof SCREENS.SETTINGS.SAVE_THE_WORLD;
 
-type MenuData = {
+type MenuData = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     screenName?: SettingsTopLevelScreens;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
+    link?: string | (() => Promise<string>);
     iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
     iconStyles?: StyleProp<ViewStyle>;
     fallbackIcon?: IconAsset;
@@ -85,7 +88,6 @@ type MenuData = {
     isBadgeSuccess?: boolean;
     isBadgeStrong?: boolean;
     isBadgeCondensed?: boolean;
-    sentryLabel?: string;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -153,6 +155,8 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const hasVirtualCardMissingDetails = hasVirtualExpensifyCardMissingPersonalDetails(allCards, privatePersonalDetails, isActingAsDelegate);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
 
@@ -166,7 +170,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction || hasVirtualCardMissingDetails) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -367,6 +371,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.WHATS_NEW,
+                link: CONST.WHATS_NEW_URL,
                 action: () => openExternalLink(CONST.WHATS_NEW_URL),
             },
             {
@@ -408,3 +413,4 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
 }
 
 export default useInitialSettingsPageMenuData;
+export type {Menu, MenuData};

@@ -1,12 +1,15 @@
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import {
+    arePolicyRulesEnabled,
     canMemberRead,
     canPolicyAccessFeature,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     isGroupPolicy,
+    isPerDiemEnabled,
+    isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -48,7 +51,8 @@ type WorkspaceMenuIconMap = Record<
     | 'CalendarSolid'
     | 'Clock'
     | 'InvoiceGeneric'
-    | 'Gear',
+    | 'Gear'
+    | 'Bolt',
     IconAsset
 >;
 
@@ -73,8 +77,10 @@ type GetWorkspaceMenuItemsParams = {
     highlightedFeature?: PolicyFeatureName;
     isConnectionInProgress?: boolean;
     policyCategories?: OnyxTypes.PolicyCategories;
+    previousPendingFields?: OnyxTypes.Policy['pendingFields'];
     shouldShowEnterCredentialsError?: boolean;
     shouldShowRBR?: boolean;
+    isRulesRevampBetaEnabled?: boolean;
     convertToDisplayString: (amount?: number, currency?: string) => string;
 };
 
@@ -87,8 +93,10 @@ function getWorkspaceMenuItems({
     highlightedFeature,
     isConnectionInProgress = false,
     policyCategories,
+    previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
+    isRulesRevampBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
@@ -110,6 +118,7 @@ function getWorkspaceMenuItems({
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress, accountingConnectionNames);
+    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy));
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -129,13 +138,33 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
+        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
+        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
     };
+    const highlightedPolicyFeature =
+        highlightedFeature ??
+        [
+            CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+            CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+            CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+            CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+        ].find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
     const items: WorkspaceMenuItem[] = [
         {
@@ -185,19 +214,26 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
             });
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
+            let hrBrickRoadIndicator;
+            if (hasHRError) {
+                hrBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            } else if (isMergeHRCompleteSetupNeeded(policy)) {
+                hrBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+            }
+
             items.push({
                 translationKey: 'workspace.common.hr',
                 icon: icons.Users,
                 route: ROUTES.WORKSPACE_HR.getRoute(policyID),
-                brickRoadIndicator: isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+                brickRoadIndicator: hrBrickRoadIndicator,
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
             });
         }
 
@@ -209,7 +245,7 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             });
         }
 
@@ -221,7 +257,7 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.CATEGORIES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.CATEGORIES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
             });
         }
 
@@ -232,7 +268,7 @@ function getWorkspaceMenuItems({
                 route: ROUTES.WORKSPACE_TAGS.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.TAGS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.TAGS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
             });
         }
 
@@ -244,7 +280,7 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.TAXES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.TAXES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
             });
         }
 
@@ -256,19 +292,19 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
             });
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.RULES)) {
             items.push({
                 translationKey: 'workspace.common.rules',
-                icon: icons.Feed,
+                icon: isRulesRevampBetaEnabled ? icons.Bolt : icons.Feed,
                 route: ROUTES.WORKSPACE_RULES.getRoute(policyID),
                 brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
             });
         }
 
@@ -279,7 +315,7 @@ function getWorkspaceMenuItems({
                 route: ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.DISTANCE_RATES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
             });
         }
 
@@ -290,7 +326,7 @@ function getWorkspaceMenuItems({
                 route: ROUTES.WORKSPACE_TRAVEL.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.TRAVEL,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.TRAVEL,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
             });
         }
 
@@ -301,7 +337,7 @@ function getWorkspaceMenuItems({
                 route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.EXPENSIFY_CARD,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
             });
         }
 
@@ -313,7 +349,7 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.COMPANY_CARDS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
             });
         }
 
@@ -324,7 +360,7 @@ function getWorkspaceMenuItems({
                 route: ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.PER_DIEM,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.PER_DIEM,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
             });
         }
 
@@ -335,7 +371,7 @@ function getWorkspaceMenuItems({
                 route: ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.TIME_TRACKING,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.TIME_TRACKING,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
             });
         }
 
@@ -348,7 +384,7 @@ function getWorkspaceMenuItems({
                 badgeText: convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
                 screenName: SCREENS.WORKSPACE.INVOICES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.INVOICES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
             });
         }
 
