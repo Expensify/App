@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -158,6 +159,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const isAgentsTab = activeTab === RULES_TAB.AGENTS && isCustomAgentBetaEnabled;
+    const hasAgentRules = !isEmptyObject(policy?.rules?.agentRules);
+    const shouldUseFullWidthAgentsTabLayout = isAgentsTab && !hasAgentRules;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
@@ -174,7 +177,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         return [
             {
                 icon: icons.Trashcan,
-                text: translate('workspace.rules.bulkActions.deleteMultiple', {count: selectedRuleKeys.length}),
+                text: translate('workspace.rules.bulkActions.deleteMultiple', {
+                    count: selectedRuleKeys.length,
+                }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
@@ -247,7 +252,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedRuleKeys.length})}
+                    customText={translate('workspace.common.selected', {
+                        count: selectedRuleKeys.length,
+                    })}
                     options={getBulkActionsButtonOptions()}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.w100, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -327,7 +334,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             styles.mnh0,
                             styles.w100,
                             shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || isAgentsTab) && styles.mw100,
+                            (isTableTab || shouldUseFullWidthAgentsTabLayout) && styles.mw100,
                         ]}
                     >
                         {activeTab === RULES_TAB.GENERAL && (
