@@ -357,7 +357,7 @@ function BaseTextInput({
                             />
                         ) : null}
                         {hiddenLabel}
-                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel ? styles.textInputMultilineContainer : styles.flex1, styles.pointerEventsBoxNone]}>
+                        <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
