@@ -304,8 +304,8 @@ describe('OptionsListUtils', () => {
     // on the PR branch RegExps are compiled once per call, so duration drops significantly.
     test('[OptionsListUtils] filterAndOrderOptions with multi-word search on large dataset', async () => {
         const largePersonalDetails = getMockedPersonalDetails(LARGE_PERSONAL_DETAILS_COUNT);
-        const largeReports = getMockedReports(LARGE_REPORTS_COUNT);
-        const largeOptionList = createOptionList(largePersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, largeReports, undefined);
+        const largeReports = getMockedReports(LARGE_REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
+        const largeOptionList = createFilteredOptionList(largePersonalDetails, largeReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined);
 
         const {options: formattedOptions} = getValidOptions(
             {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
