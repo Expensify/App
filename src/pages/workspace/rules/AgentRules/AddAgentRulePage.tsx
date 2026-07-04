@@ -134,6 +134,11 @@ function AddAgentRulePage({
         });
     };
 
+    const compactInputStyles = [{height: variables.agentRulePromptInputHeight, minHeight: variables.agentRulePromptInputHeight}];
+    const expandedInputWrapperStyles = [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
+    const inputWrapperStyles = isRulesRevampEnabled ? compactInputStyles : expandedInputWrapperStyles;
+    const inputFlexStyles = isRulesRevampEnabled ? undefined : [styles.flex1];
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -157,14 +162,15 @@ function AddAgentRulePage({
                     style={[styles.flex1, styles.ph5]}
                     shouldUseScrollView={shouldUseScrollableLayout}
                     submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldSubmitButtonStickToBottom={isRulesRevampEnabled}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
-                    <View style={styles.flex1}>
-                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                    <View style={isRulesRevampEnabled ? undefined : styles.flex1}>
+                        <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.PROMPT}
@@ -176,10 +182,10 @@ function AddAgentRulePage({
                                 onKeyPress={handleKeyPress}
                                 multiline
                                 shouldLabelStayOnSingleLine
-                                containerStyles={[styles.flex1]}
-                                touchableInputWrapperStyle={[styles.flex1]}
-                                textInputContainerStyles={[styles.flex1]}
-                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                                containerStyles={inputFlexStyles}
+                                touchableInputWrapperStyle={isRulesRevampEnabled ? compactInputStyles : [styles.flex1]}
+                                textInputContainerStyles={isRulesRevampEnabled ? compactInputStyles : [styles.flex1]}
+                                inputStyle={isRulesRevampEnabled ? [...compactInputStyles, styles.textAlignVerticalTop] : [styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
