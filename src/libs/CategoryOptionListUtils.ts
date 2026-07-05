@@ -1,15 +1,19 @@
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
-import lodashSet from 'lodash/set';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import {getDecodedCategoryName, processCategoryNameSegments} from './CategoryUtils';
+
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
+import lodashGet from 'lodash/get';
+import lodashSet from 'lodash/set';
+
 import type {OptionTree} from './OptionsListUtils';
+
+import {getDecodedCategoryName, processCategoryNameSegments} from './CategoryUtils';
 import tokenizedSearch from './tokenizedSearch';
 
 type CategoryTreeSection = Section<OptionTree>;

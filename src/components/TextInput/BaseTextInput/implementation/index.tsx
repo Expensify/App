@@ -1,9 +1,3 @@
-import {Str} from 'expensify-common';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -20,6 +14,7 @@ import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INAC
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,12 +22,23 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function BaseTextInput({
     label = '',

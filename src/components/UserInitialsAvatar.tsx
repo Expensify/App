@@ -1,7 +1,10 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
+
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import useStyleUtils from '@hooks/useStyleUtils';
-import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
+
 import Text from './Text';
 
 /** Initials height relative to the avatar diameter, matching the generated letter-avatar images. */

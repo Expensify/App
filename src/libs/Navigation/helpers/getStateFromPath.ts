@@ -1,11 +1,15 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';

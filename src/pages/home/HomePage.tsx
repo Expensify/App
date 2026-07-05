@@ -1,5 +1,3 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -7,13 +5,20 @@ import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
