@@ -244,6 +244,7 @@ type BuildPolicyDataOptions = {
     hasActiveAdminPolicies: boolean | undefined;
     betas?: OnyxEntry<Beta[]>;
     personalTrackGoal?: string;
+    shouldShowTrackAdminRoomInLHN?: boolean;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2612,6 +2613,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         isSelfTourViewed,
         hasActiveAdminPolicies,
         personalTrackGoal,
+        shouldShowTrackAdminRoomInLHN,
     } = options;
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2626,7 +2628,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         expenseReportActionData,
         expenseCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName, currentUserAccountIDParam, currentUserEmailParam, expenseReportId);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName, currentUserAccountIDParam, currentUserEmailParam, expenseReportId, shouldShowTrackAdminRoomInLHN);
 
     // When creating a workspace for a different owner without keeping admin, the caller is not added to the workspace.
     // Skip writing the admins/expense chat reports into the caller's Onyx so they don't appear in the LHN.

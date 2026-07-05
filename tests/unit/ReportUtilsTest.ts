@@ -6689,6 +6689,50 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
+        it('should return true for an active empty Track onboarding admins room when empty chats are excluded', () => {
+            const report: Report = {
+                ...createAdminRoom(1),
+                isPinned: false,
+                isTrackOnboardingAdminRoom: true,
+            };
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: false,
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should retain archived Track onboarding admins rooms in report option lists used by search', () => {
+            const report: Report = {
+                ...createAdminRoom(1),
+                isPinned: false,
+                isTrackOnboardingAdminRoom: true,
+            };
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                    isReportArchived: true,
+                }),
+            ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
+        });
+
         it('should return DEFAULT for an empty concierge chat when excludeEmptyChats is true', async () => {
             const conciergeReportID = 'concierge-report-123';
             const report: Report = {
@@ -7451,6 +7495,20 @@ describe('ReportUtils', () => {
 
             expect(result.expenseChatReportID).toBe(providedExpenseReportID);
             expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
+        });
+
+        it('should mark only the Track onboarding admins room for LHN visibility', () => {
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, 'user@expensifail.com', undefined, true);
+
+            expect(result.adminsChatData.isTrackOnboardingAdminRoom).toBe(true);
+            expect(result.expenseChatData.isTrackOnboardingAdminRoom).toBeUndefined();
+        });
+
+        it('should not mark workspace chats by default', () => {
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, 'user@expensifail.com');
+
+            expect(result.adminsChatData.isTrackOnboardingAdminRoom).toBeUndefined();
+            expect(result.expenseChatData.isTrackOnboardingAdminRoom).toBeUndefined();
         });
     });
 

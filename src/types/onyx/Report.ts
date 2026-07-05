@@ -124,6 +124,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the report is pinned to the LHN or not */
         isPinned?: boolean;
 
+        /** Whether this is the admins room created during Track workspace onboarding and should remain visible in the LHN while active */
+        isTrackOnboardingAdminRoom?: boolean;
+
         /** The text of the last message on the report */
         lastMessageText?: string;
 

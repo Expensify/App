@@ -327,6 +327,12 @@ function shouldDisplayReportInLHN({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
     const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, transactions, reportAttributes);
     const isReportInAccessible = report?.errorFields?.notFound;
+    const isTrackOnboardingAdminRoom = report.isTrackOnboardingAdminRoom && isAdminRoom(report);
+
+    if (isTrackOnboardingAdminRoom && isReportArchived) {
+        return {shouldDisplay: false};
+    }
+
     if (isOneTransactionThread(report, parentReport, parentReportAction, isOffline)) {
         return {shouldDisplay: false};
     }
@@ -345,6 +351,7 @@ function shouldDisplayReportInLHN({
         isFocused ||
         isSystemChat ||
         !!report.isPinned ||
+        isTrackOnboardingAdminRoom ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
