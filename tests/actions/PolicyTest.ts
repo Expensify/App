@@ -77,7 +77,7 @@ describe('actions/Policy', () => {
         });
 
         it('creates Track onboarding admins rooms unpinned without changing the regular workspace default', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
