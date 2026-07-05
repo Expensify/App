@@ -1796,7 +1796,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             reportTotal?: number;
             reportName?: string;
             autoReportingFrequency?: Policy['autoReportingFrequency'];
-            txns: TripFixtureTxnSpec[];
+            transactionSpecs: TripFixtureTxnSpec[];
             actionsFor?: number[];
         };
         const buildTripFixture = async ({
@@ -1807,7 +1807,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             reportTotal = 0,
             reportName = 'Original title',
             autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-            txns,
+            transactionSpecs,
             actionsFor,
         }: TripFixtureArgs) => {
             const titleField = {
@@ -1838,7 +1838,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 currency: reportCurrency,
                 reportName,
             };
-            const transactions = txns.map((spec) => ({
+            const transactions = transactionSpecs.map((spec) => ({
                 ...createRandomTransaction(reportSeed * 10 + spec.n),
                 amount: spec.amount ?? -10000,
                 currency: spec.currency ?? CONST.CURRENCY.USD,
@@ -1847,14 +1847,14 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 merchant: spec.merchant ?? `Expense ${spec.n}`,
                 reimbursable: true,
             }));
-            const activeActionSet = actionsFor ? new Set(actionsFor) : new Set(txns.map((t) => t.n));
+            const activeActionSet = actionsFor ? new Set(actionsFor) : new Set(transactionSpecs.map((t) => t.n));
             const actions: Record<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {};
             for (const [i, txn] of transactions.entries()) {
-                if (!activeActionSet.has(txns.at(i)?.n ?? -1)) {
+                if (!activeActionSet.has(transactionSpecs.at(i)?.n ?? -1)) {
                     continue;
                 }
                 const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                    ...createRandomReportAction(reportSeed * 10 + (txns.at(i)?.n ?? 0)),
+                    ...createRandomReportAction(reportSeed * 10 + (transactionSpecs.at(i)?.n ?? 0)),
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     reportID: expenseReport.reportID,
                     originalMessage: {amount: txn.amount, currency: txn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: txn.transactionID},
@@ -1884,7 +1884,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 titleFormula: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
                 reportTotal: -50000,
                 reportName: 'Trip from Jun 21 to Jun 25, 2025',
-                txns: [
+                transactionSpecs: [
                     {n: 1, created: '2025-06-21'},
                     {n: 2, created: '2025-06-22'},
                     {n: 3, created: '2025-06-23'},
@@ -1961,7 +1961,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 titleFormula: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
                 reportTotal: -20000,
                 reportName: 'Trip from Jan 05 to Jan 15, 2025',
-                txns: [
+                transactionSpecs: [
                     {n: 1, created: '2025-01-05', merchant: 'Hotel'},
                     {n: 2, created: '2025-01-15', merchant: 'Restaurant'},
                 ],
@@ -2008,7 +2008,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 titleFormula: 'Trip {report:total}',
                 reportTotal: -10000,
                 reportName: ORIGINAL_TITLE,
-                txns: [{n: 1, created: '2025-06-21', currency: CONST.CURRENCY.EUR, amount: -8500, merchant: 'Cross-currency purchase'}],
+                transactionSpecs: [{n: 1, created: '2025-06-21', currency: CONST.CURRENCY.EUR, amount: -8500, merchant: 'Cross-currency purchase'}],
             });
             const [eurTxn] = transactions;
             const [eurAction] = Object.values(actions);
@@ -2050,7 +2050,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 titleFormula: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
                 reportTotal: -50000,
                 reportName: 'Trip from Jun 21 to Jun 25, 2025',
-                txns: [
+                transactionSpecs: [
                     {n: 1, created: '2025-06-21'},
                     {n: 2, created: '2025-06-22'},
                     {n: 3, created: '2025-06-23'},
@@ -2102,7 +2102,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 titleFormula: 'Trip {report:total}',
                 reportTotal: -10000,
                 reportName: ORIGINAL_TITLE,
-                txns: [
+                transactionSpecs: [
                     {n: 1, created: '2025-06-21', currency: CONST.CURRENCY.EUR, amount: -8500, merchant: 'Cross-currency purchase'},
                     {n: 2, created: '2025-06-22', amount: -2000, merchant: 'USD purchase'},
                 ],

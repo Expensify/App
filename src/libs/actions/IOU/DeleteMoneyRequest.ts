@@ -76,7 +76,7 @@ type DeleteMoneyRequestFunctionParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
-/** Precomputes the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
+/** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
 function prepareToCleanUpMoneyRequest(
     transactionID: string,
     reportAction: OnyxTypes.ReportAction,
@@ -248,7 +248,7 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
 
-        // Overlay pending-DELETE txns so the Formula engine excludes them from date-derived parts.
+        // Overlay pending-DELETE transactions so the Formula engine excludes them from date-derived parts.
         if (!shouldDeleteIOUReport && transaction?.transactionID && policy && didUpdateOptimisticTotal && !wasAlreadyIndeterminate) {
             const overlay: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
             // Prior-iteration transactions are re-stamped explicitly because the Onyx module cache these come
