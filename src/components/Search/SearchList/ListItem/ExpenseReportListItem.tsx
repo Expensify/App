@@ -446,6 +446,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         translate,
     ]);
 
+    // Full label for the button (its whole announcement); just a row identifier for the group, whose cells are reachable.
+    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, convertToDisplayString});
+
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
         <BaseListItem
@@ -453,7 +456,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isSelected={isSelected}
             accessible={canSelectMultiple && shouldBreakAccessibilityGrouping() ? false : undefined}
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
-            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, convertToDisplayString})}
+            accessibilityLabel={rowAccessibilityLabel}
             shouldUseOptionRole={false}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
