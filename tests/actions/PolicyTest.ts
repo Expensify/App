@@ -76,6 +76,44 @@ describe('actions/Policy', () => {
             mockFetch?.resume?.();
         });
 
+        it('creates Track onboarding admins rooms unpinned without changing the regular workspace default', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const createWorkspaceOptions = {
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.USD,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            };
+
+            const trackWorkspaceParams = Policy.createWorkspace({
+                ...createWorkspaceOptions,
+                policyID: Policy.generatePolicyID(),
+                shouldShowTrackAdminRoomInLHN: true,
+            });
+            const regularWorkspaceParams = Policy.createWorkspace({
+                ...createWorkspaceOptions,
+                policyID: Policy.generatePolicyID(),
+                shouldShowTrackAdminRoomInLHN: false,
+            });
+            await waitForBatchedUpdates();
+
+            const trackAdminReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${trackWorkspaceParams.adminsChatReportID}`);
+            const regularAdminReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${regularWorkspaceParams.adminsChatReportID}`);
+
+            expect(trackAdminReport?.isPinned).toBe(false);
+            expect(regularAdminReport?.isPinned).toBe(true);
+        });
+
         it('creates a new workspace', async () => {
             (fetch as MockFetch)?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});

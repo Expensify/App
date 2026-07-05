@@ -2807,6 +2807,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                         addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                     ...adminsChatData,
+                    ...(shouldShowTrackAdminRoomInLHN && {isPinned: false}),
                 },
             },
             {
