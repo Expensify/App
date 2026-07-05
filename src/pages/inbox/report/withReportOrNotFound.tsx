@@ -6,7 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canAccessReport} from '@libs/ReportUtils';
+import {canAccessReport, resolveHasGuidesEmails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {
@@ -91,6 +91,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
             });
+            const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
@@ -117,7 +118,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, hasGuidesEmails ?? false, isReportArchived);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, resolvedHasGuidesEmails, isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.

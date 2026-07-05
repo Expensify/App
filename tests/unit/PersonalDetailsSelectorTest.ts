@@ -1,10 +1,12 @@
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 
 import {
     createDisplayDetailsByAccountIDsSelector,
+    createGuidesEmailsByReportSelector,
     multiPersonalDetailsSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
@@ -192,7 +194,9 @@ describe('PersonalDetailsSelector', () => {
             pronouns: 'they/them',
             timezone: {selected: 'UTC'},
         } as unknown as PersonalDetails;
-        const listWithAvatar = {[accountID]: fullDetails} as unknown as PersonalDetailsList;
+        const listWithAvatar = {
+            [accountID]: fullDetails,
+        } as unknown as PersonalDetailsList;
 
         it('should return only the display detail fields for present account IDs', () => {
             const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);
@@ -225,6 +229,103 @@ describe('PersonalDetailsSelector', () => {
         it('should return an empty object when personalDetailsList is undefined', () => {
             const result = createDisplayDetailsByAccountIDsSelector([accountID])(undefined);
             expect(result).toEqual({});
+        });
+    });
+
+    describe('createGuidesEmailsByReportSelector', () => {
+        const guideAccountID = 8;
+        const regularAccountID = 9;
+        const unrelatedAccountID = 99;
+        const chatReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
+                reportID: '1',
+                participants: {
+                    [regularAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            },
+            [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
+                reportID: '2',
+                participants: {
+                    [guideAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    [regularAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            },
+        } as Record<string, Report>;
+
+        it('should return whether each report has guide participant emails', () => {
+            const selector = createGuidesEmailsByReportSelector(chatReports);
+            const personalDetailsList = {
+                [guideAccountID]: {
+                    accountID: guideAccountID,
+                    login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`,
+                },
+                [regularAccountID]: {
+                    accountID: regularAccountID,
+                    login: 'user@expensify.com',
+                },
+            } as unknown as PersonalDetailsList;
+
+            expect(selector(personalDetailsList)).toEqual({
+                '1': false,
+                '2': true,
+            });
+        });
+
+        it('should return the same map reference when unrelated personal details change', () => {
+            const selector = createGuidesEmailsByReportSelector(chatReports);
+            const initialPersonalDetailsList = {
+                [regularAccountID]: {
+                    accountID: regularAccountID,
+                    login: 'user@expensify.com',
+                },
+            } as unknown as PersonalDetailsList;
+            const initialMap = selector(initialPersonalDetailsList);
+
+            const updatedPersonalDetailsList = {
+                ...initialPersonalDetailsList,
+                [unrelatedAccountID]: {
+                    accountID: unrelatedAccountID,
+                    login: 'other@expensify.com',
+                },
+            } as unknown as PersonalDetailsList;
+
+            expect(selector(updatedPersonalDetailsList)).toBe(initialMap);
+        });
+
+        it('should return a new map when a participant login changes to a guide email', () => {
+            const selector = createGuidesEmailsByReportSelector(chatReports);
+            const initialPersonalDetailsList = {
+                [guideAccountID]: {
+                    accountID: guideAccountID,
+                    login: 'guide@expensify.com',
+                },
+                [regularAccountID]: {
+                    accountID: regularAccountID,
+                    login: 'user@expensify.com',
+                },
+            } as unknown as PersonalDetailsList;
+            const initialMap = selector(initialPersonalDetailsList);
+
+            const updatedPersonalDetailsList = {
+                ...initialPersonalDetailsList,
+                [guideAccountID]: {
+                    accountID: guideAccountID,
+                    login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`,
+                },
+            } as unknown as PersonalDetailsList;
+
+            const updatedMap = selector(updatedPersonalDetailsList);
+            expect(updatedMap).not.toBe(initialMap);
+            expect(updatedMap).toEqual({
+                '1': false,
+                '2': true,
+            });
         });
     });
 });

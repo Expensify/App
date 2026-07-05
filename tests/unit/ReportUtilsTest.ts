@@ -132,6 +132,7 @@ import {
     hasEmptyReportsForPolicy,
     hasExportError,
     hasExpensifyGuidesEmails,
+    resolveHasGuidesEmails,
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
@@ -11820,6 +11821,37 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await waitForBatchedUpdates();
             expect(hasExpensifyGuidesEmails([8], undefined)).toBe(true);
+            await Onyx.clear();
+        });
+    });
+
+    describe('resolveHasGuidesEmails', () => {
+        it('should prefer the pre-computed hasGuidesEmails value when provided', () => {
+            expect(resolveHasGuidesEmails({participantAccountIDs: [8], hasGuidesEmails: true})).toBe(true);
+            expect(resolveHasGuidesEmails({participantAccountIDs: [8], hasGuidesEmails: false})).toBe(false);
+        });
+
+        it('should prefer the guidesEmailsByReport map entry when available', () => {
+            expect(
+                resolveHasGuidesEmails({
+                    participantAccountIDs: [8],
+                    guidesEmailsByReport: {'123': true},
+                    reportID: '123',
+                }),
+            ).toBe(true);
+            expect(
+                resolveHasGuidesEmails({
+                    participantAccountIDs: [8],
+                    guidesEmailsByReport: {'123': false},
+                    reportID: '123',
+                }),
+            ).toBe(false);
+        });
+
+        it('should fall back to module-level allPersonalDetails when selector value and map entry are unavailable', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+            expect(resolveHasGuidesEmails({participantAccountIDs: [8]})).toBe(true);
             await Onyx.clear();
         });
     });

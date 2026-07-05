@@ -204,6 +204,7 @@ import {
     isUnread,
     isUnreadWithMention,
     isWorkspaceTaskReport,
+    resolveHasGuidesEmails,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -406,7 +407,7 @@ function getReportsToDisplayInLHN({
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     conciergeReportID?: string;
-    guidesEmailsByReport: Record<string, boolean>;
+    guidesEmailsByReport?: Record<string, boolean>;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -433,7 +434,11 @@ function getReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
-            hasGuidesEmails: guidesEmailsByReport[report.reportID] ?? false,
+            hasGuidesEmails: resolveHasGuidesEmails({
+                participantAccountIDs: Object.keys(report.participants ?? {}).map(Number),
+                guidesEmailsByReport,
+                reportID: report.reportID,
+            }),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -465,7 +470,7 @@ type UpdateReportsToDisplayInLHNProps = {
     currentUserLogin: string;
     currentUserAccountID: number;
     conciergeReportID?: string;
-    guidesEmailsByReport: Record<string, boolean>;
+    guidesEmailsByReport?: Record<string, boolean>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -522,7 +527,11 @@ function updateReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
-            hasGuidesEmails: guidesEmailsByReport[report.reportID] ?? false,
+            hasGuidesEmails: resolveHasGuidesEmails({
+                participantAccountIDs: Object.keys(report.participants ?? {}).map(Number),
+                guidesEmailsByReport,
+                reportID: report.reportID,
+            }),
             currentUserAccountID,
             conciergeReportID,
         });

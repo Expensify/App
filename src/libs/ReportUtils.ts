@@ -2420,6 +2420,27 @@ function hasExpensifyGuidesEmails(accountIDs: number[], personalDetailsList: Ony
     return accountIDs.some((accountID) => Str.extractEmailDomain(resolvedPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
+/**
+ * Resolves whether a report has guide participants, preferring pre-computed values when available
+ * and falling back to module-level personal details while selectors/maps are still loading.
+ */
+function resolveHasGuidesEmails({
+    participantAccountIDs,
+    hasGuidesEmails,
+    guidesEmailsByReport,
+    reportID,
+}: {
+    participantAccountIDs: number[];
+    hasGuidesEmails?: boolean;
+    guidesEmailsByReport?: Record<string, boolean>;
+    reportID?: string;
+}): boolean {
+    if (reportID && guidesEmailsByReport && reportID in guidesEmailsByReport) {
+        return guidesEmailsByReport[reportID];
+    }
+    return hasGuidesEmails ?? hasExpensifyGuidesEmails(participantAccountIDs, undefined);
+}
+
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
         if (!report?.isPinned && isHiddenForCurrentUser(report)) {
@@ -13689,6 +13710,7 @@ export {
     canBeExported,
     isExported,
     hasExpensifyGuidesEmails,
+    resolveHasGuidesEmails,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,

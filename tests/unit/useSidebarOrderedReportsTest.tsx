@@ -125,8 +125,14 @@ describe('useSidebarOrderedReports', () => {
     it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
         // Given reports with same content but different object references
         const reportsContent = {
-            report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-            report2: {reportName: 'Chat 2', lastVisibleActionCreated: '2024-01-01 11:00:00'},
+            report1: {
+                reportName: 'Chat 1',
+                lastVisibleActionCreated: '2024-01-01 10:00:00',
+            },
+            report2: {
+                reportName: 'Chat 2',
+                lastVisibleActionCreated: '2024-01-01 11:00:00',
+            },
         };
 
         // When the initial reports are set
@@ -320,6 +326,7 @@ describe('useSidebarOrderedReports', () => {
     });
 
     it('should recompute all reports when personal details hydrate and guide emails become available', async () => {
+        const guideAccountID = '8';
         const displayedReports = createMockReports({
             report1: {reportName: 'Chat A'},
         });
@@ -329,18 +336,20 @@ describe('useSidebarOrderedReports', () => {
             lastVisibleActionCreated: '2024-01-01 10:00:00',
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-            participants: {'8': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            participants: {
+                [guideAccountID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
         } as Report;
 
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
         mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
 
         await act(async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: displayedReports['1'],
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: domainRoomReport,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {},
-            } as unknown as OnyxMultiSetInput);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, domainRoomReport);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
         });
 
         renderHook(() => useSidebarOrderedReports(), {
@@ -353,8 +362,8 @@ describe('useSidebarOrderedReports', () => {
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                8: {
-                    accountID: 8,
+                [guideAccountID]: {
+                    accountID: Number(guideAccountID),
                     login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`,
                 },
             });
@@ -367,5 +376,61 @@ describe('useSidebarOrderedReports', () => {
                 updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`]),
             }),
         );
+    });
+
+    it('should not recompute all reports when unrelated personal details change', async () => {
+        const participantAccountID = '8';
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                ...displayedReports['1'],
+                participants: {
+                    [participantAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            });
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [participantAccountID]: {
+                    accountID: Number(participantAccountID),
+                    login: 'user@expensify.com',
+                },
+            });
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        const unrelatedAccountID = '99';
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [unrelatedAccountID]: {
+                    accountID: Number(unrelatedAccountID),
+                    login: 'other@expensify.com',
+                },
+            });
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        const updateCalls = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls;
+        const fullRecomputeCall = updateCalls.find((call) => {
+            const updatedReportsKeys = call[0]?.updatedReportsKeys ?? [];
+            return updatedReportsKeys.length > 1;
+        });
+
+        expect(fullRecomputeCall).toBeUndefined();
     });
 });

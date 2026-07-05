@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
@@ -89,6 +89,56 @@ const hasExpensifyGuidesEmailsSelector =
     (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
         participantAccountIDs.some((accountID) => Str.extractEmailDomain(personalDetailsList?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 
+type ReportWithParticipantIDs = {
+    reportID: string;
+    participantIDs: number[];
+};
+
+/**
+ * Creates a selector that returns a per-report map of whether participants include Expensify Guides emails.
+ * The returned selector only produces a new map when participant logins change, so subscribers
+ * are not notified on unrelated personal-details updates.
+ */
+const createGuidesEmailsByReportSelector = (chatReports: OnyxCollection<Report>) => {
+    const reportsWithParticipants: ReportWithParticipantIDs[] = [];
+    const allParticipantAccountIDs: number[] = [];
+    const accountIDSet = new Set<number>();
+
+    for (const report of Object.values(chatReports ?? {})) {
+        if (!report) {
+            continue;
+        }
+        const participantIDs = Object.keys(report.participants ?? {}).map(Number);
+        reportsWithParticipants.push({reportID: report.reportID, participantIDs});
+        for (const accountID of participantIDs) {
+            if (accountIDSet.has(accountID)) {
+                continue;
+            }
+            accountIDSet.add(accountID);
+            allParticipantAccountIDs.push(accountID);
+        }
+    }
+
+    let cachedParticipantLoginsKey = '';
+    let cachedGuidesEmailsByReport: Record<string, boolean> = {};
+
+    return (personalDetailsList: OnyxEntry<PersonalDetailsList>): Record<string, boolean> => {
+        const participantLoginsKey = allParticipantAccountIDs.map((accountID) => personalDetailsList?.[accountID]?.login ?? '').join('\0');
+
+        if (participantLoginsKey === cachedParticipantLoginsKey) {
+            return cachedGuidesEmailsByReport;
+        }
+
+        cachedParticipantLoginsKey = participantLoginsKey;
+        const map: Record<string, boolean> = {};
+        for (const {reportID, participantIDs} of reportsWithParticipants) {
+            map[reportID] = participantIDs.some((accountID) => Str.extractEmailDomain(personalDetailsList?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
+        }
+        cachedGuidesEmailsByReport = map;
+        return map;
+    };
+};
+
 export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
@@ -102,4 +152,5 @@ export {
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
     hasExpensifyGuidesEmailsSelector,
+    createGuidesEmailsByReportSelector,
 };

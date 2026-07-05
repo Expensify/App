@@ -21,7 +21,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN, resolveHasGuidesEmails} from '@libs/ReportUtils';
 
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
@@ -100,6 +100,7 @@ function DebugReportPage({
     const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
     });
+    const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -136,7 +137,7 @@ function DebugReportPage({
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             conciergeReportID,
-            hasGuidesEmails: hasGuidesEmails ?? false,
+            hasGuidesEmails: resolvedHasGuidesEmails,
         });
 
         return [
@@ -198,7 +199,7 @@ function DebugReportPage({
         draftComment,
         translate,
         conciergeReportID,
-        hasGuidesEmails,
+        resolvedHasGuidesEmails,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);

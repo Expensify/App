@@ -10,7 +10,7 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {canAccessReport} from '@libs/ReportUtils';
+import {canAccessReport, resolveHasGuidesEmails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -57,6 +57,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
         });
+        const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
 
         const parentReportAction = useParentReportAction(report);
         const linkedReportAction = useMemo(() => {
@@ -90,7 +91,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const isLoadingReport = isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
         const isReportArchived = useReportIsArchived(report?.reportID);
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, hasGuidesEmails ?? false, isReportArchived));
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, resolvedHasGuidesEmails, isReportArchived));
 
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
