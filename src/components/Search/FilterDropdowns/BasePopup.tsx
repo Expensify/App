@@ -1,10 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ActionButtons from './ActionButtons';
 
 type BasePopupProps = React.PropsWithChildren & {

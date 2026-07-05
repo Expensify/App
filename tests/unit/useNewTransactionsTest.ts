@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useNewTransactions from '@hooks/useNewTransactions';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
@@ -23,10 +25,31 @@ const delay = (ms: number) =>
 
 describe('useNewTransactions with empty cache', () => {
     const transactionsAlreadyInReport = [
-        {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
-        {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
+        {
+            transactionID: '2',
+            amount: 200,
+            created: '2023-10-02',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
+        {
+            transactionID: '3',
+            amount: 300,
+            created: '2023-10-03',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
     ];
-    const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
+    const newTransaction = {
+        transactionID: '1',
+        amount: 100,
+        created: '2023-10-01T00:00:00Z',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    };
 
     it("doesn't return new transactions when no transactions are added", () => {
         // 1. Report and transactions data is not loaded yet
@@ -178,10 +201,31 @@ describe('useNewTransactions with empty cache', () => {
 
 describe('useNewTransactions with transactions in cache', () => {
     const transactionsAlreadyInReport = [
-        {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
-        {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
+        {
+            transactionID: '2',
+            amount: 200,
+            created: '2023-10-02',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
+        {
+            transactionID: '3',
+            amount: 300,
+            created: '2023-10-03',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
     ];
-    const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
+    const newTransaction = {
+        transactionID: '1',
+        amount: 100,
+        created: '2023-10-01T00:00:00Z',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    };
 
     it("doesn't return new transactions when no transactions are added", () => {
         // 1. Report and transactions data is loaded from Onyx
@@ -302,10 +346,31 @@ describe('useNewTransactions with transactions in cache', () => {
 
 describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', () => {
     const transactionsAlreadyInReport = [
-        {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
-        {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
+        {
+            transactionID: '2',
+            amount: 200,
+            created: '2023-10-02',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
+        {
+            transactionID: '3',
+            amount: 300,
+            created: '2023-10-03',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
     ];
-    const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
+    const newTransaction = {
+        transactionID: '1',
+        amount: 100,
+        created: '2023-10-01T00:00:00Z',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    };
 
     it('returns pending new transactions on first load when submitted from another report', () => {
         // Simulates: user submitted expense from Self DM to workspace, then navigated to workspace chat.
@@ -313,7 +378,12 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // 1. Component mounts, report not loaded yet, but transaction is already in Onyx
         const {rerender, result} = renderHook<
             Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined; isFocused?: boolean}
+            {
+                transactions: Transaction[];
+                hasOnceLoadedReportActions: boolean;
+                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+                isFocused?: boolean;
+            }
         >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, '1', props.isFocused), {
             initialProps: {
                 hasOnceLoadedReportActions: false,
@@ -348,7 +418,11 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // Normal navigation to a report (no cross-navigation pending IDs)
         const {rerender, result} = renderHook<
             Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined}
+            {
+                transactions: Transaction[];
+                hasOnceLoadedReportActions: boolean;
+                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+            }
         >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
             initialProps: {
                 hasOnceLoadedReportActions: false,
@@ -368,18 +442,30 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
     it('recomputes when only pendingNewTransactionIDs changes (stable transactions reference)', () => {
         const stableTransactions = [...transactionsAlreadyInReport, newTransaction];
 
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null> | undefined}>(
-            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+        const {rerender, result} = renderHook<
+            Transaction[],
             {
-                initialProps: {transactions: stableTransactions, pendingNewTransactionIDs: undefined},
+                transactions: Transaction[];
+                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+            }
+        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
+            initialProps: {
+                transactions: stableTransactions,
+                pendingNewTransactionIDs: undefined,
             },
-        );
+        });
         expect(result.current).toEqual([]);
 
-        rerender({transactions: stableTransactions, pendingNewTransactionIDs: undefined});
+        rerender({
+            transactions: stableTransactions,
+            pendingNewTransactionIDs: undefined,
+        });
         expect(result.current).toEqual([]);
 
-        rerender({transactions: stableTransactions, pendingNewTransactionIDs: {[newTransaction.transactionID]: true}});
+        rerender({
+            transactions: stableTransactions,
+            pendingNewTransactionIDs: {[newTransaction.transactionID]: true},
+        });
         expect(result.current).toEqual([newTransaction]);
     });
 
@@ -389,7 +475,12 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
 
         const {rerender, result} = renderHook<
             Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined; isFocused?: boolean}
+            {
+                transactions: Transaction[];
+                hasOnceLoadedReportActions: boolean;
+                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+                isFocused?: boolean;
+            }
         >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused), {
             initialProps: {
                 hasOnceLoadedReportActions: true,
@@ -429,33 +520,70 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // A {clearedID: null} rail is not "active": a later add (e.g. Pusher/import) without its own flag must still be caught by the diff.
         const [existingTx] = transactionsAlreadyInReport;
         const pusherTx = newTransaction;
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>}>(
-            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+        const {rerender, result} = renderHook<
+            Transaction[],
             {
-                initialProps: {transactions: [existingTx], pendingNewTransactionIDs: {[existingTx.transactionID]: null}},
+                transactions: Transaction[];
+                pendingNewTransactionIDs: Record<string, true | null>;
+            }
+        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
+            initialProps: {
+                transactions: [existingTx],
+                pendingNewTransactionIDs: {[existingTx.transactionID]: null},
             },
-        );
+        });
         expect(result.current).toEqual([]);
 
-        rerender({transactions: [existingTx, pusherTx], pendingNewTransactionIDs: {[existingTx.transactionID]: null}});
+        rerender({
+            transactions: [existingTx, pusherTx],
+            pendingNewTransactionIDs: {[existingTx.transactionID]: null},
+        });
         expect(result.current).toEqual([pusherTx]);
     });
 
     it('unions a rail-flagged add with a concurrent unflagged diff add (Pusher landing inside the cleanup delay)', () => {
         // A rail flag (txB) must not make the branch swallow a concurrent unflagged diff add (txC) — both highlight, txB first.
         const [existingTx] = transactionsAlreadyInReport;
-        const txB = {transactionID: 'B', amount: 100, created: '2023-10-04', currency: 'USD', reportID: 'report1', merchant: ''};
-        const txC = {transactionID: 'C', amount: 100, created: '2023-10-05', currency: 'USD', reportID: 'report1', merchant: ''};
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>}>(
-            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
-            {initialProps: {transactions: [existingTx], pendingNewTransactionIDs: {}}},
-        );
+        const txB = {
+            transactionID: 'B',
+            amount: 100,
+            created: '2023-10-04',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        };
+        const txC = {
+            transactionID: 'C',
+            amount: 100,
+            created: '2023-10-05',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        };
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {
+                transactions: Transaction[];
+                pendingNewTransactionIDs: Record<string, true | null>;
+            }
+        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
+            initialProps: {
+                transactions: [existingTx],
+                pendingNewTransactionIDs: {},
+            },
+        });
         expect(result.current).toEqual([]);
 
-        rerender({transactions: [existingTx, txB], pendingNewTransactionIDs: {B: true}});
+        rerender({
+            transactions: [existingTx, txB],
+            pendingNewTransactionIDs: {B: true},
+        });
         expect(result.current).toEqual([txB]);
 
-        rerender({transactions: [existingTx, txB, txC], pendingNewTransactionIDs: {B: true}});
+        rerender({
+            transactions: [existingTx, txB, txC],
+            pendingNewTransactionIDs: {B: true},
+        });
         expect(result.current).toEqual([txB, txC]);
         expect(result.current.at(0)).toBe(txB);
     });
@@ -463,20 +591,49 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
 
 describe('useNewTransactions with an unfocused report', () => {
     const transactionsAlreadyInReport = [
-        {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
-        {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
+        {
+            transactionID: '2',
+            amount: 200,
+            created: '2023-10-02',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
+        {
+            transactionID: '3',
+            amount: 300,
+            created: '2023-10-03',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        },
     ];
-    const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
+    const newTransaction = {
+        transactionID: '1',
+        amount: 100,
+        created: '2023-10-01T00:00:00Z',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    };
 
     it('returns newly added transactions even when the report is unfocused', () => {
         // The diff runs regardless of focus, so a backgrounded table still highlights — design wants background highlighting.
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
             (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
-            {initialProps: {transactions: transactionsAlreadyInReport, isFocused: false}},
+            {
+                initialProps: {
+                    transactions: transactionsAlreadyInReport,
+                    isFocused: false,
+                },
+            },
         );
         expect(result.current).toEqual([]);
 
-        rerender({transactions: [...transactionsAlreadyInReport, newTransaction], isFocused: false});
+        rerender({
+            transactions: [...transactionsAlreadyInReport, newTransaction],
+            isFocused: false,
+        });
         expect(result.current).toEqual([newTransaction]);
     });
 
@@ -495,21 +652,52 @@ describe('useNewTransactions with an unfocused report', () => {
 
     it('keeps an earlier pending transaction highlighted continuously when a second one is added', () => {
         // Adding a later transaction must not drop the earlier one out of the result and back in — that flicker would re-fire its highlight animation.
-        const txB = {transactionID: 'B', amount: 100, created: '2023-10-04', currency: 'USD', reportID: 'report1', merchant: ''};
-        const txC = {transactionID: 'C', amount: 100, created: '2023-10-05', currency: 'USD', reportID: 'report1', merchant: ''};
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>}>(
-            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
-            {initialProps: {transactions: transactionsAlreadyInReport, pendingNewTransactionIDs: {}}},
-        );
+        const txB = {
+            transactionID: 'B',
+            amount: 100,
+            created: '2023-10-04',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        };
+        const txC = {
+            transactionID: 'C',
+            amount: 100,
+            created: '2023-10-05',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        };
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {
+                transactions: Transaction[];
+                pendingNewTransactionIDs: Record<string, true | null>;
+            }
+        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
+            initialProps: {
+                transactions: transactionsAlreadyInReport,
+                pendingNewTransactionIDs: {},
+            },
+        });
         expect(result.current).toEqual([]);
 
-        rerender({transactions: [...transactionsAlreadyInReport, txB], pendingNewTransactionIDs: {B: true}});
+        rerender({
+            transactions: [...transactionsAlreadyInReport, txB],
+            pendingNewTransactionIDs: {B: true},
+        });
         expect(result.current).toEqual([txB]);
 
-        rerender({transactions: [...transactionsAlreadyInReport, txB], pendingNewTransactionIDs: {B: true}});
+        rerender({
+            transactions: [...transactionsAlreadyInReport, txB],
+            pendingNewTransactionIDs: {B: true},
+        });
         expect(result.current).toEqual([txB]);
 
-        rerender({transactions: [...transactionsAlreadyInReport, txB, txC], pendingNewTransactionIDs: {B: true, C: true}});
+        rerender({
+            transactions: [...transactionsAlreadyInReport, txB, txC],
+            pendingNewTransactionIDs: {B: true, C: true},
+        });
         expect(result.current).toEqual(expect.arrayContaining([txB, txC]));
         expect(result.current).toHaveLength(2);
     });
@@ -517,18 +705,43 @@ describe('useNewTransactions with an unfocused report', () => {
     it('schedules the rail cleanup only from a focused consumer', () => {
         // Only a focused consumer schedules the rail cleanup; an unfocused one stays silent and must not clear a flag a later focused mount needs.
         const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-        const txD = {transactionID: 'D', amount: 100, created: '2023-10-09', currency: 'USD', reportID: 'report1', merchant: ''};
+        const txD = {
+            transactionID: 'D',
+            amount: 100,
+            created: '2023-10-09',
+            currency: 'USD',
+            reportID: 'report1',
+            merchant: '',
+        };
         const scheduledCleanups = () => setTimeoutSpy.mock.calls.filter(([, ms]) => ms === CONST.PENDING_TRANSACTION_DELETION_DELAY).length;
 
-        const {rerender} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>; isFocused: boolean}>(
-            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused),
-            {initialProps: {transactions: transactionsAlreadyInReport, pendingNewTransactionIDs: {D: true}, isFocused: false}},
-        );
+        const {rerender} = renderHook<
+            Transaction[],
+            {
+                transactions: Transaction[];
+                pendingNewTransactionIDs: Record<string, true | null>;
+                isFocused: boolean;
+            }
+        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused), {
+            initialProps: {
+                transactions: transactionsAlreadyInReport,
+                pendingNewTransactionIDs: {D: true},
+                isFocused: false,
+            },
+        });
 
-        rerender({transactions: [...transactionsAlreadyInReport, txD], pendingNewTransactionIDs: {D: true}, isFocused: false});
+        rerender({
+            transactions: [...transactionsAlreadyInReport, txD],
+            pendingNewTransactionIDs: {D: true},
+            isFocused: false,
+        });
         expect(scheduledCleanups()).toBe(0);
 
-        rerender({transactions: [...transactionsAlreadyInReport, txD], pendingNewTransactionIDs: {D: true}, isFocused: true});
+        rerender({
+            transactions: [...transactionsAlreadyInReport, txD],
+            pendingNewTransactionIDs: {D: true},
+            isFocused: true,
+        });
         expect(scheduledCleanups()).toBeGreaterThan(0);
 
         setTimeoutSpy.mockRestore();

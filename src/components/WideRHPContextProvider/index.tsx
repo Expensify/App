@@ -1,24 +1,31 @@
+import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+
+import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import type {NavigationRoute} from '@libs/Navigation/types';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
-import useRootNavigationState from '@hooks/useRootNavigationState';
-import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
-import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
-import type {NavigationRoute} from '@libs/Navigation/types';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+
+import type {RHPWidth, RHPWidthHint, WideRHPActionsContextType, WideRHPStateContextType} from './types';
+
 import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
 import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
-import type {RHPWidth, RHPWidthHint, WideRHPActionsContextType, WideRHPStateContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
 // 0 is folded/hidden, 1 is expanded/shown
@@ -109,7 +116,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // A reportID maps to at most one hint, making "wide vs super-wide" structurally mutually exclusive.
     const [reportRHPWidthHints, setReportRHPWidthHints] = useState<Map<string, RHPWidthHint>>(() => new Map());
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: expenseReportSelector,
+    });
 
     const isWideRHPClosingRef = useRef(false);
     const isSuperWideRHPClosingRef = useRef(false);

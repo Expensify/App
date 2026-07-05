@@ -1,20 +1,26 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearAccountMessages, clearTwoFactorAuthSecretKey, replaceTwoFactorDevice} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function ReplaceDeviceVerifyOldPage() {

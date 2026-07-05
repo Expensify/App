@@ -1,11 +1,8 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ScrollView from '@components/ScrollView';
 import type {RHPWidth} from '@components/WideRHPContextProvider';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -13,13 +10,20 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 /**
  * Conditionally renders the receipt view in wide RHP layout.
