@@ -15,9 +15,7 @@ import {
     getReportFieldMaps,
     isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isReportFieldDisabled,
     isReportFieldDisabledForUser,
-    isReportFieldOfTypeTitle,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 
@@ -121,10 +119,11 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             });
     }, [policy, report, currentUserAccountID]);
 
-    const enabledReportFields = sortedPolicyReportFields.filter(
-        (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
-    );
-    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
+    // Base the "only the title field is configured" check on which fields are present/displayable rather than on which are
+    // currently editable, so a custom field stays visible (read-only) after the report is approved/settled/closed.
+    // `sortedPolicyReportFields` is already filtered by `shouldHideSingleReportField`, so it holds only displayable non-title
+    // fields; when it's empty, only the title field remains.
+    const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
