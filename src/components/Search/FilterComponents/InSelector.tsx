@@ -17,7 +17,7 @@ import useSortedActions from '@hooks/useSortedActions';
 import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -141,36 +141,30 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const sections: SelectionListSections = [];
 
     if (!isLoading) {
-        // Only float the initially-selected reports to the top of a long list. Keying the pinned section on the
-        // snapshot (instead of the live `value`) means items toggled during this session stay put (see #61414).
-        const shouldMoveSelectedToTop = chatOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+        // Only float the initially-selected reports to the top of a long list. Gate on the *unfiltered* list size so the
+        // decision doesn't flip as the user types, and key the pinned section on the snapshot (instead of the live
+        // `value`) so items toggled during this session stay put (https://github.com/Expensify/App/issues/61414).
+        const shouldMoveSelectedToTop = defaultOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
         const pinnedReportIDs = shouldMoveSelectedToTop ? initialValue : [];
         const pinnedReportIDSet = new Set(pinnedReportIDs);
-        const pinnedSelectedOptions = pinnedReportIDs.map((id) => buildReportOption(id, value.includes(id)));
 
-        const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            cleanSearchTerm === '' ? pinnedSelectedOptions : selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            personalDetails,
-            false,
-            undefined,
-            reportAttributesDerived,
-        );
+        // Keep the pinned reports at the top whether or not a search value is entered, for consistency. When a term is
+        // typed, only surface the pinned reports that still match the filtered results.
+        const matchedReportIDs = new Set(chatOptions.recentReports.map((report) => report.reportID));
+        const visiblePinnedReportIDs = cleanSearchTerm === '' ? pinnedReportIDs : pinnedReportIDs.filter((id) => matchedReportIDs.has(id));
+        const pinnedSelectedOptions = visiblePinnedReportIDs.map((id) => buildReportOption(id, value.includes(id)));
 
-        sections.push(formattedResults.section);
+        sections.push({
+            title: undefined,
+            sectionIndex: 0,
+            data: pinnedSelectedOptions,
+        });
 
-        // Mark reports as selected in place based on the live `value`, so the checkmark toggles without reordering.
-        // When the search term is empty, drop only the pinned reports (they already appear in the top section above).
-        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (value.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports
+        // Drop the pinned reports from the main section (they already appear in the top section above) and mark the
+        // remaining reports selected in place based on the live `value`, so the checkmark toggles without reordering.
+        const reportsFiltered = chatOptions.recentReports
             .filter((report) => !pinnedReportIDSet.has(report.reportID))
             .map((report) => (value.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
 
         sections.push({
             data: reportsFiltered,

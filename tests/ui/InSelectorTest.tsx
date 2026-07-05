@@ -7,9 +7,13 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-// The list of reports returned by the (mocked) options pipeline. Tests mutate this to switch between a
-// long list (pinning enabled) and a short list (pinning disabled).
+// The list of reports returned by the (mocked) options pipeline. Tests mutate these to switch between a
+// long list (pinning enabled) and a short list (pinning disabled), and to simulate a search filtering the list.
+// `mockDefaultReports` is the unfiltered base list (drives the "is the list long enough to pin" gate); `mockRecentReports`
+// is what the filter returns for the current search term.
 let mockRecentReports: Array<{reportID: string; keyForList: string; text: string}> = [];
+let mockDefaultReports: Array<{reportID: string; keyForList: string; text: string}> = [];
+let mockSearchTerm = '';
 
 jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/InviteMemberListItem', () => jest.fn(() => null));
@@ -17,7 +21,7 @@ jest.mock('@components/Search/FilterComponents/ListFilterViewWrapper', () => jes
 
 jest.mock('@components/OnyxListItemProvider', () => ({usePersonalDetails: jest.fn(() => ({}))}));
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
-jest.mock('@hooks/useDebouncedState', () => jest.fn(() => ['', '', jest.fn()]));
+jest.mock('@hooks/useDebouncedState', () => jest.fn(() => [mockSearchTerm, mockSearchTerm, jest.fn()]));
 jest.mock('@hooks/useFilteredOptions', () => jest.fn(() => ({options: {recentReports: [], personalDetails: []}, isLoading: false})));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({email: 'me@expensify.com', accountID: 999})));
 jest.mock('@hooks/useSortedActions', () => jest.fn(() => ({})));
@@ -33,10 +37,8 @@ jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => false}));
 jest.mock('@libs/OptionsListUtils', () => ({
     // Build a minimal option object from the report id the component passes in.
     createOptionFromReport: (report: {reportID: string}) => ({reportID: report.reportID, keyForList: report.reportID, text: `Report ${report.reportID}`}),
-    getSearchOptions: () => ({options: {recentReports: [], personalDetails: []}}),
+    getSearchOptions: () => ({options: {recentReports: mockDefaultReports, personalDetails: []}}),
     filterAndOrderOptions: () => ({recentReports: mockRecentReports, personalDetails: []}),
-    // Mirror the real helper for an empty search term: the passed-in selectedOptions become the top section verbatim.
-    formatSectionsFromSearchTerm: (searchTerm: string, selectedOptions: unknown[]) => ({section: {sectionIndex: 0, data: selectedOptions}}),
     getAlternateText: () => '',
 }));
 
@@ -54,8 +56,10 @@ describe('InSelector', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        mockSearchTerm = '';
         // A long list so the "move selected to top" behavior is enabled.
         mockRecentReports = buildRecentReports(CONST.STANDARD_LIST_ITEM_LIMIT + 2);
+        mockDefaultReports = mockRecentReports;
     });
 
     it('floats the initially-selected report to the top of a long list', () => {
@@ -100,8 +104,33 @@ describe('InSelector', () => {
         expect(mainSection.find((item) => item.keyForList === 'r3')?.isSelected).toBe(true);
     });
 
+    it('keeps the initially-selected report pinned at the top while searching, and drops non-matching pinned reports', () => {
+        // Simulate the user typing a search term that narrows the list to a few matching reports (r3, r10, r11).
+        // r10 is pinned and matches -> it stays at the top. r5 is pinned but doesn't match -> it is dropped.
+        mockSearchTerm = 'report';
+        mockRecentReports = [
+            {reportID: 'r3', keyForList: 'r3', text: 'Report 3'},
+            {reportID: 'r10', keyForList: 'r10', text: 'Report 10'},
+            {reportID: 'r11', keyForList: 'r11', text: 'Report 11'},
+        ];
+
+        render(
+            <InSelector
+                value={['r10', 'r5']}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const sections = getSections();
+        // The pinned report that still matches the search stays at the top; the non-matching pinned report is dropped.
+        expect(sections.at(0)?.data.map((item) => item.keyForList)).toEqual(['r10']);
+        // The main section shows the remaining matches with the pinned one removed (no duplicate).
+        expect(sections.at(1)?.data.map((item) => item.keyForList)).toEqual(['r3', 'r11']);
+    });
+
     it('does not pin selected reports to the top of a short list', () => {
         mockRecentReports = buildRecentReports(5);
+        mockDefaultReports = mockRecentReports;
 
         render(
             <InSelector
