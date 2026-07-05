@@ -6,6 +6,7 @@ import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCr
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {createNewReport} from '@libs/actions/Report';
@@ -45,6 +46,7 @@ function SearchTransactionsChangeReport() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const personalPolicy = usePersonalPolicy();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -159,6 +161,7 @@ function SearchTransactionsChangeReport() {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
             clearSelectedTransactions();
         });
@@ -237,6 +240,7 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -256,6 +260,7 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
         clearSelectedTransactions();
         Navigation.goBack();
