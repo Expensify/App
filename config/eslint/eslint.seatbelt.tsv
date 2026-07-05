@@ -780,7 +780,7 @@
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	111
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	3
-"../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	12
+"../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	3
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
