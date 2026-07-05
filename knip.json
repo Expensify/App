@@ -6,7 +6,7 @@
                 "wdyr.ts",
                 "src/App.tsx",
                 "src/HybridAppHandler.tsx",
-                "scripts/**/*.{js,ts}",
+                "scripts/**/*.{js,ts,mts,cts}",
                 "web/proxy.ts",
                 "config/webpack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
@@ -23,12 +23,12 @@
                 "__mocks__/**/*.{js,jsx,ts,tsx}",
                 "web/**/*.{js,jsx,ts,tsx}",
                 "config/**/*.{js,mjs,ts,tsx}",
-                "scripts/**/*.{js,ts}",
+                "scripts/**/*.{js,ts,mts,cts}",
                 "jest/**/*.{js,ts}",
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
+            "ignore": [".github/actions/**/index.js", "jest/shims/**", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },

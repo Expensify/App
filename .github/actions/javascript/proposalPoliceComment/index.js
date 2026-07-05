@@ -25783,48 +25783,6 @@ Edited comment content: ${editedBody}`;
 };
 var proposalPolice_default = PROPOSAL_POLICE_TEMPLATES;
 
-// .github/libs/sanitizeJSONStringValues.ts
-function sanitizeJSONStringValues(inputString) {
-  function replacer(str2) {
-    return {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      "\\": "\\\\",
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      "	": "\\t",
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      "\n": "\\n",
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      "\r": "\\r",
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      "\f": "\\f",
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      '"': '\\"'
-    }[str2] ?? "";
-  }
-  try {
-    const parsed = JSON.parse(inputString);
-    const sanitizeValues = (obj) => {
-      if (typeof obj === "string") {
-        return obj.replaceAll(/\\|\t|\n|\r|\f|"/g, replacer);
-      }
-      if (Array.isArray(obj)) {
-        return obj.map((item) => sanitizeValues(item));
-      }
-      if (obj && typeof obj === "object") {
-        const result = {};
-        for (const key of Object.keys(obj)) {
-          result[key] = sanitizeValues(obj[key]);
-        }
-        return result;
-      }
-      return obj;
-    };
-    return JSON.stringify(sanitizeValues(parsed));
-  } catch (e) {
-    throw new Error("Invalid JSON input.");
-  }
-}
-
 // scripts/utils/retryWithBackoff.ts
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -32663,6 +32621,48 @@ OpenAI.Conversations = Conversations;
 OpenAI.Evals = Evals;
 OpenAI.Containers = Containers;
 OpenAI.Videos = Videos;
+
+// scripts/utils/sanitizeJSONStringValues.ts
+function sanitizeJSONStringValues(inputString) {
+  function replacer(str2) {
+    return {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "\\": "\\\\",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "	": "\\t",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "\n": "\\n",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "\r": "\\r",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "\f": "\\f",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      '"': '\\"'
+    }[str2] ?? "";
+  }
+  try {
+    const parsed = JSON.parse(inputString);
+    const sanitizeValues = (obj) => {
+      if (typeof obj === "string") {
+        return obj.replaceAll(/\\|\t|\n|\r|\f|"/g, replacer);
+      }
+      if (Array.isArray(obj)) {
+        return obj.map((item) => sanitizeValues(item));
+      }
+      if (obj && typeof obj === "object") {
+        const result = {};
+        for (const key of Object.keys(obj)) {
+          result[key] = sanitizeValues(obj[key]);
+        }
+        return result;
+      }
+      return obj;
+    };
+    return JSON.stringify(sanitizeValues(parsed));
+  } catch (e) {
+    throw new Error("Invalid JSON input.");
+  }
+}
 
 // scripts/utils/OpenAIUtils.ts
 var OpenAIUtils = class _OpenAIUtils {

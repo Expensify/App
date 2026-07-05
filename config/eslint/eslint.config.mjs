@@ -692,6 +692,7 @@ const config = defineConfig([
         '!**/.storybook',
         '!**/.github',
         '.github/actions/**/index.js',
+        'jest/shims/**/*.cjs',
         '**/*.config.js',
         '**/*.config.mjs',
         '**/node_modules/**/*',
