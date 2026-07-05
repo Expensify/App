@@ -413,8 +413,9 @@ function useSelectedTransactionsActions({
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
             // If the user has any custom integration export templates, add them as export options
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport);
             const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
+            let previousIsStandardTemplate: boolean | undefined;
             for (const template of exportTemplates) {
                 const isStandardTemplate = standardTemplateNames.has(template.templateName);
                 exportOptions.push({
@@ -422,7 +423,10 @@ function useSelectedTransactionsActions({
                     icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
+                    // Divider before the first template (separating from basic export) and at the custom/default group boundary
+                    addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
                 });
+                previousIsStandardTemplate = isStandardTemplate;
             }
             return exportOptions;
         };

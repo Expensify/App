@@ -49,7 +49,7 @@ type UseExportActionsReturn = {
 };
 
 function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -68,7 +68,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
-    const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy);
+    const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     const {showDecisionModal} = useDecisionModal();
@@ -217,6 +217,33 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         ? getSecondaryExportReportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined, exportTemplates)
         : [];
 
+    // The display names of the default templates (expense/report level), used to tell the custom and default groups apart when adding dividers.
+    const defaultTemplateNames = new Set(
+        exportTemplates
+            .filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)
+            .map((template) => template.name),
+    );
+
+    // Group each export action so we can add a divider between the accounting, current view, custom template, and default template groups.
+    const getExportActionGroup = (action: string): string => {
+        if (action === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION || action === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            return 'accounting';
+        }
+        if (action === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV) {
+            return 'currentView';
+        }
+        return defaultTemplateNames.has(action) ? 'default' : 'custom';
+    };
+
+    const exportSubMenuEntries = secondaryExportActions.map((action) => {
+        const actionKey = action as string;
+        return {option: exportSubmenuOptions[actionKey], group: getExportActionGroup(actionKey)};
+    });
+    const exportSubMenuItems = exportSubMenuEntries.map(({option, group}, index) => {
+        const addSeparatorBefore = index > 0 && group !== exportSubMenuEntries.at(index - 1)?.group;
+        return option ? {...option, addSeparatorBefore} : option;
+    });
+
     const exportActionEntries: Record<string, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.EXPORT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
@@ -225,7 +252,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             icon: expensifyIcons.Export,
             rightIcon: expensifyIcons.ArrowRight,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT,
-            subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
+            subMenuItems: exportSubMenuItems,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,

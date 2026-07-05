@@ -1,6 +1,6 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -1468,14 +1468,16 @@ function queueExportSearchWithTemplate(
  * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
  * @param integrationsExportTemplates - The user's custom integrations export templates
  * @param csvExportLayouts - The user's custom account level export templates
+ * @param localeCompare - Locale-aware string comparison function used to sort each group alphabetically
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
- * @returns
+ * @returns The export templates, with the custom/IS group (sorted alphabetically) first, followed by the default group (sorted alphabetically)
  */
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     policy?: Policy,
     includeReportLevelExport = true,
 ): ExportTemplate[] {
@@ -1513,7 +1515,14 @@ function getExportTemplates(
     // Update the integrations export templates to include the name, description, policyID, and type
     const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
-    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+    // Custom / IS templates (custom integrations + account/policy in-app templates), sorted alphabetically by name
+    const customTemplates = [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    // Default templates (expense/report level), sorted alphabetically by name
+    const defaultTemplates = [...exportTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    // Return the custom/IS group first, followed by the default group, to match the grouped Export menu structure
+    return [...customTemplates, ...defaultTemplates];
 }
 
 /**

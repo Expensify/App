@@ -1457,7 +1457,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport);
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1573,31 +1573,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
 
+            // "Current view" is pinned directly under the accounting actions.
+            // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
+            // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
             exportOptions.push({
-                // Group by exports dont have a basicExport, at the same time the backend expects isBasicExport to be true for grouped exports, so we just rename the option here
-                // Fixing here https://github.com/Expensify/Expensify/issues/652978
-                text: translate(isGroupedSearch ? 'export.currentView' : 'export.basicExport'),
+                text: translate('export.currentView'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
-                    handleBasicExport();
+                    if (isGroupedSearch) {
+                        handleBasicExport();
+                        return;
+                    }
+                    handleExportCurrentView();
                 },
                 shouldCloseModalOnSelect: true,
                 shouldCallAfterModalHide: true,
+                // Divider between the accounting actions group and the current view group (suppressed when this is the first item)
+                addSeparatorBefore: true,
             });
 
-            if (!isGroupedSearch) {
-                exportOptions.push({
-                    text: translate('export.currentView'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        handleExportCurrentView();
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
-            }
-
             if (!allSelectedAreDeleted && !includesGroupExport) {
+                let previousIsStandardTemplate: boolean | undefined;
                 for (const template of exportTemplates) {
                     const isStandardTemplate =
                         template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
@@ -1610,8 +1606,25 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
+                        // Divider before the first template (separating from current view) and at the custom/default group boundary
+                        addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
                     });
+                    previousIsStandardTemplate = isStandardTemplate;
                 }
+            }
+
+            // "Basic export" is a default export option, pinned to the bottom of the menu within the default templates group (no divider before it).
+            // Grouped exports don't have a separate basic export (it's surfaced as "Current view" above).
+            if (!isGroupedSearch) {
+                exportOptions.push({
+                    text: translate('export.basicExport'),
+                    icon: expensifyIcons.Table,
+                    onSelected: () => {
+                        handleBasicExport();
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
             }
 
             return exportOptions;

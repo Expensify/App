@@ -47,15 +47,15 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = currentSearchQueryJSON?.policyID;
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = policyIDs !== undefined ? getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
-    const policyLevelExportTemplates = policiesToUse.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
-    const accountLevelExportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
+    const policyLevelExportTemplates = policiesToUse.flatMap((policy) => getExportTemplates([], {}, translate, localeCompare, policy, false));
+    const accountLevelExportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, undefined, true);
     const combinedExportTemplates = [...accountLevelExportTemplates, ...policyLevelExportTemplates];
 
     const uniqueExportTemplatesByName = new Map<string, ExportTemplate>();
