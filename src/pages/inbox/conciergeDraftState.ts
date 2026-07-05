@@ -1,6 +1,7 @@
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -35,6 +36,7 @@ type BuildConciergeDraftReportActionParams = {
     finalRenderedHTML?: string;
     reportActionID: string;
     reportID: string;
+    isGroupPolicyReport: boolean;
 };
 
 type TextRange = {
@@ -579,8 +581,16 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
-    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
+function buildConciergeDraftReportAction({
+    actorAccountID,
+    bodyMarkdown,
+    created,
+    finalRenderedHTML,
+    reportActionID,
+    reportID,
+    isGroupPolicyReport,
+}: BuildConciergeDraftReportActionParams): ReportAction | null {
+    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
     if (!html) {
         return null;
@@ -675,7 +685,7 @@ function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
     }
 }
 
-function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string): ConciergeDraft | null {
+function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string, isGroupPolicyReport: boolean): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
     }
@@ -702,6 +712,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
             finalRenderedHTML: event.finalRenderedHTML,
             reportActionID: event.reportActionID,
             reportID: event.reportID,
+            isGroupPolicyReport,
         }) ?? currentDraft?.reportAction;
 
     if (!nextReportAction) {

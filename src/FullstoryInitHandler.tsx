@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import {useEffect} from 'react';
+
 import CONST from './CONST';
 import useOnyx from './hooks/useOnyx';
 import FS from './libs/Fullstory';

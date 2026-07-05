@@ -1,10 +1,14 @@
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
+
 import {useTableContext} from './TableContext';
 
 /**

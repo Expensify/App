@@ -1,5 +1,3 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -23,18 +21,27 @@ import {
     generateReportID,
     getDisplayedReportID,
     getOptimisticDataForAncestors,
+    getReimbursableTotal,
     getReportOrDraftReport,
+    getUnheldReimbursableTotal,
     isExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
 import {getAmount} from '@libs/TransactionUtils';
+
 import {notifyNewAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getAllReports, getAllTransactions} from '.';
 
 /**
@@ -128,6 +135,7 @@ function putOnHold(
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) - transactionAmount : getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -441,6 +449,7 @@ function unholdRequest(
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) + transactionAmount : getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -732,8 +741,10 @@ function getReportFromHoldRequestsOnyxData({
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
-    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
+    const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
+    const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    const holdAmount = (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
@@ -857,6 +868,7 @@ function getReportFromHoldRequestsOnyxData({
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
                 unheldNonReimbursableTotal: 0,
+                unheldReimbursableTotal: 0,
                 ...(isProcessingReport(iouReport) && isApprovalEnabled
                     ? {
                           stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -901,6 +913,7 @@ function getReportFromHoldRequestsOnyxData({
             value: {
                 total: iouReport?.unheldTotal ?? 0,
                 nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+                reimbursableTotal: getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -977,6 +990,7 @@ function getReportFromHoldRequestsOnyxData({
             value: {
                 total: iouReport?.total,
                 nonReimbursableTotal: iouReport?.nonReimbursableTotal,
+                reimbursableTotal: iouReport?.reimbursableTotal,
             },
         });
     }

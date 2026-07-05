@@ -1,5 +1,3 @@
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -28,7 +26,9 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getReimbursableTotal,
     getReportOrDraftReport,
+    getUnheldReimbursableTotal,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
@@ -37,9 +37,11 @@ import {
 import playSound, {SOUNDS} from '@libs/Sound';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -47,6 +49,16 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MoneyRequestInformation} from './MoneyRequestBuilder';
+import type BasePolicyParams from './types/BasePolicyParams';
+import type BaseTransactionParams from './types/BaseTransactionParams';
+import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
+
 import {getAllPersonalDetails, getAllReports, getPolicyTags} from '.';
 import {
     buildMinimalTransactionForFormula,
@@ -55,11 +67,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import type {MoneyRequestInformation} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import type BasePolicyParams from './types/BasePolicyParams';
-import type BaseTransactionParams from './types/BaseTransactionParams';
-import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -391,15 +399,22 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
+        // Capture the previous reimbursable totals before the mutation so we can apply the diff
+        // consistently regardless of whether the freshly tracked field was already populated.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
+                // Per diems are reimbursable, so mirror the change on the freshly tracked reimbursable total.
+                iouReport.reimbursableTotal = previousReimbursableTotal - amount;
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
                 iouReport.unheldTotal -= amount;
+                iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
             }
         }
     } else {

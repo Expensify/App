@@ -303,4 +303,3 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
           path: Mobile-Expensify/main.jsbundle.map
-
