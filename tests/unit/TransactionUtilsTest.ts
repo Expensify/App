@@ -100,7 +100,10 @@ describe('TransactionUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID, email: CURRENT_USER_EMAIL},
+                [ONYXKEYS.SESSION]: {
+                    accountID: CURRENT_USER_ID,
+                    email: CURRENT_USER_EMAIL,
+                },
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [CURRENT_USER_ID]: {
                         accountID: CURRENT_USER_ID,
@@ -261,15 +264,28 @@ describe('TransactionUtils', () => {
 
     describe('getIsFromGlobalCreate', () => {
         it('returns true when isFromFloatingActionButton is true', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: true} as Transaction)).toBe(true);
+            expect(
+                TransactionUtils.getIsFromGlobalCreate({
+                    isFromFloatingActionButton: true,
+                } as Transaction),
+            ).toBe(true);
         });
 
         it('returns false when isFromFloatingActionButton is explicitly false (FAB takes precedence over isFromGlobalCreate via ?? semantics)', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: false, isFromGlobalCreate: true} as Transaction)).toBe(false);
+            expect(
+                TransactionUtils.getIsFromGlobalCreate({
+                    isFromFloatingActionButton: false,
+                    isFromGlobalCreate: true,
+                } as Transaction),
+            ).toBe(false);
         });
 
         it('falls back to isFromGlobalCreate when isFromFloatingActionButton is undefined', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({isFromGlobalCreate: true} as Transaction)).toBe(true);
+            expect(
+                TransactionUtils.getIsFromGlobalCreate({
+                    isFromGlobalCreate: true,
+                } as Transaction),
+            ).toBe(true);
         });
 
         it('returns undefined when both flags are absent', () => {
@@ -288,7 +304,9 @@ describe('TransactionUtils', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                rules: {
+                    expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1'),
+                },
             };
             const transaction = generateTransaction();
 
@@ -308,7 +326,9 @@ describe('TransactionUtils', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
+                rules: {
+                    expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1'),
+                },
             };
             const transaction = generateTransaction();
 
@@ -340,7 +360,9 @@ describe('TransactionUtils', () => {
                     },
                 },
                 outputCurrency: 'IDR',
-                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
+                rules: {
+                    expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1'),
+                },
             };
             const transaction = generateTransaction();
 
@@ -360,7 +382,9 @@ describe('TransactionUtils', () => {
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(0),
                     taxRates: CONST.DEFAULT_TAX,
-                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                    rules: {
+                        expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1'),
+                    },
                 };
                 const transaction: Transaction = {
                     ...generateTransaction(),
@@ -405,7 +429,9 @@ describe('TransactionUtils', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+                rules: {
+                    expenseRules: createCategoryTaxExpenseRules(category, taxCode),
+                },
             };
             const transaction = generateTransaction();
 
@@ -415,6 +441,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 policy: fakePolicy,
                 transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -463,6 +490,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then: quantity should be updated
@@ -485,6 +513,50 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
+            // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
+            // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
+            // returns that resolved currency when the default P2P rate is loaded, so seed it here.
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {
+                rate: 30,
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
+            await waitForBatchedUpdates();
+
+            try {
+                // transaction.currency is deliberately USD so a passing result proves the EUR came from
+                // personalPolicyOutputCurrency, not from the transaction itself.
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                    },
+                });
+
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {distance: 20},
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
+                // (The merchant shows the "EUR" code rather than the € glyph because the currency list isn't loaded in this unit test.)
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
@@ -493,6 +565,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -506,6 +579,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -517,7 +591,12 @@ describe('TransactionUtils', () => {
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
                 transaction,
                 isFromExpenseReport: true,
-                transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+                transactionChanges: {
+                    taxCode: 'id_TAX_RATE_1',
+                    taxAmount: 50,
+                    taxValue: '5%',
+                },
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -532,6 +611,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
@@ -647,32 +727,47 @@ describe('TransactionUtils', () => {
         });
 
         it('returns false for a non-distance expense', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
 
         it('returns false for an odometer distance expense (no map), even if it somehow carries waypoints', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {waypoints}});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {waypoints},
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
 
         it('returns false for a pure manual distance expense with no waypoints', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {}});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {},
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
 
         it('returns true for a manual distance expense that carries waypoints (e.g. merged from a map expense)', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {waypoints}});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {waypoints},
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
         });
 
         it('returns true for a map distance expense', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
         });
 
         it('returns true for a GPS distance expense', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
         });
     });
@@ -722,7 +817,12 @@ describe('TransactionUtils', () => {
 
     describe('shouldShowBrokenConnectionViolation', () => {
         it('should return false when no broken connection violations are found for the provided transaction', () => {
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}];
+            const transactionViolations = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                },
+            ];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
@@ -730,7 +830,13 @@ describe('TransactionUtils', () => {
 
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const transactionViolations = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RTER,
+                    data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                },
+            ];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -749,7 +855,9 @@ describe('TransactionUtils', () => {
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         name: CONST.VIOLATIONS.RTER,
-                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                        data: {
+                            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+                        },
                     },
                 ],
             };
@@ -768,7 +876,13 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists and the user is the policy admin and the expense submitter', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
             const report = processingReport;
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const transactionViolations = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RTER,
+                    data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                },
+            ];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -777,16 +891,32 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists, the user is the policy admin and the expense report is in the open state', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
             const report = secondUserOpenReport;
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const transactionViolations = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RTER,
+                    data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                },
+            ];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
 
         it('should return true when a broken connection violation exists, the user is the policy admin, the expense report is in the processing state and instant submit is enabled', () => {
-            const policy = {role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT} as Policy;
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            } as Policy;
             const report = processingReport;
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const transactionViolations = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RTER,
+                    data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                },
+            ];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -795,7 +925,13 @@ describe('TransactionUtils', () => {
         it('should return false when a broken connection violation exists, the user is the policy admin but the expense report is in the approved state', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
             const report = approvedReport;
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const transactionViolations = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RTER,
+                    data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                },
+            ];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
@@ -806,7 +942,13 @@ describe('TransactionUtils', () => {
         it('returns true for empty, default, and partial merchant values', () => {
             expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: ''}))).toBe(true);
             expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT}))).toBe(true);
-            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}))).toBe(true);
+            expect(
+                TransactionUtils.isMerchantMissing(
+                    generateTransaction({
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    }),
+                ),
+            ).toBe(true);
         });
 
         it('returns false for a valid merchant', () => {
@@ -886,24 +1028,34 @@ describe('TransactionUtils', () => {
         });
 
         it('should normalize the DEFAULT_MERCHANT ("Expense") sentinel to an empty string', () => {
-            const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+            });
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
 
         it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") sentinel to an empty string', () => {
-            const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            });
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
 
         it('should prefer modifiedMerchant over merchant', () => {
-            const transaction = generateTransaction({merchant: 'Original', modifiedMerchant: 'Modified'});
+            const transaction = generateTransaction({
+                merchant: 'Original',
+                modifiedMerchant: 'Modified',
+            });
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Modified');
         });
 
         it('should return the localized scanning label while a receipt is scanning', () => {
             const transaction = generateTransaction({
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'},
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                    source: 'receipt.jpg',
+                },
             });
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('iou.receiptStatusTitle');
         });
@@ -911,7 +1063,10 @@ describe('TransactionUtils', () => {
         it('should return an empty string for a receipt whose scan failed', () => {
             const transaction = generateTransaction({
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    source: 'receipt.jpg',
+                },
             });
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
@@ -1041,7 +1196,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When checking if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
@@ -1055,7 +1213,10 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction({
                     comment: {},
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When checking if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
@@ -1075,7 +1236,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When checking if violation is dismissed for current user
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
@@ -1104,7 +1268,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When current user (admin, not the owner) checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
@@ -1131,7 +1298,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When current user (admin, not the owner) checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
@@ -1158,7 +1328,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When current user (the submitter) checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
@@ -1187,7 +1360,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    name: CONST.VIOLATIONS.RTER,
+                };
 
                 // When current user checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
@@ -1214,7 +1390,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    name: CONST.VIOLATIONS.RTER,
+                };
 
                 // When current user checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
@@ -1241,7 +1420,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
 
                 // When current user checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
@@ -1269,7 +1451,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    name: CONST.VIOLATIONS.RTER,
+                };
 
                 // When current user checks if violation is dismissed
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
@@ -1281,7 +1466,10 @@ describe('TransactionUtils', () => {
 
         describe('Edge cases and data validation', () => {
             it('should return false when transaction is null', () => {
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
                 const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
                 expect(result).toBe(false);
             });
@@ -1302,7 +1490,10 @@ describe('TransactionUtils', () => {
                         },
                     },
                 });
-                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const violation = {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                };
                 const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
                 expect(result).toBe(false);
             });
@@ -1330,13 +1521,19 @@ describe('TransactionUtils', () => {
 
     describe('getReportOwnerAsAttendee', () => {
         it('should return undefined when details has no login and display name', () => {
-            const result = TransactionUtils.getReportOwnerAsAttendee({accountID: 1});
+            const result = TransactionUtils.getReportOwnerAsAttendee({
+                accountID: 1,
+            });
             expect(result).toBeUndefined();
         });
 
         it('should return report owner as attendee for reported expense', () => {
             const avatar = 'test';
-            const result = TransactionUtils.getReportOwnerAsAttendee({accountID: SECOND_USER_ID, login: OTHER_USER_EMAIL, avatar});
+            const result = TransactionUtils.getReportOwnerAsAttendee({
+                accountID: SECOND_USER_ID,
+                login: OTHER_USER_EMAIL,
+                avatar,
+            });
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(OTHER_USER_EMAIL);
@@ -1450,7 +1647,12 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, {accountID: CURRENT_USER_ID, displayName: '', avatarUrl: '', selected: true});
+            const result = TransactionUtils.getOriginalAttendees(transaction, {
+                accountID: CURRENT_USER_ID,
+                displayName: '',
+                avatarUrl: '',
+                selected: true,
+            });
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
@@ -1461,19 +1663,45 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
+                    attendees: [
+                        {
+                            displayName: '   ',
+                            login: '  login-only@example.com  ',
+                            avatarUrl: '',
+                        },
+                    ],
                 },
             });
 
             const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
-            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([
+                {
+                    displayName: 'login-only@example.com',
+                    login: 'login-only@example.com',
+                    avatarUrl: '',
+                },
+            ]);
         });
 
         it('should handle attendees stored as a plain object', () => {
             const attendeesArray: Attendee[] = [
-                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
-                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
+                {
+                    email: 'attendee1@example.com',
+                    login: 'attendee1@example.com',
+                    displayName: 'Attendee One',
+                    avatarUrl: '',
+                    accountID: 3,
+                    selected: true,
+                },
+                {
+                    email: 'attendee2@example.com',
+                    login: 'attendee2@example.com',
+                    displayName: 'Attendee Two',
+                    avatarUrl: '',
+                    accountID: 4,
+                    selected: false,
+                },
             ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
@@ -1558,7 +1786,12 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: '', selected: true});
+            const result = TransactionUtils.getAttendees(transaction, {
+                accountID: CURRENT_USER_ID,
+                avatarUrl: '',
+                displayName: '',
+                selected: true,
+            });
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
@@ -1598,7 +1831,11 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {
+                accountID: CURRENT_USER_ID,
+                avatarUrl: '',
+                displayName: '',
+            });
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
@@ -1611,16 +1848,37 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
+                modifiedAttendees: [
+                    {
+                        displayName: '   ',
+                        login: '  edited@example.com  ',
+                        avatarUrl: '',
+                    },
+                ],
             });
 
             const result = TransactionUtils.getAttendees(transaction);
 
-            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([
+                {
+                    displayName: 'edited@example.com',
+                    login: 'edited@example.com',
+                    avatarUrl: '',
+                },
+            ]);
         });
 
         it('should handle comment attendees stored as a plain object', () => {
-            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
+            const attendeesArray: Attendee[] = [
+                {
+                    email: 'attendee@example.com',
+                    login: 'attendee@example.com',
+                    displayName: 'Attendee',
+                    avatarUrl: '',
+                    accountID: 7,
+                    selected: true,
+                },
+            ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1636,7 +1894,14 @@ describe('TransactionUtils', () => {
 
         it('should handle modifiedAttendees stored as a plain object', () => {
             const modifiedAttendeesArray: Attendee[] = [
-                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
+                {
+                    email: 'modified@example.com',
+                    login: 'modified@example.com',
+                    displayName: 'Modified Attendee',
+                    avatarUrl: '',
+                    accountID: 6,
+                    selected: true,
+                },
             ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
@@ -1660,7 +1925,11 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {
+                accountID: CURRENT_USER_ID,
+                avatarUrl: '',
+                displayName: '',
+            });
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
@@ -1675,7 +1944,11 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: {} as unknown as Attendee[],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {
+                accountID: CURRENT_USER_ID,
+                avatarUrl: '',
+                displayName: '',
+            });
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
@@ -1683,43 +1956,92 @@ describe('TransactionUtils', () => {
     });
 
     describe('getAttendeesListDisplayString', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'variant', caseFirst: 'upper'});
+        const localeCompare = (a: string, b: string) =>
+            a.localeCompare(b, undefined, {
+                numeric: true,
+                sensitivity: 'variant',
+                caseFirst: 'upper',
+            });
 
         it('preserves insertion order when no localeCompare is provided', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {
+                    email: 'b@x.com',
+                    displayName: 'banana',
+                    avatarUrl: '',
+                    login: 'b@x.com',
+                },
+                {
+                    email: 'a@x.com',
+                    displayName: 'apple',
+                    avatarUrl: '',
+                    login: 'a@x.com',
+                },
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
         });
 
         it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {
+                    email: 'b@x.com',
+                    displayName: 'banana',
+                    avatarUrl: '',
+                    login: 'b@x.com',
+                },
+                {
+                    email: 'a@x.com',
+                    displayName: 'apple',
+                    avatarUrl: '',
+                    login: 'a@x.com',
+                },
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
         });
 
         it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
             const attendees: Attendee[] = [
-                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
-                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
+                {
+                    email: '10@x.com',
+                    displayName: 'User 10',
+                    avatarUrl: '',
+                    login: '10@x.com',
+                },
+                {
+                    email: '9@x.com',
+                    displayName: 'User 9',
+                    avatarUrl: '',
+                    login: '9@x.com',
+                },
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
         });
 
         it('compares case-insensitively so the joined string matches pill order', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
+                {
+                    email: 'b@x.com',
+                    displayName: 'Bob',
+                    avatarUrl: '',
+                    login: 'b@x.com',
+                },
+                {
+                    email: 'a@x.com',
+                    displayName: 'alice',
+                    avatarUrl: '',
+                    login: 'a@x.com',
+                },
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
         });
 
         it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
             const attendees: Attendee[] = [
-                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
+                {
+                    displayName: '+15551234567@expensify.sms',
+                    avatarUrl: '',
+                    login: '+15551234567@expensify.sms',
+                },
                 {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
@@ -1731,8 +2053,18 @@ describe('TransactionUtils', () => {
 
         it('does not mutate the input array', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {
+                    email: 'b@x.com',
+                    displayName: 'banana',
+                    avatarUrl: '',
+                    login: 'b@x.com',
+                },
+                {
+                    email: 'a@x.com',
+                    displayName: 'apple',
+                    avatarUrl: '',
+                    login: 'a@x.com',
+                },
             ];
             const snapshot = [...attendees];
             TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
@@ -2336,7 +2668,11 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: 'fakePolicyID',
+                areTagsEnabled: true,
+            };
             const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
@@ -2367,7 +2703,11 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: 'fakePolicyID',
+                areTagsEnabled: true,
+            };
             const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             // Since only one enabled tag is available and empty is not included, tag should not be in change
@@ -2739,7 +3079,11 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: 'fakePolicyID',
+                areTagsEnabled: true,
+            };
             const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering:Project A');
@@ -2806,7 +3150,11 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: 'fakePolicyID',
+                areTagsEnabled: true,
+            };
             const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
@@ -3612,14 +3960,19 @@ describe('TransactionUtils', () => {
 
         describe('when iouRequestType is a non-distance type', () => {
             it('returns false', () => {
-                const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+                const transaction = generateTransaction({
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                });
                 expect(TransactionUtils.isDistanceRequest(transaction)).toBe(false);
             });
         });
 
         describe('when iouRequestType is null', () => {
             it('returns false', () => {
-                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                const transaction = {
+                    ...generateTransaction(),
+                    iouRequestType: null,
+                } as unknown as Transaction;
                 expect(TransactionUtils.isDistanceRequest(transaction)).toBe(false);
             });
         });
@@ -3639,14 +3992,46 @@ describe('TransactionUtils', () => {
     });
 
     describe.each([
-        {fn: 'isDistanceTypeRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isMapDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS},
-        {fn: 'isGPSDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isManualDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isOdometerDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isScanRequest', match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
-        {fn: 'isPerDiemRequest', match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
-        {fn: 'isTimeRequest', match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
+        {
+            fn: 'isDistanceTypeRequest',
+            match: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        },
+        {
+            fn: 'isMapDistanceRequest',
+            match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+        },
+        {
+            fn: 'isGPSDistanceRequest',
+            match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+            other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        },
+        {
+            fn: 'isManualDistanceRequest',
+            match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        },
+        {
+            fn: 'isOdometerDistanceRequest',
+            match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+            other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        },
+        {
+            fn: 'isScanRequest',
+            match: CONST.IOU.REQUEST_TYPE.SCAN,
+            other: CONST.IOU.REQUEST_TYPE.MANUAL,
+        },
+        {
+            fn: 'isPerDiemRequest',
+            match: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            other: CONST.IOU.REQUEST_TYPE.TIME,
+        },
+        {
+            fn: 'isTimeRequest',
+            match: CONST.IOU.REQUEST_TYPE.TIME,
+            other: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+        },
     ] as const)('$fn', ({fn, match, other}) => {
         describe(`when iouRequestType matches`, () => {
             it('returns true', () => {
@@ -3664,7 +4049,10 @@ describe('TransactionUtils', () => {
 
         describe('when iouRequestType is null', () => {
             it('returns false', () => {
-                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                const transaction = {
+                    ...generateTransaction(),
+                    iouRequestType: null,
+                } as unknown as Transaction;
                 expect(TransactionUtils[fn](transaction)).toBe(false);
             });
         });
@@ -3697,7 +4085,10 @@ describe('TransactionUtils', () => {
 
         describe('when iouRequestType is null', () => {
             it('returns manual as the fallback', () => {
-                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                const transaction = {
+                    ...generateTransaction(),
+                    iouRequestType: null,
+                } as unknown as Transaction;
                 expect(TransactionUtils.getRequestType(transaction)).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
             });
         });
@@ -3722,29 +4113,42 @@ describe('TransactionUtils', () => {
         });
 
         it('returns false for a non-distance (scan) request', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
 
         it('returns false for an odometer distance request', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
 
         it('returns true for a map distance request', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
         });
 
         it('returns true for a GPS distance request', () => {
-            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS});
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+            });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
         });
 
         it('returns true for a manual distance request that carries waypoints', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
-                comment: {waypoints: {waypoint0: {lat: 0, lng: 0}, waypoint1: {lat: 1, lng: 1}}},
+                comment: {
+                    waypoints: {
+                        waypoint0: {lat: 0, lng: 0},
+                        waypoint1: {lat: 1, lng: 1},
+                    },
+                },
             });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
         });
@@ -3799,7 +4203,11 @@ describe('getSupersededPendingCardTransactionIDs', () => {
     it('does not supersede an unrelated non-card pending transaction', () => {
         const cardPending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
         const cardPosted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
-        const manualPending = generateTransaction({transactionID: 'manual1', bank: '', status: CONST.TRANSACTION.STATUS.PENDING});
+        const manualPending = generateTransaction({
+            transactionID: 'manual1',
+            bank: '',
+            status: CONST.TRANSACTION.STATUS.PENDING,
+        });
 
         const result = TransactionUtils.getSupersededPendingCardTransactionIDs([cardPending, cardPosted, manualPending]);
 
@@ -3843,12 +4251,25 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     });
 
     it('returns false when the draft only has empty waypoint placeholders', () => {
-        const transaction = generateTransaction({comment: {waypoints: {waypoint0: {}, waypoint1: {}}}});
+        const transaction = generateTransaction({
+            comment: {waypoints: {waypoint0: {}, waypoint1: {}}},
+        });
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(false);
     });
 
     it('returns true when the user entered a waypoint', () => {
-        const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
+        const transaction = generateTransaction({
+            comment: {
+                waypoints: {
+                    waypoint0: {
+                        address: '350 5th Ave, New York',
+                        lat: 40.7484,
+                        lng: -73.9857,
+                    },
+                    waypoint1: {},
+                },
+            },
+        });
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });

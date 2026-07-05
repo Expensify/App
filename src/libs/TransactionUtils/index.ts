@@ -609,6 +609,7 @@ function getUpdatedTransaction({
     shouldUpdateReceiptState = true,
     policy = undefined,
     isSplitTransaction = false,
+    personalPolicyOutputCurrency,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -616,6 +617,7 @@ function getUpdatedTransaction({
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
     isSplitTransaction?: boolean;
+    personalPolicyOutputCurrency: string | undefined;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -666,7 +668,11 @@ function getUpdatedTransaction({
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else if (transactionChanges.routes?.route0?.geometry?.coordinates) {
-            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
+            const mileageRate = DistanceRequestUtils.getRate({
+                transaction: updatedTransaction,
+                policy,
+                personalPolicyOutputCurrency,
+            });
             const {unit, rate} = mileageRate;
 
             // Use route distance directly since waypoints changed and the route was recalculated.
@@ -715,7 +721,11 @@ function getUpdatedTransaction({
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
 
         // Get the new distance unit from the rate's unit
-        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({
+            transaction: updatedTransaction,
+            policy,
+            personalPolicyOutputCurrency,
+        });
         lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
 
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit.
@@ -730,7 +740,12 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+            const updatedMileageRate = DistanceRequestUtils.getRate({
+                transaction: updatedTransaction,
+                policy,
+                useTransactionDistanceUnit: false,
+                personalPolicyOutputCurrency,
+            });
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
@@ -818,7 +833,12 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
-        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+        const updatedMileageRate = DistanceRequestUtils.getRate({
+            transaction: updatedTransaction,
+            policy,
+            useTransactionDistanceUnit: false,
+            personalPolicyOutputCurrency,
+        });
         const {unit, rate} = updatedMileageRate;
 
         // Sync the stored distanceUnit to the policy's current unit. The user's input on the Manual
