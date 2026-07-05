@@ -63,10 +63,11 @@ function WideRHPReceiptPanelGate() {
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+    const hasMultipleTransactions = (visibleTransactions?.length ?? 0) > 1;
+    const isConfirmedMultiTransactionReport = isMoneyRequestOrInvoiceReport && hasMultipleTransactions && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const shouldShowWideRHP =
-        !shouldDisplayMoneyRequestActionsList &&
+        !isConfirmedMultiTransactionReport &&
         (isTransactionThread(parentReportAction) ||
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
@@ -74,7 +75,7 @@ function WideRHPReceiptPanelGate() {
             report?.type === CONST.REPORT.TYPE.IOU);
 
     let rhpWidth: RHPWidth = 'narrow';
-    if (shouldDisplayMoneyRequestActionsList) {
+    if (isConfirmedMultiTransactionReport) {
         rhpWidth = 'super-wide';
     } else if (shouldShowWideRHP) {
         rhpWidth = 'wide';
