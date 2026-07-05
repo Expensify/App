@@ -111,7 +111,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
     // Snapshot the reports that were already selected when the filter first opened. On a long list these stay
     // pinned to the top so they're easy to find, but items toggled during the current session are NOT re-pinned:
-    // they keep their position so selecting doesn't scroll/jump the list (https://github.com/Expensify/App/issues/61414).
+    // they keep their position so selecting doesn't scroll/jump the list.
     const initialValue = useInitialValue(() => value);
 
     const defaultOptions =
@@ -143,7 +143,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     if (!isLoading) {
         // Only float the initially-selected reports to the top of a long list. Gate on the *unfiltered* list size so the
         // decision doesn't flip as the user types, and key the pinned section on the snapshot (instead of the live
-        // `value`) so items toggled during this session stay put (https://github.com/Expensify/App/issues/61414).
+        // `value`) so items toggled during this session stay put.
         const shouldMoveSelectedToTop = defaultOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
         const pinnedReportIDs = shouldMoveSelectedToTop ? initialValue : [];
         const pinnedReportIDSet = new Set(pinnedReportIDs);
