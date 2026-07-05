@@ -1,6 +1,8 @@
 import getExpenseReportRowAccessibilityLabel from '@components/Search/SearchList/ListItem/getExpenseReportRowAccessibilityLabel';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+
 import {translateLocal} from '../utils/TestHelper';
 
 describe('getExpenseReportRowAccessibilityLabel', () => {

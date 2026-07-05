@@ -1,8 +1,9 @@
-import debounce from 'lodash/debounce';
-import {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
+
+import debounce from 'lodash/debounce';
+import {useEffect, useState} from 'react';
 
 const ELLIPSIS = '...';
 

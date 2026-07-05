@@ -1,9 +1,3 @@
-import {cardByIdSelector} from '@selectors/Card';
-import {format, parseISO, subDays} from 'date-fns';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,19 +5,32 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CardList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {cardByIdSelector} from '@selectors/Card';
+import {format, parseISO, subDays} from 'date-fns';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
 type PersonalCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE>;
@@ -139,7 +146,6 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                                         setStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                    maxDate={new Date()}
                                     errorText={errorText}
                                 />
                             </View>

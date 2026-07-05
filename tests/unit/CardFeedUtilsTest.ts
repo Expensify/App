@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
 import {
     getCardFeedNamesWithType,
     getCardFeedsForDisplay,
@@ -8,10 +6,15 @@ import {
     getFeedInfo,
     getSelectedCardsFromFeeds,
 } from '@libs/CardFeedUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -481,7 +484,7 @@ describe('country-aware domain feed picker', () => {
         const names = getCardFeedNamesWithType({workspaceCardFeeds, policies: undefined, translate: translateLocal});
         expect(Object.keys(names).sort()).toEqual(['cards_5555_Expensify Card', 'cards_5555_Expensify Card_TRAVEL_US']);
         expect(names['cards_5555_Expensify Card'].name).toBe('All Expensify - user.com');
-        expect(names['cards_5555_Expensify Card_TRAVEL_US'].name).toBe('All Travel invoicing - user.com');
+        expect(names['cards_5555_Expensify Card_TRAVEL_US'].name).toBe('All Consolidated Travel Billing - user.com');
     });
 
     it('resolves a travel selection to only travel cards', () => {

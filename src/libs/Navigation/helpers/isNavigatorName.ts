@@ -1,5 +1,6 @@
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNavigatorSidebarScreen, WorkspaceNavigatorRouteName} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 

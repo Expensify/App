@@ -3,6 +3,7 @@ import {spawnSync} from 'node:child_process';
 import {chmodSync, copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+
 import {comparePng, FIXTURE_EXPECTED_SIZES, FIXTURE_NAMES, fixturesDir, getLocalCompileTarget, goldenDir, packageRoot} from './testUtils';
 
 const SHOULD_UPDATE_GOLDEN = process.env.UPDATE_GOLDEN === '1';
@@ -41,7 +42,7 @@ describe('victory-chart-renderer CLI', () => {
 
     describe('golden PNG renders', () => {
         test('fixture suite includes all expected charts', () => {
-            expect(FIXTURE_NAMES.length).toBe(5);
+            expect(FIXTURE_NAMES.length).toBe(6);
         });
 
         for (const fixtureName of FIXTURE_NAMES) {
@@ -60,7 +61,7 @@ describe('victory-chart-renderer CLI', () => {
                     copyFileSync(actualPath, goldenPath);
                 }
 
-                comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName));
+                comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName), fixtureName);
             });
         }
     });

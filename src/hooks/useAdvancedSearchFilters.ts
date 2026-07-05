@@ -1,14 +1,19 @@
-import {filterCardsHiddenFromSearch} from '@selectors/Card';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {emailSelector} from '@selectors/Session';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {filterCardsHiddenFromSearch} from '@selectors/Card';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {emailSelector} from '@selectors/Session';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useWorkspaceList from './useWorkspaceList';
@@ -39,10 +44,12 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
@@ -279,22 +286,16 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
 }
 
 /**
+ * Checks whether a single policy's tag lists contain at least one tag.
+ * Short-circuits on the first tag found.
+ */
+const policyTagListHasTags = (policyTagList: PolicyTagLists | undefined) => Object.values(policyTagList ?? {}).some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
+
+/**
  * Selector that checks if any tags exist across all policy tag lists.
  * Returns a boolean with early exit on first tag found.
  */
-const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
-    for (const policyTagList of Object.values(allPolicyTagLists ?? {})) {
-        if (!policyTagList) {
-            continue;
-        }
-        for (const tagList of Object.values(policyTagList)) {
-            if (Object.keys(tagList.tags ?? {}).length > 0) {
-                return true;
-            }
-        }
-    }
-    return false;
-};
+const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => Object.values(allPolicyTagLists ?? {}).some(policyTagListHasTags);
 
 function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, searchTerm?: string) {
     const {localeCompare} = useLocalize();
@@ -327,6 +328,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: s
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const selectedPolicyTagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists);
     const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
@@ -338,7 +340,11 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: s
     });
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
-    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
+    const hasSelectedPolicyTags = selectedPolicyTagLists.some(policyTagListHasTags);
+    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, hasSelectedPolicyTags);
+    // Count business accounts that aren't partially set up, mirroring BankAccountSelector so the row never shows above an empty picker.
+    const hasFilterableBankAccount = Object.values(bankAccountList ?? {}).some(isFilterableBankAccount);
+    const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasFilterableBankAccount ? 1 : 0, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
 
@@ -362,6 +368,9 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: s
                         (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) &&
                         !shouldDisplayCardFilter
                     ) {
+                        return;
+                    }
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT && !shouldDisplayBankAccountFilter) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && !shouldDisplayTaxFilter) {

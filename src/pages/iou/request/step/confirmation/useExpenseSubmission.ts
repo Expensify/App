@@ -1,9 +1,4 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useActivePolicy from '@hooks/useActivePolicy';
-import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -14,6 +9,7 @@ import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -32,6 +28,7 @@ import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     generateReportID,
+    getAllPolicyExpenseChatReportActions,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -49,7 +46,9 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
+
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
@@ -57,6 +56,7 @@ import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMone
 import {createDistanceRequest as createDistanceRequestIOUActions, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
@@ -67,6 +67,12 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {useEffect, useRef, useState} from 'react';
 
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
@@ -212,7 +218,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
-    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -618,6 +625,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
+        const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
@@ -687,6 +695,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
                 reportActionsList: policyExpenseChatReportActions,
+                personalDetailsList: personalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }

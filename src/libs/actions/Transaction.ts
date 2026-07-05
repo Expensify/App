@@ -1,7 +1,3 @@
-import {getUnixTime} from 'date-fns';
-import lodashClone from 'lodash/clone';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -39,8 +35,10 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getIOUReportActionMessage,
+    getReimbursableTotal,
     getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     shouldEnableNegative,
@@ -60,6 +58,7 @@ import {
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +82,12 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import {getUnixTime} from 'date-fns';
+import lodashClone from 'lodash/clone';
+import Onyx from 'react-native-onyx';
+
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -93,12 +98,6 @@ Onyx.connect({
         }
         allReports = value;
     },
-});
-
-let allTransactionViolations: TransactionViolations = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
 });
 
 type SaveWaypointProps = {
@@ -836,9 +835,10 @@ type ChangeTransactionsReportProps = {
     policy: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
-    allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
+    transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
+    allReports: OnyxCollection<Report>;
 };
 
 function changeTransactionsReport({
@@ -850,25 +850,27 @@ function changeTransactionsReport({
     policy,
     reportNextStep,
     policyCategories,
-    allTransactions,
     policyTagList,
+    transactions,
     allTransactionViolation = {},
+    allReports: allReportsParam,
 }: ChangeTransactionsReportProps) {
+    const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportTransactionCounts: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
     const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
+    const updatedReportReimbursableTotals: Record<string, number> = {};
+    const updatedReportUnheldReimbursableTotals: Record<string, number> = {};
     const updatedReportStateNums: Record<string, NonNullable<Report['stateNum']>> = {};
     const updatedReportStatusNums: Record<string, NonNullable<Report['statusNum']>> = {};
     const staleReportIDs = new Set<string>();
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
 
-    // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
     for (const id of transactionIDs) {
         currentTransactionViolations[id] = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
@@ -1025,6 +1027,8 @@ function changeTransactionsReport({
         delete updatedReportTotals[reportIDToUpdate];
         delete updatedReportNonReimbursableTotals[reportIDToUpdate];
         delete updatedReportUnheldNonReimbursableTotals[reportIDToUpdate];
+        delete updatedReportReimbursableTotals[reportIDToUpdate];
+        delete updatedReportUnheldReimbursableTotals[reportIDToUpdate];
     };
     const markReportTotalAsStale = (reportIDToUpdate: string | undefined) => {
         if (!reportIDToUpdate) {
@@ -1076,7 +1080,7 @@ function changeTransactionsReport({
         transactionsMoved = true;
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
-        const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
+        const oldReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
         const sourceCurrency = oldReport?.currency;
         const shouldClearAmount = shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency);
 
@@ -1152,14 +1156,15 @@ function changeTransactionsReport({
 
         // Optimistically clear all violations for the transaction when moving to self DM report
         if (isUnreported) {
-            const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
+            const duplicateTransactionIDs = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data
+                ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        value: siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }
@@ -1300,7 +1305,7 @@ function changeTransactionsReport({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? null,
+                value: currentTransactionViolations[transaction.transactionID] ?? null,
             });
             if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
                 shouldFixViolations = true;
@@ -1360,6 +1365,10 @@ function changeTransactionsReport({
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[oldReportID] ?? oldReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[oldReportID] =
                     currentUnheldNonReimbursableTotal + (transaction?.reimbursable && !isOnHold(transaction) ? 0 : sourceTransactionAmount);
+                const currentReimbursableTotal = updatedReportReimbursableTotals[oldReportID] ?? getReimbursableTotal(oldReport);
+                updatedReportReimbursableTotals[oldReportID] = currentReimbursableTotal + (transaction?.reimbursable ? sourceTransactionAmount : 0);
+                const currentUnheldReimbursableTotal = updatedReportUnheldReimbursableTotals[oldReportID] ?? getUnheldReimbursableTotal(oldReport);
+                updatedReportUnheldReimbursableTotals[oldReportID] = currentUnheldReimbursableTotal + (transaction?.reimbursable && !isOnHold(transaction) ? sourceTransactionAmount : 0);
             } else {
                 markReportTotalAsStale(oldReportID);
             }
@@ -1368,7 +1377,7 @@ function changeTransactionsReport({
         if (targetReportID) {
             const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
             const targetReport =
-                allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+                reports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
             const targetReportCurrencies = getTargetReportCurrencies(targetReportID);
             const targetReportTransactionCount = updatedReportTransactionCounts[targetReportID] ?? targetReport?.transactionCount ?? 0;
             updatedReportTransactionCounts[targetReportID] = targetReportTransactionCount + 1;
@@ -1385,6 +1394,12 @@ function changeTransactionsReport({
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] =
                     currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : targetTransactionAmount);
+
+                const currentReimbursableTotal = updatedReportReimbursableTotals[targetReportID] ?? getReimbursableTotal(targetReport);
+                updatedReportReimbursableTotals[targetReportID] = currentReimbursableTotal - (transactionReimbursable ? targetTransactionAmount : 0);
+
+                const currentUnheldReimbursableTotal = updatedReportUnheldReimbursableTotals[targetReportID] ?? getUnheldReimbursableTotal(targetReport);
+                updatedReportUnheldReimbursableTotals[targetReportID] = currentUnheldReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? targetTransactionAmount : 0);
             } else if (transactionForViolations.convertedAmount && oldReport?.currency === targetReport?.currency) {
                 // Use convertedAmount when transaction currency differs but workspace currency is the same
                 const {convertedAmount} = transactionForViolations;
@@ -1396,6 +1411,12 @@ function changeTransactionsReport({
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
+
+                const currentReimbursableTotal = updatedReportReimbursableTotals[targetReportID] ?? getReimbursableTotal(targetReport);
+                updatedReportReimbursableTotals[targetReportID] = currentReimbursableTotal + (transactionReimbursable ? convertedAmount : 0);
+
+                const currentUnheldReimbursableTotal = updatedReportUnheldReimbursableTotals[targetReportID] ?? getUnheldReimbursableTotal(targetReport);
+                updatedReportUnheldReimbursableTotals[targetReportID] = currentUnheldReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? convertedAmount : 0);
             } else {
                 markReportTotalAsStale(targetReportID);
             }
@@ -1466,7 +1487,7 @@ function changeTransactionsReport({
         }
 
         const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
-        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
+        const childReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
         if (childReport) {
             const participants = childReport.participants;
             // 5. Optimistically update the transaction thread and all threads in the transaction thread
@@ -1489,7 +1510,7 @@ function changeTransactionsReport({
                 value: {
                     parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
                     parentReportActionID: oldIOUAction.reportActionID,
-                    policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
+                    policyID: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
                 },
             });
         }
@@ -1644,7 +1665,7 @@ function changeTransactionsReport({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+            value: {total: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
         });
     }
     for (const [reportIDToUpdate, transactionCount] of Object.entries(updatedReportTransactionCounts)) {
@@ -1656,7 +1677,7 @@ function changeTransactionsReport({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {transactionCount: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.transactionCount},
+            value: {transactionCount: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.transactionCount},
         });
     }
 
@@ -1670,7 +1691,7 @@ function changeTransactionsReport({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {nonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
+            value: {nonReimbursableTotal: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
         });
     }
 
@@ -1685,7 +1706,7 @@ function changeTransactionsReport({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {
-                unheldNonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
+                unheldNonReimbursableTotal: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
             },
         });
     }
@@ -1706,6 +1727,36 @@ function changeTransactionsReport({
             value: {
                 stateNum: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.stateNum,
                 statusNum: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.statusNum,
+            },
+        });
+    }
+
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportReimbursableTotals)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {reimbursableTotal: total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {reimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.reimbursableTotal},
+        });
+    }
+
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportUnheldReimbursableTotals)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {unheldReimbursableTotal: total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                unheldReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldReimbursableTotal,
             },
         });
     }
@@ -1749,7 +1800,7 @@ function changeTransactionsReport({
 
     for (const affectedReportID of affectedReportIDs) {
         const affectedReport =
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
+            reports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
             (affectedReportID === newReport?.reportID ? newReport : undefined) ??
             (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 

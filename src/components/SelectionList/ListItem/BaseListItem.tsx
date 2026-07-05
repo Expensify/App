@@ -1,5 +1,3 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -8,6 +6,7 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
+
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -15,9 +14,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getBrowser, isMobile} from '@libs/Browser';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import type {BaseListItemProps, ListItem} from './types';
 
 type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex' | 'accessibilityLabel'>;

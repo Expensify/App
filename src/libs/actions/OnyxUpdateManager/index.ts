@@ -1,15 +1,20 @@
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
 import {unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
+
 import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates} from '@userActions/App';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Session} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
+
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {validateAndApplyDeferredUpdates} from './utils';
 import {
     clear as clearDeferredOnyxUpdates,
@@ -160,8 +165,10 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
 
             Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
-            // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-            setMissingOnyxUpdatesQueryPromise(finalReconnectAppAfterActivatingReliableUpdates());
+            // A full reconnectApp does not apply the triggering update here; it comes back in the reconnect response.
+            // We still drain the deferred queue afterwards so an update enqueued while the reconnect is in flight is applied
+            // in order instead of being cleared by finalizeUpdatesAndResumeQueue.
+            setMissingOnyxUpdatesQueryPromise(finalReconnectAppAfterActivatingReliableUpdates().then(() => validateAndApplyDeferredUpdates(clientLastUpdateID)));
 
             return true;
         }
@@ -174,8 +181,8 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         // Add the new update to the deferred updates
         enqueueDeferredOnyxUpdates(onyxUpdatesFromServer, {shouldPauseSequentialQueue: false});
 
-        // If there are deferred updates already, we don't need to fetch the missing updates again.
-        if (areDeferredUpdatesQueued || isFetchingForPendingUpdates) {
+        // If a fetch is already in progress, we don't need to start another one.
+        if (areDeferredUpdatesQueued || isFetchingForPendingUpdates || getMissingOnyxUpdatesQueryPromise()) {
             return false;
         }
 

@@ -1,7 +1,3 @@
-import {emailSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
-import type {ReactElement} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -12,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -20,12 +17,21 @@ import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ReactElement} from 'react';
+
+import {emailSelector} from '@selectors/Session';
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
@@ -123,12 +129,6 @@ function BookTravelButton({
             return;
         }
 
-        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
-            shouldResumeBookingRef.current = true;
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
-            return;
-        }
-
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(<RenderHTML html={translate('travel.phoneError', phoneErrorMethodsRoute)} />);
@@ -138,6 +138,12 @@ function BookTravelButton({
         // Spotnana requires a private domain email for travel booking
         if (isEmailPublicDomain(primaryContactMethod)) {
             navigateToPublicDomainError();
+            return;
+        }
+
+        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            shouldResumeBookingRef.current = true;
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
             return;
         }
 
@@ -161,7 +167,13 @@ function BookTravelButton({
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
-            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
+            // Send the default so the Travel-access check runs against the workspace owner's domain, not the acting admin's.
+            if (!isUserValidated) {
+                setTravelProvisioningNextStep(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID)));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, Navigation.getActiveRoute()));
+                return;
+            }
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
