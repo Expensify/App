@@ -4,6 +4,7 @@ import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -55,6 +56,7 @@ function IOURequestStepDistanceGPS({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceGPSProps) {
     const styles = useThemeStyles();
+    const delegateAccountID = useDelegateAccountID();
 
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -165,8 +167,7 @@ function IOURequestStepDistanceGPS({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
-            // TODO: delegateAccountID will be threaded in PR 10b (https://github.com/Expensify/App/issues/66425)
-            delegateAccountID: undefined,
+            delegateAccountID,
         });
     };
 
