@@ -528,6 +528,59 @@ describe('TransactionUtils', () => {
             }
         });
 
+        it('uses the resolved personal-policy currency (not transaction.currency) when recalculating a P2P expense from edited waypoints', async () => {
+            // Regression: the waypoint/route branch used to format the merchant with transaction.currency and never set
+            // modifiedCurrency, so a P2P expense whose personal currency differs from transaction.currency would show a
+            // rate in the old currency for an amount computed in the new one (visible offline / before the server responds).
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                        waypoints: {waypoint0: {address: 'Old A'}, waypoint1: {address: 'Old B'}},
+                    },
+                });
+
+                // 32186.88 m ≈ 20 mi; at the EUR P2P rate of 30¢ the amount is 600.
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {
+                        waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
+                        routes: {
+                            route0: {
+                                distance: 32186.88,
+                                geometry: {
+                                    coordinates: [
+                                        [0, 0],
+                                        [1, 1],
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
