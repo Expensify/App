@@ -873,7 +873,7 @@ describe('CustomFormula', () => {
         });
         const usdReport = createMock<Report>({reportID: 'r-1', policyID: 'p-1', total: -10000, currency: CONST.CURRENCY.USD});
 
-        test('returns null when the formula leaves any tokenised part unresolved', () => {
+        test('returns null when the formula leaves any tokenized part unresolved', () => {
             // `{report:total:EUR}` on a USD report with no conversion falls back to the raw token → wrapper must return null.
             expect(ReportUtils.computeOptimisticReportName(usdReport, groupPolicy, 'p-1', {})).toBeNull();
         });
