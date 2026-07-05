@@ -11828,14 +11828,15 @@ describe('ReportUtils', () => {
         it('should use the passed currentUserLogin instead of the module-level fallback', async () => {
             const policyID = '50500';
             const adminReport = {...createAdminRoom(50500), policyID};
-            const joinRequestReportAction: ReportAction = {
+            const joinRequestReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(50500),
                 originalMessage: {
-                    choice: '' as JoinWorkspaceResolution,
+                    // @ts-expect-error pending join requests use an empty choice until the admin responds
+                    choice: '',
                     policyID,
                 },
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            };
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                 ...createRandomPolicy(50500, CONST.POLICY.TYPE.TEAM),
@@ -11855,14 +11856,15 @@ describe('ReportUtils', () => {
         it('should fall back to module-level currentUserPersonalDetails when currentUserLogin is undefined', async () => {
             const policyID = '50501';
             const adminReport = {...createAdminRoom(50501), policyID};
-            const joinRequestReportAction: ReportAction = {
+            const joinRequestReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(50501),
                 originalMessage: {
-                    choice: '' as JoinWorkspaceResolution,
+                    // @ts-expect-error pending join requests use an empty choice until the admin responds
+                    choice: '',
                     policyID,
                 },
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            };
+            });
 
             await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {

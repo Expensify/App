@@ -2465,6 +2465,7 @@ function findLastAccessedReport(
             // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
             // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
             // Domain rooms are now the only type of default room that are on the defaultRooms beta.
+            // When guidesEmailsByReport is undefined or missing this reportID, fall back to hasExpensifyGuidesEmails → allPersonalDetails (https://github.com/Expensify/App/issues/66413)
             if (
                 ignoreDomainRooms &&
                 isDomainRoom(report) &&

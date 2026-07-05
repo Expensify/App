@@ -318,4 +318,54 @@ describe('useSidebarOrderedReports', () => {
         // Then sortReportsToDisplayInLHN should be called when priority mode changes
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();
     });
+
+    it('should recompute all reports when personal details hydrate and guide emails become available', async () => {
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const domainRoomReport = {
+            reportID: '2',
+            reportName: 'Domain Room',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            participants: {'8': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+        } as Report;
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: displayedReports['1'],
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: domainRoomReport,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {},
+            } as unknown as OnyxMultiSetInput);
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                8: {
+                    accountID: 8,
+                    login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`,
+                },
+            });
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`]),
+            }),
+        );
+    });
 });
