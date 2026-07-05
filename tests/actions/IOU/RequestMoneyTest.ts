@@ -2470,16 +2470,16 @@ describe('actions/IOU', () => {
                         iouReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                     },
                 });
-                expect(iouReport).toBeTruthy();
+                const iouReportID = iouReport?.reportID;
+                expect(iouReportID).toBeTruthy();
+                if (!iouReportID) {
+                    throw new Error('Expected IOU report to be created');
+                }
 
-                let iouAction: ReportAction | undefined;
-                await getOnyxData({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-                    waitForCollectionCallback: true,
-                    callback: (reportActions) => {
-                        iouAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action));
-                    },
-                });
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+                const iouAction = Object.values(reportActions ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction),
+                );
                 expect(iouAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
 
                 await mockFetch?.resume?.();
