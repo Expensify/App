@@ -41,7 +41,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}
                     disabled={isDisabledCheckbox}
-                    accessibilityLabel={item.text ?? ''}
+                    accessibilityLabel={item.reportName ?? ''}
                     shouldStopMouseDownPropagation
                     style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
