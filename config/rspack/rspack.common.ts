@@ -4,7 +4,6 @@ import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {rspack} from '@rspack/core';
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {execSync} from 'child_process';
-import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -85,8 +84,6 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
 
 /**
  * Get a production grade config for web
- *
- * [POC] rspack port of config/webpack/webpack.common.ts — see #rspack-poc PR for context.
  */
 const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => {
     const isDevelopment = file === '.env' || file === '.env.development';
@@ -109,12 +106,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             filename: isDevelopment ? '[name].bundle.js' : '[name]-[contenthash].bundle.js',
             path: path.resolve(dirname, '../../dist'),
             publicPath: '/',
+            // Wipe the output directory before each build (replaces clean-webpack-plugin)
+            clean: true,
         },
         // We can ignore the "module not installed" warning from lottie-react-native
         // because we are not using the library for JSON format of Lottie animations.
         ignoreWarnings: [/lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/],
         plugins: [
-            new CleanWebpackPlugin(),
             // Only emit the SW for non-development builds. In dev, the dev-server's HMR
             // and the SW's caching behavior fight each other and confuse hot reloads.
             // Remove this guard locally if you want to actually exercise the SW.
