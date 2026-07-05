@@ -1631,8 +1631,8 @@ function openReport(params: OpenReportActionParams) {
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
         const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? currentUserLogin ?? '';
-        const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
+        const submitterPersonalDetails = submitterAccountID ? personalDetails?.[submitterAccountID] : undefined;
+        const submitterEmail = submitterPersonalDetails?.login ?? currentUserLogin ?? '';
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
             type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -3532,7 +3532,7 @@ function toggleSubscribeToChildReport(
             currentUserAccountID,
         });
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs, personalDetails);
         const participants = buildParticipantInfoFromLogins(participantLogins);
         openReport({
             reportID: newChat.reportID,
