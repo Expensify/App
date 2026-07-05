@@ -227,6 +227,9 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 onSelectRow={handleParticipantSelection}
                 ListItem={InviteMemberListItem}
                 canSelectMultiple
+                shouldClearInputOnSelect={false}
+                shouldUpdateFocusedIndex
+                shouldPreventAutoScrollOnSelect
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 textInputOptions={textInputOptions}
                 isLoadingNewOptions={isLoadingNewOptions}
