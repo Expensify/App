@@ -1,5 +1,6 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 describe('getFocusedLeafScreenName', () => {
     it('returns undefined for undefined state', () => {

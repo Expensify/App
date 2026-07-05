@@ -1,10 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -19,14 +15,18 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
+
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import type {MoneyRequestAmountFormHandle} from '@pages/iou/MoneyRequestAmountForm';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -34,11 +34,20 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import {getIsP2PForAmount, submitAmount} from './AmountSubmission';
 import IOURequestStepCurrencyModal from './IOURequestStepCurrencyModal';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
@@ -84,7 +93,9 @@ function IOURequestStepAmount({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftsSelector,
+    });
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -149,6 +160,8 @@ function IOURequestStepAmount({
 
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
+
+    useSkipConfirmationPreInsert(shouldSkipConfirmation, report?.reportID);
 
     useFocusEffect(
         useCallback(() => {
@@ -262,7 +275,10 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isP2P={getIsP2PForAmount({chatReportForP2P: chatReportForP2PCheck, currentUserAccountID: currentUserPersonalDetails.accountID})}
+                isP2P={getIsP2PForAmount({
+                    chatReportForP2P: chatReportForP2PCheck,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                })}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>

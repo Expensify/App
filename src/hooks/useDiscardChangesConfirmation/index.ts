@@ -1,17 +1,23 @@
-import type {NavigationAction} from '@react-navigation/native';
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
-import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
-import runDiscardConfirmation from './runDiscardConfirmation';
+
+import type {NavigationAction} from '@react-navigation/native';
+
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
+
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
+
+import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+import runDiscardConfirmation from './runDiscardConfirmation';
 
 /**
  * Tracks the `history.go(1)` restore round-trip so its echo popstate isn't mistaken for a fresh back: `awaitingRestore`
@@ -104,7 +110,10 @@ function useDiscardChangesConfirmation({
         if (isDiscardModalOpen.current) {
             e.preventDefault();
             if (e.data.action.type === 'RESET') {
-                restoreState.current = {phase: 'awaitingRestore', dismissModalOnRestore: true};
+                restoreState.current = {
+                    phase: 'awaitingRestore',
+                    dismissModalOnRestore: true,
+                };
                 return;
             }
             closeModal();
@@ -115,7 +124,10 @@ function useDiscardChangesConfirmation({
         blockedNavigationAction.current = e.data.action;
         if (e.data.action.type === 'RESET') {
             // A prevented RESET comes from a browser back; the popstate listener must restore the URL
-            restoreState.current = {phase: 'awaitingRestore', dismissModalOnRestore: false};
+            restoreState.current = {
+                phase: 'awaitingRestore',
+                dismissModalOnRestore: false,
+            };
         }
         showDiscardModal();
     });

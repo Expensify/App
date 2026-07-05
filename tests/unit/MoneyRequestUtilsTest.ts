@@ -9,10 +9,12 @@ import {
     validateAmount,
     validatePercentage,
 } from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+
 import createRandomTransaction from '../utils/collections/transaction';
 
 describe('ReportActionsUtils', () => {
@@ -329,34 +331,92 @@ describe('getAmountHasUnsavedChanges', () => {
 
     describe('create entry (any input counts)', () => {
         it('flags a typed value', () => {
-            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '1', committedAmount: 100, isCreateEntry: true})).toBe(true);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '1',
+                    committedAmount: 100,
+                    isCreateEntry: true,
+                }),
+            ).toBe(true);
         });
 
         it('flags an explicit "0" even though it normalizes to the empty backend value', () => {
-            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '0', committedAmount: 100, isCreateEntry: true})).toBe(true);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '0',
+                    committedAmount: 100,
+                    isCreateEntry: true,
+                }),
+            ).toBe(true);
         });
 
         it('does not flag an empty field', () => {
-            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '', committedAmount: 0, isCreateEntry: true})).toBe(false);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '',
+                    committedAmount: 0,
+                    isCreateEntry: true,
+                }),
+            ).toBe(false);
         });
 
         it('flags a currency change even with no amount entered', () => {
-            expect(getAmountHasUnsavedChanges({typedAmount: '', committedAmount: 0, isCreateEntry: true, selectedCurrency: 'EUR', originalCurrency: 'USD'})).toBe(true);
+            expect(
+                getAmountHasUnsavedChanges({
+                    typedAmount: '',
+                    committedAmount: 0,
+                    isCreateEntry: true,
+                    selectedCurrency: 'EUR',
+                    originalCurrency: 'USD',
+                }),
+            ).toBe(true);
         });
     });
 
     describe('editing (only a real change counts)', () => {
         it('does not flag formatting-only differences like "5" vs "5.00"', () => {
-            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '5', committedAmount: 500, isCreateEntry: false})).toBe(false);
-            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '5.00', committedAmount: 500, isCreateEntry: false})).toBe(false);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '5',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                }),
+            ).toBe(false);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '5.00',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                }),
+            ).toBe(false);
         });
 
         it('flags a real numeric change', () => {
-            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '6', committedAmount: 500, isCreateEntry: false})).toBe(true);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '6',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                }),
+            ).toBe(true);
         });
 
         it('flags a currency change even when the amount is unchanged', () => {
-            expect(getAmountHasUnsavedChanges({typedAmount: '5', committedAmount: 500, isCreateEntry: false, selectedCurrency: 'EUR', originalCurrency: 'USD'})).toBe(true);
+            expect(
+                getAmountHasUnsavedChanges({
+                    typedAmount: '5',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                    selectedCurrency: 'EUR',
+                    originalCurrency: 'USD',
+                }),
+            ).toBe(true);
         });
     });
 });

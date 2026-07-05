@@ -1,8 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
