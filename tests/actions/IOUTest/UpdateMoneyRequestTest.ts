@@ -2526,7 +2526,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     policyCategories: {},
                     policyTags: {},
                     policyRecentlyUsedCategories: [],
-                    policyRecentlyUsedTags: [],
+                    policyRecentlyUsedTags: undefined,
                     parentReportNextStep: undefined,
                     isOffline: false,
                     isSelfTourViewed: false,

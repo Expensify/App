@@ -2259,4 +2259,4 @@ export {
     resetSplitShares,
 };
 
-export type {CompleteSplitBillActionParams, CreateDistanceRequestInformation, StartSplitBilActionParams};
+export type {CreateDistanceRequestInformation, StartSplitBilActionParams};
