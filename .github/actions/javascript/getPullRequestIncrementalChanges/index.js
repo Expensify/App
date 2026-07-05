@@ -54374,7 +54374,7 @@ ${items}
   }
   const check = (checked) => checked ? "x" : " ";
   sections.push(
-    import_expensify_common.Str.dedent(
+    Str.dedent(
       `
             **Deployer verifications:**
             - [${check(isSentryChecked)}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${tag}/?project=4510228107427840&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).
@@ -54388,12 +54388,13 @@ ${items}
   const issueAssignees = [...new Set(internalQAPRMap.values())].filter((login) => login !== void 0);
   return { issueBody, issueAssignees };
 }
-var import_expensify_common, LIST_RETRY_DELAYS_MS, NON_RETRYABLE_LIST_STATUSES, NoOpenDeployChecklistError;
+var import_expensify_common, Str, LIST_RETRY_DELAYS_MS, NON_RETRYABLE_LIST_STATUSES, NoOpenDeployChecklistError;
 var init_DeployChecklistUtils = __esm({
   ".github/libs/DeployChecklistUtils.ts"() {
     import_expensify_common = __toESM(require_dist2(), 1);
     init_CONST();
     init_GithubUtils();
+    ({ Str } = import_expensify_common.default);
     LIST_RETRY_DELAYS_MS = [2e3, 5e3];
     NON_RETRYABLE_LIST_STATUSES = /* @__PURE__ */ new Set([401, 404, 422]);
     NoOpenDeployChecklistError = class extends Error {

@@ -1,9 +1,15 @@
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 
-import {Str} from 'expensify-common';
+// `expensify-common`'s CJS build exports `Str` via a `Object.defineProperty` getter that
+// `cjs-module-lexer` can't statically analyze, so Node's native ESM loader can't see it as a
+// named export here (unlike in the app's Metro/webpack-bundled `src/`). Import the default
+// (namespace) export and destructure instead.
+import ExpensifyCommon from 'expensify-common';
 
 import CONST from './CONST.js';
 import GithubUtils from './GithubUtils.js';
+
+const {Str} = ExpensifyCommon;
 
 /** Milliseconds to wait before each subsequent `listForRepo` attempt. */
 const LIST_RETRY_DELAYS_MS = [2000, 5000] as const;
