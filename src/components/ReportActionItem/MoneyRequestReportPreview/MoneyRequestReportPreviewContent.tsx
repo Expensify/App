@@ -1,9 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -16,6 +10,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,6 +30,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getReportStatusColorStyle,
+    getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -49,18 +46,30 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportNameSelector} from '@src/selectors/Attributes';
 import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
 import type {ReportAttributesDerivedValue, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {reportNameSelector} from '@selectors/ReportAttributes';
+import {FlashList} from '@shopify/flash-list';
+import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import type {MoneyRequestReportPreviewContentProps} from './types';
+
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
-import type {MoneyRequestReportPreviewContentProps} from './types';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
 
@@ -254,21 +263,31 @@ function MoneyRequestReportPreviewContent({
         [translate, numberOfRequests],
     );
 
+    const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
+    const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
+
     const reportStatus = useMemo(
         () =>
             getReportStatusTranslation({
-                stateNum: iouReport?.stateNum ?? action?.childStateNum,
-                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
                 translate,
             }),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
-    const reportStatusColorStyle = useMemo(
-        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
+    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
+
+    const reportStatusTooltip = useMemo(
+        () =>
+            getReportStatusTooltipTranslation({
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
+                translate,
+            }),
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -454,6 +473,7 @@ function MoneyRequestReportPreviewContent({
                                                                     backgroundColor={reportStatusColorStyle?.backgroundColor}
                                                                     textColor={reportStatusColorStyle?.textColor}
                                                                     badgeStyles={styles.mr1}
+                                                                    tooltipText={reportStatusTooltip}
                                                                 />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}

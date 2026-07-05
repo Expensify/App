@@ -1,24 +1,32 @@
-import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef} from 'react';
 import FormHelpMessage from '@components/FormHelpMessage';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
+
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useEffect, useRef} from 'react';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
@@ -156,6 +164,7 @@ function IOURequestStepParticipants({
                 isWorkspacesOnly={isWorkspacesOnly}
                 isSubmitWorkspacesOnly={isSubmitWorkspacesOnly}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+                shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
             />
