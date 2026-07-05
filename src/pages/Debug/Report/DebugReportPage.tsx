@@ -198,6 +198,7 @@ function DebugReportPage({
         draftComment,
         translate,
         conciergeReportID,
+        hasGuidesEmails,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
