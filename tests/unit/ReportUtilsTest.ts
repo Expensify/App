@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
 
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -320,6 +320,7 @@ const computeReportName = (
         reportActions,
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
+        translate: translateLocal,
         conciergeReportID,
         isTrackIntentUser: false,
     });
@@ -18413,7 +18414,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18427,7 +18428,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18437,7 +18438,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -18451,8 +18452,40 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should compute the invoice report name through the provided translate function', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-789',
+                type: CONST.REPORT.TYPE.INVOICE,
+                parentReportID: 'invoice-chat-123',
+                currency: 'USD',
+            };
+            // An invoice report without transactions has a total of zero, so its name resolves to the
+            // "payer owes" message, which must come from the translate function passed by the caller.
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
+
+            const action = {...createRandomReportAction(5)};
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+
+            expect(result).toBe('PayerOwesMarker');
+        });
+
+        it('should return the stored reportName for OldDot invoice reports', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-790',
+                type: CONST.REPORT.TYPE.INVOICE,
+                parentReportID: 'invoice-chat-124',
+                reportName: 'Invoice #42',
+                currency: 'USD',
+            };
+
+            const action = {...createRandomReportAction(6)};
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateLocal);
+
+            expect(result).toBe('Invoice #42');
         });
     });
     describe('buildOptimisticApprovedReportAction', () => {

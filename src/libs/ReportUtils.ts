@@ -6084,7 +6084,7 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
-        const invoicePayerName = getInvoicePayerName(parentReport, invoiceReceiverPolicy);
+        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -12721,12 +12721,12 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
 
-        return getInvoiceReportName(properInvoiceReport);
+        return getInvoiceReportName(properInvoiceReport, translate);
     }
 
     if (action?.reportName) {
