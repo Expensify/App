@@ -4,7 +4,7 @@ import {pathToFileURL} from 'url';
 let hasRegisteredEsmLoader = false;
 
 /**
- * `@actions/core`, `@actions/github`, and `GithubUtils`/`GitUtils`/`CONST`/`DeployChecklistUtils` (transitively, via
+ * `@actions/core`, `@actions/github`, and `GithubUtils`/`GitUtils`/`CONST` (transitively, via
  * `.github/libs/package.json`'s `"type": "module"`) are ESM-only. Several developer scripts under `scripts/` need
  * them but must themselves stay CommonJS, either because they're required by other CJS tooling, or because they
  * transitively import huge swaths of the (CommonJS-oriented) app source under `src/`.
@@ -18,16 +18,15 @@ async function importEsmOnlyGithubDeps() {
         hasRegisteredEsmLoader = true;
     }
 
-    const [{default: GitHubUtils}, {default: CONST}, {default: GitUtils}, deployChecklistUtils, actionsCore, actionsGithub] = await Promise.all([
+    const [{default: GitHubUtils}, {default: CONST}, {default: GitUtils}, actionsCore, actionsGithub] = await Promise.all([
         import('../../.github/libs/GithubUtils.js'),
         import('../../.github/libs/CONST.js'),
         import('../../.github/libs/GitUtils.js'),
-        import('../../.github/libs/DeployChecklistUtils.js'),
         import('@actions/core'),
         import('@actions/github'),
     ]);
 
-    return {GitHubUtils, CONST, GitUtils, deployChecklistUtils, core: actionsCore, github: actionsGithub};
+    return {GitHubUtils, CONST, GitUtils, core: actionsCore, github: actionsGithub};
 }
 
 export default importEsmOnlyGithubDeps;

@@ -16,7 +16,7 @@
 "../../.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/reviewerChecklist/reviewerChecklist.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/validateReassureOutput/validateReassureOutput.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../.github/libs/DeployChecklistUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../.github/libs/DeployChecklistUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/libs/GithubUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../.storybook/webpack.config.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2

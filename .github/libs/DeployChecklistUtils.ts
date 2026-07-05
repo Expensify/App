@@ -1,20 +1,9 @@
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 
-import {createRequire} from 'module';
+import {Str} from 'expensify-common';
 
 import CONST from './CONST.js';
 import GithubUtils from './GithubUtils.js';
-
-// `expensify-common`'s CJS build exports `Str` via an `Object.defineProperty` getter that
-// `cjs-module-lexer` can't statically analyze, so a plain `import {Str} from 'expensify-common'`
-// isn't visible to Node's native ESM loader here (unlike in the app's Metro/webpack-bundled
-// `src/`, which resolves it via Babel instead). It also lacks a real `default` export despite
-// setting `__esModule: true`, so `import ExpensifyCommon from 'expensify-common'` resolves to
-// `undefined` under Babel/Jest's CJS interop even though it works under native ESM. A raw
-// `require` sidesteps both interop layers and behaves identically in both environments. Typed
-// minimally for the one method used below rather than importing `expensify-common/str`'s type,
-// which resolves inconsistently between `tsc` and `ts-node`'s on-the-fly checking.
-const {Str} = createRequire(import.meta.url)('expensify-common') as unknown as {Str: {dedent: (str: string) => string}};
 
 /** Milliseconds to wait before each subsequent `listForRepo` attempt. */
 const LIST_RETRY_DELAYS_MS = [2000, 5000] as const;
