@@ -13687,6 +13687,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    hasExpensifyGuidesEmails,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,

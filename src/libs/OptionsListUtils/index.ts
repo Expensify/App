@@ -2552,6 +2552,7 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
+                // TODO: Pass personalDetailsList once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
                 hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined),
             );
         };
