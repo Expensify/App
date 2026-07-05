@@ -93,14 +93,14 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     // All Onyx subscriptions for the standalone list live in useSearchSections. This component is kept
     // mounted by the parent (via shouldKeepMounted) for the whole carousel lifetime, so selecting the
     // source list here is a value swap rather than a component-subtree swap.
-    const {allReports: standaloneReports, isSearchLoading, lastSearchQuery} = useSearchSections();
-
-    // Fast path: use the pre-computed IDs from the search context when available and no pagination is in
-    // flight. During pagination/loading fall back to the full subscription so new pages are reflected
-    // immediately. Crucially this is now a plain value selection inside a single, stable component, so
-    // toggling isSearchLoading (e.g. the search refresh triggered by submitting a report) no longer
-    // unmounts the component and wipes the lastValidReports cache below.
-    const allReports = contextReports.length > 0 && !isSearchLoading ? contextReports : standaloneReports;
+    //
+    // Fast path: contextReports (the pre-computed IDs from the search context) are passed into the hook so
+    // that, when they are usable and no pagination is in flight, the expensive getSections/getSortedSections
+    // rebuild is skipped and allReports is just contextReports. During pagination/loading the hook falls back
+    // to the full subscription so new pages are reflected immediately. Because this is a plain value swap
+    // inside a single, stable component, toggling isSearchLoading (e.g. the search refresh triggered by
+    // submitting a report) no longer unmounts the component and wipes the lastValidReports cache below.
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections(contextReports);
 
     const liveCurrentIndex = allReports.indexOf(reportID);
 
