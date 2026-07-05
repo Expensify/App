@@ -618,7 +618,7 @@ describe('useNewTransactions with an unfocused report', () => {
     };
 
     it('returns newly added transactions even when the report is unfocused', () => {
-        // Wide (no narrow flag): the table stays visible behind a stacked RHP, so an unfocused add still highlights.
+        // The diff emits regardless of focus — the consumer gates visibility, not this hook.
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
             (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
             {
