@@ -147,7 +147,7 @@ function IOURequestStepUpgrade({
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
-                // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance recalc, so the personal-policy currency is never read here.
+                // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
                 personalPolicyOutputCurrency: undefined,
             });
 
