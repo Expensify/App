@@ -1,13 +1,17 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
-import AIFeaturesPromoGuard, {onSessionOrLoadingAppChanged as onAIFeaturesPromoSessionOrLoadingAppChanged} from './AIFeaturesPromoGuard';
-import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged as onMigratedUserWelcomeModalSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
-import OnboardingGuard from './OnboardingGuard';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
+
+import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
+import OnboardingGuard from './OnboardingGuard';
 
 /**
  * Module-level Onyx subscriptions for common guard context values
@@ -20,8 +24,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value;
-        onMigratedUserWelcomeModalSessionOrLoadingAppChanged(session, isLoadingApp);
-        onAIFeaturesPromoSessionOrLoadingAppChanged(session, isLoadingApp);
+        onSessionOrLoadingAppChanged(session, isLoadingApp);
     },
 });
 
@@ -29,8 +32,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? true;
-        onMigratedUserWelcomeModalSessionOrLoadingAppChanged(session, isLoadingApp);
-        onAIFeaturesPromoSessionOrLoadingAppChanged(session, isLoadingApp);
+        onSessionOrLoadingAppChanged(session, isLoadingApp);
     },
 });
 
@@ -106,6 +108,5 @@ function clearGuards(): void {
 
 registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
-registerGuard(AIFeaturesPromoGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};

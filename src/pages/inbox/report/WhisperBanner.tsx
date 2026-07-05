@@ -1,16 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDisplayNamesWithTooltips, getWhisperDisplayNames, isCurrentUserTheOnlyParticipant} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WhisperBannerProps = {
     /** Account IDs of the users that can see the whisper. */

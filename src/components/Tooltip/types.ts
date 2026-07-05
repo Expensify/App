@@ -1,9 +1,10 @@
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef, ReactNode} from 'react';
 import type React from 'react';
 import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
-import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SharedTooltipProps = {
     /** The text to display in the tooltip. If text is omitted, only children will be rendered. */
@@ -97,6 +98,9 @@ type EducationalTooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
+
+        /** Whether the tooltip content should be visible. When omitted, matches shouldRender. */
+        shouldDisplayTooltip?: boolean;
 
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;

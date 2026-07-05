@@ -1,10 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {Keyboard, PixelRatio, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
-import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import CarouselActions from '@components/Attachments/AttachmentCarousel/CarouselActions';
 import CarouselButtons from '@components/Attachments/AttachmentCarousel/CarouselButtons';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
@@ -15,14 +8,28 @@ import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+import type {ListRenderItemInfo} from 'react-native';
+import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, PixelRatio, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+
 import type AttachmentCarouselViewProps from './types';
 
 const viewabilityConfig = {
@@ -65,7 +72,7 @@ function AttachmentCarouselView({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
-    const {isFullScreenRef} = useFullScreenState();
+    const {isFullScreen, isFullScreenRef} = useFullScreenState();
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
@@ -116,7 +123,7 @@ function AttachmentCarouselView({
     /** Increments or decrements the index to get another selected item */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
-            if (isFullScreenRef.current) {
+            if (isFullScreen) {
                 return;
             }
 
@@ -129,7 +136,7 @@ function AttachmentCarouselView({
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, isFullScreenRef, page, scrollRef],
+        [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
     );
 
     const extractItemKey = useCallback(

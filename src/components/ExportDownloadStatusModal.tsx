@@ -1,25 +1,30 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
-import addTrailingForwardSlash from '@libs/UrlUtils';
+import {buildSecureDownloadURL} from '@libs/UrlUtils';
+
 import {sendExportFileFromConcierge} from '@userActions/Export';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type ExportDownloadStatusModalProps = {
@@ -45,7 +50,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
@@ -54,10 +58,14 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
     const fileName = displayedExport?.fileName;
+    const exportType = displayedExport?.exportType;
+    const failedReportCount = displayedExport?.failedReportCount ?? 0;
+    const reportCount = displayedExport?.reportCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
+    const isPartialFailure = isReady && failedReportCount > 0;
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
@@ -66,11 +74,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (!fileName || !currentUserLogin) {
             return;
         }
-        const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
+        const baseURL = getOldDotURLFromEnvironment(environment);
         const isCSV = fileName.endsWith('.csv');
-        const secureType = isCSV ? 'csvexport' : 'pdfreport';
-        const url = `${baseURL}secure?secureType=${secureType}&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}&email=${encodeURIComponent(currentUserLogin)}`;
-        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
+        const secureType = isCSV ? CONST.SECURE_DOWNLOAD_TYPE.CSV_EXPORT : CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT;
+        const url = buildSecureDownloadURL({baseURL, secureType, fileName, downloadName: fileName, email: currentUserLogin});
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari(), undefined, undefined, undefined, undefined, false);
     };
 
     useEffect(() => {
@@ -84,12 +92,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
     const handleGoToConcierge = () => {
         onClose();
-        if (conciergeReportID) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: conciergeReportID}));
-        }
+        openConciergeAnywhere({forceConcierge: true});
     };
 
     const handleDownloadFile = () => {
@@ -146,7 +153,18 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
-                    <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
+                    {isPartialFailure ? (
+                        <View style={styles.mb5}>
+                            <RenderHTML
+                                html={translate('exportDownload.readyPartialBody', {
+                                    count: reportCount,
+                                    total: reportCount + failedReportCount,
+                                })}
+                            />
+                        </View>
+                    ) : (
+                        <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
+                    )}
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}
@@ -158,10 +176,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
 
         if (isFailed) {
+            const resolvedFailedBody = failedBody ?? (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
-                    {!!failedBody && <Text style={styles.mb5}>{failedBody}</Text>}
+                    {!!resolvedFailedBody && <Text style={styles.mb5}>{resolvedFailedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
                         onPress={onClose}

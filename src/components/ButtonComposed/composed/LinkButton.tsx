@@ -1,4 +1,3 @@
-import React from 'react';
 import Button from '@components/ButtonComposed/Button';
 import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
 import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
@@ -6,9 +5,12 @@ import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/Button
 import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
 import type {ButtonProps} from '@components/ButtonComposed/types';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 /**
  * Link-styled text primitive used inside `LinkButton`. Wraps `ButtonText` and

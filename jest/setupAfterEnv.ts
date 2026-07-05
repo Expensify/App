@@ -1,20 +1,12 @@
 import '@testing-library/react-native';
-import type {KeyboardEventName} from 'react-native';
-import {Keyboard} from 'react-native';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-jest.useRealTimers();
+import type {KeyboardEventName} from 'react-native';
 
-// Globally short-circuit AIFeaturesPromoGuard in tests. The real guard proactively
-// navigates any authenticated session to /ai-features-promo unless the dismissal NVP
-// is set, which would otherwise intercept navigation in unrelated UI tests. Tests
-// that need the real guard can override this mock locally.
-jest.mock('@libs/Navigation/guards/AIFeaturesPromoGuard', () => ({
-    __esModule: true,
-    default: {name: 'AIFeaturesPromoGuard', evaluate: () => ({type: 'ALLOW'})},
-    onSessionOrLoadingAppChanged: jest.fn(),
-}));
+import {Keyboard} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+jest.useRealTimers();
 
 // Patch Keyboard.addListener to return a subscription object with .remove() so that
 // @react-navigation/bottom-tabs useIsKeyboardShown hook doesn't crash on cleanup.

@@ -1,6 +1,8 @@
-import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
-import {useEffect} from 'react';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
+
+import {useEffect} from 'react';
 
 const preservedNavigatorStates: Record<string, NavigationState> = {};
 
@@ -35,6 +37,15 @@ const clearPreservedSearchNavigatorStates = () => {
     }
 };
 
+// Preserved states belong to the authenticated session. They must be dropped on logout so the next
+// session can't restore them — e.g. restoreTabNavigatorRoutes reattaching a previous user's tab
+// subtree to the public sign-in route (which shares the TAB_NAVIGATOR name).
+const clearPreservedNavigatorStates = () => {
+    for (const key of Object.keys(preservedNavigatorStates)) {
+        delete preservedNavigatorStates[key];
+    }
+};
+
 const getPreservedNavigatorState = <T extends NavigationState = StackNavigationState<ParamListBase>>(key: string): T | undefined => preservedNavigatorStates[key] as T | undefined;
 
 const setPreservedNavigatorState = (key: string, state: NavigationState) => {
@@ -52,4 +63,4 @@ function usePreserveNavigatorState(state: StackNavigationState<ParamListBase>, r
 
 export default usePreserveNavigatorState;
 
-export {getPreservedNavigatorState, setPreservedNavigatorState, cleanPreservedNavigatorStates, clearPreservedSearchNavigatorStates};
+export {getPreservedNavigatorState, setPreservedNavigatorState, cleanPreservedNavigatorStates, clearPreservedSearchNavigatorStates, clearPreservedNavigatorStates};

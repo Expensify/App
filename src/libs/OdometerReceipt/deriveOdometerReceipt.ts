@@ -1,4 +1,5 @@
-import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerUtils';
+
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type OdometerReceiptDerivation =

@@ -1,10 +1,14 @@
-import Airship from '@ua/react-native-airship';
-import type {JsonObject} from '@ua/react-native-airship';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {JsonObject} from '@ua/react-native-airship';
+
+import Airship from '@ua/react-native-airship';
 
 const ATTRIBUTES_TYPE = 'GpsTripAttributes';
 
