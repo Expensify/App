@@ -156,7 +156,7 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockedPusherInit).toHaveBeenCalled();
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function));
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function), expect.any(Function));
     });
 
     it('calls subscribeToUserEvents from sign-in modal effect when SIGN_IN_MODAL is active', async () => {
@@ -170,7 +170,7 @@ describe('AuthScreensInitHandler', () => {
 
         // Both mount effect AND sign-in modal effect fire → 2 calls
         expect(subscribeToUserEvents).toHaveBeenCalledTimes(2);
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function));
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function), expect.any(Function));
     });
 
     it('getter passed to subscribeToUserEvents returns report attributes when available', async () => {
@@ -185,7 +185,7 @@ describe('AuthScreensInitHandler', () => {
 
         const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
         const firstCallArgs = mockCalls.at(0) as unknown[];
-        const getter = firstCallArgs.at(2) as () => unknown;
+        const getter = firstCallArgs.at(3) as () => unknown;
         expect(getter()).toEqual(mockReports);
     });
 
@@ -199,7 +199,7 @@ describe('AuthScreensInitHandler', () => {
 
         const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
         const firstCallArgs = mockCalls.at(0) as unknown[];
-        const getter = firstCallArgs.at(2) as () => unknown;
+        const getter = firstCallArgs.at(3) as () => unknown;
         expect(getter()).toBeUndefined();
     });
 
