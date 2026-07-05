@@ -1,14 +1,19 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type CarTripDetailsProps = {
     reservation: Reservation;
@@ -24,8 +29,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        const cancellation = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline), preferredLocale);
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${cancellation.date} ${cancellation.hour}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline, preferredLocale)}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {

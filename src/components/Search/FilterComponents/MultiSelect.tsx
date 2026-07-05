@@ -1,19 +1,25 @@
-import React, {useState} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ReactNode} from 'react';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import ListFilterView from './ListFilterViewWrapper';
 
 type MultiSelectItem<T> = {
@@ -24,15 +30,9 @@ type MultiSelectItem<T> = {
     searchableText?: string;
 };
 
-type MultiSelectProps<T> = SearchFilterCommonProps & {
+type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
-
-    /** The currently selected items */
-    value: Array<MultiSelectItem<T>>;
-
-    /** Function to call when changes are applied */
-    onChange: (item: Array<MultiSelectItem<T>>) => void;
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;

@@ -1,6 +1,8 @@
-import {useEffect, useRef} from 'react';
 import useDebounce from '@hooks/useDebounce';
+
 import CONST from '@src/CONST';
+
+import {useEffect, useRef} from 'react';
 
 /**
  * Debounces a function to save a draft for a report comment or report action draft.

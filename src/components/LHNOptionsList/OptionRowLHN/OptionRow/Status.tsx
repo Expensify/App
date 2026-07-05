@@ -1,12 +1,16 @@
-import React from 'react';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type StatusProps = {
     /** The option data for the report row. Status is only shown for 1:1 chats whose participant has set a status emoji. */

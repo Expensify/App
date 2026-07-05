@@ -1,5 +1,6 @@
 import type {TranslationPaths} from '@src/languages/types';
 import type Locale from '@src/types/onyx/Locale';
+
 import {translate} from './Localize';
 import memoize from './memoize';
 import {format, formatToParts} from './NumberFormatUtils';

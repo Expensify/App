@@ -1,22 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import Icon from '@components/Icon';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToDisplayStringWithExplicitCurrency} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type AuthorizeCardTransactionPreviewProps = {
     transactionID?: string;

@@ -1,7 +1,5 @@
 import {render} from '@testing-library/react-native';
-import React, {Profiler, useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -12,9 +10,16 @@ import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {Profiler, useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -181,15 +186,12 @@ describe('SearchList render count', () => {
 
         function SearchListWrapper({onRenderCount}: {onRenderCount: () => void}) {
             const onSelectRow = useCallback(() => {}, []);
-            const onCheckboxPress = useCallback(() => {}, []);
-            const onAllCheckboxPress = useCallback(() => {}, []);
             const onEndReached = useCallback(() => {}, []);
             const onLayout = useCallback(() => {}, []);
 
             const queryJSON = useMemo(() => STABLE_QUERY_JSON, []);
             const columns = useMemo(() => STABLE_COLUMNS, []);
             const data = useMemo(() => MOCK_DATA, []);
-            const selectedTransactions = useMemo(() => ({}), []);
             const contentContainerStyle = useMemo(() => ({}), []);
             const containerStyle = useMemo(() => ({}), []);
 
@@ -202,10 +204,7 @@ describe('SearchList render count', () => {
                         data={data}
                         ListItem={MockListItem as never}
                         onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        onAllCheckboxPress={onAllCheckboxPress}
                         canSelectMultiple={false}
-                        selectedTransactions={selectedTransactions}
                         queryJSON={queryJSON}
                         columns={columns}
                         isMobileSelectionModeEnabled={false}

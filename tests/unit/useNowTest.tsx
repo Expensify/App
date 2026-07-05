@@ -1,4 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useNow from '@hooks/useNow';
 
 describe('useNow', () => {
