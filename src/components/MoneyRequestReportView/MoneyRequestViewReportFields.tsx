@@ -39,9 +39,6 @@ type MoneyRequestViewReportFieldsProps = {
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
 
-    /** Indicates whether the IOU report is a combined report */
-    isCombinedReport?: boolean;
-
     /** Indicates whether we have any pending actions from parent component */
     pendingAction?: PendingAction;
 };
@@ -87,7 +84,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
         </OfflineWithFeedback>
     );
 }
-function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
+function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -119,15 +116,13 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             });
     }, [policy, report, currentUserAccountID]);
 
-    // Base the "only the title field is configured" check on which fields are present/displayable rather than on which are
-    // currently editable, so a custom field stays visible (read-only) after the report is approved/settled/closed.
-    // `sortedPolicyReportFields` is already filtered by `shouldHideSingleReportField`, so it holds only displayable non-title
-    // fields; when it's empty, only the title field remains.
-    const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    // `sortedPolicyReportFields` is already filtered by `shouldHideSingleReportField`, so it only holds displayable non-title
+    // fields. When it's empty (only the title field remains) the early return below hides the section, so we don't need a
+    // separate "only the title field is configured" check here.
+    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled;
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;

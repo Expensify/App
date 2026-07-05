@@ -160,12 +160,7 @@ function MoneyReportView({
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldShowReportField =
-        !isClosedExpenseReportWithNoExpenses &&
-        (isGroupPolicyExpenseReport || isInvoiceReport) &&
-        !!policy?.areReportFieldsEnabled &&
-        (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
-        !sortedPolicyReportFields.every(shouldHideSingleReportField);
+    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
