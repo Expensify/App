@@ -2490,7 +2490,11 @@ function findLastAccessedReport(
             if (
                 ignoreDomainRooms &&
                 isDomainRoom(report) &&
-                !((report?.reportID && guidesEmailsByReport?.[report.reportID]) ?? hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined))
+                !resolveHasGuidesEmails({
+                    participantAccountIDs: Object.keys(report?.participants ?? {}).map(Number),
+                    guidesEmailsByReport,
+                    reportID: report?.reportID,
+                })
             ) {
                 return false;
             }
