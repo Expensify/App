@@ -19,6 +19,7 @@
  * The old `Button` component is not affected – migration can be gradual.
  */
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import ButtonComponent from './Button';
 import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
 import ButtonIcon from './primitives/ButtonIcon';

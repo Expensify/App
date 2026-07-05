@@ -1,5 +1,7 @@
-import Airship from '@ua/react-native-airship';
 import shouldShowPushNotification from '@libs/Notification/PushNotification/shouldShowPushNotification';
+
+import Airship from '@ua/react-native-airship';
+
 import type ForegroundNotificationsModule from './types';
 
 function configureForegroundNotifications() {

@@ -8,6 +8,7 @@
  * Stub paths must be absolute.
  */
 import type {BunPlugin} from 'bun';
+
 import {resolve} from 'node:path';
 
 export default function createRnStubPlugin(stubRoot: string): BunPlugin {

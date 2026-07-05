@@ -1,8 +1,5 @@
-import {fastMerge} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -30,10 +27,12 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -53,10 +52,12 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -65,6 +66,17 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {fastMerge} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
+import type BasePolicyParams from './types/BasePolicyParams';
+import type BaseTransactionParams from './types/BaseTransactionParams';
+
 import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
@@ -75,11 +87,8 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
-import type BasePolicyParams from './types/BasePolicyParams';
-import type BaseTransactionParams from './types/BaseTransactionParams';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -1010,9 +1019,20 @@ function completeSplitBill(
                   })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            if (oneOnOneIOUReport) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
@@ -1690,13 +1710,21 @@ function createSplitsAndOnyxData({
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
                 if (typeof oneOnOneIOUReport.total === 'number') {
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
                 }
+
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);

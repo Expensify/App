@@ -1,10 +1,13 @@
-import React from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchReportActionsParamList} from '@libs/Navigation/types';
+
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type SearchMoneyRequestReportVerifyAccountPageProps = PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT>;
 

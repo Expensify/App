@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -15,6 +14,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -25,11 +25,17 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
@@ -146,10 +152,10 @@ describe('actions/Duplicate', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
             reportID,
-            originalMessage: {
+            originalMessage: createMock<OriginalMessageIOU>({
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            } as OriginalMessageIOU,
+            }),
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
         });
@@ -447,10 +453,10 @@ describe('actions/Duplicate', () => {
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -1929,12 +1935,12 @@ describe('actions/Duplicate', () => {
             const mockTransactionWithLinkedAction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
-                linkedTrackedExpenseReportAction: {
+                linkedTrackedExpenseReportAction: createMock<ReportAction>({
                     reportActionID: 'linked-action-123',
                     childReportID: existingLinkedReportActionChildReportID,
                     actionName: 'IOU',
                     created: '2024-01-01 00:00:00',
-                } as ReportAction,
+                }),
                 comment: {
                     ...restOfComment,
                 },
@@ -2864,13 +2870,13 @@ describe('actions/Duplicate', () => {
             employeeList: {[RORY_EMAIL]: {email: RORY_EMAIL, role: CONST.POLICY.ROLE.USER}},
         };
 
-        const inaccessiblePolicy = {
+        const inaccessiblePolicy = createMock<Policy>({
             ...createRandomPolicy(300, CONST.POLICY.TYPE.TEAM, 'Inaccessible WS'),
             id: OTHER_POLICY_ID,
             role: undefined,
             pendingAction: undefined,
             employeeList: {},
-        } as unknown as Policy;
+        });
 
         const ACTIVE_PEC_REPORT_ID = 'activePEC';
         const activePolicyExpenseChat: Report = {
@@ -2918,11 +2924,11 @@ describe('actions/Duplicate', () => {
             })),
             allReports: {},
             searchData: undefined,
-            allPolicies: {
+            allPolicies: createMock<BulkDuplicateReportsParams['allPolicies']>({
                 [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: inaccessiblePolicy,
-            } as BulkDuplicateReportsParams['allPolicies'],
+            }),
             allPolicyCategories: {},
             allPolicyTags: {},
             defaultExpensePolicy: defaultPolicy,
