@@ -142,7 +142,7 @@ import {
     getReportMetadata,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportTransactions,
     hasOutstandingChildRequest,
     isAdminRoom,
@@ -4033,7 +4033,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewMessage({reportOrID: optimisticReportData});
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData});
     const createReportActionMessage = [
         {
             html: message,

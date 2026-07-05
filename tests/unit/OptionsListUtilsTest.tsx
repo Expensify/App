@@ -67,7 +67,7 @@ import {
     formatReportLastMessageText,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportTransactions,
     isCanceledTaskReport,
     isExpensifyOnlyParticipantInReport,
@@ -4471,7 +4471,7 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewMessage({
+                const reportPreviewMessage = getReportPreviewReportActionMessage({
                     reportOrID: iouReport,
                     iouReportAction: iouAction,
                     shouldConsiderScanningReceiptOrPendingRoute: true,

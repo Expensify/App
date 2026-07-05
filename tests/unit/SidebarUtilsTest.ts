@@ -8,7 +8,7 @@ import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
+import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewReportActionMessage} from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -3445,7 +3445,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage({
+                const reportPreviewMessage = getReportPreviewReportActionMessage({
                     reportOrID: iouReport,
                     iouReportAction: iouAction,
                     shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -3555,7 +3555,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage({
+                const reportPreviewMessage = getReportPreviewReportActionMessage({
                     reportOrID: iouReport,
                     iouReportAction: iouAction,
                     shouldConsiderScanningReceiptOrPendingRoute: true,

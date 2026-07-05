@@ -9,7 +9,7 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
@@ -150,7 +150,7 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewMessage({
+            getReportPreviewReportActionMessage({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
