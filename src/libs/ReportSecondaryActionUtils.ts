@@ -1121,12 +1121,13 @@ function getSecondaryExportReportActions(
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
-
-    // Add any custom IS templates that have been added to the user's account as export options
+    // Add any custom IS templates that have been added to the user's account as export options, followed by the default templates
     for (const template of exportTemplates) {
         options.push(template.name);
     }
+
+    // "Basic export" (DOWNLOAD_CSV) is pinned to the bottom of the menu within the default templates group, matching the Search export menu ordering
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     return options;
 }

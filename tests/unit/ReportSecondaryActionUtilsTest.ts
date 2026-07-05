@@ -3480,7 +3480,7 @@ describe('getSecondaryExportReportActions', () => {
             },
         ];
 
-        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, 'All Data - expense level', 'All Data - report level', 'Custom Template'];
+        const result = ['All Data - expense level', 'All Data - report level', 'Custom Template', CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV];
         expect(getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy, exportTemplates)).toEqual(result);
     });
 

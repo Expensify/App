@@ -384,35 +384,12 @@ function useSelectedTransactionsActions({
 
         // Gets the list of options for the export sub-menu
         const getExportOptions = (): PopoverMenuItem[] => {
-            // We provide the basic and expense level export options by default
-            const exportOptions: PopoverMenuItem[] = [
-                {
-                    text: translate('export.basicExport'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        if (!report) {
-                            return;
-                        }
-                        if (isOffline) {
-                            onExportOffline?.();
-                            return;
-                        }
-                        exportReportToCSV(
-                            {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
-                            () => {
-                                onExportFailed?.();
-                            },
-                            translate,
-                        );
-                        clearSelectedTransactions(true);
-                    },
-                },
-            ];
+            const exportOptions: PopoverMenuItem[] = [];
 
             // If we've selected all the transactions on the report, we can also provide the report level export option
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
-            // If the user has any custom integration export templates, add them as export options
+            // Add the custom IS templates first, followed by the default templates, matching the Search export menu ordering
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport);
             const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
             let previousIsStandardTemplate: boolean | undefined;
@@ -423,11 +400,35 @@ function useSelectedTransactionsActions({
                     icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
-                    // Divider before the first template (separating from basic export) and at the custom/default group boundary
+                    // Divider at the custom/default group boundary (suppressed when this is the first item)
                     addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
                 });
                 previousIsStandardTemplate = isStandardTemplate;
             }
+
+            // "Basic export" is a default export option, pinned to the bottom of the menu within the default templates group (no divider before it)
+            exportOptions.push({
+                text: translate('export.basicExport'),
+                icon: expensifyIcons.Table,
+                onSelected: () => {
+                    if (!report) {
+                        return;
+                    }
+                    if (isOffline) {
+                        onExportOffline?.();
+                        return;
+                    }
+                    exportReportToCSV(
+                        {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                        () => {
+                            onExportFailed?.();
+                        },
+                        translate,
+                    );
+                    clearSelectedTransactions(true);
+                },
+            });
+
             return exportOptions;
         };
 

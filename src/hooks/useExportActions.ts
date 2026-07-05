@@ -224,13 +224,14 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             .map((template) => template.name),
     );
 
-    // Group each export action so we can add a divider between the accounting, current view, custom template, and default template groups.
+    // Group each export action so we can add a divider between the accounting, custom template, and default template groups.
     const getExportActionGroup = (action: string): string => {
         if (action === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION || action === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
             return 'accounting';
         }
+        // "Basic export" (DOWNLOAD_CSV) sits at the bottom of the default templates group with no divider, matching the Search export menu.
         if (action === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV) {
-            return 'currentView';
+            return 'default';
         }
         return defaultTemplateNames.has(action) ? 'default' : 'custom';
     };
