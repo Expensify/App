@@ -1,27 +1,32 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-// eslint-disable-next-line no-restricted-imports -- The input ref doesn't exist at the navigate() call site, so we can't use Navigation's afterTransition callback
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
 
@@ -41,6 +46,7 @@ function WorkspaceCreateTaxValuePage({
     const save = () => {
         const normalizedValue = currentValue !== undefined ? String(Number(currentValue)) : currentValue;
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: normalizedValue});
+        skipNextFocusRestore();
         goBack();
     };
 

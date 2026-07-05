@@ -1,12 +1,17 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
+
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useLocalize from './useLocalize';
@@ -37,7 +42,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
@@ -61,7 +65,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             transactionViolations: allTransactionViolations,
             translate,
             recentWaypoints,
-            conciergeReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,
         });

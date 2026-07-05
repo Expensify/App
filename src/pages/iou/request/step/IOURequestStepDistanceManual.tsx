@@ -1,14 +1,13 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +20,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -33,17 +33,26 @@ import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import handleMoneyRequestStepDistanceNavigation from './IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceManualProps = WithCurrentUserPersonalDetailsProps &
@@ -143,6 +152,16 @@ function IOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            const typedDistance = numberFormRef.current?.getNumber() ?? '';
+            return typedDistance !== (distance?.toString() ?? '');
+        },
+        onCancel: () => {
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+        },
+    });
+
     let shouldSkipConfirmation = false;
     if (skipConfirmation && report?.reportID) {
         shouldSkipConfirmation = !(isArchived || isPolicyExpenseChatUtils(report));
@@ -237,6 +256,7 @@ function IOURequestStepDistanceManual({
             manualDistance: distanceAsFloat,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             backTo,
             backToReport,
             shouldSkipConfirmation,
@@ -282,6 +302,7 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        notifySaving();
         navigateToNextPage(value);
     };
 

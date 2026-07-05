@@ -1,9 +1,11 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {FilterConfig, FilterConfigEntry} from '@components/Table/middlewares/filtering';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
 
 /**
  * A single filter button item.
@@ -24,14 +26,12 @@ type FilterButtonItem<FilterKey extends string = string> = {
  * @param filterConfigs - The filter configuration.
  * @param filters - The current filters.
  * @param setFilter - The function to set a filter.
- * @param filtersLabel - The label to display for the filters.
  * @returns The filter button items.
  */
 function buildFilterItems<FilterKey extends string = string>(
     filterConfigs: FilterConfig<FilterKey> | undefined,
     filters: Record<string, unknown>,
     setFilter: (key: string, value: unknown) => void,
-    filtersLabel: string,
 ): Array<FilterButtonItem<FilterKey>> {
     if (!filterConfigs) {
         return [];
@@ -53,7 +53,7 @@ function buildFilterItems<FilterKey extends string = string>(
             if (Array.isArray(displayValue) && displayValue.length > 0) {
                 label = displayValue.join(', ');
             } else {
-                label = filtersLabel;
+                label = filterConfig.label;
             }
 
             return {
@@ -72,7 +72,7 @@ function buildFilterItems<FilterKey extends string = string>(
             const defaultOption = filterConfig.options.find((opt) => opt.value === filterConfig.default);
             label = defaultOption?.label ?? filterKey;
         } else {
-            label = filterKey;
+            label = filterConfig.label;
         }
 
         return {
@@ -141,7 +141,7 @@ function createMultiSelectPopover<FilterKey extends string = string>({filterKey,
 
         return (
             <MultiSelectPopup
-                label={filterKey}
+                label={filterConfig.label}
                 items={filterConfig.options.map((option) => ({
                     text: option.label,
                     value: option.value,
@@ -191,8 +191,8 @@ function createSingleSelectPopover<FilterKey extends string = string>({filterKey
 
         return (
             <SingleSelectPopup
+                label={filterConfig.label}
                 defaultValue={filterConfig.default}
-                label={filterConfig.showLabel ? filterKey : undefined}
                 items={filterConfig.options.map((option) => ({
                     text: option.label,
                     value: option.value,

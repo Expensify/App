@@ -1,15 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+import {renderHook, waitFor} from '@testing-library/react-native';
+
+import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
+
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
-import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Domain from '@src/types/onyx/Domain';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const DOMAIN_ACCOUNT_ID = 99999;
 const SECURITY_GROUP_PREFIX = CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX;
+const ALL_MEMBERS_VALUE = 'all';
 
 function buildDomain(groups: Record<string, {members: Record<string, 'read' | null>; name: string}>): Domain {
     const domain: Record<string, unknown> = {
@@ -31,12 +37,16 @@ function buildDomain(groups: Record<string, {members: Record<string, 'read' | nu
     return domain as unknown as Domain;
 }
 
-function buildMemberOption(accountID: number): MemberOption {
+function buildMemberRow(accountID: number): DomainMemberRowData {
     return {
         accountID,
         login: `user${accountID}@test.com`,
         keyForList: String(accountID),
-        text: `User ${accountID}`,
+        name: `User ${accountID}`,
+        email: `user${accountID}@test.com`,
+        groupName: '-',
+        action: () => {},
+        dismissError: () => {},
     };
 }
 
@@ -55,31 +65,37 @@ describe('useDomainGroupFilter', () => {
     });
 
     describe('initial state', () => {
-        it('should return null selectedGroup initially', () => {
+        it('should not show the group filter when no groups exist', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-            expect(result.current.selectedGroup).toBeNull();
+            expect(result.current.shouldShowGroupFilter).toBe(false);
+            expect(result.current.filterConfig).toBeUndefined();
         });
 
-        it('should return "All Members" as the dropdown label initially', () => {
+        it('should not show the group column when no groups exist', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
-        });
-
-        it('should include "All Members" as the first group option', () => {
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-            expect(result.current.groupOptions.at(0)?.value).toBe('all');
+            expect(result.current.shouldShowGroupColumn).toBe(false);
         });
     });
 
-    describe('groupOptions', () => {
-        it('should contain only "All Members" when no groups exist in Onyx', () => {
+    describe('filterConfig', () => {
+        it('should not include a filter config when only one group exists', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read'}, name: 'Engineering'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
-            expect(result.current.groupOptions).toHaveLength(1);
-            expect(result.current.groupOptions?.at(0)?.value).toBe('all');
+            await waitFor(() => {
+                expect(result.current.groups).toHaveLength(1);
+            });
+
+            expect(result.current.shouldShowGroupFilter).toBe(false);
+            expect(result.current.filterConfig).toBeUndefined();
+            expect(result.current.shouldShowGroupColumn).toBe(true);
         });
 
-        it('should list all security groups from the domain after the "All Members" entry', async () => {
+        it('should include "All Members" and all security groups when multiple groups exist', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -89,21 +105,37 @@ describe('useDomainGroupFilter', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
             await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(3);
+                expect(result.current.filterConfig?.group.options).toHaveLength(3);
             });
 
-            expect(result.current.groupOptions.at(0)?.value).toBe('all');
-            expect(result.current.groupOptions.at(1)).toEqual({text: 'Engineering', value: '1'});
-            expect(result.current.groupOptions.at(2)).toEqual({text: 'Marketing', value: '2'});
+            expect(result.current.filterConfig?.group.options.at(0)?.value).toBe(ALL_MEMBERS_VALUE);
+            expect(result.current.filterConfig?.group.options.at(1)).toEqual({label: 'Engineering', value: '1'});
+            expect(result.current.filterConfig?.group.options.at(2)).toEqual({label: 'Marketing', value: '2'});
+            expect(result.current.filterConfig?.group.default).toBe(ALL_MEMBERS_VALUE);
         });
     });
 
-    describe('groupPreFilter', () => {
-        it('should allow all members through when no group is selected', () => {
+    describe('isItemInFilter', () => {
+        it('should allow all members through when no group filter is active', () => {
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+            expect(result.current.isItemInFilter).toBeUndefined();
+        });
+
+        it('should allow all members through when "All Members" is selected', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
+                '2': {members: {'300': 'read'}, name: 'Marketing'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
-            expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
-            expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(true);
+            await waitFor(() => {
+                expect(result.current.isItemInFilter).toBeDefined();
+            });
+
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), [ALL_MEMBERS_VALUE])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), [ALL_MEMBERS_VALUE])).toBe(true);
         });
 
         it('should filter members to the selected group', async () => {
@@ -116,19 +148,15 @@ describe('useDomainGroupFilter', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
             await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(3);
+                expect(result.current.isItemInFilter).toBeDefined();
             });
 
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-
-            expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
-            expect(result.current.groupPreFilter(buildMemberOption(200))).toBe(true);
-            expect(result.current.groupPreFilter(buildMemberOption(300))).toBe(false);
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['1'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(200), ['1'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(300), ['1'])).toBe(false);
         });
 
-        it('should allow all members again after switching back to "All Members"', async () => {
+        it('should allow all members when the selected group is not found', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read'}, name: 'Group 1'},
                 '2': {members: {'200': 'read'}, name: 'Group 2'},
@@ -138,206 +166,11 @@ describe('useDomainGroupFilter', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
             await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(3);
+                expect(result.current.isItemInFilter).toBeDefined();
             });
 
-            act(() => {
-                result.current.handleGroupChange({text: 'Group 1', value: '1'});
-            });
-            expect(result.current.groupPreFilter(buildMemberOption(200))).toBe(false);
-
-            act(() => {
-                result.current.handleGroupChange({text: 'All Members', value: 'all'});
-            });
-            expect(result.current.groupPreFilter(buildMemberOption(200))).toBe(true);
-        });
-
-        it('should allow all members and reset selection when group is not found', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Group 1'},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            act(() => {
-                result.current.handleGroupChange({text: 'Nonexistent', value: 'doesNotExist'});
-            });
-
-            expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
-            expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(true);
-            expect(result.current.selectedGroup).toBeNull();
-            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
-        });
-    });
-
-    describe('handleGroupChange', () => {
-        it('should set selectedGroup when a specific group is chosen', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Engineering'},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-
-            expect(result.current.selectedGroup).toEqual({text: 'Engineering', value: '1'});
-        });
-
-        it('should clear selectedGroup when "All Members" is chosen', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Engineering'},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-            expect(result.current.selectedGroup).not.toBeNull();
-
-            act(() => {
-                result.current.handleGroupChange({text: 'All Members', value: 'all'});
-            });
-            expect(result.current.selectedGroup).toBeNull();
-        });
-
-        it('should clear selectedGroup when null is passed', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Engineering'},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-            expect(result.current.selectedGroup).not.toBeNull();
-
-            act(() => {
-                result.current.handleGroupChange(undefined);
-            });
-            expect(result.current.selectedGroup).toBeNull();
-        });
-    });
-
-    describe('dropdownLabel', () => {
-        it('should show "All Members" label when no group is selected', () => {
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
-        });
-
-        it('should show the selected group name as the label', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Engineering'},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-
-            expect(result.current.dropdownLabel).toBe('Engineering');
-        });
-
-        it('should show "All Members" label when the selected group is removed from Onyx', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Engineering'},
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-            expect(result.current.dropdownLabel).toBe('Engineering');
-            expect(result.current.selectedGroup).not.toBeNull();
-
-            // Replace the domain with one that no longer has the selected group
-            const updatedDomain = buildDomain({
-                '2': {members: {'200': 'read'}, name: 'Marketing'},
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, updatedDomain);
-
-            await waitFor(() => {
-                expect(result.current.groupOptions.find((o) => o.value === '1')).toBeUndefined();
-            });
-
-            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
-            expect(result.current.selectedGroup).toBeNull();
-            expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
-        });
-
-        it('should not reactivate the filter when a previously removed group reappears with the same ID (rollback scenario)', async () => {
-            const domain = buildDomain({
-                '1': {members: {'100': 'read'}, name: 'Engineering'},
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            // Select the group
-            act(() => {
-                result.current.handleGroupChange({text: 'Engineering', value: '1'});
-            });
-            expect(result.current.selectedGroup).not.toBeNull();
-
-            // Group disappears from Onyx (e.g. optimistic update removed or data cleared)
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, buildDomain({}));
-
-            await waitFor(() => {
-                expect(result.current.selectedGroup).toBeNull();
-            });
-            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
-
-            // Group reappears with the same ID (rollback / re-sync)
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
-
-            await waitFor(() => {
-                expect(result.current.groupOptions).toHaveLength(2);
-            });
-
-            // Filter must remain inactive — the previous selection was cleared from state
-            expect(result.current.selectedGroup).toBeNull();
-            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
-            expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
-            expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['doesNotExist'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), ['doesNotExist'])).toBe(true);
         });
     });
 
@@ -346,6 +179,7 @@ describe('useDomainGroupFilter', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
             expect(result.current.groups).toEqual([]);
         });
+
         it('should return parsed security groups from Onyx', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read'}, name: 'Engineering'},

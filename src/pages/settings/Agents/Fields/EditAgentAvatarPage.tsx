@@ -1,5 +1,3 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
@@ -7,25 +5,28 @@ import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {BotAvatar} from '@components/Icon/DefaultBotAvatars';
-import {botAvatarIDs, botAvatars} from '@components/Icon/DefaultBotAvatars';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import {updateAgentAvatar} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +34,9 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type EditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_AVATAR>;
 
@@ -45,7 +49,7 @@ type ImageData = {
 
 const EMPTY_IMAGE_DATA: ImageData = {uri: '', name: '', type: '', file: null};
 
-type OnSaveParams = {file: File | CustomRNImageManipulatorResult; uri: string} | {customExpensifyAvatarID: string};
+type OnSaveParams = {file: File | CustomRNImageManipulatorResult; uri: string} | {customExpensifyAvatarID: AgentAvatarID};
 
 type EditAgentAvatarContentProps = {
     accountID: number;
@@ -61,29 +65,28 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
-    const initialBotAvatar = useMemo(() => {
-        if (!initialPresetID) {
+    const initialBotAvatar = useMemo<AgentAvatarID | null>(() => {
+        if (!initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID)) {
             return null;
         }
-        return botAvatars.find((av) => botAvatarIDs.get(av) === initialPresetID) ?? null;
+        return initialPresetID;
     }, [initialPresetID]);
 
-    const [selectedBotAvatar, setSelectedBotAvatar] = useState<BotAvatar | null>(() => initialBotAvatar);
+    const [selectedBotAvatar, setSelectedBotAvatar] = useState<AgentAvatarID | null>(() => initialBotAvatar);
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [cropImageData, setCropImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
 
-    const isSavingRef = useRef(false);
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isDirty,
     });
 
     let previewSource: AvatarSource = personalDetails?.avatar ?? '';
     if (selectedBotAvatar) {
-        previewSource = selectedBotAvatar;
+        previewSource = AGENT_AVATARS.getLocal(selectedBotAvatar) ?? '';
     } else if (imageData.uri) {
         previewSource = imageData.uri;
     }
@@ -124,7 +127,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         if (!isDirty) {
             return;
         }
-        isSavingRef.current = true;
+        notifySaving();
 
         if (imageData.file) {
             if (onSave) {
@@ -136,16 +139,14 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         }
 
         if (selectedBotAvatar) {
-            const customExpensifyAvatarID = botAvatarIDs.get(selectedBotAvatar);
-            if (customExpensifyAvatarID) {
-                const uri = resolveAvatarURI(customExpensifyAvatarID);
-                if (onSave) {
-                    onSave({customExpensifyAvatarID});
-                    return;
-                }
-                updateAgentAvatar(accountID, {customExpensifyAvatarID, uri}, personalDetails?.avatar);
-                Navigation.goBack(fallbackRoute);
+            const customExpensifyAvatarID = selectedBotAvatar;
+            const uri = AGENT_AVATARS.resolveURI(customExpensifyAvatarID);
+            if (onSave) {
+                onSave({customExpensifyAvatarID});
+                return;
             }
+            updateAgentAvatar(accountID, {customExpensifyAvatarID, uri}, personalDetails?.avatar);
+            Navigation.goBack(fallbackRoute);
         }
     };
 
@@ -195,25 +196,24 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.gap3]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2]}>{translate('avatarPage.choosePresetAvatar')}</Text>
                     <View style={styles.avatarSelectorListContainer}>
-                        {botAvatars.map((botAvatar) => {
-                            const botAvatarID = botAvatarIDs.get(botAvatar);
-                            const isSelected = selectedBotAvatar === botAvatar;
+                        {AGENT_AVATARS.ordered.map(({id, local}) => {
+                            const isSelected = selectedBotAvatar === id;
                             return (
                                 <PressableWithFeedback
-                                    key={botAvatarID}
+                                    key={id}
                                     accessible
                                     accessibilityRole="button"
                                     accessibilityLabel={translate('avatarPage.selectAvatar')}
                                     sentryLabel="EditAgentAvatar-BotAvatarSelector"
                                     onPress={() => {
-                                        setSelectedBotAvatar(() => botAvatar);
+                                        setSelectedBotAvatar(() => id);
                                         setImageData(EMPTY_IMAGE_DATA);
                                     }}
                                     style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                                 >
                                     <Avatar
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        source={botAvatar}
+                                        source={local}
                                         size={CONST.AVATAR_SIZE.MEDIUM}
                                         containerStyles={styles.avatarSelectorContainer}
                                     />

@@ -1,13 +1,16 @@
-import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
 import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
 import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
+
 import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {KeysOfUnion, ValueOf} from 'type-fest';
+
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
@@ -129,13 +132,7 @@ type Comment = {
      * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
      * deliberate selection.
      */
-    vendor?: {
-        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
-        externalID: string;
-
-        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
-        isManuallySet: boolean;
-    };
+    vendor?: TransactionCommentVendor;
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
@@ -188,6 +185,9 @@ type TransactionCustomUnit = {
 
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
+
+    /** Whether the rate was auto-updated due to a date change (used for tooltip display) */
+    rateAutoUpdated?: boolean;
 
     /**
      * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
@@ -469,6 +469,15 @@ type SplitShare = {
 /** Record of participant split data, indexed by their `accountID` */
 type SplitShares = Record<number, SplitShare | null>;
 
+/** Accounting-system vendor stored on a transaction's comment NVP */
+type TransactionCommentVendor = {
+    /** External ID of the vendor in the connected accounting system */
+    externalID: string;
+
+    /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
+    isManuallySet: boolean;
+};
+
 /** Model of transaction */
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -623,6 +632,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** If an EReceipt should be generated for this transaction */
         hasEReceipt?: boolean;
 
+        /** Raw merchant category code for this transaction */
+        mcc?: string | number;
+
         /** The MCC Group for this transaction */
         mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
@@ -714,6 +726,9 @@ type AdditionalTransactionChanges = {
 
     /** The unit for the distance/quantity */
     quantity?: number;
+
+    /** Accounting-system vendor on the transaction's comment NVP. `null` clears the vendor. */
+    vendor?: TransactionCommentVendor | null;
 };
 
 /** Model of transaction changes  */
@@ -746,5 +761,6 @@ export type {
     TransactionCollectionDataSet,
     SplitShares,
     TransactionCustomUnit,
+    TransactionCommentVendor,
     UnreportedTransaction,
 };

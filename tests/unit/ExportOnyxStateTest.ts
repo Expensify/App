@@ -310,7 +310,8 @@ describe('Onyx key export coverage', () => {
         // Build the set of all covered keys across the four buckets. onyxKeysToMaskFragileData is the
         // computed fallback for anything not explicitly in the other three, so the four buckets together
         // partition every ONYXKEYS value.
-        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...(Array.from(onyxKeysToRemove) as string[]), ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
+        const removeKeys = Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string');
+        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
 
         const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
         const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
@@ -359,7 +360,6 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.ACCOUNT,
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            ONYXKEYS.LOGIN_LIST,
             ONYXKEYS.LOGINS,
             ONYXKEYS.PLAID_DATA,
             ONYXKEYS.FUND_LIST,
@@ -392,16 +392,17 @@ describe('Onyx key export coverage', () => {
 
     it('no key should appear in multiple buckets', () => {
         const rulesKeys = Object.keys(ONYX_KEY_EXPORT_RULES);
+        const removeKeys = new Set<string>(Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'));
         for (const key of rulesKeys) {
             expect(safeOnyxKeys.has(key)).toBe(false);
-            expect(onyxKeysToRemove.has(key as never)).toBe(false);
+            expect(removeKeys.has(key)).toBe(false);
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
         for (const key of safeOnyxKeys) {
-            expect(onyxKeysToRemove.has(key as never)).toBe(false);
+            expect(removeKeys.has(key)).toBe(false);
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
-        for (const key of Array.from(onyxKeysToRemove) as string[]) {
+        for (const key of removeKeys) {
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
     });

@@ -1,8 +1,7 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
@@ -10,17 +9,22 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {endSpan} from '@libs/telemetry/activeSpans';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
+
 import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +32,11 @@ import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import Camera from './Camera';
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
@@ -74,6 +83,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
                 Promise.all(setParticipantsPromises).then(() => {
                     if (isTrackExpense) {
+                        endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
                     } else {
                         navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
@@ -86,10 +96,12 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 setTransactionReport(tid, {reportID: transactionReportID}, true);
                 return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
             });
-            Promise.all(setParticipantsPromises).then(() =>
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID)),
-            );
+            Promise.all(setParticipantsPromises).then(() => {
+                endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
+            });
         } else {
+            endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
             navigateToParticipantPage(iouType, transactionID, reportID);
         }
     };

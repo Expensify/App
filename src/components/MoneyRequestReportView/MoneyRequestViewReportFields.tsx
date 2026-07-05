@@ -1,11 +1,9 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -15,18 +13,26 @@ import {
     getFieldViolationTranslation,
     getReportFieldKey,
     getReportFieldMaps,
+    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+
 import type {ThemeStyles} from '@styles/index';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type MoneyRequestViewReportFieldsProps = {
     /** The report currently being looked at */
@@ -119,10 +125,10 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
     );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
-    const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;

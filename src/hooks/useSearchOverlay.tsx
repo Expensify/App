@@ -1,18 +1,24 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import SearchStaticList from '@components/Search/SearchStaticList';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getValidGroupBy, isTransactionSearchType} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
+
 import useOnyx from './useOnyx';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
 const OVERLAY_SAFETY_TIMEOUT_MS = 5000;
 
@@ -61,6 +67,7 @@ function useSearchOverlay({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const [isSearchReady, setIsSearchReady] = useState(() => !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -114,6 +121,7 @@ function useSearchOverlay({
             type: queryJSON.type,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns,
+            fallbackPolicyID: policyForMovingExpensesID,
         });
     })();
 

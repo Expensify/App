@@ -1,6 +1,5 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -9,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -16,21 +16,27 @@ import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
+import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
+import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
-import {openAgentsPage} from '@userActions/Agent';
+
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {useEffect, useRef} from 'react';
 
 function initializePusher(currentUserAccountID?: number, currentUserEmail?: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
@@ -75,6 +81,23 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+
+    useEffect(() => {
+        registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
+            const currentAccountID = accountID ?? session?.accountID;
+            const currentEmail = email ?? session?.email ?? '';
+
+            if (currentAccountID === undefined) {
+                return Promise.resolve();
+            }
+
+            return initializePusher(currentAccountID, currentEmail, () => reportAttributesRef.current);
+        });
+
+        return () => {
+            registerPusherReinitializeHandler(null);
+        };
+    }, [session?.accountID, session?.email]);
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -131,11 +154,6 @@ function AuthScreensInitHandler() {
             Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
-
-        // Hydrate the user's custom-agent prompts so AgentZeroStatusProvider can recognize
-        // custom-agent chats opened directly from a deep link or right after sign-in, without
-        // requiring a prior visit to Settings > Agents.
-        openAgentsPage();
 
         App.setUpPoliciesAndNavigate(
             session,

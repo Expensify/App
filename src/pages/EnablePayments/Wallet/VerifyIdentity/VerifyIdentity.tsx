@@ -1,5 +1,3 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -11,16 +9,23 @@ import type {OnfidoData} from '@components/Onfido/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Growl from '@libs/Growl';
+
 import {openOnfidoFlow, updateAddPersonalBankAccountDraft, verifyIdentity} from '@userActions/BankAccounts';
 import {updateCurrentStep} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
@@ -63,6 +68,7 @@ function VerifyIdentity() {
                 <InteractiveStepSubHeader
                     startStepIndex={2}
                     stepNames={CONST.WALLET.STEP_NAMES}
+                    currentStepAccessibilityDescription={translate('onfidoStep.verifyIdentity')}
                 />
             </View>
             <FullPageOfflineBlockingView>

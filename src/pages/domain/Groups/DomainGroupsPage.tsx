@@ -1,33 +1,29 @@
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchBar from '@components/SearchBar';
-import SelectionList from '@components/SelectionList';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import Text from '@components/Text';
+import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
+import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
+
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasDomainGroupDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {clearGroupCreateError, clearGroupDeleteError} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,10 +31,11 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-type GroupOption = Omit<ListItem, 'groupID'> & {
-    /** Group ID */
-    groupID: string;
-};
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
 
 type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.GROUPS>;
 
@@ -51,6 +48,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
@@ -58,74 +56,38 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const [pendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
-    const data = groups.map((group) => {
-        const isDefault = group.id === defaultGroupID;
-        const groupPendingActions = pendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`];
-        const groupErrorMessage = getLatestError(domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`]?.errors);
-        const isFailedCreate = groupPendingActions?.createGroup === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyValueObject(groupErrorMessage);
-        return {
-            keyForList: group.id,
-            groupID: group.id,
-            text: group.details.name ?? '',
-            errors: groupErrorMessage,
-            brickRoadIndicator:
-                hasDomainGroupDetailsErrors(domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`]) && !isSecurityGroupPendingDeleteSelector(group.id)(pendingActions)
-                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                    : undefined,
-            rightElement: (
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text numberOfLines={1}>{translate('domain.groups.memberCount', {count: Object.keys(group.details.shared).length})}</Text>
-                    {isDefault && <Badge text={translate('common.default')} />}
-                </View>
-            ),
-            pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
-            isDisabled: isSecurityGroupPendingDeleteSelector(group.id)(pendingActions) || isFailedCreate,
-        };
-    });
+    const groupRows: DomainGroupRowData[] = groups
+        .filter((group) => isOffline || !isSecurityGroupPendingDeleteSelector(group.id)(pendingActions))
+        .map((group) => {
+            const isDefault = group.id === defaultGroupID;
+            const groupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`;
+            const groupErrors = domainErrors?.[groupKey];
+            const groupPendingActions = pendingActions?.[groupKey];
+            const groupErrorMessage = getLatestError(groupErrors?.errors);
+            const isFailedCreate = groupPendingActions?.createGroup === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyValueObject(groupErrorMessage);
+            const isPendingDelete = isSecurityGroupPendingDeleteSelector(group.id)(pendingActions);
+            const hasDetailsErrors = hasDomainGroupDetailsErrors(groupErrors) && !isPendingDelete;
 
-    const filterGroup = (item: GroupOption, searchQuery: string) => tokenizedSearch([item], searchQuery, (o) => [o.text ?? '']).length > 0;
-
-    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterGroup);
-
-    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const shouldShowEmptySearchMessage = shouldShowSearchBar && inputValue.length > 0 && filteredData.length === 0;
-
-    const listHeaderContent = shouldShowSearchBar ? (
-        <View style={styles.flexColumn}>
-            <View style={[styles.mh5, styles.gap3, styles.mb5, shouldDisplayButtonsInSeparateLine ? styles.flexColumn : styles.flexRow]}>
-                <View style={[shouldDisplayButtonsInSeparateLine ? styles.w100 : styles.flex1]}>
-                    <SearchBar
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        label={translate('domain.groups.findGroup')}
-                        shouldShowEmptyState={false}
-                        style={[styles.flex1, styles.mh0, styles.mb0]}
-                    />
-                </View>
-            </View>
-            {shouldShowEmptySearchMessage && (
-                <View style={[styles.ph5, styles.pb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
-                </View>
-            )}
-        </View>
-    ) : null;
-
-    const getCustomListHeader = () => {
-        if (filteredData.length === 0) {
-            return null;
-        }
-
-        return (
-            <CustomListHeader
-                canSelectMultiple={false}
-                leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('common.members')}
-                shouldDivideEqualWidth
-                shouldShowRightCaret
-            />
-        );
-    };
+            return {
+                keyForList: group.id,
+                groupID: group.id,
+                name: group.details.name ?? '',
+                memberCount: Object.keys(group.details.shared).length,
+                isDefault,
+                errors: groupErrorMessage,
+                brickRoadIndicator: hasDetailsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
+                disabled: isPendingDelete || isFailedCreate,
+                action: () => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, group.id)),
+                dismissError: () => {
+                    if (groupPendingActions?.createGroup) {
+                        clearGroupCreateError(domainAccountID, group.id);
+                        return;
+                    }
+                    clearGroupDeleteError(domainAccountID, group.id);
+                },
+            };
+        });
 
     const createGroupHeaderButton = (
         <Button
@@ -159,28 +121,12 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
 
-                <SelectionList
-                    data={filteredData}
-                    ListItem={TableListItem}
-                    onSelectRow={(item: GroupOption) => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, item.groupID))}
-                    onDismissError={(item: GroupOption) => {
-                        if (pendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${item.groupID}`]?.createGroup) {
-                            clearGroupCreateError(domainAccountID, item.groupID);
-                            return;
-                        }
-                        clearGroupDeleteError(domainAccountID, item.groupID);
-                    }}
-                    customListHeader={getCustomListHeader()}
-                    shouldHeaderBeInsideList
-                    customListHeaderContent={listHeaderContent}
-                    shouldShowListEmptyContent={false}
-                    shouldShowRightCaret
-                    disableMaintainingScrollPosition
-                    addBottomSafeAreaPadding
-                />
+                <DomainGroupsTable groups={groupRows} />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
 }
+
+DomainGroupsPage.displayName = 'DomainGroupsPage';
 
 export default DomainGroupsPage;

@@ -1,16 +1,22 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type Props = {
     policyName: string;
+    /** Friendly name of the plan the workspace was upgraded to (e.g. Collect or Control) */
+    planName?: string;
     afterUpgradeAcknowledged: () => void;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
@@ -20,7 +26,7 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -50,10 +56,10 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting,
 
         return (
             <View style={[styles.renderHTML, styles.w100]}>
-                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, subscriptionLink)} />
+                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
-    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, planName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     const heading = useMemo(() => {
         if (isCategorizing || isReporting) {
