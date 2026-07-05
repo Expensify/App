@@ -240,7 +240,7 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <ReportSubmitToPopoverMeasurableAnchor>
+                <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
                     <DeferredActionCell
                         action={item.action}
                         onButtonPress={onButtonPress}
