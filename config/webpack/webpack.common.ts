@@ -347,7 +347,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         // non-fatal React Compiler diagnostics to webpack warnings instead of
                         // hard build errors (workaround for oxc-project/oxc#23587).
                         {
-                            loader: path.resolve(dirname, './oxc-react-compiler-loader.js'),
+                            loader: path.resolve(dirname, './oxc-react-compiler-loader.cjs'),
                             options: {
                                 reactCompiler: {target: '19', panicThreshold: 'none'},
                                 target: 'node20',
@@ -356,7 +356,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         },
                         // Pass 1: Fullstory annotation (sees annotated JSX before OXC transforms it)
                         {
-                            loader: path.resolve(dirname, './fullstory-annotation-loader.js'),
+                            loader: path.resolve(dirname, './fullstory-annotation-loader.cjs'),
                         },
                     ],
                 },

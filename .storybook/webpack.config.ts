@@ -80,10 +80,23 @@ const webpackConfig = async ({config}: {config: Configuration}) => {
     config.resolve.extensions = custom.resolve.extensions;
     config.resolve.fallback = custom.resolve.fallback;
 
-    const babelRulesIndex = custom.module.rules.findIndex((rule) => rule.loader === 'babel-loader');
-    const babelRule = custom.module.rules.at(babelRulesIndex);
-    if (babelRulesIndex !== -1 && babelRule) {
-        config.module.rules?.push(babelRule);
+    const hasOxcTransformPipeline = (rule: RuleSetRule): boolean => {
+        if (!rule.use || !Array.isArray(rule.use)) {
+            return false;
+        }
+
+        return rule.use.some((entry) => {
+            const loader = typeof entry === 'string' ? entry : entry?.loader;
+            return typeof loader === 'string' && (loader.includes('oxc-react-compiler-loader') || loader === 'oxc-loader');
+        });
+    };
+
+    for (const rule of custom.module.rules) {
+        if (typeof rule === 'string' || typeof rule === 'boolean' || typeof rule === 'number' || !hasOxcTransformPipeline(rule)) {
+            continue;
+        }
+
+        config.module.rules?.push(rule);
     }
 
     const fileLoaderRule = config.module.rules?.find(
