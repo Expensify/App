@@ -1,20 +1,25 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import ConstantPicker from './ConstantPicker';
 import DebugTagPicker from './DebugTagPicker';
 

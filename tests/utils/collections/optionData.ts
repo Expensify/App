@@ -1,6 +1,8 @@
-import {rand, randBoolean, randEmail, randNumber, randPhoneNumber, randWord} from '@ngneat/falso';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import {rand, randBoolean, randEmail, randNumber, randPhoneNumber, randWord} from '@ngneat/falso';
 
 export default function createRandomOptionData(index: number): OptionData {
     return {

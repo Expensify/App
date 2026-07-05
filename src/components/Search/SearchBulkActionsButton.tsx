@@ -1,6 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useContext, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -10,6 +7,7 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,17 +16,25 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isExpenseReport} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useContext, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {BulkPaySelectionData, SearchQueryJSON} from './types';
+
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchSelectionContext} from './SearchContext';
-import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;

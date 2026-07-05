@@ -1,13 +1,17 @@
-import React, {useMemo} from 'react';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import {isAnonymousUser} from '@libs/actions/Session';
+
 import variables from '@styles/variables';
+
+import React, {useMemo} from 'react';
 
 function SignInHeroImage() {
     const styles = useThemeStyles();

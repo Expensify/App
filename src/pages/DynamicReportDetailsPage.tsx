@@ -1,11 +1,3 @@
-import {StackActions, useFocusEffect} from '@react-navigation/native';
-import {delegateEmailSelector} from '@selectors/Account';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -43,6 +36,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -111,6 +105,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
@@ -125,6 +120,7 @@ import {
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,7 +131,20 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {StackActions, useFocusEffect} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicReportDetailsPageMenuItem = {
@@ -215,6 +224,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
+        currentUserPersonalDetails?.email,
+    ]);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
@@ -243,7 +255,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
 
@@ -517,6 +529,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
                         currentUserLocalCurrency,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                     });
                 },
             });
@@ -542,6 +556,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -566,6 +582,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -709,6 +727,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        filteredPoliciesInfo?.filteredPoliciesCount,
+        filteredPoliciesInfo?.firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,
