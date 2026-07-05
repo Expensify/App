@@ -89,9 +89,14 @@ const getIntlDateTimeFormat = memoize(
     {maxSize: 256},
 );
 
-/** Formats `date` via the cached Intl formatter and strips the narrow no-break space ICU 72+ inserts before AM/PM. */
+/** Formats `date` via the cached Intl formatter and strips the narrow no-break space ICU 72+ inserts before AM/PM. Retries in UTC on double-rejection so render-path callers without error boundaries can't unmount. */
 function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZone?: string): string {
-    return getIntlDateTimeFormat(locale, formatKey, timeZone).format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
+    try {
+        return getIntlDateTimeFormat(locale, formatKey, timeZone).format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
+    } catch (error) {
+        Log.warn('[DateUtils] formatIntl failed; degrading to UTC-formatter render', {locale, formatKey, timeZone, error});
+        return getIntlDateTimeFormat(locale, formatKey, 'UTC').format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
+    }
 }
 
 /**
@@ -272,7 +277,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
 function datetimeToRelative(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone): string {
     const date = getLocalDateFromDatetime(locale, currentSelectedTimezone, datetime);
     const now = getLocalDateFromDatetime(locale, currentSelectedTimezone);
-    return formatDistance(date, now, {addSuffix: true});
+    return formatDistance(date, now, {addSuffix: true, locale: IntlStore.getDateFnsLocale(locale) ?? enUS});
 }
 
 /**
@@ -927,6 +932,9 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
     return `GMT${sign}${hoursNumber}${minutesNumber > 0 ? `:${minutes}` : ''}`;
 }
 
+/** Accepts ISO 8601 offset variants: `±HH:MM`, `±HHMM`, `±HH`. */
+const CANCELLATION_OFFSET_PATTERN = /([+-])(\d{2}):?(\d{2})?$/;
+
 /**
  * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
  * Dates are formatted as follows:
@@ -937,15 +945,23 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale): st
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
-    const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
-    // No-offset ISO parses as local in V8/Hermes; append `Z` so its wall-clock survives when we format in UTC.
+    const offsetMatch = isoDateString.match(CANCELLATION_OFFSET_PATTERN);
+    const [, sign = '+', hours = '00', minutes = '00'] = offsetMatch ?? [];
+    const offsetMinutes = offsetMatch ? (sign === '-' ? -1 : 1) * (Number(hours) * 60 + Number(minutes)) : 0;
+    const venueTimezoneLabel = offsetMatch ? getCancellationDateTimezoneLabel(`${sign}${hours}:${minutes}`) : 'UTC';
+    // No-offset ISO parses as local in V8/Hermes; treat as UTC so the wall-clock is stable regardless of runtime tz.
     const canonicalIso = offsetMatch || isoDateString.endsWith('Z') ? isoDateString : `${isoDateString}Z`;
-    const date = new Date(canonicalIso);
-    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
-    // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
-    // `+07:00`, so the timezone label is derived from the offset and appended manually.
-    return `${formatInTimeZoneWithFallback(date, venueTimezone, pattern, {locale: IntlStore.getDateFnsLocale(locale)})}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
+    const instant = new Date(canonicalIso);
+    if (Number.isNaN(instant.getTime())) {
+        return '';
+    }
+    // Manual venue-wall-clock shift + format-in-UTC — sidesteps `formatInTimeZone`'s raw-offset rejection AND guarantees the rendered time can't contradict `venueTimezoneLabel`.
+    const venueInstant = new Date(instant.getTime() + offsetMinutes * 60_000);
+    const nowInVenue = new Date(Date.now() + offsetMinutes * 60_000);
+    const pattern = venueInstant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
+    // Explicit `enUS` (never `undefined`) so a chunk-load race can't silently leak through to date-fns's global default.
+    const dateFnsLocale = IntlStore.getDateFnsLocale(locale) ?? enUS;
+    return `${formatInTimeZoneWithFallback(venueInstant, 'UTC', pattern, {locale: dateFnsLocale})}, ${venueTimezoneLabel}`;
 }
 
 /**
@@ -1017,9 +1033,9 @@ function isValidDateString(dateString: string) {
     return !Number.isNaN(date.getTime());
 }
 
-/** Persists as the backend merchant string — uses date-fns over Intl because `dateStyle:'medium'` drifts across ICU versions (`"Jun"` vs `"Jun."`). */
+/** Persists to backend as `merchant`; date-fns (not Intl) because `dateStyle:'medium'` drifts across ICU, and `{locale: enUS}` defends against `setDefaultOptions` leaking the viewer's locale. */
 function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
-    return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
+    return `${format(date1, 'MMM d, yyyy', {locale: enUS})} - ${format(date2, 'MMM d, yyyy', {locale: enUS})}`;
 }
 
 /**
@@ -1039,6 +1055,11 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
 }
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+/** DB wire timestamp: `yyyy-MM-dd HH:mm:ss[.SSS]` — no timezone, so JS `new Date()` parses it as local wall-clock. */
+const DB_WIRE_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/;
+function isUnzonedString(date: unknown): date is string {
+    return typeof date === 'string' && (ISO_DATE_PATTERN.test(date) || DB_WIRE_TIMESTAMP_PATTERN.test(date));
+}
 
 /**
  * Parses `'yyyy-MM-dd'` as local midnight; passes `Date` and non-ISO-date strings through. Use
@@ -1139,8 +1160,8 @@ function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone,
     if (!date) {
         return '';
     }
-    if (typeof date === 'string' && ISO_DATE_PATTERN.test(date)) {
-        throw new RangeError(`formatInTimeZoneToLong: date-only string '${date}' produces day-shift. Use formatToReadableString or formatInUTCToLong.`);
+    if (isUnzonedString(date)) {
+        throw new RangeError(`formatInTimeZoneToLong: unzoned string '${date}' would parse as runtime-local wall-clock. Use formatToReadableString or formatInUTCToLong.`);
     }
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date), timeZone);
 }
@@ -1150,8 +1171,8 @@ function formatInTimeZoneToShortTime(date: Date | string, timeZone: SelectedTime
     if (!date) {
         return '';
     }
-    if (typeof date === 'string' && ISO_DATE_PATTERN.test(date)) {
-        throw new RangeError(`formatInTimeZoneToShortTime: date-only string '${date}' has no time component.`);
+    if (isUnzonedString(date)) {
+        throw new RangeError(`formatInTimeZoneToShortTime: unzoned string '${date}' would parse as runtime-local wall-clock; pass a zoned Date or full ISO with offset.`);
     }
     return formatIntl(locale, 'SHORT_TIME', toLocalDate(date), timeZone);
 }
@@ -1161,8 +1182,8 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
     if (!date) {
         return '';
     }
-    if (typeof date === 'string' && ISO_DATE_PATTERN.test(date)) {
-        throw new RangeError(`formatInTimeZoneToWeekday: date-only string '${date}' produces day-shift. Use formatToReadableString.`);
+    if (isUnzonedString(date)) {
+        throw new RangeError(`formatInTimeZoneToWeekday: unzoned string '${date}' would parse as runtime-local wall-clock. Use formatToReadableString.`);
     }
     return formatIntl(locale, 'LONG_WEEKDAY', toLocalDate(date), timeZone);
 }

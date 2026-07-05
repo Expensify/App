@@ -1,4 +1,5 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
+import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -54,7 +55,7 @@ class IntlStore {
      */
     private static loaders: Record<Locale, () => Promise<[void, void]>> = {
         [LOCALES.DE]: () =>
-            this.cache.has(LOCALES.DE)
+            this.cache.has(LOCALES.DE) && this.dateUtilsCache.has(LOCALES.DE)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./de').then((module: DynamicModule<typeof de>) => {
@@ -75,7 +76,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.ES]: () =>
-            this.cache.has(LOCALES.ES)
+            this.cache.has(LOCALES.ES) && this.dateUtilsCache.has(LOCALES.ES)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./es').then((module: DynamicModule<typeof es>) => {
@@ -86,7 +87,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.FR]: () =>
-            this.cache.has(LOCALES.FR)
+            this.cache.has(LOCALES.FR) && this.dateUtilsCache.has(LOCALES.FR)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./fr').then((module: DynamicModule<typeof fr>) => {
@@ -97,7 +98,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.IT]: () =>
-            this.cache.has(LOCALES.IT)
+            this.cache.has(LOCALES.IT) && this.dateUtilsCache.has(LOCALES.IT)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./it').then((module: DynamicModule<typeof it>) => {
@@ -108,7 +109,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.JA]: () =>
-            this.cache.has(LOCALES.JA)
+            this.cache.has(LOCALES.JA) && this.dateUtilsCache.has(LOCALES.JA)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./ja').then((module: DynamicModule<typeof ja>) => {
@@ -119,7 +120,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.NL]: () =>
-            this.cache.has(LOCALES.NL)
+            this.cache.has(LOCALES.NL) && this.dateUtilsCache.has(LOCALES.NL)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./nl').then((module: DynamicModule<typeof nl>) => {
@@ -130,7 +131,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.PL]: () =>
-            this.cache.has(LOCALES.PL)
+            this.cache.has(LOCALES.PL) && this.dateUtilsCache.has(LOCALES.PL)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./pl').then((module: DynamicModule<typeof pl>) => {
@@ -141,7 +142,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.PT_BR]: () =>
-            this.cache.has(LOCALES.PT_BR)
+            this.cache.has(LOCALES.PT_BR) && this.dateUtilsCache.has(LOCALES.PT_BR)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./pt-BR').then((module: DynamicModule<typeof ptBR>) => {
@@ -152,7 +153,7 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.ZH_HANS]: () =>
-            this.cache.has(LOCALES.ZH_HANS)
+            this.cache.has(LOCALES.ZH_HANS) && this.dateUtilsCache.has(LOCALES.ZH_HANS)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
                       import('./zh-hans').then((module: DynamicModule<typeof zhHans>) => {
@@ -187,7 +188,15 @@ class IntlStore {
     /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
     private static loadToken = 0;
 
+    /** Bumped on every `notifyListeners` so `useSyncExternalStore` subscribers can re-render on non-identity mutations (e.g. dateUtilsCache fill) that a locale snapshot would `Object.is`-bail. */
+    private static version = 0;
+
+    public static getSnapshotVersion(this: void): number {
+        return IntlStore.version;
+    }
+
     private static notifyListeners() {
+        IntlStore.version++;
         for (const listener of IntlStore.listeners) {
             listener();
         }
@@ -227,11 +236,15 @@ class IntlStore {
                 if (dateUtilsLocale) {
                     setDefaultOptions({locale: dateUtilsLocale});
                 }
-                // Flag flip + notify in the same microtask — OnyxDerived (flag-gated) and React (notify) commit in one frame.
-                setAreTranslationsLoading(false);
                 IntlStore.notifyListeners();
             })
+            .catch((error: unknown) => {
+                Log.warn('[IntlStore] locale chunk failed to load', {locale, error});
+            })
             .finally(() => {
+                if (IntlStore.loadToken === token) {
+                    setAreTranslationsLoading(false);
+                }
                 if (!localeSpan) {
                     return;
                 }

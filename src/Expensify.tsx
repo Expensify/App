@@ -64,6 +64,7 @@ function Expensify() {
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [areTranslationsLoading] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     useDebugShortcut();
 
     useEffect(() => {
@@ -130,16 +131,16 @@ function Expensify() {
     }, [isCheckingPublicRoom]);
 
     useEffect(() => {
-        if (!preferredLocale) {
+        if (areTranslationsLoading !== false) {
             return;
         }
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-    }, [preferredLocale]);
+    }, [areTranslationsLoading]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && areTranslationsLoading === false;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
     // We store this in a ref to get the latest values in BootsplashMonitor callback

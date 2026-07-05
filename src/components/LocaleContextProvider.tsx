@@ -18,7 +18,6 @@ import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useSyncExternalStore} from 'react';
 
 type LocaleContextProviderProps = {
@@ -88,7 +87,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const currentLocale = useSyncExternalStore(IntlStore.subscribe, IntlStore.getCurrentLocale, IntlStore.getCurrentLocale);
+    useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshotVersion, IntlStore.getSnapshotVersion);
+    const currentLocale = IntlStore.getCurrentLocale();
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {

@@ -15,7 +15,6 @@ import {getTransactionDetails} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';

@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -220,7 +219,7 @@ function CalendarPicker({
 
     const monthNames = DateUtils.getMonthNames(preferredLocale);
     const daysOfWeekLong = DateUtils.getDaysOfWeek(preferredLocale);
-    const daysOfWeek = DateUtils.getDaysOfWeekShort(preferredLocale);
+    const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale);
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
