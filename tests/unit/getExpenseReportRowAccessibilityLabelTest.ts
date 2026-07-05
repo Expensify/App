@@ -1,9 +1,13 @@
 import getExpenseReportRowAccessibilityLabel from '@components/Search/SearchList/ListItem/getExpenseReportRowAccessibilityLabel';
 
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
 import {translateLocal} from '../utils/TestHelper';
+
+const deps = {translate: translateLocal, convertToDisplayString};
 
 describe('getExpenseReportRowAccessibilityLabel', () => {
     beforeAll(() => {
@@ -22,7 +26,7 @@ describe('getExpenseReportRowAccessibilityLabel', () => {
                 transactions: [],
                 transactionCount: 5,
             },
-            translateLocal,
+            deps,
         );
 
         expect(label).toContain('Alex 310');
@@ -33,10 +37,7 @@ describe('getExpenseReportRowAccessibilityLabel', () => {
     });
 
     it('should announce the singular "1 expense" for a single-transaction report', () => {
-        const label = getExpenseReportRowAccessibilityLabel(
-            {reportName: "Aki's expenses", totalDisplaySpend: 0, currency: 'USD', created: '', transactions: [], transactionCount: 1},
-            translateLocal,
-        );
+        const label = getExpenseReportRowAccessibilityLabel({reportName: "Aki's expenses", totalDisplaySpend: 0, currency: 'USD', created: '', transactions: [], transactionCount: 1}, deps);
 
         expect(label).toContain('1 expense');
         expect(label).not.toContain('1 expenses');
@@ -45,7 +46,7 @@ describe('getExpenseReportRowAccessibilityLabel', () => {
     it('should announce the scanning text instead of an amount while the report is scanning', () => {
         const label = getExpenseReportRowAccessibilityLabel(
             {reportName: "Aki's expenses", totalDisplaySpend: 0, currency: 'USD', isAllScanning: true, created: '', transactions: [], transactionCount: 0},
-            translateLocal,
+            deps,
         );
 
         expect(label).toContain('Scanning');
@@ -53,10 +54,7 @@ describe('getExpenseReportRowAccessibilityLabel', () => {
     });
 
     it('should omit empty segments such as a missing sender or status', () => {
-        const label = getExpenseReportRowAccessibilityLabel(
-            {reportName: "Aki's expenses", totalDisplaySpend: 0, currency: 'USD', created: '', transactions: [], transactionCount: 0},
-            translateLocal,
-        );
+        const label = getExpenseReportRowAccessibilityLabel({reportName: "Aki's expenses", totalDisplaySpend: 0, currency: 'USD', created: '', transactions: [], transactionCount: 0}, deps);
 
         expect(label).toContain("Aki's expenses");
         expect(label).not.toContain('Approved');

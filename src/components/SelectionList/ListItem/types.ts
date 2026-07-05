@@ -221,6 +221,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** When `false`, a single-select row stays a `button` instead of becoming a listbox `option`. */
     shouldUseOptionRole?: boolean;
 
+    /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
+    isSelected?: boolean;
+
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem> &

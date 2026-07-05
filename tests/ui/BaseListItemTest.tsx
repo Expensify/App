@@ -110,4 +110,33 @@ describe('BaseListItem', () => {
         );
         expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
     });
+
+    it('should drive the row selected state from the isSelected prop when selection is not on the item', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text'}}
+                keyForList="1"
+                isSelected
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`).props.accessibilityState).toEqual(expect.objectContaining({selected: true}));
+    });
+
+    it('should fall back to item.isSelected for the row selected state when the isSelected prop is omitted', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text', isSelected: true}}
+                keyForList="1"
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`).props.accessibilityState).toEqual(expect.objectContaining({selected: true}));
+    });
 });

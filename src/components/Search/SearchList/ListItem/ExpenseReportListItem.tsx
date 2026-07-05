@@ -14,6 +14,7 @@ import Text from '@components/Text';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -109,6 +110,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -448,9 +450,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
+            isSelected={isSelected}
             accessible={canSelectMultiple && shouldBreakAccessibilityGrouping() ? false : undefined}
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
-            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, translate)}
+            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, convertToDisplayString})}
             shouldUseOptionRole={false}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}

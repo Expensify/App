@@ -42,7 +42,8 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
     shouldUseOptionRole,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple' | 'shouldUseOptionRole'>) {
+    isSelected,
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple' | 'shouldUseOptionRole' | 'isSelected'>) {
     // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
     // For multi-select (checkbox/radio), keep existing role and state. Navigational lists (shouldUseOptionRole === false)
     // opt out so the row keeps its button role instead of becoming an option with no listbox container.
@@ -50,8 +51,8 @@ function getAccessibilityProps<TItem extends ListItem>({
     const effectiveRole = getItemRole(role, isSelectableOption);
 
     const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
-    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : getSelectableState(!!item.isSelected);
-    const ariaCurrent = !isCheckableRole && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobile() ? true : undefined;
+    const accessibilityState = isCheckableRole ? {checked: !!isSelected, selected: !!isFocused} : getSelectableState(!!isSelected);
+    const ariaCurrent = !isCheckableRole && isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobile() ? true : undefined;
 
     if (accessible === false) {
         return {
@@ -110,6 +111,7 @@ function BaseListItem<TItem extends ListItem>({
     accessibilityLabel,
     accessibilityRole = getButtonRole(true),
     shouldUseOptionRole,
+    isSelected,
     forwardedFSClass,
     testID,
 }: BaseListItemProps<TItem>) {
@@ -164,7 +166,9 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+    // Selection can be provided explicitly (e.g. rows whose selection isn't stored on the item) and otherwise falls back to the item.
+    const isRowSelected = isSelected ?? item.isSelected;
+    const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
         role: accessibilityRole,
@@ -175,6 +179,7 @@ function BaseListItem<TItem extends ListItem>({
         isFocused,
         canSelectMultiple,
         shouldUseOptionRole,
+        isSelected: isRowSelected,
     });
 
     return (
@@ -204,12 +209,12 @@ function BaseListItem<TItem extends ListItem>({
                     }
                     onSelectRow(item, undefined, e);
                 }}
-                disabled={isDisabled && !item.isSelected}
+                disabled={isDisabled && !isRowSelected}
                 interactive={item.isInteractive}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || item.isSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
+                hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => {
                     if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
@@ -223,7 +228,7 @@ function BaseListItem<TItem extends ListItem>({
                     pressableStyle,
                     isFocusVisible &&
                         StyleUtils.getItemBackgroundColorStyle(
-                            shouldHighlightSelectedItem && !!item.isSelected,
+                            shouldHighlightSelectedItem && !!isRowSelected,
                             !!isFocusVisible,
                             !!item.isDisabled,
                             theme.activeComponentBG,
