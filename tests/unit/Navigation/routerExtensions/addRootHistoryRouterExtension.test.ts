@@ -1,11 +1,14 @@
-import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+
+import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+
 import createMock from '../../../utils/createMock';
 
 type TestState = StackNavigationState<ParamListBase> & {history?: CustomHistoryEntry[]};
@@ -723,6 +726,85 @@ describe('addRootHistoryRouterExtension', () => {
             // padding is dropped at the rehydration boundary - this is the conservative
             // outcome (offset dies on resetRoot, browser history not over-padded).
             expect(countLeadingPadding(rehydrated.history)).toBe(0);
+        });
+    });
+
+    describe('modal back-guard sentinel (#90776)', () => {
+        const MODAL = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL;
+        const modalTag = (modalId: string) => `${MODAL}:${modalId}` as CustomHistoryEntry;
+
+        // Mirrors production RN StackRouter: spreads `state` so the custom `history` field is carried
+        // forward through a forward navigation (the reason the sentinel would otherwise be re-appended).
+        function makeForwardNavRouter() {
+            return createMockRouterFactory((state, action) => {
+                if (action.type === 'NAVIGATE') {
+                    const payload = action.payload as {name: string};
+                    const newRoute = makeRoute(payload.name, nextTestKey(payload.name));
+                    const routes = [...state.routes, newRoute];
+                    return {...state, routes, routeNames: routes.map((r) => r.name), index: routes.length - 1};
+                }
+                return state;
+            });
+        }
+
+        it('preserves a trailing modal sentinel through getRehydratedState (RESET/resize parity)', () => {
+            const factory = createMockRouterFactory();
+            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+            const partialState = {
+                routes: [{name: 'ScreenA', key: 'a-1'}],
+                stale: true as const,
+                history: [{key: 'a-1', name: 'ScreenA'}, modalTag('m1')],
+            };
+
+            const state = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+
+            expect(state.history?.at(-1)).toBe(modalTag('m1'));
+            const routeEntries = state.history?.filter((e): e is NavigationRoute<ParamListBase, string> => typeof e !== 'string') ?? [];
+            expect(routeEntries).toHaveLength(1);
+        });
+
+        it('preserves multiple trailing modal sentinels (nested modals) through getRehydratedState', () => {
+            const factory = createMockRouterFactory();
+            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+            const partialState = {
+                routes: [{name: 'ScreenA', key: 'a-1'}],
+                stale: true as const,
+                history: [{key: 'a-1', name: 'ScreenA'}, modalTag('m1'), modalTag('m2')],
+            };
+
+            const state = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+
+            expect(state.history?.slice(-2)).toEqual([modalTag('m1'), modalTag('m2')]);
+        });
+
+        it('consumes the trailing modal sentinel on forward navigation so historyDelta === 0 (replaceState)', () => {
+            const enhancedRouter = addRootHistoryRouterExtension(makeForwardNavRouter())({} as PlatformStackRouterOptions);
+
+            const routeA = makeRoute('ScreenA', 'a-1');
+            const state = makeState([routeA], {history: [{key: 'a-1', name: 'ScreenA'}, modalTag('m1')] as CustomHistoryEntry[]});
+
+            const newState = enhancedRouter.getStateForAction(state, makeNavigateAction('ScreenB'), CONFIG_OPTIONS);
+
+            // Route was really pushed (in-app back unaffected)...
+            expect(newState?.routes).toHaveLength(2);
+            // ...but the guard sentinel is gone and history length is unchanged → useLinking does a replace.
+            expect(newState?.history?.some((entry) => typeof entry === 'string' && entry.startsWith(`${MODAL}:`))).toBe(false);
+            expect(newState?.history).toHaveLength(state.history?.length ?? -1);
+        });
+
+        it('does NOT consume the sentinel on a non-forward action (e.g. side panel toggle)', () => {
+            // A passthrough router that keeps history intact for non-NAVIGATE actions.
+            const factory = createMockRouterFactory((state) => state);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+            const routeA = makeRoute('ScreenA', 'a-1');
+            const state = makeState([routeA], {history: [{key: 'a-1', name: 'ScreenA'}, modalTag('m1')] as CustomHistoryEntry[]});
+
+            const newState = enhancedRouter.getStateForAction(state, makeDismissAction(), CONFIG_OPTIONS);
+
+            expect(newState?.history?.at(-1)).toBe(modalTag('m1'));
         });
     });
 });

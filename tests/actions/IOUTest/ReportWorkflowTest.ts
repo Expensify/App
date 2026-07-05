@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+
 import {
     approveMoneyRequest,
     canApproveIOU,
@@ -23,11 +24,14 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {submitMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
+import {generateAccountID} from '@src/libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs, ReportNextStepDeprecated} from '@src/types/onyx';
@@ -35,14 +39,20 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {InvoiceTestData} from '../../data/Invoice';
+import type {MockFetch} from '../../utils/TestHelper';
+
 import * as InvoiceData from '../../data/Invoice';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -1922,8 +1932,135 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail);
 
-            const [, parameters] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}];
-            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerAccountID: correctManagerAccountID,
+                }),
+                expect.anything(),
+            );
+        });
+
+        it('uses the popover-selected manager email for search submit managerAccountID', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const defaultManagerAccountID = 101;
+            const chosenManagerAccountID = 103;
+            const submitterEmail = 'submitter@example.com';
+            const defaultManagerEmail = 'default-manager@example.com';
+            const chosenManagerEmail = 'chosen-manager@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [defaultManagerAccountID]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
+                [chosenManagerAccountID]: {accountID: chosenManagerAccountID, login: chosenManagerEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultManagerEmail,
+                owner: defaultManagerEmail,
+                employeeList: {},
+            };
+            const report: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: defaultManagerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, undefined, chosenManagerEmail);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerEmail: chosenManagerEmail,
+                    managerAccountID: chosenManagerAccountID,
+                }),
+                expect.anything(),
+            );
+            expect(apiWriteSpy).not.toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerAccountID: defaultManagerAccountID,
+                }),
+                expect.anything(),
+            );
+        });
+
+        it('resolves search submit managerAccountID from employeeList when personal details are missing', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const defaultManagerAccountID = 101;
+            const chosenManagerEmail = 'chosen-manager@example.com';
+            const optimisticChosenManagerAccountID = generateAccountID(chosenManagerEmail);
+            const submitterEmail = 'submitter@example.com';
+            const defaultManagerEmail = 'default-manager@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [defaultManagerAccountID]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultManagerEmail,
+                owner: defaultManagerEmail,
+                employeeList: {
+                    [chosenManagerEmail]: {
+                        email: chosenManagerEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: defaultManagerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, undefined, chosenManagerEmail);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerEmail: chosenManagerEmail,
+                    managerAccountID: optimisticChosenManagerAccountID,
+                }),
+                expect.anything(),
+            );
+            expect(apiWriteSpy).not.toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerAccountID: defaultManagerAccountID,
+                }),
+                expect.anything(),
+            );
         });
 
         it('submits from search while a retract update is pending', () => {
@@ -2108,11 +2245,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
+            const expenseReportPolicy = {
+                ...createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
-                policy: {} as Policy,
+                expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
@@ -2145,11 +2285,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
+            const expenseReportPolicy = {
+                ...createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
-                policy: {} as Policy,
+                expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
@@ -2721,10 +2864,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             policyID,
         });
 
-        const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: Policy, policy: Policy = teamPolicy) => ({
+        const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
             expenseReport,
             expenseReportPolicy,
-            policy,
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             hasViolations: false,
@@ -2747,30 +2889,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
 
             approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy));
-
-            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
-        });
-
-        it('gates upgrade by expenseReportPolicy instead of the policy param', () => {
-            const expenseReport = createSubmittedExpenseReport();
-            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
-
-            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy, teamPolicy));
-
-            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
-        });
-
-        it('falls back to policy when expenseReportPolicy is undefined', () => {
-            const expenseReport = createSubmittedExpenseReport(submitPolicyID);
-            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
-
-            approveMoneyRequest({
-                ...createApproveMoneyRequestParams(expenseReport, submitPolicy),
-                expenseReportPolicy: undefined,
-                policy: submitPolicy,
-            });
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
@@ -2935,7 +3053,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
@@ -2987,7 +3104,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -3035,7 +3151,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
@@ -3159,7 +3274,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -3190,7 +3304,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -3219,7 +3332,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport: updatedReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
@@ -3278,7 +3390,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport: singleApproverReport,
                 expenseReportPolicy: singleApproverPolicy,
-                policy: singleApproverPolicy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -3296,6 +3407,70 @@ describe('actions/IOU/ReportWorkflow', () => {
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${singleApproverReport.reportID}`);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('uses the expense report policy (not the activePolicy) to determine if it is a DEW approval', () => {
+            const activeDEWPolicy: Policy = {
+                ...policy,
+                id: '2',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+            const normalReport: Report = {
+                ...expenseReport,
+                reportID: '789',
+                managerID: managerAccountID,
+            };
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: normalReport.reportID,
+            };
+
+            return Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    email: managerEmail,
+                    accountID: managerAccountID,
+                },
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activeDEWPolicy.id,
+                [`${ONYXKEYS.COLLECTION.POLICY}${activeDEWPolicy.id}`]: activeDEWPolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            } as unknown as OnyxMultiSetInput)
+                .then(() => {
+                    approveMoneyRequest({
+                        expenseReport: normalReport,
+                        expenseReportPolicy: policy,
+                        currentUserAccountIDParam: managerAccountID,
+                        currentUserEmailParam: managerEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        expenseReportCurrentNextStepDeprecated: undefined,
+                        betas: [CONST.BETAS.ALL],
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        ownerBillingGracePeriodEnd: undefined,
+                        delegateEmail: undefined,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`))
+                .then((updatedReport) => {
+                    expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                    expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    expect(updatedReport?.managerID).toBe(adminAccountID);
+
+                    const previewAction = getReportPreviewAction({
+                        isReportArchived: false,
+                        currentUserAccountID: managerAccountID,
+                        currentUserLogin: managerEmail,
+                        report: updatedReport,
+                        policy,
+                        transactions: [transaction],
+                        bankAccountList: {},
+                        reportMetadata: undefined,
+                        ownerLogin: employeeEmail,
+                    });
+                    expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+                });
         });
     });
 
@@ -3393,7 +3568,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             const newExpenseReportID = approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,

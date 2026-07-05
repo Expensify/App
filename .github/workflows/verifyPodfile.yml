@@ -6,8 +6,8 @@ on:
     branches-ignore: [staging, production]
     paths:
       - ios/**
-      - "package.json"
-      - "package-lock.json"
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
   verify:
