@@ -836,7 +836,7 @@ describe('SidebarUtils', () => {
     });
 
     describe('shouldDisplayReportInLHN', () => {
-        const getAdminRoomDisplayResult = (reportOverrides: Partial<Report>, isReportArchived = false, currentReportId?: string) => {
+        const getAdminRoomDisplayResult = async (reportOverrides: Partial<Report>, isReportArchived = false, currentReportId?: string, isTrackOnboardingAdminRoom = false) => {
             const report: Report = {
                 ...createAdminRoom(92431),
                 participants: {
@@ -848,6 +848,9 @@ describe('SidebarUtils', () => {
                 lastMessageText: '',
                 ...reportOverrides,
             };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {isTrackOnboardingAdminRoom});
+            });
 
             return SidebarUtils.shouldDisplayReportInLHN({
                 report,
@@ -865,8 +868,8 @@ describe('SidebarUtils', () => {
             });
         };
 
-        it('shows an active hidden and empty Track onboarding admins room without pinning it', () => {
-            const result = getAdminRoomDisplayResult({isTrackOnboardingAdminRoom: true});
+        it('shows an active hidden and empty Track onboarding admins room without pinning it', async () => {
+            const result = await getAdminRoomDisplayResult({}, false, undefined, true);
 
             expect(result).toStrictEqual({shouldDisplay: true});
         });
@@ -875,21 +878,21 @@ describe('SidebarUtils', () => {
             ['unpinned and empty', {isPinned: false}],
             ['pinned', {isPinned: true}],
             ['non-empty', {lastMessageText: 'Message'}],
-        ])('hides an archived Track onboarding admins room when it is %s', (_description, reportOverrides) => {
-            const result = getAdminRoomDisplayResult({isTrackOnboardingAdminRoom: true, ...reportOverrides}, true);
+        ])('hides an archived Track onboarding admins room when it is %s', async (_description, reportOverrides) => {
+            const result = await getAdminRoomDisplayResult(reportOverrides, true, undefined, true);
 
             expect(result).toStrictEqual({shouldDisplay: false});
         });
 
-        it('hides an archived Track onboarding admins room even when it is focused', () => {
+        it('hides an archived Track onboarding admins room even when it is focused', async () => {
             const report = createAdminRoom(92431);
-            const result = getAdminRoomDisplayResult({reportID: report.reportID, isTrackOnboardingAdminRoom: true}, true, report.reportID);
+            const result = await getAdminRoomDisplayResult({reportID: report.reportID}, true, report.reportID, true);
 
             expect(result).toStrictEqual({shouldDisplay: false});
         });
 
-        it('does not change visibility for an unmarked hidden and empty admins room', () => {
-            const result = getAdminRoomDisplayResult({});
+        it('does not change visibility for an unmarked hidden and empty admins room', async () => {
+            const result = await getAdminRoomDisplayResult({});
 
             expect(result).toStrictEqual({shouldDisplay: false});
         });

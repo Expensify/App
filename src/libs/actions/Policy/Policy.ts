@@ -2628,7 +2628,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         expenseReportActionData,
         expenseCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName, currentUserAccountIDParam, currentUserEmailParam, expenseReportId, shouldShowTrackAdminRoomInLHN);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName, currentUserAccountIDParam, currentUserEmailParam, expenseReportId);
 
     // When creating a workspace for a different owner without keeping admin, the caller is not added to the workspace.
     // Skip writing the admins/expense chat reports into the caller's Onyx so they don't appear in the LHN.
@@ -2814,6 +2814,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
                 value: {
                     pendingChatMembers,
+                    ...(shouldShowTrackAdminRoomInLHN && {isTrackOnboardingAdminRoom: true}),
                 },
             },
             {

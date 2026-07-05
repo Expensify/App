@@ -327,7 +327,7 @@ function shouldDisplayReportInLHN({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
     const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, transactions, reportAttributes);
     const isReportInAccessible = report?.errorFields?.notFound;
-    const isTrackOnboardingAdminRoom = report.isTrackOnboardingAdminRoom && isAdminRoom(report);
+    const isTrackOnboardingAdminRoom = getReportMetadata(report.reportID)?.isTrackOnboardingAdminRoom && isAdminRoom(report);
 
     if (isTrackOnboardingAdminRoom && isReportArchived) {
         return {shouldDisplay: false};

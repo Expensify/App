@@ -626,7 +626,6 @@ type OptimisticChatReport = Pick<
     | 'iouReportID'
     | 'isOwnPolicyExpenseChat'
     | 'isPinned'
-    | 'isTrackOnboardingAdminRoom'
     | 'lastActorAccountID'
     | 'lastMessageHtml'
     | 'lastMessageText'
@@ -8631,7 +8630,6 @@ function buildOptimisticWorkspaceChats(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
     expenseReportId?: string,
-    shouldShowTrackAdminRoomInLHN = false,
 ): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
@@ -8645,7 +8643,6 @@ function buildOptimisticWorkspaceChats(
             isPinned: shouldPinAdminRoomByDefault(),
             currentUserAccountID,
         }),
-        ...(shouldShowTrackAdminRoomInLHN && {isTrackOnboardingAdminRoom: true}),
     };
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.POLICY.OWNER_EMAIL_FAKE});
@@ -9703,7 +9700,7 @@ function reasonForReportToBeInOptionList({
         !isConciergeChatReport(report, conciergeReportID) &&
         !isSystemChatReport &&
         !isSelfDMWithVisiblePreference &&
-        !(report.isTrackOnboardingAdminRoom && isAdminRoom(report) && !isReportArchived) &&
+        !(getReportMetadata(report.reportID)?.isTrackOnboardingAdminRoom && isAdminRoom(report) && !isReportArchived) &&
         canHideReport
     ) {
         return null;

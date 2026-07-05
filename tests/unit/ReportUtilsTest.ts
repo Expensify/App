@@ -6689,12 +6689,13 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return true for an active empty Track onboarding admins room when empty chats are excluded', () => {
+        it('should return true for an active empty Track onboarding admins room when empty chats are excluded', async () => {
             const report: Report = {
                 ...createAdminRoom(1),
                 isPinned: false,
-                isTrackOnboardingAdminRoom: true,
             };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {isTrackOnboardingAdminRoom: true});
+            await waitForBatchedUpdates();
 
             expect(
                 shouldReportBeInOptionList({
@@ -6711,12 +6712,13 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
-        it('should retain archived Track onboarding admins rooms in report option lists used by search', () => {
+        it('should retain archived Track onboarding admins rooms in report option lists used by search', async () => {
             const report: Report = {
                 ...createAdminRoom(1),
                 isPinned: false,
-                isTrackOnboardingAdminRoom: true,
             };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {isTrackOnboardingAdminRoom: true});
+            await waitForBatchedUpdates();
 
             expect(
                 reasonForReportToBeInOptionList({
@@ -7495,20 +7497,6 @@ describe('ReportUtils', () => {
 
             expect(result.expenseChatReportID).toBe(providedExpenseReportID);
             expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
-        });
-
-        it('should mark only the Track onboarding admins room for LHN visibility', () => {
-            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, 'user@expensifail.com', undefined, true);
-
-            expect(result.adminsChatData.isTrackOnboardingAdminRoom).toBe(true);
-            expect(result.expenseChatData.isTrackOnboardingAdminRoom).toBeUndefined();
-        });
-
-        it('should not mark workspace chats by default', () => {
-            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, 'user@expensifail.com');
-
-            expect(result.adminsChatData.isTrackOnboardingAdminRoom).toBeUndefined();
-            expect(result.expenseChatData.isTrackOnboardingAdminRoom).toBeUndefined();
         });
     });
 
