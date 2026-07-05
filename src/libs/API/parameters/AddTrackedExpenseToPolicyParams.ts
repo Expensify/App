@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type CategorizeTrackedExpenseParams from './CategorizeTrackedExpenseParams';
 
 // AddTrackedExpenseToPolicy is a backend alias of CategorizeTrackedExpense, so it accepts the same
