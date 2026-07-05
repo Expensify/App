@@ -1,14 +1,19 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
 import ScanFromReport from './components/ScanFromReport';

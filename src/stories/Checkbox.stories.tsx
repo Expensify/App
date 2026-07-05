@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import Checkbox from '@components/Checkbox';
 import type {CheckboxProps} from '@components/SelectionButton';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
 
 type CheckboxStory = StoryFn<typeof Checkbox>;
 

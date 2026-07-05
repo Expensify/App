@@ -1,15 +1,18 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function getMergeHRSetupLink(policyID: string, integration: MergeHRProviderSlug) {
     const params: ConnectPolicyToMergeParams = {policyID, integration};

@@ -1,10 +1,9 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
+
+import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -21,14 +20,23 @@ import {
 } from '@libs/SearchAutocompleteUtils';
 import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+
+import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
-import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
 
@@ -106,12 +114,14 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
+    const {localeCompare} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
@@ -430,6 +440,36 @@ function useAutocompleteSuggestions({
                 text: getCardDescription(card, translate),
                 autocompleteID: card.cardID.toString(),
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT: {
+            const bankAccountSuggestions: Array<{id: string; label: string; accountNumber: string}> = [];
+            for (const bankAccount of Object.values(bankAccountList ?? {})) {
+                const bankAccountID = bankAccount?.accountData?.bankAccountID;
+                if (!bankAccountID) {
+                    continue;
+                }
+                if (!isFilterableBankAccount(bankAccount)) {
+                    continue;
+                }
+                const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+                const label = getBankAccountSearchLabel(bankAccount);
+                bankAccountSuggestions.push({id: bankAccountID.toString(), label, accountNumber});
+            }
+            const filteredBankAccounts = bankAccountSuggestions
+                .filter(
+                    (item) =>
+                        (item.label.toLowerCase().includes(autocompleteValue.toLowerCase()) || item.accountNumber.includes(autocompleteValue)) &&
+                        !alreadyAutocompletedKeys.has(item.label.toLowerCase()),
+                )
+                .sort((a, b) => localeCompare(a.label, b.label))
+                .slice(0, 10);
+
+            return filteredBankAccounts.map((item) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BANK_ACCOUNT,
+                text: item.label,
+                autocompleteID: item.id,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:

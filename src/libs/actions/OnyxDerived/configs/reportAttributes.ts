@@ -1,5 +1,7 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
@@ -16,11 +18,17 @@ import {
     isValidReport,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
@@ -102,15 +110,30 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.NETWORK,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, conciergeReportID],
+        [
+            reports,
+            preferredLocale,
+            transactionViolations,
+            reportActions,
+            reportNameValuePairs,
+            transactions,
+            personalDetails,
+            session,
+            policies,
+            policyTags,
+            conciergeReportID,
+            introSelected,
+        ],
         {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
+        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -130,7 +153,8 @@ export default createOnyxDerivedValueConfig({
         let needsFullRecompute =
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNamesChanged ||
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
         const policyChangedReportKeys: string[] = [];
@@ -365,9 +389,11 @@ export default createOnyxDerivedValueConfig({
                               reportActions,
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
+                              translate,
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
+                              isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
