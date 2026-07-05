@@ -46,10 +46,25 @@ function useCachedAttachmentSource(attachmentID: string | undefined, source: str
         }
 
         let isActive = true;
+
+        // When the cache hits, `getCachedAttachment` mints a fresh `blob:` object URL (web) that keeps the
+        // image bytes alive until it is revoked. It returns the original `source` unchanged on a miss, and a
+        // native file path on native — neither of which we own. We track only a freshly minted blob URL so
+        // the cleanup can revoke it, avoiding revoking the original source.
+        let ownedBlobURL: string | undefined;
+        const isOwnedBlobURL = (resolvedSource: string): boolean => resolvedSource !== source && resolvedSource.startsWith('blob:');
+
         getCachedAttachment({attachmentID, attachment, currentSource: source})
             .then((resolvedSource) => {
                 if (!isActive) {
+                    // The effect was cleaned up before the read resolved, so nothing will revoke this URL later.
+                    if (isOwnedBlobURL(resolvedSource)) {
+                        URL.revokeObjectURL(resolvedSource);
+                    }
                     return;
+                }
+                if (isOwnedBlobURL(resolvedSource)) {
+                    ownedBlobURL = resolvedSource;
                 }
                 setCachedSource(resolvedSource);
             })
@@ -63,6 +78,11 @@ function useCachedAttachmentSource(attachmentID: string | undefined, source: str
 
         return () => {
             isActive = false;
+            // Revoke the blob URL we minted so its bytes are freed. On re-run (deps changed) this releases the
+            // previous URL before the new one replaces it; on unmount it releases the last one.
+            if (ownedBlobURL) {
+                URL.revokeObjectURL(ownedBlobURL);
+            }
         };
     }, [shouldResolveFromCache, attachmentID, source, attachment]);
 
