@@ -70,15 +70,16 @@ function getTaxRatesSection({
 
     const sortedTaxRates = sortTaxRates(taxes, localeCompare);
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.modifiedName));
-    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
+    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled || taxRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
     const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
     const selectedTaxRateWithDisabledState: Tax[] = [];
     const numberOfTaxRates = enabledTaxRates.length;
 
     for (const tax of selectedOptions) {
-        if (enabledTaxRatesNames.has(tax.modifiedName)) {
-            selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
+        const realTax = enabledTaxRates.find((t) => t.modifiedName === tax.modifiedName);
+        if (realTax) {
+            selectedTaxRateWithDisabledState.push({...realTax, isDisabled: false, isSelected: true});
             continue;
         }
         selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
