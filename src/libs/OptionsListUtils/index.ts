@@ -140,6 +140,7 @@ import {
     getReportTransactions,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
+    hasExpensifyGuidesEmails,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
@@ -2114,7 +2115,14 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, config: IsValidReportsConfig, draftComment: string | undefined, chatReport: OnyxEntry<Report>): boolean {
+function isValidReport(
+    option: SearchOption<Report>,
+    policy: OnyxEntry<Policy>,
+    config: IsValidReportsConfig,
+    draftComment: string | undefined,
+    chatReport: OnyxEntry<Report>,
+    hasGuidesEmails: boolean,
+): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -2158,6 +2166,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!shouldBeInOptionList) {
@@ -2543,6 +2552,7 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
+                hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined),
             );
         };
 

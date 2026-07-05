@@ -111,6 +111,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guidesEmailsByReport: {},
             }),
         );
     });
@@ -130,6 +131,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guidesEmailsByReport: {},
             }),
         );
     });

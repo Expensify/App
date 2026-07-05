@@ -6713,6 +6713,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -6740,6 +6741,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     isReportArchived: undefined,
                     conciergeReportID,
+                    hasGuidesEmails: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -6766,6 +6768,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     isReportArchived: undefined,
                     conciergeReportID: 'some-other-report-id',
+                    hasGuidesEmails: false,
                 }),
             ).toBeNull();
         });
@@ -6919,6 +6922,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -6970,6 +6974,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -7065,6 +7070,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -7087,6 +7093,7 @@ describe('ReportUtils', () => {
                     includeSelfDM: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                 }),
             ).toBeNull();
         });
@@ -7243,6 +7250,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: '',
                 isReportArchived: undefined,
+
+                hasGuidesEmails: false,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -8051,7 +8060,7 @@ describe('ReportUtils', () => {
             const reportNameValuePairsCollection = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             };
-            const result = findLastAccessedReport(false, false, undefined, reportNameValuePairsCollection);
+            const result = findLastAccessedReport(false, undefined, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8104,7 +8113,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReport(false, undefined);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -11593,6 +11602,7 @@ describe('ReportUtils', () => {
                     amount: 0,
                     created: '2026-05-19 10:00:00',
                     receipt: {source: 'receipt.jpg'},
+                    hasGuidesEmails: false,
                 }),
             );
 
@@ -11751,7 +11761,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
-            expect(canSeeDefaultRoom(report, betas, true)).toBe(true);
+            expect(canSeeDefaultRoom(report, betas, false, true)).toBe(true);
         });
         it('should return true if the room has an assigned guide', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -11760,14 +11770,14 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
             };
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+                expect(canSeeDefaultRoom(report, betas, true, false)).toBe(true);
             });
         });
         it('should return true if the report is admin room', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const report: Report = createRandomReport(40002, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+                expect(canSeeDefaultRoom(report, betas, false, false)).toBe(true);
             });
         });
     });
@@ -13681,6 +13691,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13725,6 +13737,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                hasGuidesEmails: false,
             }),
         ]);
         await waitForBatchedUpdates();
@@ -13739,6 +13752,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -13846,6 +13861,8 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+
+                hasGuidesEmails: false,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13889,6 +13906,8 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+
+                hasGuidesEmails: false,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -14396,6 +14415,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
+                hasGuidesEmails: false,
             }),
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
             Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
@@ -14415,6 +14435,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14511,6 +14533,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
+                hasGuidesEmails: false,
             }),
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
             Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
@@ -14598,6 +14621,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -14768,6 +14793,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                hasGuidesEmails: false,
             }),
         ]);
         await waitForBatchedUpdates();
@@ -14783,6 +14809,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+
+            hasGuidesEmails: false,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14805,6 +14833,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+
+            hasGuidesEmails: false,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -14889,6 +14919,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, expenseReportChat),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
                 [submitAction.reportActionID]: submitAction,
+                hasGuidesEmails: false,
             }),
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`, policy1),
         ]);
@@ -14906,6 +14937,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedBefore.current,
+
+            hasGuidesEmails: false,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14946,6 +14979,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedAfter.current,
+
+            hasGuidesEmails: false,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -15585,6 +15620,7 @@ describe('ReportUtils', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                     [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                    hasGuidesEmails: false,
                 }),
             ]);
             await waitForBatchedUpdates();
@@ -15600,6 +15636,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15652,6 +15690,7 @@ describe('ReportUtils', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                     [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                    hasGuidesEmails: false,
                 }),
             ]);
             await waitForBatchedUpdates();
@@ -15667,6 +15706,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15723,6 +15764,7 @@ describe('ReportUtils', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                     [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                    hasGuidesEmails: false,
                 }),
             ]);
             await waitForBatchedUpdates();
@@ -15738,6 +15780,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
             });
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15793,6 +15837,7 @@ describe('ReportUtils', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                     [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                    hasGuidesEmails: false,
                 }),
             ]);
             await waitForBatchedUpdates();
@@ -15808,6 +15853,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -16478,6 +16525,7 @@ describe('ReportUtils', () => {
                         backTo: '',
                         upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                         shouldSubmitExpense: true,
+                        hasGuidesEmails: false,
                     }),
                 );
             });
@@ -17872,6 +17920,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -17941,6 +17991,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -19017,6 +19069,7 @@ describe('ReportUtils', () => {
                     participants: [],
                     transactionID: '9001',
                     iouReportID: expenseReportID,
+                    hasGuidesEmails: false,
                 }),
                 actorAccountID,
                 ...overrides,

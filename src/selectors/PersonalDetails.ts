@@ -13,6 +13,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
+
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
 const multiPersonalDetailsSelector = (accountIDs: number[] | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
@@ -43,7 +45,12 @@ const createDisplayDetailsByAccountIDsSelector =
             if (!detail) {
                 continue;
             }
-            result[accountID] = {accountID: detail.accountID, displayName: detail.displayName, login: detail.login, avatar: detail.avatar};
+            result[accountID] = {
+                accountID: detail.accountID,
+                displayName: detail.displayName,
+                login: detail.login,
+                avatar: detail.avatar,
+            };
         }
         return result;
     };
@@ -77,6 +84,11 @@ const isOptimisticPersonalDetailSelector =
         return isPersonalDetailOptimistic(personalDetailsList[accountID]);
     };
 
+const hasExpensifyGuidesEmailsSelector =
+    (participantAccountIDs: number[]) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
+        participantAccountIDs.some((accountID) => Str.extractEmailDomain(personalDetailsList?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
+
 export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
@@ -89,4 +101,5 @@ export {
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
+    hasExpensifyGuidesEmailsSelector,
 };

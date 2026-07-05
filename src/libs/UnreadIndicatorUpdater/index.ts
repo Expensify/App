@@ -101,6 +101,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
+            hasGuidesEmails: ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined),
         });
     });
 }

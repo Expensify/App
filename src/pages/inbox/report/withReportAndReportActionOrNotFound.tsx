@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {hasExpensifyGuidesEmailsSelector} from '@selectors/PersonalDetails';
 import React, {useEffect, useMemo} from 'react';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
@@ -52,6 +53,10 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [betas] = useOnyx(ONYXKEYS.BETAS);
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+        const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
+        const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
+        });
 
         const parentReportAction = useParentReportAction(report);
         const linkedReportAction = useMemo(() => {
@@ -73,7 +78,11 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            openReport({reportID: props.route.params.reportID, introSelected, betas});
+            openReport({
+                reportID: props.route.params.reportID,
+                introSelected,
+                betas,
+            });
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
@@ -81,7 +90,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const isLoadingReport = isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
         const isReportArchived = useReportIsArchived(report?.reportID);
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, hasGuidesEmails ?? false, isReportArchived));
 
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
