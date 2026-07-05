@@ -76,12 +76,7 @@ type DeleteMoneyRequestFunctionParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
-/**
- *
- * @param transactionID  - The transactionID of IOU
- * @param reportAction - The reportAction of the transaction in the IOU report
- * @return the url to navigate back once the money request is deleted
- */
+/** Precomputes the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
 function prepareToCleanUpMoneyRequest(
     transactionID: string,
     reportAction: OnyxTypes.ReportAction,
@@ -243,8 +238,8 @@ function prepareToCleanUpMoneyRequest(
             isTransactionOnHold,
             unheldAmountDiff,
         );
-        // updateIOUOwnerAndTotal returns the same reference when it can't update (currency mismatch, no report).
-        didUpdateOptimisticTotal = updatedIOUReport !== iouReport;
+        // Match `updateIOUOwnerAndTotal`'s early-return guard so future refactors of that helper don't silently flip this flag.
+        didUpdateOptimisticTotal = !!iouReport && currency === iouReport.currency;
     }
 
     if (updatedIOUReport) {
@@ -256,6 +251,8 @@ function prepareToCleanUpMoneyRequest(
         // Overlay pending-DELETE txns so the Formula engine excludes them from date-derived parts.
         if (!shouldDeleteIOUReport && transaction?.transactionID && policy && didUpdateOptimisticTotal && !wasAlreadyIndeterminate) {
             const overlay: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+            // Prior-iteration transactions are re-stamped explicitly because the Onyx module cache these come
+            // from doesn't observe iter N's `Onyx.merge` until the next microtask — mid-bulk-loop it's stale.
             for (const priorTxn of transactionPendingDelete ?? []) {
                 if (priorTxn?.transactionID) {
                     overlay[priorTxn.transactionID] = {...priorTxn, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};

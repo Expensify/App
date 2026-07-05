@@ -97,7 +97,7 @@ import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import type EnvironmentType from './Environment/getEnvironment/types';
-import type {FormulaContext, FormulaModule} from './Formula';
+import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
@@ -6680,8 +6680,8 @@ function computeOptimisticReportNameWithMetadata(
         allTransactions: reportTransactions,
     };
 
-    // Runtime require breaks the value-level circular; `FormulaModule` keeps drift a compile error.
-    const Formula = require('./Formula') as FormulaModule;
+    // Runtime require breaks the value-level circular; the `typeof` casts keep drift a compile error.
+    const Formula = require('./Formula') as {compute: typeof computeFormula; computeWithMetadata: typeof computeFormulaWithMetadata};
 
     // If there is no title field, use "New Report" as default (matches OldDot behavior)
     const defaultValue = titleReportField?.defaultValue ?? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
@@ -10908,7 +10908,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
     const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
     const hasOptimisticHeldExpense = hasHeldExpenses(allReportTransactions) && report?.unheldTotal === undefined;
 
-    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !hasOptimisticHeldExpense && !report.pendingFields?.total;
+    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !hasOptimisticHeldExpense && !isReportTotalPending(report);
 }
 
 /**
