@@ -97,7 +97,7 @@ import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import type EnvironmentType from './Environment/getEnvironment/types';
-import type {FormulaContext} from './Formula';
+import type {FormulaContext, FormulaModule} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
@@ -1282,6 +1282,14 @@ function getReportTransactions(reportID: string | undefined, allReportsTransacti
     }
 
     return allReportsTransactions[reportID] ?? [];
+}
+
+/**
+ * True when an optimistic op set `pendingFields.total` (any pending action). Truthy so a future ADD/DELETE
+ * marker isn't silently treated as "trustworthy" — matches the readers in Transaction.ts and SearchUIUtils.
+ */
+function isReportTotalPending(report: OnyxInputOrEntry<Report>): boolean {
+    return !!report?.pendingFields?.total;
 }
 
 /**
@@ -6632,7 +6640,8 @@ function buildOptimisticInvoiceReport(
 }
 
 /**
- * Optimistic report name via the policy title formula; null when the policy isn't a group policy.
+ * Optimistic report name from the policy title formula. Returns null when the policy isn't a group policy
+ * OR the engine couldn't resolve every token — callers keep their default label instead of surfacing raw `{...}`.
  */
 function computeOptimisticReportName(
     report: Report,
@@ -6671,8 +6680,8 @@ function computeOptimisticReportNameWithMetadata(
         allTransactions: reportTransactions,
     };
 
-    // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-    const Formula = require('./Formula') as {computeWithMetadata: (formula?: string, context?: FormulaContext) => {value: string; hasUnresolvedTokens: boolean}};
+    // Runtime require breaks the value-level circular; `FormulaModule` keeps drift a compile error.
+    const Formula = require('./Formula') as FormulaModule;
 
     // If there is no title field, use "New Report" as default (matches OldDot behavior)
     const defaultValue = titleReportField?.defaultValue ?? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
@@ -13688,6 +13697,7 @@ export {
     buildOptimisticMovedTransactionAction,
     getOutstandingReportsForUser,
     isReportOutstanding,
+    isReportTotalPending,
     generateReportAttributes,
     getHumanReadableStatus,
     getReportPersonalDetailsParticipants,

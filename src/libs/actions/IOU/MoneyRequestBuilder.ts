@@ -33,6 +33,7 @@ import {
     isInvoiceReport as isInvoiceReportReportUtils,
     isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isReportTotalPending,
     isSelfDM,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -1727,7 +1728,7 @@ function getUpdatedMoneyRequestReportData(
 ) {
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
     // Once a prior iteration made the total pending, later ones must not recompute against a stale base.
-    const wasAlreadyIndeterminate = iouReport?.pendingFields?.total === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const wasAlreadyIndeterminate = isReportTotalPending(iouReport);
     const isTotalIndeterminate = wasAlreadyIndeterminate || calculatedDiffAmount === null;
     const diff = calculatedDiffAmount ?? 0;
 

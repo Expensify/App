@@ -877,6 +877,20 @@ describe('CustomFormula', () => {
             // `{report:total:EUR}` on a USD report with no conversion falls back to the raw token → wrapper must return null.
             expect(ReportUtils.computeOptimisticReportName(usdReport, groupPolicy, 'p-1', {})).toBeNull();
         });
+
+        test('resolves TRIP autoreporting formula to today on empty-report create (Option B fallback, buildOptimisticEmptyReport path)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const tripField = {...titleField, defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}'};
+            const tripPolicy = createMock<Policy>({
+                id: 'p-1',
+                type: CONST.POLICY.TYPE.TEAM,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: tripField},
+            });
+            const result = ReportUtils.computeOptimisticReportName(usdReport, tripPolicy, 'p-1', {});
+            expect(result).not.toBeNull();
+            expect(result).toMatch(/^Trip from \w{3} \d{2} to \w{3} \d{2}, \d{4}$/);
+        });
     });
 
     describe('User formula parts', () => {

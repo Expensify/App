@@ -19,6 +19,7 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isExpenseReport,
+    isReportTotalPending,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
@@ -34,13 +35,28 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
+
+type PrepareToCleanUpMoneyRequestResult = {
+    shouldDeleteTransactionThread: boolean;
+    shouldDeleteIOUReport: boolean;
+    updatedReportAction: Record<string, NullishDeep<OnyxTypes.ReportAction>>;
+    updatedIOUReport: OnyxTypes.Report | undefined;
+    updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
+    transactionThreadID: string | undefined;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    isTotalIndeterminate: boolean;
+};
 
 type DeleteMoneyRequestFunctionParams = {
     transactionID: string | undefined;
@@ -77,7 +93,7 @@ function prepareToCleanUpMoneyRequest(
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
     policy?: OnyxEntry<OnyxTypes.Policy>,
-) {
+): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -168,7 +184,7 @@ function prepareToCleanUpMoneyRequest(
     const unheldAmountDiff =
         getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, isExpenseReportType) : 0), 0) ?? 0);
 
-    const wasAlreadyIndeterminate = iouReport?.pendingFields?.total === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const wasAlreadyIndeterminate = isReportTotalPending(iouReport);
     let didUpdateOptimisticTotal = false;
 
     if (iouReport && isExpenseReportType) {
@@ -227,7 +243,8 @@ function prepareToCleanUpMoneyRequest(
             isTransactionOnHold,
             unheldAmountDiff,
         );
-        didUpdateOptimisticTotal = true;
+        // updateIOUOwnerAndTotal returns the same reference when it can't update (currency mismatch, no report).
+        didUpdateOptimisticTotal = updatedIOUReport !== iouReport;
     }
 
     if (updatedIOUReport) {
@@ -236,6 +253,7 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
 
+        // Overlay pending-DELETE txns so the Formula engine excludes them from date-derived parts.
         if (!shouldDeleteIOUReport && transaction?.transactionID && policy && didUpdateOptimisticTotal && !wasAlreadyIndeterminate) {
             const overlay: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
             for (const priorTxn of transactionPendingDelete ?? []) {
@@ -921,7 +939,7 @@ function deleteMoneyRequest({
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {pendingFields: {total: null}},
+            value: {pendingFields: {total: iouReport.pendingFields?.total ?? null}},
         });
     }
 
@@ -978,7 +996,7 @@ function deleteMoneyRequest({
                 : {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {...iouReport, ...(shouldMarkPendingTotal && {pendingFields: {total: null}})},
+                      value: {...iouReport, ...(shouldMarkPendingTotal && {pendingFields: {total: iouReport.pendingFields?.total ?? null}})},
                   },
         );
     }

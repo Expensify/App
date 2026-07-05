@@ -1020,6 +1020,13 @@ function resolveReportFieldValue(
     return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
 }
 
+/** Public surface consumed via the runtime `require('./Formula')` in `ReportUtils.ts` (breaks a value-level circular). */
+type FormulaModule = {
+    compute: typeof compute;
+    computeWithMetadata: typeof computeWithMetadata;
+};
+
 export {FORMULA_PART_TYPES, compute, computeWithMetadata, parse, hasCircularReferences, resolveReportFieldValue};
+export type {FormulaModule};
 
 export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};

@@ -16,7 +16,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, Report} from '@src/types/onyx';
+import type {IntroSelected, Policy, Report} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -1787,13 +1787,34 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@email.com';
 
-        it('recomputes title after deleting BOTH the first AND the last expense in a TRIP report (offline)', async () => {
-            const policyID = 'policy-trip-multi-delete';
+        type TripFixtureTxnSpec = {n: number; created: string; amount?: number; currency?: string; merchant?: string};
+        type TripFixtureArgs = {
+            policyID: string;
+            reportSeed: number;
+            titleFormula: string;
+            reportCurrency?: string;
+            reportTotal?: number;
+            reportName?: string;
+            autoReportingFrequency?: Policy['autoReportingFrequency'];
+            txns: TripFixtureTxnSpec[];
+            actionsFor?: number[];
+        };
+        const buildTripFixture = async ({
+            policyID,
+            reportSeed,
+            titleFormula,
+            reportCurrency = CONST.CURRENCY.USD,
+            reportTotal = 0,
+            reportName = 'Original title',
+            autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+            txns,
+            actionsFor,
+        }: TripFixtureArgs) => {
             const titleField = {
                 fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
                 name: 'Title',
                 type: CONST.REPORT_FIELD_TYPES.FORMULA,
-                defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                defaultValue: titleFormula,
                 deletable: false,
                 target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
                 values: [],
@@ -1803,60 +1824,77 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 orderWeight: 1,
                 isTax: false,
             };
-            const policy = {
-                ...createRandomPolicy(102, CONST.POLICY.TYPE.TEAM),
+            const policy: Policy = {
+                ...createRandomPolicy(reportSeed, CONST.POLICY.TYPE.TEAM),
                 id: policyID,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                autoReportingFrequency,
                 fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
             };
             const expenseReport: Report = {
-                ...createRandomReport(201, undefined),
+                ...createRandomReport(reportSeed, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
-                total: -50000,
-                currency: CONST.CURRENCY.USD,
-                reportName: 'Trip from Jun 21 to Jun 25, 2025',
+                total: reportTotal,
+                currency: reportCurrency,
+                reportName,
             };
-            const makeTxn = (n: number, day: string): Transaction => ({
-                ...createRandomTransaction(2000 + n),
-                amount: -10000,
-                currency: CONST.CURRENCY.USD,
+            const transactions = txns.map((spec) => ({
+                ...createRandomTransaction(reportSeed * 10 + spec.n),
+                amount: spec.amount ?? -10000,
+                currency: spec.currency ?? CONST.CURRENCY.USD,
                 reportID: expenseReport.reportID,
-                created: `2025-06-${day}`,
-                merchant: `Expense ${day}`,
+                created: spec.created,
+                merchant: spec.merchant ?? `Expense ${spec.n}`,
                 reimbursable: true,
-            });
-            const t21 = makeTxn(1, '21');
-            const t22 = makeTxn(2, '22');
-            const t23 = makeTxn(3, '23');
-            const t24 = makeTxn(4, '24');
-            const t25 = makeTxn(5, '25');
-
-            const makeAction = (t: Transaction, n: number): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ({
-                ...createRandomReportAction(2000 + n),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: t.amount, currency: t.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: t.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            });
-            const a21 = makeAction(t21, 1);
-            const a25 = makeAction(t25, 5);
+            }));
+            const activeActionSet = actionsFor ? new Set(actionsFor) : new Set(txns.map((t) => t.n));
+            const actions: Record<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {};
+            for (const [i, txn] of transactions.entries()) {
+                if (!activeActionSet.has(txns.at(i)?.n ?? -1)) {
+                    continue;
+                }
+                const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                    ...createRandomReportAction(reportSeed * 10 + (txns.at(i)?.n ?? 0)),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: expenseReport.reportID,
+                    originalMessage: {amount: txn.amount, currency: txn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: txn.transactionID},
+                    message: undefined,
+                    previousMessage: undefined,
+                };
+                actions[action.reportActionID] = action;
+            }
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t21.transactionID}`, t21);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t22.transactionID}`, t22);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t23.transactionID}`, t23);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t24.transactionID}`, t24);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t25.transactionID}`, t25);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [a21.reportActionID]: a21,
-                [a25.reportActionID]: a25,
-            });
+            for (const txn of transactions) {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
+            }
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, actions);
             // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
             await waitForBatchedUpdates();
+
+            return {policy, expenseReport, transactions, actions};
+        };
+
+        it('recomputes title after deleting BOTH the first AND the last expense in a TRIP report (offline)', async () => {
+            const {policy, expenseReport, transactions, actions} = await buildTripFixture({
+                policyID: 'policy-trip-multi-delete',
+                reportSeed: 201,
+                titleFormula: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                reportTotal: -50000,
+                reportName: 'Trip from Jun 21 to Jun 25, 2025',
+                txns: [
+                    {n: 1, created: '2025-06-21'},
+                    {n: 2, created: '2025-06-22'},
+                    {n: 3, created: '2025-06-23'},
+                    {n: 4, created: '2025-06-24'},
+                    {n: 5, created: '2025-06-25'},
+                ],
+                actionsFor: [1, 5],
+            });
+            const [t21, , , , t25] = transactions;
+            const [a21, a25] = Object.values(actions);
 
             mockFetch?.pause?.();
 
@@ -1917,81 +1955,19 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         });
 
         it('recomputes {report:autoreporting:start/end} when the oldest expense in a TRIP report is deleted (offline)', async () => {
-            const policyID = 'policy-trip-delete';
-            const titleField = {
-                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-                name: 'Title',
-                type: CONST.REPORT_FIELD_TYPES.FORMULA,
-                defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
-                deletable: false,
-                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
-                values: [],
-                keys: [],
-                externalIDs: [],
-                disabledOptions: [],
-                orderWeight: 1,
-                isTax: false,
-            };
-            const policy = {
-                ...createRandomPolicy(101, CONST.POLICY.TYPE.TEAM),
-                id: policyID,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(101, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-                total: -20000,
-                currency: CONST.CURRENCY.USD,
+            const {policy, expenseReport, transactions, actions} = await buildTripFixture({
+                policyID: 'policy-trip-delete',
+                reportSeed: 101,
+                titleFormula: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                reportTotal: -20000,
                 reportName: 'Trip from Jan 05 to Jan 15, 2025',
-            };
-            const oldest: Transaction = {
-                ...createRandomTransaction(1001),
-                amount: -10000,
-                currency: CONST.CURRENCY.USD,
-                reportID: expenseReport.reportID,
-                created: '2025-01-05',
-                merchant: 'Hotel',
-                reimbursable: true,
-            };
-            const newest: Transaction = {
-                ...createRandomTransaction(1002),
-                amount: -10000,
-                currency: CONST.CURRENCY.USD,
-                reportID: expenseReport.reportID,
-                created: '2025-01-15',
-                merchant: 'Restaurant',
-                reimbursable: true,
-            };
-            const oldestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                ...createRandomReportAction(1001),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: oldest.amount, currency: oldest.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: oldest.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            };
-            const newestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                ...createRandomReportAction(1002),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: newest.amount, currency: newest.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: newest.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${oldest.transactionID}`, oldest);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newest.transactionID}`, newest);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [oldestAction.reportActionID]: oldestAction,
-                [newestAction.reportActionID]: newestAction,
+                txns: [
+                    {n: 1, created: '2025-01-05', merchant: 'Hotel'},
+                    {n: 2, created: '2025-01-15', merchant: 'Restaurant'},
+                ],
             });
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
-            await waitForBatchedUpdates();
+            const [oldest] = transactions;
+            const [oldestAction] = Object.values(actions);
 
             // Pause the fetch so the delete stays in the optimistic (offline) state.
             mockFetch?.pause?.();
@@ -2025,61 +2001,17 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         });
 
         it('preserves the stored title on cross-currency delete (indeterminate total gate)', async () => {
-            const policyID = 'policy-trip-cross-currency-delete';
             const ORIGINAL_TITLE = 'Trip $100.00';
-            const titleField = {
-                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-                name: 'Title',
-                type: CONST.REPORT_FIELD_TYPES.FORMULA,
-                defaultValue: 'Trip {report:total}',
-                deletable: false,
-                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
-                values: [],
-                keys: [],
-                externalIDs: [],
-                disabledOptions: [],
-                orderWeight: 1,
-                isTax: false,
-            };
-            const policy = {
-                ...createRandomPolicy(103, CONST.POLICY.TYPE.TEAM),
-                id: policyID,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(301, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-                total: -10000,
-                currency: CONST.CURRENCY.USD,
+            const {policy, expenseReport, transactions, actions} = await buildTripFixture({
+                policyID: 'policy-trip-cross-currency-delete',
+                reportSeed: 301,
+                titleFormula: 'Trip {report:total}',
+                reportTotal: -10000,
                 reportName: ORIGINAL_TITLE,
-            };
-            const eurTxn: Transaction = {
-                ...createRandomTransaction(3001),
-                amount: -8500,
-                currency: CONST.CURRENCY.EUR,
-                reportID: expenseReport.reportID,
-                created: '2025-06-21',
-                merchant: 'Cross-currency purchase',
-                reimbursable: true,
-            };
-            const eurAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                ...createRandomReportAction(3001),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: eurTxn.amount, currency: eurTxn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: eurTxn.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${eurTxn.transactionID}`, eurTxn);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[eurAction.reportActionID]: eurAction});
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
-            await waitForBatchedUpdates();
+                txns: [{n: 1, created: '2025-06-21', currency: CONST.CURRENCY.EUR, amount: -8500, merchant: 'Cross-currency purchase'}],
+            });
+            const [eurTxn] = transactions;
+            const [eurAction] = Object.values(actions);
 
             mockFetch?.pause?.();
             deleteMoneyRequest({
@@ -2112,69 +2044,23 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         });
 
         it('excludes prior-iteration pending-deletes when useDeleteTransactions bulk-loops synchronously', async () => {
-            const policyID = 'policy-trip-bulk-loop';
-            const titleField = {
-                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-                name: 'Title',
-                type: CONST.REPORT_FIELD_TYPES.FORMULA,
-                defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
-                deletable: false,
-                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
-                values: [],
-                keys: [],
-                externalIDs: [],
-                disabledOptions: [],
-                orderWeight: 1,
-                isTax: false,
-            };
-            const policy = {
-                ...createRandomPolicy(104, CONST.POLICY.TYPE.TEAM),
-                id: policyID,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(401, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-                total: -50000,
-                currency: CONST.CURRENCY.USD,
+            const {policy, expenseReport, transactions, actions} = await buildTripFixture({
+                policyID: 'policy-trip-bulk-loop',
+                reportSeed: 401,
+                titleFormula: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                reportTotal: -50000,
                 reportName: 'Trip from Jun 21 to Jun 25, 2025',
-            };
-            const makeTxn = (n: number, day: string): Transaction => ({
-                ...createRandomTransaction(4000 + n),
-                amount: -10000,
-                currency: CONST.CURRENCY.USD,
-                reportID: expenseReport.reportID,
-                created: `2025-06-${day}`,
-                merchant: `Expense ${day}`,
-                reimbursable: true,
+                txns: [
+                    {n: 1, created: '2025-06-21'},
+                    {n: 2, created: '2025-06-22'},
+                    {n: 3, created: '2025-06-23'},
+                    {n: 4, created: '2025-06-24'},
+                    {n: 5, created: '2025-06-25'},
+                ],
+                actionsFor: [5],
             });
-            const t21 = makeTxn(1, '21');
-            const t22 = makeTxn(2, '22');
-            const t23 = makeTxn(3, '23');
-            const t24 = makeTxn(4, '24');
-            const t25 = makeTxn(5, '25');
-            const a25: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                ...createRandomReportAction(4005),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: t25.amount, currency: t25.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: t25.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t21.transactionID}`, t21);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t22.transactionID}`, t22);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t23.transactionID}`, t23);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t24.transactionID}`, t24);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t25.transactionID}`, t25);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[a25.reportActionID]: a25});
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
-            await waitForBatchedUpdates();
+            const [t21, , , , t25] = transactions;
+            const [a25] = Object.values(actions);
 
             mockFetch?.pause?.();
             deleteMoneyRequest({
@@ -2209,82 +2095,20 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         });
 
         it('persists the pending-total marker on cross-currency delete so a follow-up same-currency delete inherits sticky-indeterminate', async () => {
-            const policyID = 'policy-cross-currency-persist';
             const ORIGINAL_TITLE = 'Trip $100.00';
-            const titleField = {
-                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-                name: 'Title',
-                type: CONST.REPORT_FIELD_TYPES.FORMULA,
-                defaultValue: 'Trip {report:total}',
-                deletable: false,
-                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
-                values: [],
-                keys: [],
-                externalIDs: [],
-                disabledOptions: [],
-                orderWeight: 1,
-                isTax: false,
-            };
-            const policy = {
-                ...createRandomPolicy(105, CONST.POLICY.TYPE.TEAM),
-                id: policyID,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(501, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-                total: -10000,
-                currency: CONST.CURRENCY.USD,
+            const {policy, expenseReport, transactions, actions} = await buildTripFixture({
+                policyID: 'policy-cross-currency-persist',
+                reportSeed: 501,
+                titleFormula: 'Trip {report:total}',
+                reportTotal: -10000,
                 reportName: ORIGINAL_TITLE,
-            };
-            const eurTxn: Transaction = {
-                ...createRandomTransaction(5001),
-                amount: -8500,
-                currency: CONST.CURRENCY.EUR,
-                reportID: expenseReport.reportID,
-                created: '2025-06-21',
-                merchant: 'Cross-currency purchase',
-                reimbursable: true,
-            };
-            const usdTxn: Transaction = {
-                ...createRandomTransaction(5002),
-                amount: -2000,
-                currency: CONST.CURRENCY.USD,
-                reportID: expenseReport.reportID,
-                created: '2025-06-22',
-                merchant: 'USD purchase',
-                reimbursable: true,
-            };
-            const eurAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                ...createRandomReportAction(5001),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: eurTxn.amount, currency: eurTxn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: eurTxn.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            };
-            const usdAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                ...createRandomReportAction(5002),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                reportID: expenseReport.reportID,
-                originalMessage: {amount: usdTxn.amount, currency: usdTxn.currency, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: usdTxn.transactionID},
-                message: undefined,
-                previousMessage: undefined,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${eurTxn.transactionID}`, eurTxn);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${usdTxn.transactionID}`, usdTxn);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [eurAction.reportActionID]: eurAction,
-                [usdAction.reportActionID]: usdAction,
+                txns: [
+                    {n: 1, created: '2025-06-21', currency: CONST.CURRENCY.EUR, amount: -8500, merchant: 'Cross-currency purchase'},
+                    {n: 2, created: '2025-06-22', amount: -2000, merchant: 'USD purchase'},
+                ],
             });
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
-            await waitForBatchedUpdates();
+            const [eurTxn, usdTxn] = transactions;
+            const [eurAction, usdAction] = Object.values(actions);
 
             mockFetch?.pause?.();
             // Iter 1: cross-currency delete → total unchanged → marker must be persisted to Onyx.
