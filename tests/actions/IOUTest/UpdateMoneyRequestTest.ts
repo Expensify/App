@@ -11,6 +11,7 @@ import {
     updateMoneyRequestTag,
 } from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {editTransactionMerchantInline} from '@libs/actions/TransactionInlineEdit';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -2475,6 +2476,73 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
             writeSpy.mockRestore();
+        });
+    });
+
+    describe('editTransactionMerchantInline delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 999;
+
+        it('sets delegateAccountID when delegateAccountID is provided', async () => {
+            const transactionID = 'txnMerchantDelegate1';
+            const transactionThreadReportID = 'threadMerchantDelegate1';
+            const parentReportID = 'parentMerchantDelegate1';
+            const policyID = '40';
+            const newMerchant = 'New Merchant';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                merchant: 'Old Merchant',
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            editTransactionMerchantInline(
+                {
+                    hash: undefined,
+                    transactionID,
+                    parentReport,
+                    parentReportAction: undefined,
+                    transactionThreadReport,
+                    policy: fakePolicy,
+                    policyCategories: {},
+                    policyTags: {},
+                    policyRecentlyUsedCategories: [],
+                    policyRecentlyUsedTags: [],
+                    parentReportNextStep: undefined,
+                    isOffline: false,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: false,
+                    distanceOriginalPolicy: undefined,
+                    policyForTrackExpense: undefined,
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                },
+                newMerchant,
+            );
+
+            await waitForBatchedUpdates();
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const modifiedExpenseAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE));
+            expect(modifiedExpenseAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
     });
 });
