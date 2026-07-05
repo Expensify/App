@@ -199,6 +199,20 @@ type StartSplitBilActionParams = {
     delegateAccountID: number | undefined;
 };
 
+type CompleteSplitBillActionParams = {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    delegateAccountID: number | undefined;
+    sessionEmail?: string;
+};
+
 type SplitBillActionsParams = {
     participants: Participant[];
     currentUserLogin: string;
@@ -855,27 +869,20 @@ function startSplitBill({
     return {splitTransactionID: splitTransaction.transactionID};
 }
 
-/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
- *
- * @param chatReportID - The group chat or workspace reportID
- * @param reportAction - The split action that lives in the chatReport above
- * @param updatedTransaction - The updated **draft** split transaction
- * @param sessionAccountID - accountID of the current user
- * @param sessionEmail - email of the current user
- */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    delegateAccountID: number | undefined,
-    sessionEmail?: string,
-) {
+/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above. */
+function completeSplitBill({
+    chatReportID,
+    reportAction,
+    updatedTransaction,
+    sessionAccountID,
+    isASAPSubmitBetaEnabled,
+    quickAction,
+    transactionViolations,
+    betas,
+    personalDetails,
+    delegateAccountID,
+    sessionEmail,
+}: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
     }
@@ -2252,4 +2259,4 @@ export {
     resetSplitShares,
 };
 
-export type {CreateDistanceRequestInformation, StartSplitBilActionParams};
+export type {CompleteSplitBillActionParams, CreateDistanceRequestInformation, StartSplitBilActionParams};
