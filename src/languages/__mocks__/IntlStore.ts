@@ -65,6 +65,10 @@ class IntlStore {
     static subscribe(): () => void {
         return () => {};
     }
+
+    static getSnapshotVersion(): number {
+        return 0;
+    }
 }
 
 export default IntlStore;

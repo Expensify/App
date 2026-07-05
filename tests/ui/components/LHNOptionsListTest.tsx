@@ -41,6 +41,7 @@ jest.mock('@src/languages/IntlStore', () => {
                 return translations?.[key] ?? null;
             },
             subscribe: () => () => {},
+            getSnapshotVersion: () => 0,
         },
     };
 });
