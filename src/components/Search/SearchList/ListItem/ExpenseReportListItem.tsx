@@ -32,6 +32,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -443,10 +444,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         translate,
     ]);
 
-    // A group (not a button) when the row nests controls, so the checkbox/action button stay reachable by screen readers.
+    // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
         <BaseListItem
             item={item}
+            accessible={canSelectMultiple && shouldBreakAccessibilityGrouping() ? false : undefined}
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
             accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, translate)}
             shouldUseOptionRole={false}
