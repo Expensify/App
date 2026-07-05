@@ -727,6 +727,7 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
+                chatReportActions: undefined,
             };
             return submitPerDiemExpense(perDiemParams);
         }

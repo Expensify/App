@@ -5,7 +5,7 @@ import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestM
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, RecentlyUsedTags, Report, ReportActions} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -326,6 +326,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
+                chatReportActions: undefined,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -416,6 +417,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                chatReportActions: undefined,
             });
 
             // Then: Verify the result structure and key values
@@ -550,6 +552,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                chatReportActions: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -638,6 +641,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                chatReportActions: undefined,
             });
 
             // Then: Verify policy expense chat handling
@@ -647,6 +651,90 @@ describe('PerDiem', () => {
             expect(result.transaction.hasEReceipt).toBe(true);
             expect(result.billable).toBe(true);
             expect(result.reimbursable).toBe(true);
+        });
+
+        it('should reuse the existing report preview action supplied via chatReportActions', () => {
+            const existingChatReportID = 'chat_with_actions';
+            const existingIOUReportID = 'iou_existing';
+            const existingPreviewActionID = 'preview_existing';
+
+            const existingChatReport: Report = {
+                reportID: existingChatReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                iouReportID: existingIOUReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const existingIOUReport: Report = {
+                reportID: existingIOUReportID,
+                chatReportID: existingChatReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 456,
+                managerID: 123,
+                currency: 'USD',
+                total: 0,
+            };
+
+            const chatReportActions: ReportActions = {
+                [existingPreviewActionID]: {
+                    reportActionID: existingPreviewActionID,
+                    reportID: existingChatReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: existingIOUReportID},
+                    message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: '', isEdited: false}],
+                    created: DateUtils.getDBTime(),
+                    accountID: 123,
+                    actorAccountID: 456,
+                    childReportID: existingIOUReportID,
+                    childMoneyRequestCount: 1,
+                },
+            };
+
+            const mockCustomUnit: TransactionCustomUnit = {
+                customUnitID: 'per_diem_reuse',
+                customUnitRateID: 'rate_reuse',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {dates: {start: '2024-03-01', end: '2024-03-01'}},
+                subRates: [{id: 'meal_1', name: 'Meal', rate: 30, quantity: 1}],
+                quantity: 1,
+            };
+
+            const mockTransactionParams: PerDiemExpenseTransactionParams = {
+                comment: 'reuse preview',
+                currency: 'USD',
+                created: '2024-03-01',
+                category: 'Meals',
+                tag: '',
+                customUnit: mockCustomUnit,
+                billable: false,
+                attendees: [],
+                reimbursable: true,
+            };
+
+            const mockParticipantParams: RequestMoneyParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: {accountID: 123, login: 'existing@example.com'},
+            };
+
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: existingChatReport,
+                existingIOUReport,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams,
+                recentlyUsedParams: {},
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 456,
+                currentUserEmailParam: 'payee@example.com',
+                hasViolations: false,
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                personalDetails: {123: {accountID: 123, login: 'existing@example.com'}},
+                chatReportActions,
+            });
+
+            expect(result.reportPreviewAction.reportActionID).toBe(existingPreviewActionID);
         });
     });
 
@@ -713,6 +801,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -781,6 +870,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 optimisticTransactionID,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -854,6 +944,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
+                chatReportActions: undefined,
             });
 
             // Then the result should be valid (personalDetails is correctly passed through the chain)
@@ -918,6 +1009,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
