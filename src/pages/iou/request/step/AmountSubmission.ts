@@ -389,6 +389,8 @@ function submitAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            // TODO: delegateAccountID will be threaded in PR 10b (https://github.com/Expensify/App/issues/66425)
+                            delegateAccountID: undefined,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -423,6 +425,8 @@ function submitAmount({
                             personalDetails: allPersonalDetails,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            // TODO: delegateAccountID will be threaded in PR 10b (https://github.com/Expensify/App/issues/66425)
+                            delegateAccountID: undefined,
                         });
                     }
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

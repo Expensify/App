@@ -165,6 +165,8 @@ function IOURequestStepDistanceGPS({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            // TODO: delegateAccountID will be threaded in PR 10b (https://github.com/Expensify/App/issues/66425)
+            delegateAccountID: undefined,
         });
     };
 

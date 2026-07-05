@@ -289,6 +289,8 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                // TODO: delegateAccountID will be threaded in PR 10b (https://github.com/Expensify/App/issues/66425)
+                delegateAccountID: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -333,6 +335,8 @@ function SubmitDetailsPage({
                 betas,
                 personalDetails,
                 optimisticTransactionID,
+                // TODO: delegateAccountID will be threaded in PR 10b (https://github.com/Expensify/App/issues/66425)
+                delegateAccountID: undefined,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({

@@ -197,8 +197,7 @@ type GetTrackExpenseInformationParams = {
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
     currentUserLocalCurrency: string | undefined;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type DeleteTrackExpenseParams = {
@@ -1951,6 +1950,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails,
     betas,
     policyTagList,
+    delegateAccountID,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1964,6 +1964,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    delegateAccountID: number | undefined;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2084,6 +2085,7 @@ function convertBulkTrackedExpensesToIOU({
             policyParams: {
                 policyTagList,
             },
+            delegateAccountID,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);

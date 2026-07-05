@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 
 import {rand64} from '@libs/NumberUtils';
@@ -148,6 +149,8 @@ function useOdometerNavigation({
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
 
+    const delegateAccountID = useDelegateAccountID();
+
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
@@ -196,6 +199,7 @@ function useOdometerNavigation({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            delegateAccountID,
         });
     };
 }
