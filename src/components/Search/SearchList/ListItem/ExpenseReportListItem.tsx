@@ -1,12 +1,3 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-// We need direct access to useOnyx to fetch live policy data at render time
-// without triggering the wrapper's additional logic, ensuring violations
-// sync immediately when category settings change
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {
@@ -20,6 +11,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -33,6 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -40,13 +33,28 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
-import ExpenseReportListItemRow from './ExpenseReportListItemRow';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+// We need direct access to useOnyx to fetch live policy data at render time
+// without triggering the wrapper's additional logic, ensuring violations
+// sync immediately when category settings change
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
+
+import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -111,6 +119,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)}, [reportItem.ownerAccountID]);
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
@@ -132,6 +141,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     }, [searchData, snapshotReport?.chatReportID, reportItem.parentReportID]);
 
     const chatReport = parentChatReport ?? snapshotChatReport;
+    const [chatReportActions] = originalUseOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
+    );
 
     const snapshotPolicy = useMemo(() => {
         return (searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
@@ -222,7 +234,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector}, [liveViolationsSelector]);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
         reportID: reportItem.reportID,
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -234,6 +246,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
@@ -277,6 +290,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
+            chatReportActions,
+            delegateEmail,
         });
     }, [
         currentSearchHash,
@@ -287,6 +302,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         snapshotReport,
         chatReport,
         snapshotPolicy,
+        submitterLogin,
         parentPolicy,
         parentReport,
         lastPaymentMethod,
@@ -312,6 +328,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         activePolicy,
         chatReportPolicy,
         nextStep,
+        chatReportActions,
+        delegateEmail,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

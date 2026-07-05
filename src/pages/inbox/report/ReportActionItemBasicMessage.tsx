@@ -1,10 +1,15 @@
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import TextWithEmojiFragment from './comment/TextWithEmojiFragment';
 
 type ReportActionItemBasicMessageProps = Partial<ChildrenProps> & {

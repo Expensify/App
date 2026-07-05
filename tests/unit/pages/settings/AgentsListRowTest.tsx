@@ -1,10 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type ReactNative from 'react-native';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AgentsListRow from '@pages/settings/Agents/AgentsListRow';
+
 import ROUTES from '@src/ROUTES';
+
+import type ReactNative from 'react-native';
+
+import React from 'react';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

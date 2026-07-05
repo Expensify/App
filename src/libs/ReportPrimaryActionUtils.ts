@@ -1,8 +1,10 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
@@ -14,6 +16,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {
@@ -76,6 +79,7 @@ type GetReportPrimaryActionParams = {
     reportMetadata?: OnyxEntry<ReportMetadata>;
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
+    ownerLogin: string | undefined;
 };
 
 type IsPrimaryPayActionParams = {
@@ -107,6 +111,7 @@ function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
     reportMetadata: OnyxEntry<ReportMetadata>,
+    ownerLogin: string | undefined,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
@@ -129,13 +134,11 @@ function isSubmitAction(
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    const reportTransactionsList = reportTransactions ?? [];
+    const hasNoSubmittableTransaction =
+        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
 
-    if (isAnyReceiptBeingScanned) {
-        return false;
-    }
-
-    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
+    if (hasNoSubmittableTransaction) {
         return false;
     }
 
@@ -145,7 +148,7 @@ function isSubmitAction(
         }
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
@@ -176,9 +179,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitWorkspace = isSubmitPolicy(policy);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+    if (!isExpenseReport || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
         return false;
     }
 
@@ -463,6 +471,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isChatReportArchived,
         chatReport,
         invoiceReceiverPolicy,
+        ownerLogin,
     } = params;
 
     // The expense report of personal policy shouldn't have any action
@@ -510,7 +519,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !allExpensesHeld) {
+    if (isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !allExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

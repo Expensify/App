@@ -1,15 +1,11 @@
-/* eslint-disable rulesdir/prefer-early-return */
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +19,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -47,7 +44,9 @@ import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisib
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Visibility from '@libs/Visibility';
+
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
+
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
@@ -56,14 +55,27 @@ import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsList
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import variables from '@styles/variables';
+
 import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+/* eslint-disable rulesdir/prefer-early-return */
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import isEmpty from 'lodash/isEmpty';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter, View} from 'react-native';
+
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -106,6 +118,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
+    const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
@@ -189,12 +202,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isOffline,
         showReportActionsLoadingState: !!showReportActionsLoadingState,
     };
-    useEffect(() => {
-        if (!shouldShowOpenReportLoadingSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowOpenReportLoadingSkeleton]);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     const lastAction = visibleReportActions.at(-1);
 
@@ -358,7 +366,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && isScrolledToEnd;
 
             if (shouldReadOnReportChange) {
-                readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+                readNewestAction(report?.reportID, isReportActionsLoaded);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -368,7 +376,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
         // This effect should only run when the newest visible action changes, otherwise every action/report object update can prematurely consume unread state.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, isReportActionsLoaded]);
 
     useEffect(() => {
         if (!isVisible || !Visibility.hasFocus() || !isFocused) {
@@ -392,7 +400,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+        readNewestAction(report?.reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
@@ -401,7 +409,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [isFocused, isVisible]);
 
     /**
      * The index of the earliest message that was received while offline
@@ -438,7 +446,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 return;
             }
             readActionSkipped.current = false;
-            readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+            readNewestAction(report?.reportID, isReportActionsLoaded);
         },
         unreadMarkerReportActionIndex,
         isInverted: false,
@@ -618,8 +626,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
-        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, reportLoadingState?.hasOnceLoadedReportActions, introSelected, betas]);
+        readNewestAction(reportID, true);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {

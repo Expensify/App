@@ -1,15 +1,19 @@
+import Tooltip from '@components/Tooltip';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isMobileSafari} from '@libs/Browser';
+import ControlSelection from '@libs/ControlSelection';
+
+import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import type {SharedValue} from 'react-native-reanimated';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import Tooltip from '@components/Tooltip';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari} from '@libs/Browser';
-import ControlSelection from '@libs/ControlSelection';
 
 type SliderProps = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */

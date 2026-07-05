@@ -1,17 +1,22 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateChatPriorityMode} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback} from 'react';
 
 type PriorityModeItem = {
     value: ValueOf<typeof CONST.PRIORITY_MODE>;
