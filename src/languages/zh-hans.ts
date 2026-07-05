@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -150,6 +154,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: '正在扫描',
         analyzing: '正在分析…',
         thinking: 'Concierge 正在思考...',
+        agentThinking: '正在思考中…',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',
@@ -510,6 +515,9 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        unableToDisplayChart: '无法显示图表',
+        webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
+        apiKey: 'API 密钥',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -823,7 +831,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: '加入会话',
         leaveThread: '离开会话',
         copyOnyxData: '复制 Onyx 数据',
-        copyAgentZeroRequestID: '复制 AgentZero 请求 ID',
+        viewAgentZeroTrace: '查看 AgentZero 跟踪',
         flagAsOffensive: '标记为攻击性内容',
         menu: '菜单',
     },
@@ -950,6 +958,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: '钱包',
             },
+            addVirtualCardPersonalDetails: {title: '添加您的个人信息', subtitle: '添加您的详细信息以查看并开始使用 Expensify 卡。', cta: '添加详细信息'},
             enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
         },
         announcements: '公告',
@@ -1029,6 +1038,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: '连接会计系统',
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
+            issueExpensifyCards: '发放 Expensify 卡',
+            issueExpensifyCardsSubtitle: '自定义控制并简化支出',
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
         },
@@ -1174,7 +1185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: '已批准',
         cash: '现金',
         card: '卡片',
-        original: '原始',
+        purchase: '购买',
         split: '拆分',
         splitExpense: '拆分报销',
         splitDates: '拆分日期',
@@ -2431,6 +2442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: '未激活',
         assignedCards: '卡片',
         assignedCardsDescription: '已分配卡片的交易会自动同步。',
+        addVirtualCardPersonalDetails: {subtitle: '请输入您的个人信息以开始使用您的卡', cta: '添加详细信息'},
         expensifyCard: 'Expensify 卡',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再回来查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与 Concierge 聊天以获取进一步帮助。',
@@ -2705,7 +2717,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         activatePhysicalCard: '激活实体卡',
         error: {
             thatDidNotMatch: '这与您卡片的最后 4 位数字不匹配。请重试。',
-            throttled: '您多次错误输入 Expensify 卡的末 4 位数字。如果您确定数字无误，请联系 Concierge 解决。否则，请稍后再试。',
         },
     },
     getPhysicalCard: {
@@ -5326,6 +5337,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet 设置',
+            enterCredentials: '输入你的 Rillet API 密钥',
+            howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>前往“账号”->“设置”</li><li>复制下面的 API 密钥</li></ol>',
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
+            noSubsidiariesFound: '未找到子公司',
+            noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+        },
         type: {
             free: '免费',
             control: '控制',
@@ -5560,6 +5580,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             changeCardSmartLimitTypeWarning: (limit: number | string) => `如果将此卡的限额类型更改为智能限额，新交易将被拒绝，因为未批准的 ${limit} 限额已达到上限。`,
             changeCardMonthlyLimitTypeWarning: (limit: number | string) => `如果您将此卡的限额类型更改为每月，新交易将被拒绝，因为已达到每月 ${limit} 的限额。`,
             addShippingDetails: '添加收货详情',
+            addPersonalDetails: '添加个人信息',
             issuedCard: (assignee: string) => `已为 ${assignee} 发放了一张 Expensify 卡！该卡将在 2–3 个工作日内送达。`,
             issuedCardNoShippingDetails: (assignee: string) => `已为 ${assignee} 发放了一张 Expensify 卡！在确认邮寄详情后将寄出该卡。`,
             issuedCardVirtual: (assignee: string, link: string) => `已向 ${assignee} 发放一张虚拟 Expensify 卡！${link} 可立即使用。`,
@@ -6264,6 +6285,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6281,6 +6303,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6504,6 +6528,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在导入维度';
                         case 'financialForceMarkAsReimbursed':
                             return '正在将报告标记为已报销';
+                        case 'rilletSyncTitle':
+                            return '正在同步 Rillet 数据';
+                        case 'rilletSyncConnection':
+                            return '正在初始化与 Rillet 的连接';
+                        case 'rilletSyncImportData':
+                            return '正在加载数据';
                         default: {
                             return `缺少以下阶段的翻译：${stage}`;
                         }
@@ -6761,6 +6791,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `通过 Expensify 与 Rillet 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Rillet 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Rillet 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -7307,7 +7343,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
             },
-            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置'},
+            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '必填字段', flagForReview: '标记以供审核'},
             bulkActions: {
                 deleteMultiple: () => ({
                     one: '删除规则',
@@ -7364,6 +7400,10 @@ ${reportName}`,
                 restrictCardSpendDescription: '在销售点阻止或限制支出',
                 applyExpenseDefaults: '应用报销默认设置',
                 applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
+                flagForReview: '标记以供审核',
+                flagForReviewDescription: '当费用超出类别限额时通知审批人',
+                requireFields: '必填字段',
+                requireFieldsDescription: '请确保在提交报销前填写所有关键字段',
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -7373,6 +7413,51 @@ ${reportName}`,
                 rename: '重命名',
                 update: '更新',
                 merchantIs: (merchant: string) => `商户为“${merchant}”`,
+                merchantTypeIs: (merchantType: string) => `商户类型为"${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: '商户类型', saveRule: '保存规则', confirmErrorCategory: '请选择一个类别。'},
+            requireFieldsTable: {
+                tableColumnType: '类型',
+                tableColumnCondition: '条件',
+                tableColumnRule: '规则',
+                findRule: '查找规则',
+                typeLabel: '必填字段',
+                conditionCategoryIs: (category: string) => `类别为"${category}"`,
+                requireDescription: '必填描述',
+                requireAttendees: '要求参与者',
+                requireItemizedReceipt: '要求提供分项收据',
+                requireItemizedReceiptOver: (amount: string) => `需要超过 ${amount} 的分项收据`,
+                alwaysRequireReceipt: '始终要求收据',
+                requireReceiptOver: (amount: string) => `要求票据超过 ${amount}`,
+            },
+            requireFieldsEmptyState: {title: '提前补全缺失信息', subtitle: '在提交报销前，请确保关键字段已填写完整。', cta: '创建必填规则'},
+            requireFieldsRule: {
+                title: '必填字段',
+                subtitle: '在提交时要求提供收据、分类等信息。',
+                thenWarnMember: '如果有字段缺失，则提醒成员：',
+                itemizedReceipt: '明细收据',
+                saveRule: '保存规则',
+                confirmErrorCategory: '请选择一个类别。',
+                confirmErrorField: '请至少选择一个必填字段。',
+            },
+            flagForReviewTable: {
+                tableColumnType: '类型',
+                tableColumnCondition: '条件',
+                tableColumnRule: '规则',
+                findRule: '查找规则',
+                typeLabel: '标记',
+                conditionCategoryAndAmount: (category: string, amount: string) => `类别为"${category}"，且金额大于 ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `类别为"${category}"，且每日类别总额高于 ${amount}`,
+                flagForReview: '标记以供审核',
+            },
+            flagForReviewEmptyState: {title: '找出需要进一步查看的报销费用', subtitle: '当特定报销值得额外审核时提醒审批人。', cta: '创建标记规则'},
+            flagForReviewRule: {
+                title: '标记以供审核',
+                subtitle: '在满足以下条件时通知审批人。',
+                saveRule: '保存规则',
+                confirmErrorCategory: '请选择一个类别。',
+                confirmErrorAmount: '请输入金额。',
+                thenFlagForReview: '然后在以下情况下标记为待审核：',
             },
         },
         planTypePage: {
@@ -7478,6 +7563,10 @@ ${reportName}`,
                     `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
                 groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
             },
+            notSync: '未同步',
+            authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
+            reconnect: '重新连接',
+            reconnectLink: '重新连接。',
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
@@ -8063,6 +8152,46 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `自 ${date} 起`,
         customUnitRateDateRangeUntilEnd: (date: string) => `直到 ${date}`,
         customUnitRateDateRangeAllDates: () => `适用于所有日期`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制概览`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制成员`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个报表字段`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个报表字段`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制会计设置`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制收据合作方设置`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制人力资源设置`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个类别`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个类别`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个标签`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个标签`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个税率`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个税率`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制时间跟踪设置`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制工作流`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制规则`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 条商家规则`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 ${count} 条商户规则`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个里程费率`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个里程费率`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 1 个每日补贴标准`,
+                other: (count: number) => `已从<a href="${sourcePolicyURL}">${sourcePolicyName}</a>复制了${count}个每日津贴标准`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -8254,6 +8383,8 @@ ${reportName}`,
             past: '过去',
             submitted: '已提交',
             approved: '已批准',
+            firstApprover: '首位审批人',
+            firstApproved: '首次批准',
             paid: '已支付',
             exported: '已导出',
             posted: '已发布',
@@ -9449,6 +9580,7 @@ ${reportName}`,
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
             aBankAccountIsLocked: '银行账户已锁定',
             completeHrSetup: '完成人力资源设置',
+            theresAProblemWithAnHRConnection: 'HR 连接出现问题',
         },
     },
     emptySearchView: {
