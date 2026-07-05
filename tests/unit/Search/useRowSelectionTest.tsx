@@ -10,6 +10,7 @@ import React from 'react';
 
 const baseSelectionContext = {
     currentSelectedTransactionReportID: undefined,
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
@@ -64,16 +65,18 @@ function renderRowSelection({
     keyForList,
     selectedTransactions,
     areAllMatchingItemsSelected,
+    excludedTransactions = {},
 }: {
     keyForList: string | undefined;
     selectedTransactions: SelectedTransactions;
     areAllMatchingItemsSelected: boolean;
+    excludedTransactions?: SelectedTransactions;
 }): {isSelected: boolean} {
-    return renderWithSelection(() => useRowSelection(keyForList), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions});
+    return renderWithSelection(() => useRowSelection(keyForList), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions, excludedTransactions});
 }
 
-function renderSelectionCounts(selectedTransactions: SelectedTransactions): {selected: number} {
-    return renderWithSelection(() => useSelectionCounts(), {...baseSelectionContext, selectedTransactions});
+function renderSelectionCounts(selectedTransactions: SelectedTransactions, areAllMatchingItemsSelected = false): {selected: number} {
+    return renderWithSelection(() => useSelectionCounts(), {...baseSelectionContext, selectedTransactions, areAllMatchingItemsSelected});
 }
 
 describe('useRowSelection', () => {
@@ -84,6 +87,28 @@ describe('useRowSelection', () => {
 
     it('marks the row selected when areAllMatchingItemsSelected is true even if the key is absent', () => {
         expect(renderRowSelection({keyForList: 'tx_not_in_map', selectedTransactions: {}, areAllMatchingItemsSelected: true}).isSelected).toBe(true);
+    });
+
+    it('marks an excluded row not-selected while areAllMatchingItemsSelected is true', () => {
+        expect(
+            renderRowSelection({
+                keyForList: 'tx_excluded',
+                selectedTransactions: {},
+                areAllMatchingItemsSelected: true,
+                excludedTransactions: buildSelected('tx_excluded'),
+            }).isSelected,
+        ).toBe(false);
+    });
+
+    it('keeps a different row selected when another row is excluded in select-all mode', () => {
+        expect(
+            renderRowSelection({
+                keyForList: 'tx_still_selected',
+                selectedTransactions: {},
+                areAllMatchingItemsSelected: true,
+                excludedTransactions: buildSelected('tx_excluded'),
+            }).isSelected,
+        ).toBe(true);
     });
 
     it('returns not-selected when keyForList is undefined', () => {
@@ -100,5 +125,9 @@ describe('useSelectionCounts', () => {
 
     it('returns 0 when nothing is selected', () => {
         expect(renderSelectionCounts({}).selected).toBe(0);
+    });
+
+    it('stays positive in select-all mode even when every visible row is excluded (empty map)', () => {
+        expect(renderSelectionCounts({}, true).selected).toBe(1);
     });
 });

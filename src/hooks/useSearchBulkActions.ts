@@ -354,7 +354,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isProduction} = useEnvironment();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
@@ -632,6 +632,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         jsonQuery: serializedQuery,
                         reportIDList: [],
                         transactionIDList: [],
+                        // "All matching except these": the backend re-runs the query and skips the excluded IDs.
+                        excludedTransactionIDList: Object.keys(excludedTransactions),
                         policyID,
                         exportName,
                     },
@@ -657,6 +659,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             selectedReports,
             selectedTransactions,
+            excludedTransactions,
             isOffline,
             areAllMatchingItemsSelected,
             currentSearchResults?.data,
@@ -735,6 +738,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
+                    // "All matching except these": the backend re-runs the query and skips the excluded IDs.
+                    excludedTransactionIDList: Object.keys(excludedTransactions),
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
@@ -778,6 +783,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedReportIDs,
             selectedTransactionReportIDs,
             selectedTransactions,
+            excludedTransactions,
             selectedTransactionsKeys,
             translate,
             clearSelectedTransactions,

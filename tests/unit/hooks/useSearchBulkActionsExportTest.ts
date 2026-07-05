@@ -205,6 +205,7 @@ let mockCurrentSearchResults: SearchResults | undefined;
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: {},
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: false,
     }),

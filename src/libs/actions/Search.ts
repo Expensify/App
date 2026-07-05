@@ -1372,7 +1372,16 @@ function exportSearchItemsToCSV(
     );
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({
+    query,
+    jsonQuery,
+    reportIDList,
+    transactionIDList,
+    excludedTransactionIDList,
+    isBasicExport,
+    exportColumnLabels,
+    exportName,
+}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1402,6 +1411,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         jsonQuery,
         reportIDList,
         transactionIDList,
+        excludedTransactionIDList,
         isBasicExport,
         exportColumnLabels,
         exportName,
@@ -1417,7 +1427,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
 }
 
 function queueExportSearchWithTemplate(
-    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID, exportName}: ExportSearchWithTemplateParams,
+    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, policyID, exportName}: ExportSearchWithTemplateParams,
     shouldTrackExportProgress = false,
 ): string {
     const exportID = rand64();
@@ -1454,6 +1464,7 @@ function queueExportSearchWithTemplate(
         jsonQuery,
         reportIDList,
         transactionIDList,
+        excludedTransactionIDList,
         policyID,
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),

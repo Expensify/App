@@ -14,6 +14,7 @@ type SearchSelectionProviderProps = {
 
 type SelectionState = {
     selectedTransactions: SelectedTransactions;
+    excludedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     currentSelectedTransactionReportID: string | undefined;
@@ -23,6 +24,7 @@ type SelectionState = {
 
 const defaultSelectionState: SelectionState = {
     selectedTransactions: {},
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     currentSelectedTransactionReportID: undefined,
@@ -86,6 +88,30 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 return prevState;
             }
 
+            // "Select all matching" path: a user row/group toggle while every matching item is selected should narrow
+            // the selection to "all matching EXCEPT this row", not collapse it to the loaded page. We keep the flag on
+            // and move the unchecked row(s) into `excludedTransactions` (re-checking a row removes it from the set).
+            if (prevState.areAllMatchingItemsSelected && options?.shouldUpdateMatchingExclusions) {
+                const excludedTransactions = {...prevState.excludedTransactions};
+                for (const key of Object.keys(prevState.selectedTransactions)) {
+                    if (key in selectedTransactions) {
+                        continue;
+                    }
+                    excludedTransactions[key] = prevState.selectedTransactions[key];
+                }
+                for (const key of Object.keys(selectedTransactions)) {
+                    delete excludedTransactions[key];
+                }
+
+                return {
+                    ...prevState,
+                    selectedTransactions,
+                    excludedTransactions,
+                    selectedReports: options?.data ? deriveSelectedReports(selectedTransactions, options.data) : prevState.selectedReports,
+                    shouldTurnOffSelectionMode: false,
+                };
+            }
+
             const totalSelectableItemsCount = options?.totalSelectableItemsCount;
             const areAllMatchingItemsSelected =
                 totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
@@ -93,6 +119,8 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             return {
                 ...prevState,
                 selectedTransactions,
+                // Exclusions only make sense while select-all is on; drop them as soon as the flag clears.
+                excludedTransactions: areAllMatchingItemsSelected ? prevState.excludedTransactions : {},
                 areAllMatchingItemsSelected,
                 selectedReports: options?.data ? deriveSelectedReports(selectedTransactions, options.data) : prevState.selectedReports,
                 shouldTurnOffSelectionMode: false,
@@ -132,6 +160,8 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             return {
                 ...prevState,
                 areAllMatchingItemsSelected: shouldSelectAll,
+                // Start each "select all matching" session (and each exit) with a clean exclusion set.
+                excludedTransactions: {},
             };
         });
     };
@@ -154,6 +184,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 ...prevState,
                 shouldTurnOffSelectionMode,
                 selectedTransactions: {},
+                excludedTransactions: {},
                 selectedReports: [],
                 areAllMatchingItemsSelected: false,
             };
@@ -191,7 +222,10 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         });
     };
 
-    const hasSelectedTransactions = selectionState.selectedTransactionIDs.length > 0 || Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
+    // "Select all matching" is always a non-empty selection (all matching minus a few exclusions), even after the
+    // user unchecks every currently-visible row — so it must count as having a selection on its own.
+    const hasSelectedTransactions =
+        selectionState.areAllMatchingItemsSelected || selectionState.selectedTransactionIDs.length > 0 || Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
 
     const selectionValue: SearchSelectionContextValue = {
         ...selectionState,
@@ -242,18 +276,22 @@ function useSyncSelectedReports(data: SearchData) {
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
 function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }
-    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+    // While "select all matching" is on, a row is selected unless the user explicitly excluded it.
+    return {isSelected: (areAllMatchingItemsSelected && !excludedTransactions[keyForList]) || !!selectedTransactions[keyForList]?.isSelected};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */
 function useSelectionCounts(): {selected: number} {
-    const {selectedTransactions} = useSearchSelectionContext();
-    const selected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
-    return {selected};
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const visibleSelected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
+    // In "select all matching" mode the true total lives in the search metadata (see SearchBulkActionsButton /
+    // SearchSelectionFooter). Report a positive count here so the bulk-actions bar stays visible even after the user
+    // excludes every currently-visible row.
+    return {selected: areAllMatchingItemsSelected ? Math.max(visibleSelected, 1) : visibleSelected};
 }
 
 export {SearchSelectionProvider, useSyncSelectedReports, useRowSelection, useSelectionCounts};
