@@ -1,9 +1,11 @@
-import {selectRestrictedPrimaryPolicyID} from '@selectors/Domain';
-import {isAdminForPolicyByIDSelector} from '@selectors/Policy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {selectRestrictedPrimaryPolicyID} from '@selectors/Domain';
+import {isAdminForPolicyByIDSelector} from '@selectors/Policy';
 
 function useDomainGroupMoveValidation(domainAccountID: number, targetGroupId: string | undefined) {
     const {translate} = useLocalize();

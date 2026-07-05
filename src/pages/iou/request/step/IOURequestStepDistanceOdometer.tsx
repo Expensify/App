@@ -1,9 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -13,6 +7,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -31,6 +26,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -46,7 +42,9 @@ import {getOdometerImageIdentity} from '@libs/OdometerUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,13 +52,22 @@ import SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometerImageHandlers';
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
 import useOdometerTransactionBackup from './IOURequestStepDistance/hooks/useOdometerTransactionBackup';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
@@ -297,6 +304,7 @@ function IOURequestStepDistanceOdometer({
         }
         return true;
     };
+    const readingsMatchBaseline = (nextStart: string, nextEnd: string) => nextStart === initialStartReadingRef.current && nextEnd === initialEndReadingRef.current;
 
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
@@ -305,7 +313,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setStartReading(textForDisplay);
         startReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(textForDisplay, endReadingRef.current);
         if (formError) {
             setFormError('');
         }
@@ -318,7 +326,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setEndReading(textForDisplay);
         endReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(startReadingRef.current, textForDisplay);
         if (formError) {
             setFormError('');
         }
@@ -513,9 +521,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const restoreLastInputFocus = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            lastFocusedInputRef.current?.focus();
-        });
+        lastFocusedInputRef.current?.focus();
     }, []);
 
     useDiscardChangesConfirmation({
