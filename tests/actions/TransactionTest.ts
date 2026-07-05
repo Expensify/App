@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import '@libs/actions/IOU/MoneyRequest';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -23,6 +23,12 @@ import type {PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@s
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {format} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -475,12 +481,12 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
@@ -503,7 +509,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
@@ -654,12 +660,12 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
@@ -682,7 +688,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
@@ -846,13 +852,13 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
@@ -875,7 +881,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
@@ -1062,13 +1068,13 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
@@ -1091,7 +1097,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,

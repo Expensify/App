@@ -1,16 +1,20 @@
-import clone from 'lodash/clone';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
+
 import * as PersistedRequests from '@userActions/PersistedRequests';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import clone from 'lodash/clone';
+import Onyx from 'react-native-onyx';
 
 /**
  * Use this only in non-React contexts (e.g. request middleware) where `useOnyx` is not available;

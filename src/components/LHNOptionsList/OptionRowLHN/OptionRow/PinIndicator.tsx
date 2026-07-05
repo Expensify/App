@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type PinIndicatorProps = {
     /** Whether the report row is pinned. */
