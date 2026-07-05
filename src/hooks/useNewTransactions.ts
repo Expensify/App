@@ -17,6 +17,8 @@ const EMPTY_TRANSACTIONS: Transaction[] = [];
  * When `pendingNewTransactionIDs` is provided, those transactions will be treated as new even on the
  * first load. This handles the case where a transaction was created before the component mounts
  * (e.g., submitting a tracked expense from Self DM to a workspace on Web).
+ *
+ * It marks a row "new" continuously, regardless of focus — the consumer gates when to show the highlight (e.g. only while the report is visible), keeping this hook free of layout concerns.
  */
 function useNewTransactions(
     hasOnceLoadedReportActions: boolean | undefined,
@@ -36,9 +38,9 @@ function useNewTransactions(
         const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
         const railSet = new Set(activePendingTransactionIDs);
         const railTransactions =
-            isFocused && reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : EMPTY_TRANSACTIONS;
+            reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : EMPTY_TRANSACTIONS;
 
-        // Diff-detected adds the rail never flagged (e.g. a Pusher add). Focus-independent so a backgrounded table still highlights — design wants background highlighting.
+        // Diff-detected adds the rail never flagged (e.g. a Pusher add).
         let diffTransactions: Transaction[] = [];
         if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
             if (skipFirstTransactionsChange.current) {
@@ -58,10 +60,10 @@ function useNewTransactions(
         // We don't need to recalculate on change of prevTransactions as it will make the value
         // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, reportID, isFocused, pendingNewTransactionIDs]);
+    }, [transactions, reportID, pendingNewTransactionIDs]);
 
     useEffect(() => {
-        // Only the focused consumer clears the rail — else an unfocused diff could clear the flag before the focused view of the same key consumes it.
+        // Only the focused consumer clears the rail, so a covered view can't clear the flag before the visible one highlights it.
         if (isFocused === false || !pendingNewTransactionIDs) {
             return;
         }

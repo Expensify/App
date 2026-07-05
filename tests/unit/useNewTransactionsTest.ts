@@ -618,7 +618,7 @@ describe('useNewTransactions with an unfocused report', () => {
     };
 
     it('returns newly added transactions even when the report is unfocused', () => {
-        // The diff runs regardless of focus, so a backgrounded table still highlights — design wants background highlighting.
+        // Wide (no narrow flag): the table stays visible behind a stacked RHP, so an unfocused add still highlights.
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
             (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
             {
@@ -637,16 +637,10 @@ describe('useNewTransactions with an unfocused report', () => {
         expect(result.current).toEqual([newTransaction]);
     });
 
-    it('returns pending transactions only once the report is focused', () => {
-        // The rail stays gated on focus so an unfocused consumer (e.g. a chat report preview) doesn't consume the flag early.
+    it('emits a flagged add regardless of focus (the consumer gates visibility)', () => {
+        // The hook marks the row new continuously; the report table gates the highlight on visibility, not this hook.
         const allTransactions = [...transactionsAlreadyInReport, newTransaction];
-        const {rerender, result} = renderHook<Transaction[], {isFocused: boolean}>(
-            (props) => useNewTransactions(true, allTransactions, {[newTransaction.transactionID]: true}, 'report1', props.isFocused),
-            {initialProps: {isFocused: false}},
-        );
-        expect(result.current).toEqual([]);
-
-        rerender({isFocused: true});
+        const {result} = renderHook(() => useNewTransactions(true, allTransactions, {[newTransaction.transactionID]: true}, 'report1', false));
         expect(result.current).toEqual([newTransaction]);
     });
 
@@ -703,7 +697,7 @@ describe('useNewTransactions with an unfocused report', () => {
     });
 
     it('schedules the rail cleanup only from a focused consumer', () => {
-        // Only a focused consumer schedules the rail cleanup; an unfocused one stays silent and must not clear a flag a later focused mount needs.
+        // Narrow: only a focused consumer schedules the cleanup; an unfocused one must not clear a flag a later focused mount needs.
         const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
         const txD = {
             transactionID: 'D',

@@ -108,6 +108,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
 
@@ -159,8 +162,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
@@ -751,6 +752,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                         onLayout={onLayout}
                                         transactions={transactions}
                                         newTransactions={newTransactions}
+                                        isReportVisible={isReportVisible}
                                         hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                         reportActions={reportActions}
                                         scrollToNewTransaction={scrollToNewTransaction}
