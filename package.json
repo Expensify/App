@@ -31,7 +31,7 @@
     "start": "npx rock start",
     "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "ts-node web/proxy.ts",
-    "web-server": "./scripts/start-dev-with-auto-restart.sh",
+    "web-server": "tsx --expose-gc ./node_modules/.bin/rspack serve --open --config config/rspack/rspack.dev.ts",
     "build": "tsx ./node_modules/.bin/rspack --config config/rspack/rspack.common.ts --env file=.env.production && tsx ./scripts/combine-web-sourcemaps.ts",
     "build-staging": "tsx ./node_modules/.bin/rspack --config config/rspack/rspack.common.ts --env file=.env.staging && tsx ./scripts/combine-web-sourcemaps.ts",
     "build-adhoc": "tsx ./node_modules/.bin/rspack --config config/rspack/rspack.common.ts --env file=.env.adhoc && tsx ./scripts/combine-web-sourcemaps.ts",

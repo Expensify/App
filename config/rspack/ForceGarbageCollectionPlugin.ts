@@ -11,7 +11,7 @@ class ForceGarbageCollectionPlugin {
     private compilationCount = 0;
 
     apply(compiler: Compiler) {
-        if (gc && typeof gc === 'function') {
+        if (typeof gc === 'function') {
             compiler.hooks.done.tap(this.constructor.name, () => {
                 this.compilationCount++;
 
