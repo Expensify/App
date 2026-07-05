@@ -351,6 +351,7 @@ function shouldDisplayReportInLHN({
         isFocused ||
         isSystemChat ||
         !!report.isPinned ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         isTrackOnboardingAdminRoom ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
