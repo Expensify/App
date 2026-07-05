@@ -15,6 +15,7 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -95,6 +96,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -381,6 +383,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
+            delegateAccountID,
         });
     };
 

@@ -2,6 +2,7 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
@@ -75,6 +76,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const selfDMReport = useSelfDMReport();
     const reportAttributesDerived = useReportAttributes();
     const {isBetaEnabled} = usePermissions();
+    const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -204,6 +206,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 policyRecentlyUsedTags: undefined,
                 participantsPolicyTags,
+                delegateAccountID,
             };
 
             submitWithDismissFirst({

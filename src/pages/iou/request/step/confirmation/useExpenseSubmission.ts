@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -190,6 +191,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Localization
     const {translate, toLocaleDigit} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
 
     // Permissions
     const {isBetaEnabled} = usePermissions();
@@ -828,6 +830,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         participantsPolicyTags,
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
+                        delegateAccountID,
                     });
                 }
             }
@@ -868,6 +871,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    delegateAccountID,
                 });
             }
             markSubmitExpenseEnd();
@@ -905,6 +909,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    delegateAccountID,
                 });
             }
             markSubmitExpenseEnd();
