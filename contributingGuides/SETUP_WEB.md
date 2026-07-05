@@ -18,15 +18,15 @@ In order to have more consistent builds, we use a strict `node` and `npm` versio
 
 ## Configuring HTTPS
 
-The webpack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
+The Rspack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
 
-If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
+If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/rspack`.
 
 ## Running the Web App
 
 ### Development Server
 - To run the **development web app**: `npm run web`
-- Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
+- Changes applied to Javascript will be applied automatically via Rspack as configured in `rspack.dev.ts`
 
 ### Production Build
 To build and run the production web build locally:

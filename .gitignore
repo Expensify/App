@@ -129,7 +129,7 @@ dist/
 web-build/
 
 # Local https certificate/key
-config/webpack/*.pem
+config/rspack/*.pem
 
 # Expo
 .expo

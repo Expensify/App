@@ -503,7 +503,7 @@ const config = defineConfig([
     },
 
     // Node.js ESM requires relative imports to include a file extension (unlike
-    // bundled `.js`/`.ts`, which are resolved by webpack/metro). Relax the
+    // bundled `.js`/`.ts`, which are resolved by Rspack/metro). Relax the
     // airbnb-inherited `import/extensions` rule for `.mjs`/`.cjs` so it stops
     // flagging legitimate ESM imports like `import x from './foo.mjs'`.
     {

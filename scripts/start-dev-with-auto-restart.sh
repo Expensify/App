@@ -1,27 +1,27 @@
 #!/bin/bash
 
-# Auto-restart webpack-dev-server on memory crashes
+# Auto-restart the Rspack dev server on memory crashes
 # This script monitors for heap out of memory errors and automatically restarts
-# Usage: ./start-dev-with-auto-restart.sh [webpack-dev-server arguments]
+# Usage: ./start-dev-with-auto-restart.sh [rspack dev server arguments]
 
-WEBPACK_DEV_SERVER_ARGS=("$@")
+DEV_SERVER_ARGS=("$@")
 readonly RESTART_DELAY=1
 MAX_RESTARTS=10
 RESTART_COUNT=0
 
-echo "🚀 Starting webpack-dev-server with auto-restart (max restarts: $MAX_RESTARTS)"
+echo "🚀 Starting the Rspack dev server with auto-restart (max restarts: $MAX_RESTARTS)"
 
-run_wds () {
-    npx tsx --expose-gc ./node_modules/.bin/webpack-cli serve "$1" "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
+run_dev_server () {
+    npx tsx --expose-gc ./node_modules/.bin/rspack serve "$1" "${DEV_SERVER_ARGS[@]}" --config config/rspack/rspack.dev.ts
 }
 
 while [[ $RESTART_COUNT -lt $MAX_RESTARTS ]]; do
-    echo "📊 Attempt #$((RESTART_COUNT + 1)) - Starting webpack-dev-server..."
+    echo "📊 Attempt #$((RESTART_COUNT + 1)) - Starting the Rspack dev server..."
     
     if [ $RESTART_COUNT -eq 0 ]; then
-        run_wds --open
+        run_dev_server --open
     else
-        run_wds --no-open
+        run_dev_server --no-open
     fi
     
     # Capture exit code
@@ -39,10 +39,10 @@ while [[ $RESTART_COUNT -lt $MAX_RESTARTS ]]; do
             exit 1
         fi
     elif [ $EXIT_CODE -eq 0 ]; then
-        echo "✅ Webpack-dev-server exited cleanly"
+        echo "✅ Rspack dev server exited cleanly"
         exit 0
     else
-        echo "❌ Webpack-dev-server exited with error code: $EXIT_CODE"
+        echo "❌ Rspack dev server exited with error code: $EXIT_CODE"
         exit $EXIT_CODE
     fi
 done

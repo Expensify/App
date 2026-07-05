@@ -10,7 +10,7 @@ type Options = {
 };
 
 /**
- * [POC] Rspack-compatible replacement for @vue/preload-webpack-plugin.
+ * Rspack-compatible replacement for @vue/preload-webpack-plugin.
  *
  * @vue/preload-webpack-plugin's chunk extraction (used for both the `include: 'asyncChunks'`
  * and `include: 'allAssets'` presets configured in rspack.common.ts) reaches into webpack-specific

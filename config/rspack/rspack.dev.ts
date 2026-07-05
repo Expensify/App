@@ -15,7 +15,7 @@ import getCommonConfiguration from './rspack.common';
 const BASE_PORT = 8082;
 
 /**
- * [POC] rspack port of config/webpack/webpack.dev.ts — configuration for the local dev server.
+ * Configuration for the local dev server.
  */
 const getConfiguration = (environment: Environment): Promise<Configuration> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
@@ -54,8 +54,8 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                 server: {
                     type: 'https',
                     options: {
-                        key: path.join(__dirname, '../webpack/key.pem'),
-                        cert: path.join(__dirname, '../webpack/certificate.pem'),
+                        key: path.join(__dirname, 'key.pem'),
+                        cert: path.join(__dirname, 'certificate.pem'),
                     },
                 },
                 headers: {
