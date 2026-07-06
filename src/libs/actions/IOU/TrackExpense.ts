@@ -199,6 +199,8 @@ type GetTrackExpenseInformationParams = {
     currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
+    isDraftChatReport?: boolean;
 };
 
 type DeleteTrackExpenseParams = {
@@ -859,6 +861,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
@@ -986,7 +989,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     }
 
     // Check if the report is a draft
-    const isDraftReportLocal = isDraftReport(chatReport?.reportID);
+    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
@@ -2364,6 +2367,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         previousOdometerDraft,
         delegateAccountID,
         reportActionsList,
+        isDraftChatReport,
         personalDetailsList,
         currentUserLocalCurrency,
     } = params;
@@ -2525,6 +2529,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;

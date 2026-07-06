@@ -2349,6 +2349,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '2 要素認証デバイスを変更',
         verifyOldDeviceTitle: '古い端末を確認',
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
+        verifyOldDeviceDescriptionWithRecovery: 'アカウントにアクセスできることを確認するために、有効な復旧コードを入力してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
