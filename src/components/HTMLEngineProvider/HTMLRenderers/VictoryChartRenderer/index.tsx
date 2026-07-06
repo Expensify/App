@@ -1,5 +1,7 @@
-import React from 'react';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
+
+import React from 'react';
+
 import type {VictoryChartRendererProps} from './types';
 
 const getBaseVictoryChartRenderer = () => import('./BaseVictoryChartRenderer');

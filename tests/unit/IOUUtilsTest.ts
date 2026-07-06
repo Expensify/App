@@ -1,11 +1,13 @@
-import {renderHook} from '@testing-library/react-native';
 import type {RenderAPI} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {renderHook} from '@testing-library/react-native';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -14,6 +16,11 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -1070,8 +1077,13 @@ describe('formatCurrentUserToAttendee', () => {
         expect(attendees).toEqual([
             {
                 email: 'john.smith@example.com',
+                login: 'john.smith@example.com',
                 displayName: 'John Smith',
                 avatarUrl: '',
+                accountID: 2840332,
+                text: 'John Smith',
+                selected: true,
+                reportID: undefined,
             },
         ]);
     });
@@ -1088,8 +1100,13 @@ describe('formatCurrentUserToAttendee', () => {
         expect(attendees).toEqual([
             {
                 email: 'john.smith@example.com',
+                login: 'john.smith@example.com',
                 displayName: 'john.smith@example.com',
                 avatarUrl: '',
+                accountID: 2840332,
+                text: 'john.smith@example.com',
+                selected: true,
+                reportID: undefined,
             },
         ]);
     });

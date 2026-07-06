@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -1069,6 +1073,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Connetti alla contabilità',
             customizeCategories: 'Personalizza le categorie contabili',
             linkCompanyCards: 'Collega carte aziendali',
+            issueExpensifyCards: 'Emetti carte Expensify',
+            issueExpensifyCardsSubtitle: 'Personalizza i controlli e semplifica le spese',
             setupRules: 'Configura le regole di spesa',
             inviteAccountant: 'Invita il tuo commercialista',
         },
@@ -1228,7 +1234,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Approvato',
         cash: 'Contanti',
         card: 'Carta',
-        original: 'Originale',
+        purchase: 'Acquisto',
         split: 'Dividi',
         splitExpense: 'Dividi spesa',
         splitDates: 'Date divise',
@@ -8670,6 +8676,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             past: 'Passato',
             submitted: 'Inviato',
             approved: 'Approvato',
+            firstApprover: 'Primo approvatore',
+            firstApproved: 'Approvato per primo',
             paid: 'Pagato',
             exported: 'Esportato',
             posted: 'Pubblicato',

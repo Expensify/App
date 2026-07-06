@@ -1,26 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
+
 import {deleteAvatar} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
-import AvatarCapture from './AvatarCapture';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
+
+import AvatarCapture from './AvatarCapture';
 
 type AvatarPreviewProps = {
     /** The selected avatar ID */
