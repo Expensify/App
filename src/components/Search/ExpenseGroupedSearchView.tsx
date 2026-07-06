@@ -3,9 +3,7 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
-import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {isTransactionGroupListItemType, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -13,15 +11,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {CardList} from '@src/types/onyx';
 
-import type {ForwardedRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
-import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './types';
+import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
+import type {SelectedTransactions} from './types';
 
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
@@ -33,69 +30,7 @@ import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupList
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
 
-/** Imperative handle the router uses for highlight-driven scrolling (mirrors SearchList's handle). */
-type SearchListHandle = {
-    scrollToIndex: (index: number, animated?: boolean) => void;
-};
-
-type ExpenseGroupedSearchViewProps = {
-    /** The grouped-expense search query (a valid groupBy is set). */
-    queryJSON: SearchQueryJSON;
-
-    /** The sorted group rows to render (from the router's useSearchSnapshot). */
-    data: SearchListItem[];
-
-    /** The columns to render in the list. */
-    columns: SearchColumnType[];
-
-    /** Whether the list supports multi-select. */
-    canSelectMultiple: boolean;
-
-    /** Whether the action column uses its wider variant. */
-    isActionColumnWide: boolean;
-
-    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses). */
-    isAttendeesEnabledForMovingPolicy?: boolean;
-
-    /** Non-personal and workspace cards for row rendering (subscribed once by the router). */
-    nonPersonalAndWorkspaceCards?: CardList;
-
-    /** Whether mobile selection mode is on. */
-    isMobileSelectionModeEnabled: boolean;
-
-    /** The column header element (undefined on narrow layouts). */
-    SearchTableHeader?: React.JSX.Element;
-
-    /** Whether a table header bar is shown above the list. */
-    tableHeaderVisible: boolean;
-
-    /** Whether everything has been loaded (gates the fully-checked select-all state). */
-    hasLoadedAllTransactions?: boolean;
-
-    /** The navigation handler for a row tap (owned by the router). */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-
-    /** The list footer (pagination / pending skeleton). */
-    ListFooterComponent?: React.JSX.Element;
-
-    /** Fires when the list scrolls near its end (router's fetchMoreResults). */
-    onEndReached: () => void;
-
-    /** Fires on the list's first layout and on layout changes. */
-    onLayout: () => void;
-
-    /** Scroll handler forwarded to the list. */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Content container style for the list. */
-    contentContainerStyle: StyleProp<ViewStyle>;
-
-    /** Outer container style for the list wrapper. */
-    containerStyle: StyleProp<ViewStyle>;
-
-    /** Imperative handle for highlight-driven scrolling, set by the router. */
-    ref?: ForwardedRef<SearchListHandle>;
-};
+type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
@@ -229,7 +164,10 @@ function ExpenseGroupedSearchView({
                     return;
                 }
                 const item = data.at(index);
-                const splitIndex = item?.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
+                if (!item) {
+                    return;
+                }
+                const splitIndex = item.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
                 scrollToListIndex(splitIndex !== -1 ? splitIndex : index, animated);
             },
         }),
@@ -312,7 +250,7 @@ function ExpenseGroupedSearchView({
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
         return (
             <AnimatedExitRow
-                shouldApplyAnimation={index < listData.length - 1}
+                shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
             >
                 <TransactionGroupListItem
