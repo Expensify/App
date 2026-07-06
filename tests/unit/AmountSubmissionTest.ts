@@ -214,6 +214,7 @@ describe('AmountSubmission', () => {
                 transaction: undefined,
                 splitDraftTransaction: undefined,
                 policy: undefined,
+                isDraftChatReport: undefined,
                 selectedCurrency: CONST.CURRENCY.USD,
                 decimals: 2,
                 iouType: CONST.IOU.TYPE.SUBMIT,
