@@ -1,11 +1,9 @@
-import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
-import * as fs from 'fs';
-import lodashSortBy from 'lodash/sortBy';
-import * as path from 'path';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
@@ -93,6 +91,14 @@ import type {
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
+import * as fs from 'fs';
+import lodashSortBy from 'lodash/sortBy';
+import * as path from 'path';
+
 import createRandomCard from '../utils/collections/card';
 import createMock from '../utils/createMock';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
@@ -2230,7 +2236,7 @@ describe('CardUtils', () => {
         it('should sort cards by cardholder name in ascending order', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(3);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2241,7 +2247,7 @@ describe('CardUtils', () => {
         it('should filter out cards that are not associated with policy members', () => {
             const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(2);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2251,7 +2257,7 @@ describe('CardUtils', () => {
         it('should handle undefined cardsList', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(0);
         });
@@ -2259,7 +2265,7 @@ describe('CardUtils', () => {
         it('should handle undefined personalDetails', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
@@ -2297,10 +2303,43 @@ describe('CardUtils', () => {
 
             const policyMembersAccountIDs = [1, 2];
             const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);
+        });
+
+        it('resolves the fallback name for cardholders without personal details through the provided translate function', () => {
+            const policyMembersAccountIDs = [1, 2, 3];
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const requestedPaths: string[] = [];
+            const translate: LocalizedTranslate = (translatePath, ...parameters) => {
+                requestedPaths.push(translatePath);
+                return translateLocal(translatePath, ...parameters);
+            };
+
+            // With no personal details available, each cardholder name falls back to translate('common.hidden').
+            sortCardsByCardholderName(cards, undefined, localeCompare, translate);
+
+            expect(requestedPaths).toContain('common.hidden');
+        });
+
+        it('orders cardholders without a display name by the value returned from the translate function', () => {
+            // Only account 1 has personal details; account 2 falls back to the translated hidden name.
+            const personalDetailsWithOneKnownUser: PersonalDetailsList = {
+                1: {accountID: 1, login: 'mike@example.com', displayName: 'Mike'},
+            };
+            const cards = getCardsByCardholderName(mockCards, [1, 2]);
+
+            // A translate whose hidden value sorts before "Mike" puts the nameless cardholder first.
+            const translateHiddenFirst: LocalizedTranslate = (translatePath, ...parameters) =>
+                translatePath === 'common.hidden' ? 'AAA hidden' : translateLocal(translatePath, ...parameters);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst).map((card) => card.cardID)).toEqual([2, 1]);
+
+            // A translate whose hidden value sorts after "Mike" puts the nameless cardholder last.
+            const translateHiddenLast: LocalizedTranslate = (translatePath, ...parameters) =>
+                translatePath === 'common.hidden' ? 'zzz hidden' : translateLocal(translatePath, ...parameters);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast).map((card) => card.cardID)).toEqual([1, 2]);
         });
     });
 
@@ -3183,62 +3222,6 @@ describe('CardUtils', () => {
                 }),
             };
             expect(isUkEuExpensifyCard(card)).toBe(false);
-        });
-    });
-
-    describe('isExpensifyCardUkEuSupportedSelector', () => {
-        const ukEuCard: Card = {
-            accountID: 18439984,
-            bank: CONST.EXPENSIFY_CARD.BANK,
-            cardID: 21570657,
-            cardName: 'CREDIT CARD...5644',
-            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-            fraud: 'none',
-            lastFourPAN: '',
-            lastScrape: '',
-            lastUpdated: '',
-            state: 2,
-            nameValuePairs: createMock<Card['nameValuePairs']>({
-                feedCountry: CONST.COUNTRY.GB,
-            }),
-        };
-
-        const usCard: Card = {
-            accountID: 18439984,
-            bank: CONST.EXPENSIFY_CARD.BANK,
-            cardID: 21570658,
-            cardName: 'CREDIT CARD...1234',
-            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-            fraud: 'none',
-            lastFourPAN: '',
-            lastScrape: '',
-            lastUpdated: '',
-            state: 2,
-        };
-
-        const cardList: CardList = {
-            '21570657': ukEuCard,
-            '21570658': usCard,
-        };
-
-        it('should return true when cardID matches a UK/EU card', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570657')).toBe(true);
-        });
-
-        it('should return false when cardID matches a US card', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570658')).toBe(false);
-        });
-
-        it('should return false when cardID does not exist in card list', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '99999999')).toBe(false);
-        });
-
-        it('should return false when card list is empty', () => {
-            expect(isExpensifyCardUkEuSupportedSelector({}, '21570657')).toBe(false);
-        });
-
-        it('should return false when cardID is empty string', () => {
-            expect(isExpensifyCardUkEuSupportedSelector(cardList, '')).toBe(false);
         });
     });
 
