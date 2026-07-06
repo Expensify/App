@@ -1,7 +1,7 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
-import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
+import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import getSettleableLeafStates from 'tests/utils/mfa/settleableLeafStates';
@@ -47,37 +47,41 @@ type MfaEventType = MfaEvent['type'];
 
 type MfaEventExecutor = () => Promise<void>;
 
+type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
+
 /**
  * Maps every machine event to the action that produces it in the rendered app, such as a button press
  * or a navigator callback. The walk drives each path step through this table, and the `satisfies`
- * clause makes a machine event without an executor fail compilation.
+ * clause makes a machine event without an executor fail compilation. The executors act on a concrete
+ * render, so each test builds them from its own `executeScenario`.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
-const mfaEventExecutors = {
-    INIT: async () => {
-        await act(async () => {
-            await getMfaControls().executeScenario(MFA_TEST_SCENARIO_NAME);
-        });
-        await waitForBatchedUpdatesWithAct();
-        // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
-        // buffered navigation.
-        act(() => handleInitialScreenLayout());
-        await waitForBatchedUpdatesWithAct();
-    },
-    CLOSE_MODAL: async () => {
-        fireEvent.press(screen.getByTestId(CONFIRM_BUTTON_TEST_ID));
-        await waitForBatchedUpdatesWithAct();
-    },
-    MODAL_CLOSED: async () => {
-        act(() => pendingModalClose.run());
-        await waitForBatchedUpdatesWithAct();
-    },
-} satisfies Record<MfaEventType, MfaEventExecutor>;
+function createMfaEventExecutors(executeScenario: ExecuteScenario) {
+    return {
+        INIT: async () => {
+            await act(async () => {
+                await executeScenario(MFA_TEST_SCENARIO_NAME);
+            });
+            await waitForBatchedUpdatesWithAct();
+            // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
+            // buffered navigation.
+            act(() => handleInitialScreenLayout());
+            await waitForBatchedUpdatesWithAct();
+        },
+        CLOSE_MODAL: async () => {
+            fireEvent.press(screen.getByTestId(CONFIRM_BUTTON_TEST_ID));
+            await waitForBatchedUpdatesWithAct();
+        },
+        MODAL_CLOSED: async () => {
+            act(() => pendingModalClose.run());
+            await waitForBatchedUpdatesWithAct();
+        },
+    } satisfies Record<MfaEventType, MfaEventExecutor>;
+}
 /* eslint-enable @typescript-eslint/naming-convention */
 
 // Dot-path state keys let `matchesState` target nested leaves such as `open.outcome.success`.
 const testConfig = {
-    events: mfaEventExecutors,
     states: {
         [MFA_STATE.CLOSED]: () => {
             expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(0);
@@ -131,9 +135,9 @@ describe('the real MFA modal matches the machine at every step of every generate
     });
 
     it.each(walkedPathTestCases)('$title', async ({path}) => {
-        renderMfaUi();
+        const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
-        await path.test(testConfig);
+        await path.test({...testConfig, events: createMfaEventExecutors(executeScenario)});
     });
 });
 
