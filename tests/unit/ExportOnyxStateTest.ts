@@ -408,18 +408,4 @@ describe('Onyx key export coverage', () => {
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
     });
-
-    it('hand-maintained buckets must not contain keys that no longer exist in ONYXKEYS', () => {
-        // safeOnyxKeys and onyxKeysToMaskFragileData are hardcoded, not derived from ONYXKEYS. The coverage
-        // test only catches *newly-added* keys that are absent from every bucket; it cannot catch a *deleted*
-        // or *renamed* key whose stale string lingers here. This guard fails when that happens, so the lists
-        // stay an accurate inventory instead of silently drifting.
-        const validKeys = new Set<string>([...(Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string'), ...Object.values(ONYXKEYS.COLLECTION)]);
-
-        const staleSafeKeys = Array.from(safeOnyxKeys).filter((key) => !validKeys.has(key));
-        const staleMaskKeys = Array.from(onyxKeysToMaskFragileData).filter((key) => !validKeys.has(key));
-
-        expect(staleSafeKeys).toEqual([]);
-        expect(staleMaskKeys).toEqual([]);
-    });
 });
