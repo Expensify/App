@@ -136,7 +136,7 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
 
             return [
                 card.isAssigned ? (card.cardholder?.login ?? '') : 'unassigned',
-                card.isAssigned ? (card.cardholder?.displayName ?? '') : '',
+                card.isAssigned ? (card.customCardName ?? '') : '',
                 formatMaskedCardName(card.cardName),
                 card.isAssigned ? transactionStartDate : '',
                 card.isAssigned ? lastUpdated : '',
