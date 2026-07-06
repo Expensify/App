@@ -1,5 +1,3 @@
-import {useEffect, useRef, useState} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
 import {getReportChannelName} from '@libs/actions/Report';
 import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
@@ -8,8 +6,15 @@ import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
+
 import type {ReportAction} from '@src/types/onyx';
+
+import type {Dispatch, SetStateAction} from 'react';
+
+import {useEffect, useRef, useState} from 'react';
+
 import type {ConciergeDraft} from './conciergeDraftState';
+
 import {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft} from './conciergeDraftState';
 
 type MutableRef<T> = {

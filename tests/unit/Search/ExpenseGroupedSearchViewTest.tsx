@@ -1,6 +1,5 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React, {Profiler, useCallback, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -10,9 +9,15 @@ import type {SearchListItem} from '@components/Search/SearchList/ListItem/types'
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {Profiler, useCallback, useMemo} from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -54,13 +59,6 @@ jest.mock('@hooks/useWindowDimensions', () => ({
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: jest.fn(() => 'ios'),
-}));
-
-// The grouped view imports isTransactionMatchWithGroupItem from the heavy SearchList module; stub it out.
-jest.mock('@components/Search/SearchList', () => ({
-    __esModule: true,
-    default: () => null,
-    isTransactionMatchWithGroupItem: jest.fn(() => false),
 }));
 
 // Group header/children only render on the split path; stub them so importing the view stays lightweight.

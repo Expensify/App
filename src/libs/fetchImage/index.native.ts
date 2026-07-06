@@ -1,6 +1,8 @@
-import RNFetchBlob from 'react-native-blob-util';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
+
+import RNFetchBlob from 'react-native-blob-util';
 
 export default function fetchImage(source: string, authToken: string) {
     // Create a unique filename based on timestamp

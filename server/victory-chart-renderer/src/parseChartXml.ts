@@ -1,6 +1,8 @@
-import {TRenderEngine} from 'react-native-render-html';
-import type {TNode} from 'react-native-render-html';
 import VICTORY_HTML_ELEMENT_MODELS from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
+
+import type {TNode} from 'react-native-render-html';
+
+import {TRenderEngine} from 'react-native-render-html';
 
 const renderEngine = new TRenderEngine({
     customizeHTMLModels: (defaultModels) => ({

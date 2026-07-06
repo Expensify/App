@@ -1,17 +1,24 @@
 import {render, screen} from '@testing-library/react-native';
-import {View as MockedAvatarData} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
+
 import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
 import {getSearchReportAvatarProps} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import {View as MockedAvatarData} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';

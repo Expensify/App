@@ -1,12 +1,3 @@
-/**
- * Actions for inline editing of transactions from the Search results table and the Expense Report page.
- *
- * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
- * the API write, failure rollback, and snapshot updates (when a hash is provided).
- */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
@@ -35,6 +26,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -53,6 +45,18 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/**
+ * Actions for inline editing of transactions from the Search results table and the Expense Report page.
+ *
+ * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
+ * the API write, failure rollback, and snapshot updates (when a hash is provided).
+ */
+import Onyx from 'react-native-onyx';
+
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,

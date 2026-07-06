@@ -1,26 +1,32 @@
-import React, {useMemo} from 'react';
-import {StyleSheet} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {StyleSheet} from 'react-native';
 
 type ExportWithDropdownMenuProps = WithSentryLabel & {
     report: OnyxEntry<Report>;
@@ -133,7 +139,7 @@ function ExportWithDropdownMenu({
             options={dropdownOptions}
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            buttonSize={CONST.BUTTON_SIZE.MEDIUM}
             sentryLabel={sentryLabel}
         />
     );

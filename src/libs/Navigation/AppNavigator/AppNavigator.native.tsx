@@ -1,8 +1,10 @@
-import React, {memo, useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import React, {memo, useMemo} from 'react';
 
 type AppNavigatorProps = {
     /** If we have an authToken this is true */

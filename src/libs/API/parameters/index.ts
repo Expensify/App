@@ -36,6 +36,9 @@ export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
 export type {default as SyncPolicyToRilletParams} from './SyncPolicyToRilletParams';
 export type {default as UpdateRilletSubsidiaryParams} from './UpdateRilletSubsidiaryParams';
+export type {default as UpdateRilletEnableNewCategoriesParams} from './UpdateRilletEnableNewCategoriesParams';
+export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSyncTaxRatesParams';
+export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -90,7 +93,6 @@ export type {default as ResolveActionableMentionWhisperParams} from './ResolveAc
 export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
-export type {default as RevealExpensifyCardDetailsWithSCAParams} from './RevealExpensifyCardDetailsWithSCAParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SearchForUsersParams} from './SearchForUsersParams';
@@ -443,6 +445,8 @@ export type {default as UpdateCardTransactionStartDateParams} from './UpdateCard
 export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardWithSCAParams} from './SetPersonalDetailsAndRevealExpensifyCardWithSCAParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsWithPINParams} from './SetPersonalDetailsAndShipExpensifyCardsWithPINParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
