@@ -11,7 +11,7 @@ import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
@@ -1028,7 +1028,7 @@ describe('getReportPreviewAction', () => {
 
         const policy = createRandomPolicy(0);
         policy.type = CONST.POLICY.TYPE.CORPORATE;
-        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {} as NetSuiteConnection} as Connections;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {} as NetSuiteConnection};
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {

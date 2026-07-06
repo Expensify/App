@@ -8114,7 +8114,7 @@ describe('SearchUIUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } as Connections,
+                    },
                 } as OnyxTypes.Policy,
             };
 
