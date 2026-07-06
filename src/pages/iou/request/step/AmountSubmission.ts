@@ -15,9 +15,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
 
 import {
     getMoneyRequestParticipantsFromReport,
@@ -275,8 +276,12 @@ function submitAmount({
         const previousCurrency = getCurrency(transaction);
         const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousCurrency);
         const isCurrentTaxAutoDefault = !transaction?.taxCode || transaction?.taxCode === previousDefaultTaxCode;
+        // Only re-apply a currency default when the workspace actually tracks tax (mirrors the confirmation page's
+        // `shouldShowTax` gate). Without this, a currency change would persist a tax code and amount on a workspace
+        // that has tax tracking disabled. The amount step is always a manual expense, so distance is `false` here.
+        const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat(report), policy, false);
 
-        if (isMovingTransactionFromTrackExpense(action) || (selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
+        if (isMovingTransactionFromTrackExpense(action) || (isTaxEnabled && selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
             const taxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);
             if (taxCode) {
                 setMoneyRequestTaxRate(transactionID, taxCode);
@@ -538,7 +543,10 @@ function submitAmount({
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
     const previousDefaultTaxCode = getDefaultTaxCode(policy, currentTransaction, transactionCurrency);
     const isCurrentTaxAutoDefault = !transactionTaxCode || transactionTaxCode === previousDefaultTaxCode;
-    const taxCode = (selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+    // The edit path has no confirmation-page safety net, so heal a tax code that is no longer a valid rate on the
+    // policy (e.g. the rate was deleted or the expense moved workspaces) by falling back to the currency default.
+    const isTransactionTaxCodeValid = hasTaxRateWithMatchingValue(policy, currentTransaction);
+    const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
