@@ -1,5 +1,7 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import {triggerFullReconnect} from './actions/App';
 import {shouldTriggerFullReconnect} from './FullReconnectUtils';
 import Log from './Log';

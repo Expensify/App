@@ -1,29 +1,37 @@
-import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
-import {TabActions, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TabSelectorProps} from '@components/TabSelector/types';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import getDiscardChangesModalConfig from '@hooks/useDiscardChangesConfirmation/getDiscardChangesModalConfig';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
+
 import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
+
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {TabActions, useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
+
 import {backBehavior, defaultScreenOptions} from './OnyxTabNavigatorConfig';
 import TabSwitchGuardContext from './TabSwitchGuardContext';
-import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
     /** ID of the tab component to be saved in onyx */
