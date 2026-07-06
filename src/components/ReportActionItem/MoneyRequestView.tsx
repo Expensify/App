@@ -1,4 +1,3 @@
-import DistanceWithCommuterExclusion from '@components/DistanceWithCommuterExclusion';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -578,21 +577,17 @@ function MoneyRequestView({
     );
 
     const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance, distanceUnitValue);
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionBreakdown);
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance, distanceUnitValue);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, true, isManualDistanceRequest, commuterExclusionBreakdown);
     let distanceToDisplayDescription = translate('common.distance');
-    let distanceToDisplaySubtitle;
+    let distanceToDisplayHintText;
 
-    if (commuterExclusionBreakdown) {
-        const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
-        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(reimbursableDistance + commuterExclusion, distanceUnitValue, translate);
-        distanceToDisplayDescription = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
-        distanceToDisplaySubtitle = (
-            <DistanceWithCommuterExclusion
-                commuterExclusion={commuterExclusion}
-                distanceUnit={distanceUnitValue}
-            />
-        );
+    if (commuterExclusionData) {
+        const {commuterExclusion, reimbursableDistance} = commuterExclusionData;
+        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(reimbursableDistance + commuterExclusion, distanceUnitValue, translate, false);
+        distanceToDisplayDescription += ` ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
+        const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(commuterExclusion, distanceUnitValue, translate, false, true);
+        distanceToDisplayHintText = translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance});
     }
 
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -915,7 +910,7 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={distanceToDisplayDescription}
                     title={distanceToDisplay}
-                    furtherDetailsComponent={distanceToDisplaySubtitle}
+                    hintText={distanceToDisplayHintText}
                     numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}

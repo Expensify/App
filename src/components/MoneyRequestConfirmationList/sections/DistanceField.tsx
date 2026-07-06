@@ -1,4 +1,3 @@
-import DistanceWithCommuterExclusion from '@components/DistanceWithCommuterExclusion';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
@@ -54,21 +53,17 @@ function DistanceField({
     const {translate} = useLocalize();
 
     // When commuter exclusion applies, the title shows the reimbursable distance and the description shows the original
-    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionData);
+    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, true, isManualDistanceRequest, commuterExclusionData);
     let descriptionLabel = translate('common.distance');
-    let furtherDetailsComponent;
+    let distanceToDisplayHintText;
 
     if (commuterExclusionData) {
         const displayUnit = unit ?? commuterExclusionData.distanceUnit;
         const originalDistance = commuterExclusionData.reimbursableDistance + commuterExclusionData.commuterExclusion;
-        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(originalDistance, displayUnit, translate);
-        descriptionLabel = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
-        furtherDetailsComponent = (
-            <DistanceWithCommuterExclusion
-                commuterExclusion={commuterExclusionData.commuterExclusion}
-                distanceUnit={commuterExclusionData.distanceUnit}
-            />
-        );
+        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(originalDistance, displayUnit, translate, true);
+        descriptionLabel += ` ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
+        const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(commuterExclusionData.commuterExclusion, commuterExclusionData.distanceUnit, translate, false, true);
+        distanceToDisplayHintText = translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance});
     }
 
     return (
@@ -76,7 +71,7 @@ function DistanceField({
             shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
             title={displayTitle}
             description={descriptionLabel}
-            furtherDetailsComponent={furtherDetailsComponent}
+            hintText={distanceToDisplayHintText}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
             onPress={() => {
