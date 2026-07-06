@@ -19,15 +19,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useResumePaymentAfterValidation from '@hooks/useResumePaymentAfterValidation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {setPendingPaymentContinue} from '@libs/actions/PendingPaymentContinue';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
@@ -51,7 +49,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -191,6 +189,7 @@ function SettlementButton({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const kycWallRef = useContext(KYCWallContext);
     const {showConfirmModal} = useConfirmModal();
+    const verifyAccountAndResume = useVerifyAccountAndResume();
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const isBankAccountLocked = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
@@ -200,7 +199,7 @@ function SettlementButton({
     }
 
     const checkForNecessaryAction = useCallback(
-        (paymentMethodType?: PaymentMethodType, selectedOption?: PaymentMethod) => {
+        (paymentMethodType?: PaymentMethodType, retry?: () => void) => {
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
                 return true;
@@ -212,11 +211,7 @@ function SettlementButton({
             }
 
             if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                // Remember the payment the user was attempting so `useResumePaymentAfterValidation` can resume it.
-                if (reportID && paymentMethodType) {
-                    setPendingPaymentContinue({reportID, iouPaymentType: paymentMethodType, paymentMethod: selectedOption});
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+                verifyAccountAndResume(retry);
                 return true;
             }
 
@@ -254,7 +249,7 @@ function SettlementButton({
             isDelegateAccessRestricted,
             isAccountLocked,
             isUserValidated,
-            reportID,
+            verifyAccountAndResume,
             isBankAccountLocked,
             policy,
             userBillingGracePeriodEnds,
@@ -345,15 +340,17 @@ function SettlementButton({
                         description: account.description,
                         shouldIgnoreCompactStyle: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA, CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
+                            const pay = () =>
+                                onPress({
+                                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                                    payAsBusiness: true,
+                                    methodID: account.methodID,
+                                    paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                                });
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA, pay)) {
                                 return;
                             }
-                            onPress({
-                                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
-                                payAsBusiness: true,
-                                methodID: account.methodID,
-                                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                            });
+                            pay();
                         },
                     });
                 }
@@ -408,15 +405,17 @@ function SettlementButton({
                         icon: formattedPaymentMethod?.icon,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, formattedPaymentMethod.accountType)) {
+                            const pay = () =>
+                                onPress({
+                                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                                    payAsBusiness,
+                                    methodID: formattedPaymentMethod.methodID,
+                                    paymentMethod: formattedPaymentMethod.accountType,
+                                });
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, pay)) {
                                 return;
                             }
-                            onPress({
-                                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                                payAsBusiness,
-                                methodID: formattedPaymentMethod.methodID,
-                                paymentMethod: formattedPaymentMethod.accountType,
-                            });
+                            pay();
                         },
                         iconStyles: formattedPaymentMethod?.iconStyles,
                         iconHeight: formattedPaymentMethod?.iconSize,
@@ -579,17 +578,13 @@ function SettlementButton({
         });
     };
 
-    const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
+    const executePaymentSelection = (event: KYCFlowEvent, selectedOption: string, triggerKYCFlow: TriggerKYCFlow) => {
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(
             selectedOption,
             activeAdminPolicies,
             businessBankAccountOptions,
             policyIDKey,
         );
-
-        if (checkForNecessaryAction(paymentType, selectedOption as PaymentMethod)) {
-            return;
-        }
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && (isPayingWithMethod || !!policyFromPaymentMethod)) {
@@ -600,13 +595,15 @@ function SettlementButton({
         selectPaymentType(event, selectedOption as PaymentMethodType);
     };
 
-    useResumePaymentAfterValidation(reportID, (intent) => {
-        const triggerKYCFlow = kycWallRef.current?.continueAction;
-        if (!triggerKYCFlow || !intent.paymentMethod) {
+    const handlePaymentSelection = (event: KYCFlowEvent, selectedOption: string, triggerKYCFlow: TriggerKYCFlow) => {
+        const {paymentType} = getActivePaymentType(selectedOption, activeAdminPolicies, businessBankAccountOptions, policyIDKey);
+
+        if (checkForNecessaryAction(paymentType, () => executePaymentSelection(undefined, selectedOption, triggerKYCFlow))) {
             return;
         }
-        handlePaymentSelection(undefined, intent.paymentMethod, triggerKYCFlow);
-    });
+
+        executePaymentSelection(event, selectedOption, triggerKYCFlow);
+    };
 
     let customText: string;
     if (shouldUseShortForm) {
