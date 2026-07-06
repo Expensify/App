@@ -94,4 +94,4 @@ function getAdjustedStickyHeaderIndices(metadata: TableListMetadata, stickyHeade
 }
 
 export {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind, getTableListMetadata};
-export type {TableListMetadata, SyntheticRowKind};
+export type {TableListMetadata};
