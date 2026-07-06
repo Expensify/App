@@ -1,5 +1,5 @@
-import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -9,7 +9,9 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
 import {View} from 'react-native';
 
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
