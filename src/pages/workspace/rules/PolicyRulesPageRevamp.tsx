@@ -99,15 +99,17 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
+    const isPolicyLoaded = !!policy?.id && !policy?.isLoading;
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+    const shouldShowCategoryRulesTabs = !isPolicyLoaded || areCategoriesEnabled;
 
     useEffect(() => {
-        if (areCategoriesEnabled || (activeTab !== RULES_TAB.REQUIRE_FIELDS && activeTab !== RULES_TAB.FLAG_FOR_REVIEW)) {
+        if (!isPolicyLoaded || areCategoriesEnabled || (activeTab !== RULES_TAB.REQUIRE_FIELDS && activeTab !== RULES_TAB.FLAG_FOR_REVIEW)) {
             return;
         }
 
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
-    }, [activeTab, areCategoriesEnabled]);
+    }, [activeTab, areCategoriesEnabled, isPolicyLoaded]);
 
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
@@ -230,12 +232,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             },
         ];
 
-        if (areCategoriesEnabled) {
+        if (shouldShowCategoryRulesTabs) {
             return allTabs;
         }
 
         return allTabs.filter((tab) => tab.key !== RULES_TAB.REQUIRE_FIELDS && tab.key !== RULES_TAB.FLAG_FOR_REVIEW);
-    }, [areCategoriesEnabled, icons.CreditCardExclamation, icons.DocumentMagicWand, icons.Feed, icons.Flag, icons.Task, translate]);
+    }, [shouldShowCategoryRulesTabs, icons.CreditCardExclamation, icons.DocumentMagicWand, icons.Feed, icons.Flag, icons.Task, translate]);
 
     const handleNewRule = () => {
         if (!canWriteRules) {
