@@ -1,17 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- jest factory mocks use CommonJS require() which returns untyped modules */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+
 import RecentlyAddedSection from '@pages/home/RecentlyAddedSection';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -230,6 +236,35 @@ describe('RecentlyAddedSection', () => {
         });
     });
 
+    describe('anonymous user', () => {
+        it('hides the entire section (including the empty state) for guests', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.recentlyAddedSection.title')).not.toBeOnTheScreen();
+        });
+
+        it('still hides the section for guests even when expenses are present', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedRow-t1')).not.toBeOnTheScreen();
+        });
+    });
+
     describe('rows', () => {
         it('renders one row per expense with the merchant name', async () => {
             mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});
@@ -303,11 +338,14 @@ describe('RecentlyAddedSection', () => {
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
         });
 
-        it('opens the parent report directly for an expense in a one-transaction report', async () => {
+        it('opens (creating if needed) the transaction thread for an expense in a one-transaction report, not the parent report', async () => {
             setWideLayout();
             const parentReportID = 'report_single';
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 1});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    a1: {reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage: {IOUTransactionID: 't1'}},
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -319,8 +357,9 @@ describe('RecentlyAddedSection', () => {
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
             await waitForBatchedUpdatesWithAct();
 
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME}));
         });
 
         it('seeds the prev/next carousel with the IDs and a lazy descriptor for every recently added expense', async () => {

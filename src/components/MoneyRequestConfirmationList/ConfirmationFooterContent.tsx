@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -7,12 +5,17 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ConfirmationFooterContentProps = {
     /** IOU type currently being confirmed (submit / split / track / pay / invoice) */
