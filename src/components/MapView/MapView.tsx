@@ -123,7 +123,11 @@ function MapView({
                     return;
                 }
                 if (!granted) {
-                    setCurrentPositionToInitialState();
+                    // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
+                    setCurrentPositionToInitialState({
+                        code: GeolocationErrorCode.PERMISSION_DENIED,
+                        message: 'User denied access to location.',
+                    });
                     return;
                 }
 
