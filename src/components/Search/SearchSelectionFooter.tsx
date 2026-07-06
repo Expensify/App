@@ -1,15 +1,21 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import {isGroupEntry} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
-import {useSearchQueryContext, useSearchSelectionContext} from './SearchContext';
-import SearchPageFooter from './SearchPageFooter';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+
 import type {SelectedTransactionInfo, SelectedTransactions} from './types';
+
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
+import SearchPageFooter from './SearchPageFooter';
 
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
@@ -74,6 +80,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
@@ -112,7 +119,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         () =>
             selectedTransactionsKeys.reduce((count, key) => {
                 if (isGroupEntry(key)) {
-                    const group: unknown = searchResults?.data?.[key];
+                    const group: unknown = currentSearchResults?.data?.[key];
                     return count + getGroupCount(group);
                 }
                 const item = selectedTransactions[key];
@@ -121,7 +128,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }
                 return count + 1;
             }, 0),
-        [searchResults?.data, selectedTransactions, selectedTransactionsKeys],
+        [currentSearchResults?.data, selectedTransactions, selectedTransactionsKeys],
     );
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
     const selectedTransactionIDs = useMemo(

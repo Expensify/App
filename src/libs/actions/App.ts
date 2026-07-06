@@ -1,11 +1,5 @@
-// Issue - https://github.com/Expensify/App/issues/26719
-import {findFocusedRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -14,6 +8,7 @@ import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
+import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
@@ -21,6 +16,7 @@ import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -30,6 +26,16 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {AppStateStatus} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+// Issue - https://github.com/Expensify/App/issues/26719
+import {findFocusedRoute} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -658,6 +664,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
+            WorkspaceCreationReveal.beginRevealUnderRHP();
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});

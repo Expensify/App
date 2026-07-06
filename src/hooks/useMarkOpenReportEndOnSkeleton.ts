@@ -1,7 +1,10 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 /**
  * Closes the open-report performance span as a cold open (`warm: false`) the moment a cold-load skeleton

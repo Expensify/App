@@ -1,7 +1,6 @@
-import React, {useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Button from '@components/Button';
+import ButtonWithIcons from '@components/ButtonComposed/composed/ButtonWithIcons';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,11 +10,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
+import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
+
 import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
-import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
 
 type SearchPageFooterProps = {
@@ -85,20 +90,20 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     );
 
     const totalButton = (props: ButtonComponentProps) => (
-        <Button
+        <ButtonWithIcons
             ref={props.ref}
             accessibilityLabel={translate('common.totalSpend')}
-            shouldUseDefaultHover={false}
             innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
+            contentContainerStyle={styles.gap1}
             text={convertToDisplayString(total, currency)}
             textStyles={valueTextStyle}
             textHoverStyles={styles.textSupporting}
             isDisabled={isOffline || isTotalLoading}
-            small
-            shouldShowRightIcon
+            size={CONST.BUTTON_SIZE.SMALL}
             iconRight={icons.DownArrow}
             iconRightFill={theme.icon}
             iconRightHoverFill={theme.iconHovered}
+            hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
             onFocus={() => setIsTotalButtonFocused(true)}
             onBlur={() => setIsTotalButtonFocused(false)}
