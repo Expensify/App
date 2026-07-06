@@ -20,7 +20,7 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
     const {iouType, iouRequestType} = route.params ?? {};
     const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
-    const isSplitDistanceSubtype = iouType === CONST.IOU.TYPE.SPLIT && isDistanceExpenseType(iouRequestType);
+    const isSplitDistanceSubtype = iouType === CONST.IOU.TYPE.SPLIT && iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && isDistanceExpenseType(iouRequestType);
     const shouldShowNotFound = !isIouTypeValid || !isIouRequestTypeValid || isSplitDistanceSubtype;
 
     useEffect(() => {
@@ -37,7 +37,7 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
             startDistanceRequest(iouType, optimisticReportID, undefined);
         } else if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
-        } else if (isDistanceExpenseType(iouRequestType)) {
+        } else if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && isDistanceExpenseType(iouRequestType)) {
             startDistanceRequest(iouType, optimisticReportID, undefined, iouRequestType);
         } else {
             startMoneyRequest(iouType, optimisticReportID, undefined, iouRequestType);
