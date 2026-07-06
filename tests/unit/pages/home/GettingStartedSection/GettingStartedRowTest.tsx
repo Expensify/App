@@ -85,7 +85,7 @@ describe('GettingStartedRow', () => {
             expect(screen.getByText('Begin')).toBeOnTheScreen();
             expect(screen.queryByText('Done')).not.toBeOnTheScreen();
 
-            const successButtons = unsafeRoot.findAll((node) => !!node.props && (node.props as {success?: unknown}).success === true);
+            const successButtons = unsafeRoot.findAll((node) => !!node.props && (node.props as {variant?: unknown}).variant === 'success');
             expect(successButtons.length).toBeGreaterThan(0);
         });
 
