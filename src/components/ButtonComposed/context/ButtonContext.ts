@@ -9,6 +9,9 @@ const defaultButtonContextValue: ButtonContextValue = {
     isHovered: false,
     variant: undefined,
     size: CONST.BUTTON_SIZE.MEDIUM,
+    onPress: () => {},
+    isDisabled: false,
+    isLoading: false,
 };
 
 const ButtonContext = createContext<ButtonContextValue>(defaultButtonContextValue);
