@@ -99,6 +99,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+
+    useEffect(() => {
+        if (areCategoriesEnabled || (activeTab !== RULES_TAB.REQUIRE_FIELDS && activeTab !== RULES_TAB.FLAG_FOR_REVIEW)) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
+    }, [activeTab, areCategoriesEnabled]);
+
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
@@ -191,33 +201,41 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         ];
     };
 
-    const tabs: TabSelectorBaseItem[] = [
-        {
-            key: RULES_TAB.GENERAL,
-            title: translate('workspace.rules.tabs.general'),
-            icon: icons.Feed,
-        },
-        {
-            key: RULES_TAB.CARD_RESTRICTIONS,
-            title: translate('workspace.rules.tabs.cardRestrictions'),
-            icon: icons.CreditCardExclamation,
-        },
-        {
-            key: RULES_TAB.EXPENSE_DEFAULTS,
-            title: translate('workspace.rules.tabs.expenseDefaults'),
-            icon: icons.DocumentMagicWand,
-        },
-        {
-            key: RULES_TAB.REQUIRE_FIELDS,
-            title: translate('workspace.rules.tabs.requireFields'),
-            icon: icons.Task,
-        },
-        {
-            key: RULES_TAB.FLAG_FOR_REVIEW,
-            title: translate('workspace.rules.tabs.flagForReview'),
-            icon: icons.Flag,
-        },
-    ];
+    const tabs: TabSelectorBaseItem[] = useMemo(() => {
+        const allTabs: TabSelectorBaseItem[] = [
+            {
+                key: RULES_TAB.GENERAL,
+                title: translate('workspace.rules.tabs.general'),
+                icon: icons.Feed,
+            },
+            {
+                key: RULES_TAB.CARD_RESTRICTIONS,
+                title: translate('workspace.rules.tabs.cardRestrictions'),
+                icon: icons.CreditCardExclamation,
+            },
+            {
+                key: RULES_TAB.EXPENSE_DEFAULTS,
+                title: translate('workspace.rules.tabs.expenseDefaults'),
+                icon: icons.DocumentMagicWand,
+            },
+            {
+                key: RULES_TAB.REQUIRE_FIELDS,
+                title: translate('workspace.rules.tabs.requireFields'),
+                icon: icons.Task,
+            },
+            {
+                key: RULES_TAB.FLAG_FOR_REVIEW,
+                title: translate('workspace.rules.tabs.flagForReview'),
+                icon: icons.Flag,
+            },
+        ];
+
+        if (areCategoriesEnabled) {
+            return allTabs;
+        }
+
+        return allTabs.filter((tab) => tab.key !== RULES_TAB.REQUIRE_FIELDS && tab.key !== RULES_TAB.FLAG_FOR_REVIEW);
+    }, [areCategoriesEnabled, icons.CreditCardExclamation, icons.DocumentMagicWand, icons.Feed, icons.Flag, icons.Task, translate]);
 
     const handleNewRule = () => {
         if (!canWriteRules) {
