@@ -199,10 +199,19 @@ function IOURequestStartPage({
     }, []);
 
     useEffect(() => {
-        // Native home-screen shortcuts bypass startMoneyRequest (which sets isFromFloatingActionButton),
-        // so if this is a global create without that flag and the draft is stale/missing
-        // (not freshly initialized by startMoneyRequest), it must be a native shortcut.
-        if (!isFromGlobalCreate || transaction?.isFromFloatingActionButton || (transaction && !isStaleTransactionDraft)) {
+        // Native home-screen shortcuts open IOURequestStartPage directly via deeplink without
+        // calling startMoneyRequest first. In contrast, in-app flows (FAB, Search empty state, etc.)
+        // always call startMoneyRequest which clears the draft and creates a fresh one with the
+        // matching reportID. We detect a native shortcut by:
+        //   1. isFromGlobalCreate — the route's reportID doesn't map to a real report
+        //   2. Draft is missing or stale (reportID mismatch) — startMoneyRequest wasn't called
+        // We intentionally ignore flags on stale drafts (e.g. isFromFloatingActionButton from an
+        // abandoned FAB flow) since they belong to a previous, unrelated flow.
+        if (!isFromGlobalCreate) {
+            return;
+        }
+        // A fresh draft (matching reportID) means startMoneyRequest was called — this is an in-app flow.
+        if (transaction && !isStaleTransactionDraft) {
             return;
         }
         setNativeShortcutFlag(route.params.transactionID);
