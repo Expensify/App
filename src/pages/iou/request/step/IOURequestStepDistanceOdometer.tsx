@@ -8,12 +8,12 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
-import useConfirmModal from '@hooks/useConfirmModal';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -87,8 +87,6 @@ function IOURequestStepDistanceOdometer({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
     const {translate, fromLocaleDigit, numberFormat} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
-    const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -118,6 +116,7 @@ function IOURequestStepDistanceOdometer({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
+    const guardCommuterExclusion = useCommuterExclusionGuard(policy);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -459,22 +458,7 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
-        // Workspaces with commuter exclusions configured require map-based distance entry, since the
-        // exclusion is computed off the mapped route. Block odometer entry for these workspaces.
-        if (policy?.commuterExclusions) {
-            showConfirmModal({
-                title: translate('distance.error.mapOrGpsDistanceRequired.title'),
-                titleStyles: styles.textHeadline,
-                prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
-                promptStyles: styles.textSupporting,
-                confirmText: translate('common.buttonConfirm'),
-                shouldUseSuccessStyleForConfirm: true,
-                shouldShowCancelButton: false,
-                shouldShowDismissIcon: true,
-                image: illustrations.HouseWithMap,
-                shouldFitImageToContainer: true,
-                imageStyles: styles.commuterExclusionStaticIllustration,
-            });
+        if (guardCommuterExclusion()) {
             return;
         }
 
