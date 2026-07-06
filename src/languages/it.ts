@@ -5507,6 +5507,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             subsidiarySelectDescription: 'Scegli la consociata in Rillet da cui vuoi importare i dati.',
             noSubsidiariesFound: 'Nessuna consociata trovata',
             noSubsidiariesFoundDescription: 'Aggiungi una consociata in Rillet e sincronizza di nuovo la connessione',
+            accountTypesDescription: 'I tuoi conti Rillet verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi conti Rillet saranno disponibili come categorie.',
+            dimensionsImport: 'Tutte le dimensioni Rillet vengono importate come tag',
+            importDescription: 'Scegli quali configurazioni di codifica importare da Rillet.',
         },
         type: {
             free: 'Gratis',
@@ -6272,6 +6277,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             importedFromAccountingSoftware: 'Le imposte sottostanti sono importate dal tuo',
             taxCode: 'Codice fiscale',
             updateTaxCodeFailureMessage: 'Si è verificato un errore durante l’aggiornamento del codice fiscale, riprova.',
+            taxRates: 'Aliquote fiscali',
         },
         duplicateWorkspace: {
             title: 'Dai un nome al tuo nuovo workspace',

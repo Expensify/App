@@ -5583,6 +5583,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+            accountTypesDescription: 'Your Rillet accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
+            dimensionsImport: 'All Rillet dimensions import as tags',
+            importDescription: 'Choose which coding configurations to import from Rillet.',
         },
         type: {
             free: 'Free',
@@ -6308,6 +6313,7 @@ const translations = {
             value: 'Value',
             taxReclaimableOn: 'Tax reclaimable on',
             taxRate: 'Tax rate',
+            taxRates: 'Tax rates',
             findTaxRate: 'Find tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use',

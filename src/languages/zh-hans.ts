@@ -5345,6 +5345,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
             noSubsidiariesFound: '未找到子公司',
             noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+            accountTypesDescription: '您的 Rillet 账户将被导入为类别。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
+            dimensionsImport: '所有 Rillet 维度将作为标签导入',
+            importDescription: '选择要从 Rillet 导入的编码配置。',
         },
         type: {
             free: '免费',
@@ -6075,6 +6080,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             importedFromAccountingSoftware: '以下税费是从您的',
             taxCode: '税码',
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
+            taxRates: '税率',
         },
         duplicateWorkspace: {
             title: '为你的新工作区命名',

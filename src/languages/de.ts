@@ -5523,6 +5523,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Rillet aus, aus der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
             noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Tochtergesellschaft in Rillet hinzu und synchronisieren Sie die Verbindung erneut.',
+            accountTypesDescription: 'Ihre Rillet-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Rillet-Konten werden als Kategorien verfügbar sein.',
+            dimensionsImport: 'Alle Rillet-Dimensionen werden als Tags importiert',
+            importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Rillet importiert werden sollen.',
         },
         type: {
             free: 'Kostenlos',
@@ -6283,6 +6288,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             importedFromAccountingSoftware: 'Die Steuern unten werden importiert aus Ihrer',
             taxCode: 'Steuerschlüssel',
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuche es erneut.',
+            taxRates: 'Steuersätze',
         },
         duplicateWorkspace: {
             title: 'Benennen Sie Ihren neuen Arbeitsbereich',
