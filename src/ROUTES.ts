@@ -1037,10 +1037,6 @@ const ROUTES = {
         },
     },
 
-    SEARCH_REPORT_VERIFY_ACCOUNT: {
-        route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
@@ -1048,10 +1044,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(baseRoute, backTo);
         },
-    },
-    SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: {
-        route: `search/r/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `search/r/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -1596,14 +1588,6 @@ const ROUTES = {
             }
             return `r/${reportID}/avatar` as const;
         },
-    },
-    REPORT_VERIFY_ACCOUNT: {
-        route: `r/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
-    EXPENSE_REPORT_VERIFY_ACCOUNT: {
-        route: `e/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
