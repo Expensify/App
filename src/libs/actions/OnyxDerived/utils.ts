@@ -1,7 +1,10 @@
-import Onyx from 'react-native-onyx';
+import type {OnyxDerivedKey, OnyxKey} from '@src/ONYXKEYS';
+
 import type {OnyxInput} from 'react-native-onyx';
 import type {NonEmptyTuple} from 'type-fest';
-import type {OnyxDerivedKey, OnyxKey} from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import type {DerivedValueContext} from './types';
 
 /**

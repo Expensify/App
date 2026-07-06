@@ -1,15 +1,20 @@
-import {useEffect, useEffectEvent, useRef} from 'react';
-import {RESULTS} from 'react-native-permissions';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
 import Log from '@libs/Log';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useEffectEvent, useRef} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import type UseContactPermissionModalParams from './types';
 
 function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseContactPermissionModalParams) {

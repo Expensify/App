@@ -6,20 +6,22 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
-import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import StringUtils from './libs/StringUtils';
-import {getUrlWithParams} from './libs/Url';
-import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
+
+import Log from './libs/Log';
+import StringUtils from './libs/StringUtils';
+import {getUrlWithParams} from './libs/Url';
+import SCREENS from './SCREENS';
 
 type WorkspaceCompanyCardsAssignCardParams = {
     policyID: string;
@@ -1035,10 +1037,6 @@ const ROUTES = {
         },
     },
 
-    SEARCH_REPORT_VERIFY_ACCOUNT: {
-        route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
@@ -1046,10 +1044,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(baseRoute, backTo);
         },
-    },
-    SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: {
-        route: `search/r/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `search/r/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -1594,14 +1588,6 @@ const ROUTES = {
             }
             return `r/${reportID}/avatar` as const;
         },
-    },
-    REPORT_VERIFY_ACCOUNT: {
-        route: `r/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
-    EXPENSE_REPORT_VERIFY_ACCOUNT: {
-        route: `e/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',

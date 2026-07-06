@@ -1,11 +1,14 @@
-import type {LinkingOptions} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {Linking} from 'react-native';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {LinkingOptions} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {Linking} from 'react-native';
 
 /**
  * Rules for dropping a deep link that would re-navigate to a screen the user is already on.
