@@ -77,7 +77,7 @@ You can download a single report or multiple reports as PDFs. Each PDF includes 
 
 ## Download multiple reports
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
 2. Check the box next to each report you want to download, or use the top checkbox to select all.
 3. Click **Selected**.
 4. Select **Download as PDF**.
