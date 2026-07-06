@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Checkbox from '@components/Checkbox';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -62,12 +62,13 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                         />
                     ) : (
                         <Button
-                            small
-                            success
-                            text={translate('homePage.gettingStartedSection.begin')}
+                            size={CONST.BUTTON_SIZE.SMALL}
+                            variant="success"
                             onPress={navigateToItem}
                             style={styles.widgetItemButton}
-                        />
+                        >
+                            <Button.Text>{translate('homePage.gettingStartedSection.begin')}</Button.Text>
+                        </Button>
                     )}
                 </View>
             )}
