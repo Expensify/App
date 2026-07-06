@@ -2018,5 +2018,17 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 }),
             );
         });
+
+        it('does not call completeOnboarding when the choice has no onboarding message (e.g. classicAdmin for Classic-invited admins)', () => {
+            const introSelected: IntroSelected = {
+                // @ts-expect-error classicAdmin is a backend-only choice value with no App onboarding message, intentionally outside the OnboardingPurpose union
+                choice: 'classicAdmin',
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
+                isInviteOnboardingComplete: false,
+            };
+
+            expect(() => completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID)).not.toThrow();
+            expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        });
     });
 });
