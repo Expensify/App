@@ -26,7 +26,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const navigateToItem = () => {
         if (!item.isFeatureEnabled) {
