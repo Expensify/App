@@ -381,45 +381,45 @@ describe('useShiftRangeSelection', () => {
         });
     });
 
-    describe('seedRange', () => {
-        it('seeds a block span so a subsequent shift+click collapses within the block', () => {
+    describe('seedRangeFromSelection', () => {
+        it('seeds a block span over the selected extent so a subsequent shift+click collapses within the block', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.seedRange(ROW_B, ROW_D, false));
+            act(() => result.current.seedRangeFromSelection(['b', 'c', 'd']));
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
-            // Seeded block was b..d; collapsing to b..c drops the tail (d).
+            // Seeded extent was b..d; collapsing to b..c drops the tail (d).
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
 
         it('extends the selection when the shift+click lands past the seeded block', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.seedRange(ROW_B, ROW_C, false));
+            act(() => result.current.seedRangeFromSelection(['b', 'c']));
             act(() => {
                 result.current.applyShiftClick(ROW_E, true);
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd', 'e'], toDeselect: []});
         });
 
-        it('seeds a deselecting block (deselect=true) so a shift+click extends the deselection', () => {
+        it('spans the first→last selected row even when the selection has a gap', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.seedRange(ROW_B, ROW_D, true));
+            // Selection {b, d} (c unselected) still seeds the full b..d extent.
+            act(() => result.current.seedRangeFromSelection(['b', 'd']));
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
-            // Direction is deselect: the b..c range deselects, and the dropped tail (d) flips back to select.
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['d'], toDeselect: ['b', 'c']});
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
 
-        it('clears the session when an endpoint has no key, so the next shift+click resolves a cold anchor', () => {
+        it('clears the session when the selection is empty, so the next shift+click resolves a cold anchor', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.seedRange(ROW_B, {keyForList: ''}, false));
+            act(() => result.current.seedRangeFromSelection([]));
             act(() => {
-                // Session cleared → cold shift+click resolves the anchor from the first selectable row (a), not the seeded b.
+                // Session cleared → cold shift+click resolves the anchor from the first selectable row (a).
                 result.current.applyShiftClick(ROW_C, true);
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});

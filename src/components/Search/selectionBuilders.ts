@@ -310,10 +310,8 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
 }
 
 /**
- * Flattened source list (each group header followed by its children, in visual order) that shift-range selection ranges over.
- * Only flattens when group rows are headers (group-by views): children come from `groupChildrenByKey` (populated by
- * `GroupChildrenContent`), falling back to `group.transactions`. Expense-report views (the group is the unit) and non-grouped
- * data pass through unchanged.
+ * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
+ * group-by views — children come from `groupChildrenByKey` (else `group.transactions`); expense-report and flat views pass through.
  */
 function buildShiftRangeItems(filteredData: SearchData, groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): Array<SearchData[number]> {
     if (!groupsAreHeaders || !isGroupedItemArray(filteredData)) {

@@ -561,9 +561,11 @@ function MoneyRequestReportTransactionList({
             const selectableChildren = group.transactions.filter((t) => !isTransactionPendingDelete(t));
             const groupTransactionIDs = selectableChildren.map((t) => t.transactionID);
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
-            setSelectedTransactions(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);
+            const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
+            setSelectedTransactions(nextSelectedIDs);
+            rangeApi.seedRangeFromSelection(nextSelectedIDs);
         },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
+        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions, rangeApi],
     );
 
     /**

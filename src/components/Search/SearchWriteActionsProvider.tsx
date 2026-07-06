@@ -515,22 +515,7 @@ function SearchWriteActionsProvider({
                     selectedKeys.add(child.keyForList);
                 }
             }
-            let firstSelected: SearchData[number] | undefined;
-            let lastSelected: SearchData[number] | undefined;
-            for (const row of flattenedShiftRangeItems) {
-                if (isShiftRangeHeaderItem(row) || !row.keyForList || !selectedKeys.has(row.keyForList)) {
-                    continue;
-                }
-                if (!firstSelected) {
-                    firstSelected = row;
-                }
-                lastSelected = row;
-            }
-            if (firstSelected && lastSelected) {
-                rangeApi.seedRange(firstSelected, lastSelected, false);
-            } else {
-                rangeApi.clearAnchor();
-            }
+            rangeApi.seedRangeFromSelection(selectedKeys);
         } else if (!isShiftRangeHeaderItem(item)) {
             // Non-header rows seed the anchor so a later shift+click continues from here.
             rangeApi.notifyAnchor(item);

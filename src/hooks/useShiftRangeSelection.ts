@@ -16,13 +16,12 @@ type Params<TItem> = {
 type Api<TItem> = {
     applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
     notifyAnchor: (item: TItem) => void;
-    seedRange: (anchorItem: TItem, endItem: TItem, deselect: boolean) => void;
+    seedRangeFromSelection: (selectedKeys: ReadonlySet<string> | readonly string[]) => void;
     seedFullRange: () => void;
     clearAnchor: () => void;
 };
 
-// `deselect` makes the range direction-aware: an anchor seeded by a click that *removed* a row extends the deselection on the next
-// shift+click instead of re-selecting it (the "range follows the anchor's state" model).
+// `deselect` makes ranges direction-aware: an anchor seeded by a click that *removed* a row extends the deselection on the next shift+click instead of re-selecting it.
 type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string; deselect: boolean} | {kind: 'ranging'; anchor: string; prevEnd: string; deselect: boolean};
 
 type SessionEvent = {type: 'notify'; key: string; deselect: boolean} | {type: 'clear'} | {type: 'range'; anchor: string; prevEnd: string; deselect: boolean};
@@ -82,38 +81,22 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             const deselect = isSelected(currentParams, key);
             sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key, deselect});
         },
-        seedRange: (anchorItem, endItem, deselect) => {
-            // A block gesture (e.g. a group-header checkbox that selects all its children at once) seeds a range over that block, so the next shift+click narrows or extends it.
+        seedRangeFromSelection: (selectedKeys) => {
+            // Keys are passed in rather than read from state: the caller's selection is optimistic, so reading it here would see the pre-toggle set.
             const currentParams = paramsRef.current;
-            const anchorKey = keyOf(currentParams, anchorItem);
-            const endKey = keyOf(currentParams, endItem);
-            if (anchorKey && endKey) {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey, deselect});
-            } else {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
-            }
+            const set = selectedKeys instanceof Set ? selectedKeys : new Set(selectedKeys);
+            sessionRef.current = sessionReducer(
+                sessionRef.current,
+                seedRangeEvent(currentParams, (key) => set.has(key)),
+            );
         },
         seedFullRange: () => {
             // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.
             const currentParams = paramsRef.current;
-            let first: TItem | null = null;
-            let last: TItem | null = null;
-            for (const item of currentParams.items) {
-                if (isExcluded(currentParams, item) || !keyOf(currentParams, item)) {
-                    continue;
-                }
-                if (first === null) {
-                    first = item;
-                }
-                last = item;
-            }
-            const anchorKey = keyOf(currentParams, first);
-            const endKey = keyOf(currentParams, last);
-            if (anchorKey && endKey) {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey, deselect: false});
-            } else {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
-            }
+            sessionRef.current = sessionReducer(
+                sessionRef.current,
+                seedRangeEvent(currentParams, () => true),
+            );
         },
         clearAnchor: () => {
             sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
@@ -140,6 +123,34 @@ function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
         }
     }
     return keyToIndex;
+}
+
+/**
+ * Builds a `range` event spanning the first→last selectable item that passes `isIncluded`, or `clear` when none qualify.
+ * Shared by `seedFullRange` (all selectable) and `seedRangeFromSelection` (the selected subset).
+ */
+function seedRangeEvent<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): SessionEvent {
+    let first: TItem | null = null;
+    let last: TItem | null = null;
+    for (const item of params.items) {
+        if (isExcluded(params, item)) {
+            continue;
+        }
+        const key = keyOf(params, item);
+        if (key === null || !isIncluded(key)) {
+            continue;
+        }
+        if (first === null) {
+            first = item;
+        }
+        last = item;
+    }
+    const anchor = keyOf(params, first);
+    const prevEnd = keyOf(params, last);
+    if (anchor !== null && prevEnd !== null) {
+        return {type: 'range', anchor, prevEnd, deselect: false};
+    }
+    return {type: 'clear'};
 }
 
 function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem): ShiftRangeResult<TItem> | null {
