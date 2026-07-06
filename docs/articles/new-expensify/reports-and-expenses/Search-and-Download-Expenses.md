@@ -81,7 +81,8 @@ You can download a single report or multiple reports as PDFs. Each PDF includes 
 2. Check the box next to each report you want to download, or use the top checkbox to select all.
 3. Click **Selected**.
 4. Select **Download as PDF**.
-5. A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
+
+A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
 
 # FAQ
 
