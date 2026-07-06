@@ -1,27 +1,34 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {ButtonSizeValue} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ForwardedRef} from 'react';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -95,12 +102,6 @@ type ButtonProps = Partial<ChildrenProps> &
 
         /** Callback that is called when mousedown is triggered. */
         onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
-
-        /** A function that is called when the button receives focus */
-        onFocus?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
-
-        /** A function that is called when the button loses focus */
-        onBlur?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
 
         /** Call the onPress function when Enter key is pressed */
         pressOnEnter?: boolean;
@@ -270,8 +271,6 @@ function Button({
     onPressIn = () => {},
     onPressOut = () => {},
     onMouseDown = undefined,
-    onFocus = undefined,
-    onBlur = undefined,
 
     pressOnEnter = false,
     enterKeyEventListenerPriority = 0,
@@ -535,8 +534,6 @@ function Button({
                 onPressIn={onPressIn}
                 onPressOut={onPressOut}
                 onMouseDown={onMouseDown}
-                onFocus={onFocus}
-                onBlur={onBlur}
                 shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isLoading || isDisabled}
                 wrapperStyle={[

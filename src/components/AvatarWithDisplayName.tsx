@@ -1,8 +1,3 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {ColorValue, GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -26,6 +22,7 @@ import {
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
     getReportStatusColorStyle,
+    getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
@@ -36,19 +33,30 @@ import {
     isTrackExpenseReport,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import type {ColorValue, GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import type DisplayNamesProps from './DisplayNames/types';
+import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
+
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
-import type DisplayNamesProps from './DisplayNames/types';
 import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
-import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -201,13 +209,14 @@ function AvatarWithDisplayName({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
-    const subtitle = getChatRoomSubtitle(report, policy, true, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare, formatPhoneNumber);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
     const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
+    const statusTooltipText = shouldDisplayStatus ? getReportStatusTooltipTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
     const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy, currentUserAccountID);
@@ -342,6 +351,7 @@ function AvatarWithDisplayName({
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
+                                statusTooltipText={statusTooltipText}
                                 textStyles={parentNavigationSubtitleTextStyles}
                                 statusTextContainerStyles={parentNavigationStatusContainerStyles}
                                 statusTextColor={reportStatusColorStyle?.textColor}

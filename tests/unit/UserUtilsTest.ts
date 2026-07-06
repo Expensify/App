@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 
 describe('UserUtils', () => {
@@ -175,6 +176,75 @@ describe('UserUtils', () => {
             const result = UserUtils.expensifyLoginsSelector(logins);
 
             expect(Object.keys(result ?? {})).toEqual(['user@example.com']);
+        });
+    });
+
+    describe('getDeviceLogins', () => {
+        test('returns an empty array when there are no logins', () => {
+            expect(UserUtils.getDeviceLogins(undefined)).toEqual([]);
+        });
+
+        test('sorts device logins by most recent timestamp first', () => {
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_oldest': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'oldest@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '16_newest': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.ANDROID,
+                    partnerUserID: 'newest@example.com',
+                    lastLogin: '2024-03-10',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '83_middle': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.NEWDOT,
+                    partnerUserID: 'middle@example.com',
+                    lastLogin: '2024-02-05',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.getDeviceLogins(logins);
+
+            expect(result.map((login) => login.partnerUserID)).toEqual(['newest@example.com', 'middle@example.com', 'oldest@example.com']);
+        });
+
+        test('falls back to created when lastLogin is the default 2008 value', () => {
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_a': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'a@example.com',
+                    lastLogin: '2008-01-01',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '16_b': {
+                    created: '2024-05-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.ANDROID,
+                    partnerUserID: 'b@example.com',
+                    lastLogin: '2008-01-01',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.getDeviceLogins(logins);
+
+            expect(result.map((login) => login.partnerUserID)).toEqual(['b@example.com', 'a@example.com']);
         });
     });
 });

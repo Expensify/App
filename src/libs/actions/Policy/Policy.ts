@@ -1,14 +1,8 @@
-/* eslint-disable max-lines */
-import {addDays} from 'date-fns/addDays';
-import {formatDate} from 'date-fns/format';
-import {subMinutes} from 'date-fns/subMinutes';
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type PolicyData from '@hooks/usePolicyData/types';
+
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -102,12 +96,15 @@ import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhe
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNegatedAmountTransaction} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
+
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -154,6 +151,17 @@ import type {NotificationPreference} from '@src/types/onyx/Report';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+/* eslint-disable max-lines */
+import {addDays} from 'date-fns/addDays';
+import {formatDate} from 'date-fns/format';
+import {subMinutes} from 'date-fns/subMinutes';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -6608,6 +6616,31 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
+/**
+ * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
+ * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
+ * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
+ */
+function getBillableExpensesPendingAction(policy: OnyxEntry<Policy>): PendingAction | undefined {
+    if (policy?.pendingFields?.defaultBillable) {
+        return policy.pendingFields.defaultBillable;
+    }
+
+    if (policy?.disabledFields?.defaultBillable && policy?.pendingFields?.disabledFields) {
+        return policy.pendingFields.disabledFields;
+    }
+
+    return undefined;
+}
+
+function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
+    if (policy?.disabledFields?.defaultBillable) {
+        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
+    } else if (policy) {
+        disableWorkspaceBillableExpenses(policy.id);
+    }
+}
+
 function getWorkspaceEReceiptsEnabledOnyxData(policyID: string, enabled: boolean, currentEnabled: boolean | undefined): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
     return {
         optimisticData: [
@@ -7680,6 +7713,8 @@ export {
     clearDuplicateWorkspace,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
+    getBillableExpensesPendingAction,
+    toggleBillableExpenses,
     setWorkspaceEReceiptsEnabled,
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,

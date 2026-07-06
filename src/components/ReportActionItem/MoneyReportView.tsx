@@ -160,7 +160,7 @@ function MoneyReportView({
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
         (isGroupPolicyExpenseReport || isInvoiceReport) &&
-        !!policy?.areReportFieldsEnabled &&
+        !!areFieldsEnabledForReport &&
         (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
         !sortedPolicyReportFields.every(shouldHideSingleReportField);
 
