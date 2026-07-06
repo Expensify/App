@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -15,6 +17,7 @@ import {
     deleteTask,
     editTask,
     editTaskAssignee,
+    getAssignee,
     getFinishOnboardingTaskOnyxData,
     getNavigationUrlOnTaskDelete,
     getShareDestination,
@@ -1737,6 +1740,32 @@ describe('actions/Task', () => {
             expect(Array.isArray(result.icons)).toBe(true);
             expect(result.icons.length).toBeGreaterThan(0);
             expect(Array.isArray(result.displayNamesWithTooltips)).toBe(true);
+        });
+    });
+
+    describe('getAssignee', () => {
+        const assigneeAccountID = 987654;
+
+        it('returns the assignee display name from personal details', () => {
+            const personalDetails: PersonalDetailsList = {
+                [assigneeAccountID]: {accountID: assigneeAccountID, displayName: 'Assignee', login: 'assignee@test.com', avatar: ''},
+            };
+
+            const assignee = getAssignee(assigneeAccountID, personalDetails, translateLocal);
+
+            expect(assignee?.displayName).toBe('Assignee');
+            expect(assignee?.subtitle).toBe('assignee@test.com');
+        });
+
+        it('resolves the fallback display name through the provided translate function', () => {
+            const personalDetails: PersonalDetailsList = {
+                [assigneeAccountID]: {accountID: assigneeAccountID, avatar: ''},
+            };
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const assignee = getAssignee(assigneeAccountID, personalDetails, translateWithHiddenMarker);
+
+            expect(assignee?.displayName).toBe('HiddenMarker');
         });
     });
 });
