@@ -51,6 +51,7 @@ type SubmitAmountArgs = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
     iouType: IOUType;
@@ -144,6 +145,7 @@ function submitAmount({
     transaction,
     splitDraftTransaction,
     policy,
+    isDraftChatReport,
     selectedCurrency,
     decimals,
     iouType,
@@ -303,6 +305,7 @@ function submitAmount({
                         trackExpense({
                             report,
                             isDraftPolicy: false,
+                            isDraftChatReport: !!isDraftChatReport,
                             participantParams: {
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,

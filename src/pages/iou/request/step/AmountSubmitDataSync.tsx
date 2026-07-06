@@ -8,6 +8,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {SubmitAmountArgs} from '@libs/IOUAmountSubmission';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -15,12 +16,14 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isDraftReportSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useLayoutEffect} from 'react';
 
 type AmountSubmitData = Pick<
     SubmitAmountArgs,
     | 'delegateAccountID'
+    | 'isDraftChatReport'
     | 'selfDMReport'
     | 'defaultExpensePolicy'
     | 'personalPolicy'
@@ -86,6 +89,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`, {selector: isDraftReportSelector});
     const [reportAttributesDerivedValue] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
@@ -107,6 +112,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         // eslint-disable-next-line no-param-reassign
         submitDataRef.current = {
             delegateAccountID,
+            isDraftChatReport,
             selfDMReport,
             defaultExpensePolicy,
             personalPolicy,
@@ -137,6 +143,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     }, [
         submitDataRef,
         delegateAccountID,
+        isDraftChatReport,
         selfDMReport,
         defaultExpensePolicy,
         personalPolicy,
