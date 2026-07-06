@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
 
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps} from './types';
@@ -183,10 +183,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
 
-    useEffect(() => {
-        onSearchStringChange?.(activeSearchString);
-    }, [activeSearchString, onSearchStringChange]);
-
     const {
         activeSorting,
         methods: sortMethods,
@@ -215,6 +211,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...filterMethods,
         ...sortMethods,
         ...searchMethods,
+        updateSearchString: (value: string) => {
+            searchMethods.updateSearchString(value);
+            onSearchStringChange?.(value);
+        },
         ...selectionMethods,
         ...highlightingMethods,
     };
