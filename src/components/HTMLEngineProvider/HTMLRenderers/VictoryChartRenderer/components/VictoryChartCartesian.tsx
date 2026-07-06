@@ -14,7 +14,10 @@ import useTheme from '@hooks/useTheme';
 
 import ThemeContext from '@styles/theme/context/ThemeContext';
 
-import React from 'react';
+import type {TNode} from 'react-native-render-html';
+import type {CartesianChartRenderArg} from 'victory-native';
+
+import React, {useRef} from 'react';
 import {CartesianChart} from 'victory-native';
 
 import VictoryChartLabel from './VictoryChartLabel';
