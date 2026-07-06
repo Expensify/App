@@ -6028,8 +6028,6 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL_AMOUNT (transaction amount) is shown by default.
-            // TOTAL (workspace currency) is added when a conversion exists.
             if (hasExchangeRate && isExpenseReportView) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
