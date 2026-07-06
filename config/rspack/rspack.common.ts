@@ -112,6 +112,15 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         // We can ignore the "module not installed" warning from lottie-react-native
         // because we are not using the library for JSON format of Lottie animations.
         ignoreWarnings: [/lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/],
+        // canvaskit-wasm and expo's getBundleUrl.web.ts reference __filename/__dirname, which don't exist in a
+        // browser bundle. Rspack's default ('warn-mock') mocks them to a fixed value but also emits a "Module
+        // parse warning" every time; explicitly opting into 'mock' keeps the same fixed-value behavior without
+        // the warning. This also matters for Storybook's `--smoke-test`, which fails the build on any warning
+        // that isn't explicitly allow-listed.
+        node: {
+            __filename: 'mock',
+            __dirname: 'mock',
+        },
         plugins: [
             // Only emit the SW for non-development builds. In dev, the dev-server's HMR
             // and the SW's caching behavior fight each other and confuse hot reloads.

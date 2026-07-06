@@ -71,6 +71,9 @@ const rsbuildFinal = async (config: RsbuildConfig): Promise<RsbuildConfig> => {
                     // because we are not using the library for JSON format of Lottie animations.
                     /node_modules\/lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/,
                 ];
+                // See rspack.common.ts for why __filename/__dirname are explicitly mocked (avoids a
+                // "Module parse warning" from canvaskit-wasm/expo that fails Storybook's `--smoke-test`).
+                rspackConfig.node = custom.node;
                 rspackConfig.resolve ??= {};
                 rspackConfig.resolve.fallback = custom.resolve?.fallback;
                 rspackConfig.module ??= {rules: []};
