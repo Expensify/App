@@ -1,11 +1,11 @@
-import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import type Policy from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import useConfirmModal from './useConfirmModal';
+import {useMemoizedLazyIllustrations} from './useLazyAsset';
+import useLocalize from './useLocalize';
+import useThemeStyles from './useThemeStyles';
 
 /**
  * Returns a guard function that blocks manual/odometer distance entry for policies
