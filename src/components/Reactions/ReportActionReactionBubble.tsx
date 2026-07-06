@@ -1,10 +1,14 @@
-import React, {useContext, useRef} from 'react';
-import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import {ReactionListContext} from '@pages/inbox/ReactionListContext';
+
 import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReactionListContext';
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
+
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import React, {useContext, useRef} from 'react';
+import {View} from 'react-native';
+
 import EmojiReactionBubble from './EmojiReactionBubble';
 import ReactionTooltipContent from './ReactionTooltipContent';
 

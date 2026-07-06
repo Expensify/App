@@ -1,6 +1,10 @@
+import {useActionListContext} from '@pages/inbox/ActionListContext';
+
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
-import {useActionListContext} from '@pages/inbox/ActionListContext';
+
+import {useContext} from 'react';
+
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {

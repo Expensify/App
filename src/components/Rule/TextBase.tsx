@@ -1,17 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TextBaseProps<TFormID extends OnyxFormKey> = {
     fieldID: string;
@@ -62,7 +69,7 @@ function TextBase<TFormID extends OnyxFormKey>({
 
             if (!isValid) {
                 (errors as Record<string, string>)[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
-            } else if (fieldID === CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT || fieldID === CONST.MERCHANT_RULES.FIELDS.MERCHANT) {
+            } else if (fieldID === EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT || fieldID === MERCHANT_RULE_INPUT_IDS.MERCHANT) {
                 if (trimmedValue && isInvalidMerchantValue(trimmedValue)) {
                     (errors as Record<string, string>)[fieldID] = translate('iou.error.invalidMerchant');
                 }

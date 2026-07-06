@@ -1,13 +1,20 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
+
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import {ActionListContext} from '@pages/inbox/ActionListContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
