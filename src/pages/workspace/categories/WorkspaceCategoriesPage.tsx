@@ -527,7 +527,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <ButtonWithDropdownMenu
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
                     options={options}
                     isSplitButton={false}
