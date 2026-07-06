@@ -1,4 +1,3 @@
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
@@ -67,33 +66,30 @@ function AIFeaturesPromoModal() {
             : []),
     ];
 
-    const isCloseButtonDismissalRef = useRef(false);
-
-    const dismissModal = () => {
-        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isCloseButtonDismissalRef.current);
+    const dismissNVP = (isDismissedUsingCloseButton: boolean) => {
+        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isDismissedUsingCloseButton);
     };
 
-    useBeforeRemove(dismissModal);
-
-    const goBack = () => {
+    const confirmAndCloseModal = () => {
         Navigation.goBack();
+        dismissNVP(false);
     };
 
-    const onClose = () => {
-        isCloseButtonDismissalRef.current = true;
+    const closeModal = () => {
         Navigation.goBack();
+        dismissNVP(true);
     };
 
     return (
         <CenteredModalLayout
-            onBackdropPress={onClose}
+            onBackdropPress={closeModal}
             width={variables.aiFeaturesPromoModalWidth}
             contentStyle={styles.pt0}
         >
             <FeatureTrainingCarousel
                 pages={pages}
-                onConfirm={goBack}
-                onClose={onClose}
+                onConfirm={confirmAndCloseModal}
+                onClose={closeModal}
                 width={variables.aiFeaturesPromoModalWidth}
                 shouldRenderHTMLDescription
                 shouldUseScrollView
