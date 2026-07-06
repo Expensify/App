@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
 
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -65,6 +65,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canMergeReports,
     canModifyHoldStatus,
     canRejectReportAction,
     canSeeDefaultRoom,
@@ -156,7 +157,6 @@ import {
     isSortableColumnName,
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
-    parseReportActionHtmlToText,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
@@ -323,6 +323,7 @@ const computeReportName = (
         reportActions,
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
+        translate: translateLocal,
         conciergeReportID,
         isTrackIntentUser: false,
     });
@@ -3195,13 +3196,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -3220,7 +3221,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -3248,14 +3249,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3268,7 +3269,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal);
             expect(actual).toEqual({});
         });
 
@@ -3295,48 +3296,14 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID);
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal);
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal);
             expect(actual).toHaveProperty('reportName');
-        });
-    });
-
-    describe('parseReportActionHtmlToText', () => {
-        it('should return empty string for undefined reportAction', () => {
-            const result = parseReportActionHtmlToText(undefined, '123', undefined);
-            expect(result).toBe('');
-        });
-
-        it('should return text from reportAction message when no html', () => {
-            const reportAction = createMock<ReportAction>({
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', text: 'Hello world'}],
-            });
-            const result = parseReportActionHtmlToText(reportAction, '123', undefined);
-            expect(result).toBe('Hello world');
-        });
-
-        it('should parse html to text with conciergeReportID', () => {
-            const reportAction = createMock<ReportAction>({
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', html: '<p>Hello world</p>', text: 'Hello world'}],
-            });
-            const result = parseReportActionHtmlToText(reportAction, '123', '999');
-            expect(result).toBe('Hello world');
-        });
-
-        it('should handle conciergeReportID being undefined', () => {
-            const reportAction = createMock<ReportAction>({
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', html: '<p>Test message</p>', text: 'Test message'}],
-            });
-            const result = parseReportActionHtmlToText(reportAction, '456', undefined);
-            expect(result).toBe('Test message');
         });
     });
 
@@ -8132,7 +8099,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
 
-                expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual([]);
+                expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual([]);
             });
         });
         describe('basic/advance workflow', () => {
@@ -8153,7 +8120,7 @@ describe('ReportUtils', () => {
                     };
                     Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                         const result = ['owner@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual(result);
                     });
                 });
                 it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them if the policy use advance workflow', () => {
@@ -8172,7 +8139,7 @@ describe('ReportUtils', () => {
                     };
                     Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                         const result = ['admin@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                     });
                 });
             });
@@ -8217,7 +8184,7 @@ describe('ReportUtils', () => {
                             },
                         }).then(() => {
                             const result = ['owner@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                            expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                         });
                     });
                 });
@@ -8277,7 +8244,7 @@ describe('ReportUtils', () => {
                             transactions_4: transaction4,
                         }).then(() => {
                             const result = [categoryApprover2Email, categoryApprover1Email, tagApprover2Email, tagApprover1Email, 'admin@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                            expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                         });
                     });
                 });
@@ -18416,7 +18383,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18430,7 +18397,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18440,7 +18407,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -18454,8 +18421,40 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should compute the invoice report name through the provided translate function', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-789',
+                type: CONST.REPORT.TYPE.INVOICE,
+                parentReportID: 'invoice-chat-123',
+                currency: 'USD',
+            };
+            // An invoice report without transactions has a total of zero, so its name resolves to the
+            // "payer owes" message, which must come from the translate function passed by the caller.
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
+
+            const action = {...createRandomReportAction(5)};
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+
+            expect(result).toBe('PayerOwesMarker');
+        });
+
+        it('should return the stored reportName for OldDot invoice reports', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-790',
+                type: CONST.REPORT.TYPE.INVOICE,
+                parentReportID: 'invoice-chat-124',
+                reportName: 'Invoice #42',
+                currency: 'USD',
+            };
+
+            const action = {...createRandomReportAction(6)};
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateLocal);
+
+            expect(result).toBe('Invoice #42');
         });
     });
     describe('buildOptimisticApprovedReportAction', () => {
@@ -19590,7 +19589,225 @@ describe('ReportUtils', () => {
             expect(canBeAutoReimbursed(report, undefined)).toBe(false);
         });
     });
+
+    describe('canMergeReports', () => {
+        const OWNER_ID = 10;
+        const ownerEmail = 'owner@example.com';
+        const MANAGER_ID = 20;
+        const POLICY_ID = 'p1';
+        const USER_ID = OWNER_ID;
+
+        let reportCounter = 1;
+
+        /** Minimal valid expense report in the Open (draft) state. */
+        function makeOpenReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: undefined,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        /** Minimal valid expense report in the Processing (submitted) state. */
+        function makeProcessingReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: MANAGER_ID,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        const mockPolicy = createMock<Policy>({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ownerEmail, accountID: USER_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            return waitForBatchedUpdates();
+        });
+
+        it('returns false for an empty selection', () => {
+            expect(canMergeReports([], USER_ID)).toBe(false);
+        });
+
+        it('returns false when only 1 report is selected', () => {
+            expect(canMergeReports([makeOpenReport()], USER_ID)).toBe(false);
+        });
+
+        it('returns false when currentUserAccountID is 0 (falsy)', () => {
+            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0)).toBe(false);
+        });
+
+        // Same ownerAccountID (cross-account not supported)
+        it('returns false when reports have different ownerAccountIDs', () => {
+            const r1 = makeOpenReport({ownerAccountID: OWNER_ID});
+            const r2 = makeOpenReport({ownerAccountID: OWNER_ID + 1});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when the first report has no ownerAccountID', () => {
+            const r1 = makeOpenReport({ownerAccountID: undefined});
+            const r2 = makeOpenReport({ownerAccountID: OWNER_ID});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same policyID (cross-workspace not supported)
+        it('returns false when reports belong to different workspaces', () => {
+            const r1 = makeOpenReport({policyID: 'p1'});
+            const r2 = makeOpenReport({policyID: 'p2'});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when the first report has no policyID', () => {
+            const r1 = makeOpenReport({policyID: undefined});
+            const r2 = makeOpenReport({policyID: POLICY_ID});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same workflow state
+        it('returns false when mixing Open and Processing reports', () => {
+            const open = makeOpenReport();
+            const processing = makeProcessingReport();
+            expect(canMergeReports([open, processing], USER_ID)).toBe(false);
+        });
+
+        it('returns false when stateNum matches but statusNum differs', () => {
+            const r1 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+            const r2 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same managerID for Processing reports
+        it('returns false when Processing reports have different managerIDs', () => {
+            const r1 = makeProcessingReport({managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({managerID: MANAGER_ID + 99});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a Processing report has no managerID', () => {
+            const r1 = makeProcessingReport({managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({managerID: undefined});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        /**
+         * Rule above is intentionally skipped for Open reports.
+         * Open drafts may legitimately have no managerID, and same-account +
+         * same-workspace guarantees they share the same manager once submitted.
+         */
+        it('does NOT require matching managerID for Open reports', () => {
+            const r1 = makeOpenReport({managerID: undefined});
+            const r2 = makeOpenReport({managerID: 999});
+
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+        });
+
+        // Terminal states (settled / approved / closed)
+        it('returns false when a report is settled (REIMBURSED)', () => {
+            const settled: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                isWaitingOnBankAccount: false,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), settled], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a report is approved', () => {
+            const approved: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), approved], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a report is closed', () => {
+            const closed: Report = {
+                ...makeOpenReport(),
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), closed], USER_ID)).toBe(false);
+        });
+
+        // The user must be able to write to each report
+        it('returns false when the current user is not able to write to each report', async () => {
+            const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // The user must be the report owner, a workspace admin, or the current approver.
+        it('returns false when the current user is not owner/admin/approver of a report', async () => {
+            const STRANGER_ID = 77;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+
+            // Reports are owned by OWNER_ID=10; managerID is unset (Open reports).
+            // STRANGER_ID is neither admin, owner, nor manager.
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], STRANGER_ID)).toBe(false);
+        });
+
+        // Happy paths
+        it('returns true for two valid Open reports when user is the report owner', async () => {
+            // When the current user is the policy admin
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+        });
+
+        it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
+            // When the current user is the policy admin
+            const r1 = makeProcessingReport();
+            const r2 = makeProcessingReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns true when the current user is the approver on Processing reports', async () => {
+            const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
+            expect(canMergeReports([r1, r2], MANAGER_ID)).toBe(true);
+        });
+
+        it('returns true for three or more valid Open reports', () => {
+            const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
+            expect(canMergeReports(reports, USER_ID)).toBe(true);
+        });
+    });
 });
+
 describe('shouldShowMarkAsDone', () => {
     const policyID = '1';
     const otherAccountID = 42;
