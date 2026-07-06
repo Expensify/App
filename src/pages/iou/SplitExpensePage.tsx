@@ -208,7 +208,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // For selfDM expenses, the IOU action lives in the selfDM report, not in an expense report.
     const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(draftTransactionReport) ? draftTransactionReport?.reportID : undefined);
-    const iouActions = getIOUActionForTransactions([originalTransactionID], iouReportIDForActions);
+    const iouActions = getIOUActionForTransactions([originalTransactionID], iouReportIDForActions).filter((action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
@@ -378,6 +378,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCategories,
             iouReport,
             firstIOU: iouActions.at(0),
+            extraIOUActions: iouActions.slice(1),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             currentUserPersonalDetails,
             transactionViolations,

@@ -101,6 +101,7 @@ type UpdateSplitTransactionsParams = {
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
+    extraIOUActions?: OnyxTypes.ReportAction[];
     isASAPSubmitBetaEnabled: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
@@ -139,6 +140,7 @@ function updateSplitTransactions({
     policyRecentlyUsedCategories,
     iouReport,
     firstIOU,
+    extraIOUActions = [],
     isASAPSubmitBetaEnabled,
     currentUserPersonalDetails,
     transactionViolations,
@@ -225,7 +227,6 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
-    const originalChildTransactions = allChildTransactions.filter((childTransaction) => childTransaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -1396,7 +1397,7 @@ function updateSplitTransactions({
         }
     }
     if (isReverseSplitOperation) {
-        const deletedSplitSnapshotKeys = originalChildTransactions.reduce<Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`>>((acc, childTransaction) => {
+        const deletedSplitSnapshotKeys = allChildTransactions.reduce<Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`>>((acc, childTransaction) => {
             if (!childTransaction?.transactionID) {
                 return acc;
             }
@@ -1519,88 +1520,98 @@ function updateSplitTransactions({
             value: originalTransaction ?? null,
         });
 
-        if (firstIOU && isCreationOfSplits) {
+        // On repeated split→revert→split cycles, a reverse split always mints a brand-new report action for the
+        // revived original transaction (see `currentReportActionID: undefined` below) instead of reusing/deleting
+        // the previous one. If the user never goes back online between cycles, those old report actions pile up
+        // as undeleted duplicates of the same transaction. Clean up every one of them here, not just `firstIOU`.
+        const iouActionsToCleanUp = [firstIOU, ...extraIOUActions].filter(
+            (action): action is OnyxTypes.ReportAction => !!action && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (iouActionsToCleanUp.length > 0 && isCreationOfSplits) {
             // For selfDM splits, also resolve the Concierge "What would you like to do with this expense?"
             // whisper so it disappears along with the original expense when splits are created.
             const whisperAction = isOriginalTransactionInSelfDM ? getTrackExpenseActionableWhisper(originalTransactionID, originalSelfDMReportID) : undefined;
             const whisperActionID = whisperAction?.reportActionID;
-            const updatedReportAction = {
-                [firstIOU.reportActionID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    previousMessage: firstIOU.message,
-                    message: [
-                        {
-                            type: 'COMMENT',
-                            html: '',
-                            text: '',
-                            isEdited: true,
-                            isDeletedParentAction: true,
-                        },
-                    ],
-                    originalMessage: {
-                        IOUTransactionID: null,
-                    },
-                    errors: null,
-                    childReportID: null,
-                },
-                ...(whisperActionID && {
-                    [whisperActionID]: {
-                        originalMessage: {resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING},
-                    },
-                }),
-            };
             // For selfDM, use the selfDM report ID for report actions
             const reportActionsReportID = isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID;
 
-            const {optimisticData, successData, failureData} = getCleanUpTransactionThreadReportOnyxData({
-                transactionThreadID: firstIOU.childReportID,
-                shouldDeleteTransactionThread: true,
-                reportAction: firstIOU,
-                updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-            });
-
-            onyxData.optimisticData?.push(...optimisticData);
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
-                value: updatedReportAction,
-            });
-
-            onyxData.successData?.push(...successData);
-            onyxData.successData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID}`,
-                value: {
-                    [firstIOU.reportActionID]: {
-                        pendingAction: null,
+            for (const iouActionToCleanUp of iouActionsToCleanUp) {
+                const updatedReportAction = {
+                    [iouActionToCleanUp.reportActionID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        previousMessage: iouActionToCleanUp.message,
+                        message: [
+                            {
+                                type: 'COMMENT',
+                                html: '',
+                                text: '',
+                                isEdited: true,
+                                isDeletedParentAction: true,
+                            },
+                        ],
+                        originalMessage: {
+                            IOUTransactionID: null,
+                        },
+                        errors: null,
+                        childReportID: null,
                     },
-                },
-            });
-
-            onyxData.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
-                value: {
-                    [firstIOU.reportActionID]: {
-                        ...firstIOU,
-                        pendingAction: null,
-                    },
-                    // Revert the optimistic "resolved" state on the Concierge actionable whisper so that if
-                    // the split API call fails, the whisper reappears alongside the restored original expense.
                     ...(whisperActionID && {
                         [whisperActionID]: {
-                            originalMessage: {
-                                resolution:
-                                    (whisperAction && isActionOfType(whisperAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER)
-                                        ? getOriginalMessage(whisperAction)?.resolution
-                                        : null) ?? null,
-                            },
+                            originalMessage: {resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING},
                         },
                     }),
-                },
-            });
-            onyxData.failureData?.push(...failureData);
+                };
+
+                const {optimisticData, successData, failureData} = getCleanUpTransactionThreadReportOnyxData({
+                    transactionThreadID: iouActionToCleanUp.childReportID,
+                    shouldDeleteTransactionThread: true,
+                    reportAction: iouActionToCleanUp,
+                    updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                });
+
+                onyxData.optimisticData?.push(...optimisticData);
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+                    value: updatedReportAction,
+                });
+
+                onyxData.successData?.push(...successData);
+                onyxData.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID}`,
+                    value: {
+                        [iouActionToCleanUp.reportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                });
+
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+                    value: {
+                        [iouActionToCleanUp.reportActionID]: {
+                            ...iouActionToCleanUp,
+                            pendingAction: null,
+                        },
+                        // Revert the optimistic "resolved" state on the Concierge actionable whisper so that if
+                        // the split API call fails, the whisper reappears alongside the restored original expense.
+                        ...(whisperActionID && {
+                            [whisperActionID]: {
+                                originalMessage: {
+                                    resolution:
+                                        (whisperAction && isActionOfType(whisperAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER)
+                                            ? getOriginalMessage(whisperAction)?.resolution
+                                            : null) ?? null,
+                                },
+                            },
+                        }),
+                    },
+                });
+                onyxData.failureData?.push(...failureData);
+            }
         } else {
             pushUpdatedReportPreviewActionToOnyxData();
         }
