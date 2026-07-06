@@ -1,22 +1,13 @@
-import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PopoverMenu from '@components/PopoverMenu';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import usePopoverPosition from '@hooks/usePopoverPosition';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {View} from 'react-native';
-
-import React, {useRef, useState} from 'react';
+import React from 'react';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -27,9 +18,6 @@ type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
-    /** Accessibility label for the trigger. Defaults to the shared "More" copy. */
-    accessibilityLabel?: string;
-
     /** Test ID for the trigger */
     testID?: string;
 
@@ -38,56 +26,25 @@ type WidgetHeaderMenuProps = {
 };
 
 /**
- * Standardized widget header action: a Medium Ghost three-dots icon button that opens a popover menu.
- * The 40px trigger overflows the card header rather than growing it (see `widgetHeaderMenuButtonWrapper`),
- * so every card header keeps the same height whether or not it has a menu.
+ * Widget header three-dots menu: a Medium Ghost trigger whose negative margins let it overflow the header
+ * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, accessibilityLabel, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
-    const {calculatePopoverPosition} = usePopoverPosition();
-    const buttonRef = useRef<View>(null);
-    const [isVisible, setIsVisible] = useState(false);
-    const [position, setPosition] = useState<AnchorPosition>();
-
-    const openMenu = () => {
-        calculatePopoverPosition(buttonRef, ANCHOR_ALIGNMENT).then((nextPosition) => {
-            setPosition(nextPosition);
-            setIsVisible(true);
-        });
-    };
 
     return (
-        <>
-            <PressableWithFeedback
-                ref={buttonRef}
-                testID={testID}
-                accessibilityLabel={accessibilityLabel ?? translate('common.more')}
-                sentryLabel={sentryLabel}
-                onPress={openMenu}
-                wrapperStyle={styles.widgetHeaderMenuButtonWrapper}
-                style={styles.widgetHeaderMenuButton}
-                hoverStyle={styles.widgetHeaderMenuButtonHovered}
-            >
-                <Icon
-                    src={icons.ThreeDots}
-                    fill={theme.icon}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                />
-            </PressableWithFeedback>
-            <PopoverMenu
-                isVisible={isVisible}
-                anchorRef={buttonRef}
-                anchorPosition={position ?? {horizontal: 0, vertical: 0}}
-                anchorAlignment={ANCHOR_ALIGNMENT}
-                onClose={() => setIsVisible(false)}
-                onItemSelected={() => setIsVisible(false)}
-                menuItems={menuItems}
-            />
-        </>
+        <ThreeDotsMenu
+            menuItems={menuItems}
+            shouldSelfPosition
+            anchorAlignment={ANCHOR_ALIGNMENT}
+            iconStyles={[styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
+            iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
+            iconWidth={variables.iconSizeSmall}
+            iconHeight={variables.iconSizeSmall}
+            shouldChangeFillOnOpen={false}
+            testID={testID}
+            sentryLabel={sentryLabel}
+        />
     );
 }
 
