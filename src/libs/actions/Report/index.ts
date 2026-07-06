@@ -78,6 +78,7 @@ import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/Network
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
+import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
@@ -1402,23 +1403,22 @@ function getGuidedSetupDataForOpenReport(
 ): GuidedSetupDataForOpenReport | undefined {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? onboarding?.hasCompletedGuidedSetupFlow ?? false;
+    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
 
     // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
     // Then we need to check the list request and prevent the guided setup data from being duplicated.
     const allPersistedRequests = getAll();
     const hasOpenReportWithGuidedSetupData = allPersistedRequests.some((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData);
 
-    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
-    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
-    if (!introSelected || isOnboardingCompleted || isInviteOnboardingComplete || hasOpenReportWithGuidedSetupData) {
+    // Prepare guided setup data only when nvp_introSelected is set and regular onboarding is pending or a supported invite onboarding flow still needs to run.
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages.
+    if (!introSelected || isInviteOnboardingComplete || hasOpenReportWithGuidedSetupData || (isOnboardingCompleted && !isPendingInviteOnboarding)) {
         return undefined;
     }
 
     const {choice, inviteType} = introSelected;
     const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
-    const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
-
-    if (!isInviteChoiceCorrect || isInviteIOUorInvoice) {
+    if (!isSupportedInviteOnboardingChoice(choice) || isInviteIOUorInvoice) {
         return undefined;
     }
 
@@ -1434,6 +1434,7 @@ function getGuidedSetupDataForOpenReport(
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
+        wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
     });
 
     if (!onboardingData) {
