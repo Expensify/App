@@ -19,7 +19,11 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 }
 
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
-    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
+    let result = makeXHR(request);
+    for (const middleware of middlewares) {
+        result = middleware(result, request, isFromSequentialQueue);
+    }
+    return result;
 }
 
 function addMiddleware(middleware: Middleware) {
