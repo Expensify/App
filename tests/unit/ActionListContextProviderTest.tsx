@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import type FlatListRefType from '@components/FlashList/types';
+
 import {ActionListContextProvider, useActionListContext} from '@pages/inbox/ActionListContext';
 
 /**

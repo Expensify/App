@@ -1,8 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {ReactNode} from 'react';
+
 import type FlatListRefType from '@components/FlashList/types';
+
 import useReportScrollManager from '@hooks/useReportScrollManager';
+
 import {ActionListContext, useActionListContext} from '@pages/inbox/ActionListContext';
+
+import type {ReactNode} from 'react';
 
 /**
  * `useReportScrollManager` resolves the list ref via `getListRef()` at call time (never captured at

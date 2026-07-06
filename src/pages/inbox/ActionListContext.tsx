@@ -1,6 +1,8 @@
-import React, {createContext, useContext, useRef} from 'react';
-import type {ReactNode, RefObject} from 'react';
 import type FlatListRefType from '@components/FlashList/types';
+
+import type {ReactNode, RefObject} from 'react';
+
+import React, {createContext, useContext, useRef} from 'react';
 
 type ScrollPosition = {offset?: number};
 
