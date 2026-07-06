@@ -1,5 +1,5 @@
 ---
-title: Learn How Subscriptions Work
+title: Learn About Subscriptions
 description: Learn what a subscription is, the subscription options available in Expensify, and how subscriptions affect billing.
 keywords: [New Expensify, subscriptions, Annual, Pay-per-use, billing owner, billing]
 internalScope: Audience is all workspace Owners. Explains what subscriptions are, how they work, and the available subscription options. Does not explain pricing, billing definitions, or how to manage subscriptions.
@@ -8,7 +8,7 @@ contentType: topic
 platform: new
 ---
 
-# How Subscriptions Work
+# Learn About Subscriptions
 
 Every Workspace owner has a single subscription that covers all of the Workspaces they own. That subscription determines how those Workspaces are billed, including whether you pay month-to-month or commit to an annual term.
 
@@ -33,7 +33,7 @@ Expensify offers two subscription options:
  - **Annual** subscriptions include a 12-month commitment and are billed monthly.
  - **Pay-per-use** subscriptions have no commitment and are billed monthly.
 
-Your subscription determines how your Workspaces are billed, but it does not determine which features are available. Features are determined by each Workspace's plan.
+Your subscription determines how your Workspaces are billed, but it does not determine which features are available. Features are determined by each Workspace's plan. 
 
 ---
 
@@ -50,11 +50,10 @@ Workspaces can use either subscription type with either plan:
 
 Together, each Workspace's plan and its owner's subscription determine how that Workspace is billed.
 
-To learn more, see [How Your Plan and Subscription Determine Your Bill](How-Your-Plan-and-Subscription-Determine-Your-Bill.md).
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
 
 ---
 
 ## Related articles
 
-- [Understand Expensify Pricing](Understand-Expensify-pricing.md)
-- [Understand Plan and Subscription Management](Understand-Plan-and-Subscription-Management.md)
+- [Understand Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Understand-Plan-and-Subscription-Management)
