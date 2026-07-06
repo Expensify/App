@@ -43,6 +43,24 @@ describe('forwardLogsToSentry', () => {
         expect(breadcrumb?.data).not.toHaveProperty('fileSizeBytes');
     });
 
+    it('does not forward the receipt-scoped params (event/transactionID) for a different prefix', () => {
+        // Given a [Reauthenticate] line that happens to carry generic `event`/`transactionID` params
+        const packet = packetWith('[info] [Reauthenticate] refreshing token', {
+            event: 'something-unrelated',
+            transactionID: 'should-not-leak',
+            command: 'Reauthenticate',
+        });
+
+        // When the packet is mirrored to Sentry
+        forwardLogsToSentry(packet);
+
+        // Then the globally whitelisted key is forwarded, but the receipt-scoped keys are not
+        const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
+        expect(breadcrumb?.data).toEqual(expect.objectContaining({command: 'Reauthenticate'}));
+        expect(breadcrumb?.data).not.toHaveProperty('event');
+        expect(breadcrumb?.data).not.toHaveProperty('transactionID');
+    });
+
     it('does not add a breadcrumb for log lines that are not forwarded', () => {
         // Given a log line without a forwarded prefix
         const packet = packetWith('[info] [SequentialQueue] push() called', {command: 'OpenReport'});

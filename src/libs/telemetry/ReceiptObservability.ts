@@ -57,6 +57,14 @@ const RECEIPT_BEARING_COMMANDS = new Set<string>([
 const enqueuedAtByTransactionID = new Map<string, number>();
 
 /**
+ * Upper bound on the enqueue-timing map. It is normally drained in the snapshot path, but a session that never hits a
+ * snapshot boundary (e.g. a long-lived web tab that never backgrounds or signs out) would otherwise grow it one entry
+ * per submitted receipt without bound. The oldest entry is evicted past this cap; losing it only degrades a future
+ * snapshot's `msSinceEnqueued` for that receipt, never correctness.
+ */
+const MAX_TRACKED_ENQUEUE_TIMESTAMPS = 100;
+
+/**
  * Mints a unique, opaque correlation id for a captured receipt and stamps it on the in-memory file object.
  *
  * The id is added as an own-enumerable property so it rides along with the file through the submit path into the
@@ -121,7 +129,17 @@ function logReceiptSubmitted({
  */
 function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
     if (transactionID) {
+        // Re-insert so the key moves to the newest slot (Map preserves insertion order), then trim the oldest entries
+        // past the cap. This bounds the map even if a snapshot boundary is never reached to drain it.
+        enqueuedAtByTransactionID.delete(transactionID);
         enqueuedAtByTransactionID.set(transactionID, Date.now());
+        while (enqueuedAtByTransactionID.size > MAX_TRACKED_ENQUEUE_TIMESTAMPS) {
+            const oldestTransactionID = enqueuedAtByTransactionID.keys().next().value;
+            if (oldestTransactionID === undefined) {
+                break;
+            }
+            enqueuedAtByTransactionID.delete(oldestTransactionID);
+        }
     }
 
     Log.info(`${RECEIPT_LOG_PREFIX} enqueued`, true, {

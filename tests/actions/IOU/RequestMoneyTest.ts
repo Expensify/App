@@ -134,22 +134,13 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
-const CARLOS_PARTICIPANT: Participant = {
-    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    role: 'member',
-};
+const CARLOS_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 const JULES_EMAIL = 'jules@expensifail.com';
 const JULES_ACCOUNT_ID = 2;
-const JULES_PARTICIPANT: Participant = {
-    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    role: 'member',
-};
+const JULES_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
-const RORY_PARTICIPANT: Participant = {
-    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    role: 'admin',
-};
+const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
 
@@ -168,9 +159,7 @@ describe('actions/IOU', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -253,19 +242,12 @@ describe('actions/IOU', () => {
                                     transactionThread = transactionThreadReport;
 
                                     expect(iouReport?.participants).toEqual({
-                                        [RORY_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                        },
-                                        [CARLOS_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                        },
+                                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                                        [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                     });
 
                                     // They should be linked together
-                                    expect(chatReport?.participants).toEqual({
-                                        [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                                        [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                                    });
+                                    expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                     expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                     resolve();
@@ -456,10 +438,7 @@ describe('actions/IOU', () => {
             let chatReport: Report = {
                 reportID: '1234',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                    [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                },
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const createdAction: ReportAction = {
                 reportActionID: rand64(),
@@ -483,10 +462,7 @@ describe('actions/IOU', () => {
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {
-                                login: CARLOS_EMAIL,
-                                accountID: CARLOS_ACCOUNT_ID,
-                            },
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         },
                         transactionParams: {
                             amount,
@@ -528,12 +504,8 @@ describe('actions/IOU', () => {
                                     iouReportID = iouReport?.reportID;
 
                                     expect(iouReport?.participants).toEqual({
-                                        [RORY_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                        },
-                                        [CARLOS_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                        },
+                                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                                        [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                     });
 
                                     // They should be linked together
@@ -662,10 +634,7 @@ describe('actions/IOU', () => {
                 reportID: chatReportID,
                 type: CONST.REPORT.TYPE.CHAT,
                 iouReportID,
-                participants: {
-                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                    [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                },
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const createdAction: ReportAction = {
                 reportActionID: rand64(),
@@ -677,13 +646,7 @@ describe('actions/IOU', () => {
                 amount: 1000,
                 comment: {
                     comment: 'Existing transaction',
-                    attendees: [
-                        {
-                            email: 'text@expensify.com',
-                            displayName: 'Test User',
-                            avatarUrl: '',
-                        },
-                    ],
+                    attendees: [{email: 'text@expensify.com', displayName: 'Test User', avatarUrl: ''}],
                 },
                 created: DateUtils.getDBTime(),
                 currency: CONST.CURRENCY.USD,
@@ -732,10 +695,7 @@ describe('actions/IOU', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {
-                                    login: CARLOS_EMAIL,
-                                    accountID: CARLOS_ACCOUNT_ID,
-                                },
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
                             transactionParams: {
                                 amount,
@@ -950,16 +910,10 @@ describe('actions/IOU', () => {
                                         const iouReport = iouReports.at(0);
                                         iouReportID = iouReport?.reportID;
 
-                                        expect(chatReport?.participants).toStrictEqual({
-                                            [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                                            [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                                        });
+                                        expect(chatReport?.participants).toStrictEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
 
                                         // They should be linked together
-                                        expect(chatReport?.participants).toStrictEqual({
-                                            [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                                            [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                                        });
+                                        expect(chatReport?.participants).toStrictEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                         expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                         resolve();
@@ -1305,9 +1259,7 @@ describe('actions/IOU', () => {
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport),
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat),
                 Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                    [accountant.accountID]: accountant,
-                }),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant}),
             ]);
             await waitForBatchedUpdates();
 
@@ -1380,10 +1332,7 @@ describe('actions/IOU', () => {
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {
-                        reportID: policyExpenseChat.reportID,
-                        isPolicyExpenseChat: true,
-                    },
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
                 },
                 policyParams: {
                     policy,
@@ -1551,10 +1500,7 @@ describe('actions/IOU', () => {
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {
-                        reportID: workspaceChat.reportID,
-                        isPolicyExpenseChat: true,
-                    },
+                    participant: {reportID: workspaceChat.reportID, isPolicyExpenseChat: true},
                 },
                 transactionParams: {
                     amount: 100,
@@ -1598,10 +1544,7 @@ describe('actions/IOU', () => {
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {
-                        reportID: workspaceChat.reportID,
-                        isPolicyExpenseChat: true,
-                    },
+                    participant: {reportID: workspaceChat.reportID, isPolicyExpenseChat: true},
                 },
                 transactionParams: {
                     amount: 100,
@@ -1896,10 +1839,7 @@ describe('actions/IOU', () => {
             const chatReport: OnyxEntry<Report> = {
                 reportID: '1234',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                    [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                },
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -2080,10 +2020,7 @@ describe('actions/IOU', () => {
             const existingChatReport: Report = {
                 reportID: '9999',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                    [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
-                },
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
             };
 
             mockFetch?.pause?.();
@@ -2097,10 +2034,7 @@ describe('actions/IOU', () => {
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {
-                                login: CARLOS_EMAIL,
-                                accountID: CARLOS_ACCOUNT_ID,
-                            },
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         },
                         transactionParams: {
                             amount,
@@ -2174,10 +2108,7 @@ describe('actions/IOU', () => {
             const existingChatReport: Report = {
                 reportID: '8888',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                    [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
-                },
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
 
             mockFetch?.pause?.();
@@ -2190,10 +2121,7 @@ describe('actions/IOU', () => {
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {
-                                login: CARLOS_EMAIL,
-                                accountID: CARLOS_ACCOUNT_ID,
-                            },
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         },
                         transactionParams: {
                             amount,
@@ -2271,12 +2199,7 @@ describe('actions/IOU', () => {
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {
-                                login: CARLOS_EMAIL,
-                                accountID: CARLOS_ACCOUNT_ID,
-                                isPolicyExpenseChat: true,
-                                reportID: policyExpenseChatReport.reportID,
-                            },
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: policyExpenseChatReport.reportID},
                         },
                         transactionParams: {
                             amount,
@@ -2335,10 +2258,7 @@ describe('actions/IOU', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyID,
-                participants: {
-                    [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-                    [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
-                },
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
             };
 
             mockFetch?.pause?.();
@@ -2352,10 +2272,7 @@ describe('actions/IOU', () => {
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {
-                                login: CARLOS_EMAIL,
-                                accountID: CARLOS_ACCOUNT_ID,
-                            },
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         },
                         transactionParams: {
                             amount,
@@ -2429,11 +2346,7 @@ describe('actions/IOU', () => {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
                             // accountID: 0 is used for self-DM participants (represents the report itself, not another user)
-                            participant: {
-                                accountID: 0,
-                                reportID: selfDMReport.reportID,
-                                isPolicyExpenseChat: false,
-                            },
+                            participant: {accountID: 0, reportID: selfDMReport.reportID, isPolicyExpenseChat: false},
                         },
                         transactionParams: {
                             amount,
@@ -2687,12 +2600,7 @@ describe('actions/IOU', () => {
             const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
             newFlatFilters.push({
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: String(RORY_ACCOUNT_ID),
-                    },
-                ],
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: String(RORY_ACCOUNT_ID)}],
             });
             const groupedTransactionsQueryJSON = SearchQueryUtils.buildSearchQueryJSON(
                 SearchQueryUtils.buildSearchQueryString({

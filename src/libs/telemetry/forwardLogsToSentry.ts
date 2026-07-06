@@ -22,15 +22,21 @@ const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = [
     'lastUpdateID',
     'previousLastUpdateIDAppliedToClient',
     /^mfa\./,
-    'receiptTraceId',
-    'transactionID',
-    'event',
 ];
 
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
 const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[OnyxUpdateManagerError]', '[Receipt]'] as const;
+
+type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
+
+/**
+ * Parameter keys forwarded only for a specific log prefix, on top of PARAMETERS_WHITELIST. Keys here are NOT allowed for
+ * any other prefix, so a generic key like `event` can't leak from an unrelated forwarded line. Keep the receipt
+ * observability keys scoped to `[Receipt]` rather than widening the global whitelist.
+ */
+const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([['[Receipt]', ['receiptTraceId', 'transactionID', 'event']]]);
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
@@ -61,12 +67,14 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isKeyWhitelisted(key: string): boolean {
-    return PARAMETERS_WHITELIST.some((pattern) => (typeof pattern === 'string' ? key === pattern : pattern.test(key)));
+function isKeyWhitelisted(key: string, prefix: ForwardedLogPrefix): boolean {
+    const matchesPattern = (pattern: string | RegExp) => (typeof pattern === 'string' ? key === pattern : pattern.test(key));
+    const prefixScopedPatterns = PREFIX_SCOPED_PARAMETERS_WHITELIST.get(prefix) ?? [];
+    return PARAMETERS_WHITELIST.some(matchesPattern) || prefixScopedPatterns.some(matchesPattern);
 }
 
-function filterWhitelistedParameters(parameters: Record<string, unknown>): Record<string, unknown> {
-    return Object.fromEntries(Object.entries(parameters).filter(([key]) => isKeyWhitelisted(key)));
+function filterWhitelistedParameters(parameters: Record<string, unknown>, prefix: ForwardedLogPrefix): Record<string, unknown> {
+    return Object.fromEntries(Object.entries(parameters).filter(([key]) => isKeyWhitelisted(key, prefix)));
 }
 
 function flattenNestedParameters(parameters: Record<string, unknown>, prefix = ''): Record<string, unknown> {
@@ -84,12 +92,12 @@ function flattenNestedParameters(parameters: Record<string, unknown>, prefix = '
     return result;
 }
 
-function prepareParametersForSentry(parameters: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+function prepareParametersForSentry(parameters: Record<string, unknown> | undefined, prefix: ForwardedLogPrefix): Record<string, unknown> | undefined {
     if (!parameters) {
         return undefined;
     }
 
-    return filterWhitelistedParameters(flattenNestedParameters(parameters));
+    return filterWhitelistedParameters(flattenNestedParameters(parameters), prefix);
 }
 
 function forwardLogsToSentry(logPacket: string | undefined) {
@@ -118,7 +126,7 @@ function forwardLogsToSentry(logPacket: string | undefined) {
             continue;
         }
 
-        const params = prepareParametersForSentry(logLine.parameters);
+        const params = prepareParametersForSentry(logLine.parameters, prefix);
         const level = mapLogMessageToSentryLevel(logLine.message);
         const logMethod = Sentry.logger[level];
         if (logMethod) {

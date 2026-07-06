@@ -119,9 +119,7 @@ function saveQueueFlushedData<TKey extends OnyxKey>(...onyxUpdates: Array<OnyxUp
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
-        Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {
-            newValue,
-        });
+        Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {newValue});
     });
 }
 function clearQueueFlushedData() {
@@ -615,9 +613,7 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
     } catch {
         // Backstop: persistence alerts+swallows on failure, so this shouldn't reject. If it ever does,
         // flush anyway (the request is already in the in-memory queue) rather than stranding isReadyPromise.
-        Log.info('[SequentialQueue] Persist rejected — flushing anyway', false, {
-            command: newRequest.command,
-        });
+        Log.info('[SequentialQueue] Persist rejected — flushing anyway', false, {command: newRequest.command});
     }
 
     // The network may have flipped offline while we awaited the disk write. flush() would

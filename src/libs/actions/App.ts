@@ -233,9 +233,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
         value: locale,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {
-        optimisticData,
-    });
+    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
 
 function setSidebarLoaded() {
@@ -274,9 +272,7 @@ function saveCurrentPathBeforeBackground() {
         const currentPath = getPathFromState(currentState);
 
         if (currentPath) {
-            Log.info('Saving current path before background', false, {
-                currentPath: sanitizeUrlForLogging(currentPath),
-            });
+            Log.info('Saving current path before background', false, {currentPath: sanitizeUrlForLogging(currentPath)});
             updateLastVisitedPath(currentPath);
         }
     } catch (error) {
@@ -294,20 +290,14 @@ AppState.addEventListener('change', (nextAppState) => {
         cancelAllSpans();
     }
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
-        Log.info('App going to background', false, {
-            previousState: appState,
-            nextState: nextAppState,
-        });
+        Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
         logReceiptQueueSnapshot('background');
         saveCurrentPathBeforeBackground();
     }
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
-        Log.info('App coming to foreground', false, {
-            previousState: appState,
-            nextState: nextAppState,
-        });
+        Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
         logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
@@ -346,9 +336,7 @@ function getOnyxDataForOpenOrReconnect(
     } else {
         commandName = 'ReconnectApp (partial)';
     }
-    Log.info(`[App] isLoadingReportData set to true`, false, {
-        command: commandName,
-    });
+    Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
     const result: OnyxData<
         | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
@@ -468,10 +456,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    const params: OpenAppParams = {
-        ...getPolicyParamsForOpenOrReconnect(),
-        enablePriorityModeFilter: true,
-    };
+    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
     return API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.OPEN_APP,
         params,
