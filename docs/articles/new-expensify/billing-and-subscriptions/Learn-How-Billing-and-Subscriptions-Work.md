@@ -53,6 +53,8 @@ To learn more, see How Your Plan and Subscription Determine Your Bill.
 
 Each Workspace has an owner, sometimes called the billing owner, who is responsible for the monthly bill. 
 
+A single member can own multiple Workspaces. The Workspace owner is billed for all billable members across every Workspace they own, rather than each Workspace being billed separately. Because billing is tied to the Workspace owner, organizations that use multiple Workspaces typically assign the same Workspace owner to each Workspace.
+
 Workspace owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
 To learn more, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
