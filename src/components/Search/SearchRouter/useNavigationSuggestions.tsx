@@ -1,7 +1,6 @@
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import type {IconProps} from '@components/Icon';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import Text from '@components/Text';
 
@@ -40,7 +39,6 @@ import {
 } from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import StringUtils from '@libs/StringUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 
@@ -67,7 +65,10 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
+
 import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
+import {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText} from './SearchRouterHelpers';
 
 type RightSideContextProps = {
     label: string;
@@ -99,11 +100,6 @@ const MIN_NAVIGATION_QUERY_LENGTH = 3;
 const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
 const ACCOUNT_NAVIGATION_KEYWORDS = new Map<TranslationPaths, string[]>([['initialSettingsPage.security', ['password', '2fa', 'two factor', 'two-factor']]]);
 
-type NavigationSuggestionSourceItem = SearchQueryItem & {
-    action?: () => void;
-    matchTerms?: string[];
-};
-
 function WorkspaceContext({policy}: WorkspaceContextProps) {
     const styles = useThemeStyles();
 
@@ -119,51 +115,6 @@ function WorkspaceContext({policy}: WorkspaceContextProps) {
             <Text style={styles.textLabelSupporting}>{policy.name}</Text>
         </View>
     );
-}
-
-function stripNavigationIntentPrefix(query: string) {
-    const trimmedQuery = query.trim();
-    if (/^go to\s+/i.test(trimmedQuery)) {
-        return trimmedQuery.replace(/^go to\s+/i, '').trim();
-    }
-    if (/^go\s+/i.test(trimmedQuery)) {
-        return trimmedQuery.replace(/^go\s+/i, '').trim();
-    }
-    return trimmedQuery;
-}
-
-function isNavigationIntentOnlyQuery(query: string) {
-    return /^go(?:\s+to)?$/i.test(query.trim());
-}
-
-function matchesNavigationQuery(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = StringUtils.normalizeAccents(query).toLowerCase();
-    if (!normalizedQuery) {
-        return false;
-    }
-
-    return values.some((value) =>
-        StringUtils.normalizeAccents(value ?? '')
-            .toLowerCase()
-            .includes(normalizedQuery),
-    );
-}
-
-function getGoToText(translate: LocaleContextProps['translate'], destination: string) {
-    return translate('search.goTo', {destination});
-}
-
-function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>(items: T[], localeCompare: LocaleContextProps['localeCompare']): T[] {
-    return [...items].sort((firstItem, secondItem) => {
-        const firstText = StringUtils.normalizeAccents(firstItem.text ?? '').toLowerCase();
-        const secondText = StringUtils.normalizeAccents(secondItem.text ?? '').toLowerCase();
-        const textComparison = localeCompare(firstText, secondText);
-        if (textComparison !== 0) {
-            return textComparison;
-        }
-
-        return localeCompare(firstItem.keyForList ?? '', secondItem.keyForList ?? '');
-    });
 }
 
 function replaceTopmostModalWithAction(action: () => void) {

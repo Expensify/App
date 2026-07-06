@@ -1,4 +1,5 @@
 import navigateToWorkspaceSettingsRoute from '@components/Search/SearchRouter/navigateToWorkspaceSettingsRoute';
+import {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems} from '@components/Search/SearchRouter/SearchRouterHelpers';
 
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -50,6 +51,7 @@ const workspaceIcons = {
     Clock: mockIcon,
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
+    Bolt: mockIcon,
 };
 
 function createPolicy(overrides: Partial<OnyxTypes.Policy> = {}): OnyxTypes.Policy {
@@ -187,5 +189,97 @@ describe('getWorkspaceMenuItems', () => {
 
         expect(itemsWithoutRooms.map((item) => item.translationKey)).not.toContain('workspace.common.rooms');
         expect(itemsWithRooms.map((item) => item.translationKey)).toContain('workspace.common.rooms');
+    });
+});
+
+describe('stripNavigationIntentPrefix', () => {
+    it('strips "go " prefix', () => {
+        expect(stripNavigationIntentPrefix('go inbox')).toBe('inbox');
+    });
+
+    it('strips "go to " prefix', () => {
+        expect(stripNavigationIntentPrefix('go to inbox')).toBe('inbox');
+    });
+
+    it('is case insensitive', () => {
+        expect(stripNavigationIntentPrefix('Go To Inbox')).toBe('Inbox');
+    });
+
+    it('returns query unchanged when no prefix', () => {
+        expect(stripNavigationIntentPrefix('inbox')).toBe('inbox');
+    });
+
+    it('returns bare "go" unchanged', () => {
+        expect(stripNavigationIntentPrefix('go')).toBe('go');
+    });
+
+    it('trims surrounding whitespace', () => {
+        expect(stripNavigationIntentPrefix('  go to inbox  ')).toBe('inbox');
+    });
+});
+
+describe('isNavigationIntentOnlyQuery', () => {
+    it('returns true for "go"', () => {
+        expect(isNavigationIntentOnlyQuery('go')).toBe(true);
+    });
+
+    it('returns true for "go to"', () => {
+        expect(isNavigationIntentOnlyQuery('go to')).toBe(true);
+    });
+
+    it('is case insensitive', () => {
+        expect(isNavigationIntentOnlyQuery('Go')).toBe(true);
+        expect(isNavigationIntentOnlyQuery('Go To')).toBe(true);
+    });
+
+    it('returns false for queries with a target', () => {
+        expect(isNavigationIntentOnlyQuery('go inbox')).toBe(false);
+        expect(isNavigationIntentOnlyQuery('go to inbox')).toBe(false);
+    });
+
+    it('returns false for unrelated queries', () => {
+        expect(isNavigationIntentOnlyQuery('inbox')).toBe(false);
+        expect(isNavigationIntentOnlyQuery('home')).toBe(false);
+    });
+});
+
+describe('matchesNavigationQuery', () => {
+    it('matches case insensitively', () => {
+        expect(matchesNavigationQuery('inbox', 'Go to Inbox')).toBe(true);
+        expect(matchesNavigationQuery('INBOX', 'Go to Inbox')).toBe(true);
+    });
+
+    it('returns false when no match', () => {
+        expect(matchesNavigationQuery('inbox', 'Report')).toBe(false);
+    });
+
+    it('returns false for empty query', () => {
+        expect(matchesNavigationQuery('', 'anything')).toBe(false);
+    });
+
+    it('matches against multiple values', () => {
+        expect(matchesNavigationQuery('pass', 'Security', 'password')).toBe(true);
+    });
+});
+
+describe('sortNavigationSuggestionItems', () => {
+    const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+    it('sorts items alphabetically by text', () => {
+        const items = [
+            {text: 'Go to Inbox', keyForList: 'b'},
+            {text: 'Go to Home', keyForList: 'a'},
+        ];
+        const sorted = sortNavigationSuggestionItems(items, localeCompare);
+        expect(sorted.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox']);
+    });
+
+    it('falls back to keyForList when text is equal', () => {
+        const items = [
+            {text: 'Go to Members', keyForList: 'workspace-b_members'},
+            {text: 'Go to Members', keyForList: 'workspace-a_members'},
+        ];
+        const sorted = sortNavigationSuggestionItems(items, localeCompare);
+        expect(sorted.map((item) => item.keyForList)).toEqual(['workspace-a_members', 'workspace-b_members']);
     });
 });
