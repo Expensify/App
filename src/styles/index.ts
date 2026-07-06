@@ -712,6 +712,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderRadiusCircle: {
+            borderRadius: 999,
+        },
+
         bottomTabBarSpacer: {
             height: variables.bottomTabHeight,
         },
@@ -1373,6 +1377,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         componentHeightLarge: {
             height: variables.inputHeight,
+        },
+
+        componentSizeNormal: {
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
         },
 
         calendarHeader: {
