@@ -1,3 +1,4 @@
+import type FlatListRefType from '@components/FlashList/types';
 import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
 
 import type {FlashListProps} from '@shopify/flash-list';
@@ -5,7 +6,6 @@ import type {FlashListProps} from '@shopify/flash-list';
 import React from 'react';
 
 import FlashList from '..';
-import FlatListRefType from '../types';
 import CellRendererComponent from './CellRendererComponent';
 
 type InvertedFlashListProps<T> = FlashListProps<T> & {

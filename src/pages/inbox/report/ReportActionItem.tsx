@@ -59,6 +59,7 @@ import {
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -87,7 +88,6 @@ import {Keyboard, View} from 'react-native';
 
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 
-import {ReactionListContext} from '../ReactionListContext';
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';

@@ -1,4 +1,4 @@
-import type {RefObject, SyntheticEvent} from 'react';
+import type {SyntheticEvent} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
 

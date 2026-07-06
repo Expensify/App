@@ -27,7 +27,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-nat
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
