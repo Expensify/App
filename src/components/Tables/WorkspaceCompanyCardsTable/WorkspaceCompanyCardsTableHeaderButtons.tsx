@@ -1,5 +1,5 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
@@ -148,13 +148,14 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
                 {!isLoading && canWriteCompanyCards && (
                     <Button
-                        success={false}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
-                        text={translate('common.settings')}
-                        icon={icons.Gear}
+                        accessibilityLabel={translate('common.settings')}
                         style={shouldShowNarrowLayout ? styles.w100 : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
-                    />
+                    >
+                        <Button.Icon src={icons.Gear} />
+                        <Button.Text>{translate('common.settings')}</Button.Text>
+                    </Button>
                 )}
             </View>
 
