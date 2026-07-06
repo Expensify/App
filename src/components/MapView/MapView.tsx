@@ -22,6 +22,7 @@ import type {MapState} from '@rnmapbox/maps';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync} from 'expo-location';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
@@ -114,10 +115,22 @@ function MapView({
                 return;
             }
 
-            getCurrentPosition((params) => {
-                const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                setUserLocation(currentCoords);
-            }, setCurrentPositionToInitialState);
+            // Only read the device location when permission is ALREADY granted. We never request it here,
+            // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
+            getForegroundPermissionsAsync().then(({granted}) => {
+                if (!granted) {
+                    setCurrentPositionToInitialState();
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    const currentCoords = {
+                        longitude: params.coords.longitude,
+                        latitude: params.coords.latitude,
+                    };
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            });
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
