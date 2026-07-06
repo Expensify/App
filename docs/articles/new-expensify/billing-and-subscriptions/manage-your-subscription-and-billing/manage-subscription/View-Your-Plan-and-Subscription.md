@@ -1,8 +1,8 @@
 ---
 title: View Your Plan and Subscription
-description: See your current workspace plan and subscription details.
+description: See your current Workspace plan and subscription details.
 keywords: [New Expensify, current plan, view plan, pricing, billing rate, per member, Collect, Control, billing owner, subscription, workspace owner]
-internalScope: Audience is workspace owners. Covers how to view the current Workspace plan and billing rate under Account > Subscription. Does not cover how to change, enable, or configure a plan or subscription.
+internalScope: Audience is Workspace owners. Covers how to view the current Workspace plan and billing rate under Account > Subscription. Does not cover how to change, enable, or configure a plan or subscription.
 retrievalIntent: How to view your current plan and subscription.
 contentType: task
 platform: new
@@ -16,9 +16,9 @@ Workspace owners can confirm which plan they're on— Collect or Control—and t
 
 ## Who can view your plan and subscription
 
-Only the workspace owner can view the **Subscription** page to see the workspace plan and subscription. If you don't see **Subscription** under **Account**, you're not a workspace owner. 
+Only the Workspace owner can view the **Subscription** page to see the Workspace plan and subscription. If you don't see **Subscription** under **Account**, you're not a Workspace owner. 
 
-Workspace Admins can view the workspace plan under **Overview > Plan type**. 
+Workspace Admins can view the Workspace plan under **Overview > Plan type**. 
 
 ---
 
@@ -33,7 +33,7 @@ Workspace Admins can view the workspace plan under **Overview > Plan type**.
 ## Related articles
 
  - [Learn How Billing and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work)
- - [Change Your Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan)
+ - [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan)
 
 ---
 
@@ -47,4 +47,4 @@ To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billin
 
 ## How do I find the workspace owner?
 
-To find the owner of a workspace you're a member of, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
+To find the owner of a Workspace you're a member of, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
