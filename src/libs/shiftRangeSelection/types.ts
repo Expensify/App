@@ -1,15 +1,9 @@
-import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-
 type ShiftRangeBatch<TItem> = {
     toSelect: TItem[];
     toDeselect: TItem[];
 };
 
-/** Intersection with the event union lets native / RN-Web / DOM call sites pass their event without a cast. */
-type ShiftClickEvent = (GestureResponderEvent | KeyboardEvent | ReactKeyboardEvent | MouseEvent) & {
-    shiftKey?: boolean;
-    nativeEvent?: {shiftKey?: boolean};
-};
+/** Minimal shape read by `getShiftKeyFromEvent` — any native / RN-Web / DOM press event is assignable, and Shift may sit on `nativeEvent`. */
+type ShiftClickEvent = {shiftKey?: boolean; nativeEvent?: unknown};
 
 export type {ShiftRangeBatch, ShiftClickEvent};

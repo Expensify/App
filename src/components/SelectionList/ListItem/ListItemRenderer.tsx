@@ -7,6 +7,7 @@ import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -83,7 +84,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 onLongPressRow={onLongPressRow}
                 onSelectRow={(_selectedItem?: unknown, _transactionPreviewData?: unknown, event?: ModifiedMouseEvent) => {
-                    const shiftKey = event?.shiftKey ?? false;
+                    const shiftKey = getShiftKeyFromEvent(event);
                     if (shouldSingleExecuteRowSelect) {
                         singleExecution(() => selectRow(item, index, shiftKey))();
                     } else {

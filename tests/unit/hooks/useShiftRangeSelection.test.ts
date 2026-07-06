@@ -618,6 +618,14 @@ describe('getShiftKeyFromEvent', () => {
     it('outer shiftKey false takes precedence over nativeEvent shiftKey true', () => {
         expect(getShiftKeyFromEvent({shiftKey: false, nativeEvent: {shiftKey: true}})).toBe(false);
     });
+
+    it('safely ignores a nativeEvent that lacks shiftKey or is not an object', () => {
+        // nativeEvent is untyped (unknown), so the runtime guard must handle real RN press events, null, and non-objects without throwing.
+        expect(getShiftKeyFromEvent({nativeEvent: {locationX: 5}})).toBe(false);
+        expect(getShiftKeyFromEvent({nativeEvent: {}})).toBe(false);
+        expect(getShiftKeyFromEvent({nativeEvent: null})).toBe(false);
+        expect(getShiftKeyFromEvent({nativeEvent: 'shift'})).toBe(false);
+    });
 });
 
 describe('applyShiftRangeBatchToKeySet', () => {
