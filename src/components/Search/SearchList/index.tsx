@@ -475,7 +475,7 @@ function SearchList({
             // Handle group header items (sticky)
             if (isGroupHeaderItem(item)) {
                 const headerItem = item;
-                const originalKey = (item.keyForList ?? '').replace('header_', '');
+                const originalKey = item.groupKeyForList;
                 return (
                     <GroupHeader
                         item={headerItem}
@@ -505,7 +505,7 @@ function SearchList({
             // Handle children container items (animated expand/collapse)
             if (isGroupChildrenContainerItem(item)) {
                 const containerItem = item;
-                const originalKey = (item.keyForList ?? '').replace('children_', '');
+                const originalKey = item.groupKeyForList;
                 const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
                 return (
                     <GroupChildrenContainer

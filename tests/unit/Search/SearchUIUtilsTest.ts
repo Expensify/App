@@ -21,6 +21,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 
@@ -10763,5 +10764,41 @@ describe('getViolationsFromSearchData', () => {
     it('returns an empty collection when there are no violation keys', () => {
         const data = {[`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'}} as unknown as OnyxTypes.SearchResults['data'];
         expect(SearchUIUtils.getViolationsFromSearchData(data)).toEqual({});
+    });
+});
+
+describe('splitGroupsIntoPairs', () => {
+    it('splits each group into a header + children container that keep the original group key in groupKeyForList', () => {
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs(transactionReportGroupListItems);
+
+        expect(splitData).toHaveLength(transactionReportGroupListItems.length * 2);
+        // Sticky headers point at each header row (the even indices).
+        expect(stickyHeaderIndices).toEqual(transactionReportGroupListItems.map((_group, index) => index * 2));
+
+        // groupKeyForList must stay the original key — shift-range registers/looks up children by it.
+        for (const [index, group] of transactionReportGroupListItems.entries()) {
+            expect(splitData.at(index * 2)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
+                keyForList: `header_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+            expect(splitData.at(index * 2 + 1)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER,
+                keyForList: `children_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+        }
+    });
+
+    it('passes non-group rows through unchanged', () => {
+        const leaf = transactionReportGroupListItems.at(0)?.transactions.at(0);
+        expect(leaf).toBeDefined();
+        if (!leaf) {
+            return;
+        }
+
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
+        expect(splitData).toEqual([leaf]);
+        expect(stickyHeaderIndices).toEqual([]);
     });
 });

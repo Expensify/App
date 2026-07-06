@@ -100,15 +100,16 @@ function GroupChildrenContent({
     const isEmpty = transactions.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
-    // Publish lazily-loaded children to the shift-range source so shift+click can span them (group-by only).
+    // Publish lazily-loaded children to the shift-range source so shift+click can span them (group-by only). Register under the group's
+    // original key (groupKeyForList — this container's keyForList is prefixed) so it matches the shift-range lookup in SearchWriteActionsProvider.
     useEffect(() => {
         if (isExpenseReportType || !isExpanded || transactions.length === 0) {
-            unregisterGroupChildren(groupItem.keyForList);
+            unregisterGroupChildren(groupItem.groupKeyForList);
             return;
         }
-        registerGroupChildren(groupItem.keyForList, transactions);
-        return () => unregisterGroupChildren(groupItem.keyForList);
-    }, [isExpenseReportType, isExpanded, transactions, groupItem.keyForList, registerGroupChildren, unregisterGroupChildren]);
+        registerGroupChildren(groupItem.groupKeyForList, transactions);
+        return () => unregisterGroupChildren(groupItem.groupKeyForList);
+    }, [isExpenseReportType, isExpanded, transactions, groupItem.groupKeyForList, registerGroupChildren, unregisterGroupChildren]);
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {

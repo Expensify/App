@@ -281,7 +281,7 @@ function ExpenseGroupedSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('header_', '');
+            const originalKey = item.groupKeyForList;
             return (
                 <GroupHeader
                     item={item}
@@ -309,7 +309,7 @@ function ExpenseGroupedSearchView({
         }
 
         if (isGroupChildrenContainerItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('children_', '');
+            const originalKey = item.groupKeyForList;
             const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
             return (
                 <GroupChildrenContainer
