@@ -1,4 +1,3 @@
-import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -6,10 +5,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {StackActions} from '@react-navigation/native';
 
 function dismissOnboardingModalBeforeExit() {}
-
-function getOnboardingExitNavigationOptions(): LinkToOptions | undefined {
-    return {forceReplace: true};
-}
 
 /**
  * Pops the nested OnboardingModalNavigator stack back to its first route so useLinking
@@ -35,4 +30,4 @@ function resetOnboardingStackToRoot() {
     });
 }
 
-export {dismissOnboardingModalBeforeExit, getOnboardingExitNavigationOptions, resetOnboardingStackToRoot};
+export {dismissOnboardingModalBeforeExit, resetOnboardingStackToRoot};
