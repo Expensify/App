@@ -2375,6 +2375,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Zwei-Faktor-Gerät ersetzen',
         verifyOldDeviceTitle: 'Altes Gerät verifizieren',
         verifyOldDeviceDescription: 'Geben Sie den sechsstelligen Code aus Ihrer aktuellen Authentifizierungs-App ein, um zu bestätigen, dass Sie Zugriff darauf haben.',
+        verifyOldDeviceDescriptionWithRecovery: 'Geben Sie einen gültigen Wiederherstellungscode ein, um zu bestätigen, dass Sie Zugriff auf Ihr Konto haben.',
         verifyNewDeviceTitle: 'Neues Gerät einrichten',
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
