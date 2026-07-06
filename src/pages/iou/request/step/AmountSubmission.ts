@@ -206,6 +206,21 @@ function getIsP2PForAmount({chatReportForP2P, currentUserAccountID}: GetIsP2PFor
 }
 
 /**
+ * Determines whether a transaction's current tax code is still the auto-applied default for the given currency
+ * (i.e. the user has not manually picked a different rate). Used by both the create and edit submit paths to
+ * decide whether a currency change should re-apply the new currency's default tax rate.
+ */
+function isTaxCodeAutoDefaultForCurrency(
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    currency: string | undefined,
+    taxCode: string | undefined,
+): boolean {
+    const defaultTaxCodeForCurrency = getDefaultTaxCode(policy, transaction, currency);
+    return !taxCode || taxCode === defaultTaxCodeForCurrency;
+}
+
+/**
  * Submission orchestration for `IOURequestStepAmount`. Verbatim port of the previous inline
  * `saveAmountAndCurrency` + `navigateToNextPage` handlers. All submit-only Onyx values are read
  * from the module-scoped `connectWithoutView` caches above.
@@ -274,8 +289,7 @@ function submitAmount({
         // Only do this when the current tax code is still the auto-applied default for the previous currency, so a tax
         // rate the user manually selected is preserved across the currency change.
         const previousCurrency = getCurrency(transaction);
-        const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousCurrency);
-        const isCurrentTaxAutoDefault = !transaction?.taxCode || transaction?.taxCode === previousDefaultTaxCode;
+        const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, previousCurrency, transaction?.taxCode);
         // Only re-apply a currency default when the workspace actually tracks tax (mirrors the confirmation page's
         // `shouldShowTax` gate). Without this, a currency change would persist a tax code and amount on a workspace
         // that has tax tracking disabled. The amount step is always a manual expense, so distance is `false` here.
@@ -544,8 +558,7 @@ function submitAmount({
     // the currency change (mirrors the create-flow guard in `navigateToNextPage`).
     const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
-    const previousDefaultTaxCode = getDefaultTaxCode(policy, currentTransaction, transactionCurrency);
-    const isCurrentTaxAutoDefault = !transactionTaxCode || transactionTaxCode === previousDefaultTaxCode;
+    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, currentTransaction, transactionCurrency, transactionTaxCode);
     // The edit path has no confirmation-page safety net, so heal a tax code that is no longer a valid rate on the
     // policy (e.g. the rate was deleted or the expense moved workspaces) by falling back to the currency default.
     const isTransactionTaxCodeValid = hasTaxRateWithMatchingValue(policy, currentTransaction);
