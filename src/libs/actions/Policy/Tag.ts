@@ -751,7 +751,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
-/** Builds a POLICY_TAGS update that sets every tag in the given lists to `enabled`. */
+// Builds a POLICY_TAGS update that sets every tag in the given lists to `enabled`.
 function buildPolicyTagsEnabledData(policyTags: PolicyTagLists, enabled: boolean): Record<string, Partial<PolicyTagList>> {
     return Object.fromEntries(
         Object.entries(policyTags).map(([listName, tagList]): [string, Partial<PolicyTagList>] => [
@@ -761,7 +761,7 @@ function buildPolicyTagsEnabledData(policyTags: PolicyTagLists, enabled: boolean
     );
 }
 
-/** Builds a POLICY_TAGS update that restores every list's tags to their current state (used as failure data). */
+// Builds a POLICY_TAGS update that restores every list's tags to their current state (used as failure data).
 function buildPolicyTagsRestoreData(policyTags: PolicyTagLists): Record<string, Partial<PolicyTagList>> {
     return Object.fromEntries(Object.entries(policyTags).map(([listName, tagList]): [string, Partial<PolicyTagList>] => [listName, {tags: tagList.tags}]));
 }
