@@ -9,7 +9,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
 

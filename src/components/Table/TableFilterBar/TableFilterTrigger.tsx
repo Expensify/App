@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
@@ -54,13 +54,15 @@ export default function TableFilterTrigger() {
 
                 return (
                     <Button
-                        small
                         ref={ref}
-                        icon={icons.Filter}
-                        text={translate('search.filtersHeader')}
-                        style={isExpanded && styles.buttonHoveredBG}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        accessibilityLabel={translate('search.filtersHeader')}
+                        style={isExpanded ? styles.buttonHoveredBG : undefined}
                         onPress={onPress}
-                    />
+                    >
+                        <Button.Icon src={icons.Filter} />
+                        <Button.Text>{translate('search.filtersHeader')}</Button.Text>
+                    </Button>
                 );
             }}
         />
