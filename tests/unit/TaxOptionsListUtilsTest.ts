@@ -31,6 +31,9 @@ describe('TaxOptionsListUtils', () => {
                     value: '3%',
                     code: 'CODE2',
                     modifiedName: 'Tax rate 2 (3%)',
+                    // A rate deleted while offline is marked with both pendingAction DELETE and isDisabled: true (see TaxRate.ts).
+                    // It must still appear in the picker (struck-through and non-selectable) instead of disappearing.
+                    isDisabled: true,
                     pendingAction: 'delete',
                 },
                 CODE3: {
