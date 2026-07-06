@@ -1,6 +1,5 @@
 import type {SnapshotFrom} from 'xstate';
 import {matchesState} from 'xstate';
-import type {StatePath} from 'xstate/graph';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
@@ -65,7 +64,6 @@ function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
-type MfaStatePath = StatePath<MfaSnapshot, MfaEvent>;
 
 /**
  * A path is UI-drivable when the walk can produce every step. A delayed transition would need real
@@ -119,8 +117,8 @@ function getDrivingJourneyPaths() {
  * Returns the generated coverage paths plus the explicit driving journeys. The journeys are needed
  * because a shortest path can be empty, such as the path to the initial `closed` state, so the
  * generated paths alone would never drive the teardown. Paths with a delayed step are filtered out
- * because the walk cannot drive a timer, and the reachability guards catch a state that loses every
- * drivable route.
+ * because the walk cannot drive a timer, and the walk-coverage guard in `viewMatchesMachine.test.tsx`
+ * catches a state that loses every drivable route.
  *
  * `path.test` skips a step whose event has no executor, which keeps framework steps such as
  * `xstate.init` harmless while the executor table still forces an executor for every application event.
@@ -132,5 +130,4 @@ function getWalkedPaths() {
 }
 
 export default getWalkedPaths;
-export {DELAYED_EVENT_PREFIX, getDrivingJourneyPaths, getMfaShortestPaths, getTraversalEvents};
-export type {MfaStatePath};
+export {getDrivingJourneyPaths, getMfaShortestPaths};

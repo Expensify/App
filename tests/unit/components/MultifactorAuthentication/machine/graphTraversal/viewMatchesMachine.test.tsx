@@ -17,8 +17,8 @@ import SCREENS from '@src/SCREENS';
 // navigator, drives each machine event as a real gesture, and asserts the UI markers of the reached
 // state at every step of every generated path. A state or event added to the machine appears in the
 // walked paths automatically, and the type checks and guard suites then demand the hand-written
-// pieces it needs, such as an executor or a UI assertion. The machine-only suites
-// live in `everyStateReachable.test.ts` and the coverage guards in `coverageStaysComplete.test.ts`.
+// pieces it needs, such as an executor or a UI assertion. The machine-only suites live in
+// `everyStateReachable.test.ts`, and the guard suites below check that the walk and `testConfig` stay complete.
 
 // This mock forces a wide layout so the navigator renders the backdrop used as the mounted marker.
 jest.mock('@hooks/useResponsiveLayout');
@@ -139,6 +139,18 @@ describe('the real MFA modal matches the machine at every step of every generate
             await path.test(testConfig);
         });
     }
+});
+
+// Every settleable leaf must occur in a path that the walk above drives. `everyStateReachable.test.ts`
+// checks the unfiltered graph, so only this guard catches a state whose every route needs a step the
+// walk cannot drive, such as a delayed transition. Paths removed as prefixes of longer paths do not
+// reduce state coverage because `path.test` asserts every step.
+describe('every settleable MFA state is reached by the UI walk', () => {
+    const walkedStateValues = walkedPaths.flatMap((path) => path.steps.map((step) => step.state.value));
+
+    it.each(getSettleableLeafStates(mfaMachine.root))('$description is reached through the real UI', ({description}) => {
+        expect(walkedStateValues.some((reached) => matchesState(description, reached))).toBe(true);
+    });
 });
 
 // TestModel runs only the state assertions whose keys match the reached state, so if no key matches a
