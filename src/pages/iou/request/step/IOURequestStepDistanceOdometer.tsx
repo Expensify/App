@@ -33,6 +33,8 @@ import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdometerImage, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {InputType} from '@libs/focusComposerWithDelay/types';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -57,7 +59,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -97,9 +99,6 @@ function IOURequestStepDistanceOdometer({
     const lastFocusedInputRef = useRef<BaseTextInputRef | null>(null);
 
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
-    // A counter, not a boolean: a boolean stuck at `true` (nothing resets it) would ignore a second request — React
-    // bails out when setState gets the same value. Incrementing always changes, so every request re-fires the effect.
-    const [focusRestoreRequestId, setFocusRestoreRequestId] = useState(0);
 
     const didSaveEditingConfirmationRef = useRef(false);
     const shouldBypassDiscardConfirmationRef = useRef(false);
@@ -523,23 +522,13 @@ function IOURequestStepDistanceOdometer({
         setFormError('');
     };
 
-    // The inputs are `editable={!isDiscardModalVisible}`, so focusing them while the discard modal is still
-    // flagged visible (i.e. synchronously, before React commits the `isDiscardModalVisible: false` update) is a
-    // no-op on native. Defer to the layout effect below, which fires once that commit has actually landed.
+    // The inputs are `editable={!isDiscardModalVisible}`, so a bare focus() call here would still be a no-op:
+    // this fires before React commits the `isDiscardModalVisible: false` update, and on Android, before the
+    // native window even regains focus. focusComposerWithDelay waits on both (see its Android-specific gates)
+    // before focusing, so no extra effect/state is needed to defer past the commit.
     const restoreLastInputFocus = () => {
-        setFocusRestoreRequestId((id) => id + 1);
+        focusComposerWithDelay(lastFocusedInputRef.current as InputType)(true);
     };
-
-    // onCancel always fires either synchronously with `onVisibilityChange(false)` in the same callback (swipe-back/
-    // hardware-back flow, see useDiscardChangesConfirmation — batched into one render) or without ever toggling
-    // isDiscardModalVisible at all (tab-switch flow, see useRegisterTabSwitchGuard). Either way isDiscardModalVisible
-    // is already false by the time this effect runs, so it doesn't need to be checked here.
-    useLayoutEffect(() => {
-        if (focusRestoreRequestId === 0) {
-            return;
-        }
-        lastFocusedInputRef.current?.focus();
-    }, [focusRestoreRequestId]);
 
     useDiscardChangesConfirmation({
         getHasUnsavedChanges,
