@@ -35,7 +35,7 @@ import {getCardsByCardholderName, getCardSettings, isCurrencySupportedForECards}
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -127,7 +127,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         () =>
             allCards.map((card) => {
                 const frozenByDisplayName = card.nameValuePairs?.frozen?.byAccountID
-                    ? getDisplayNameOrDefault(personalDetails?.[card.nameValuePairs.frozen.byAccountID], '', false) || undefined
+                    ? temporaryGetDisplayNameOrDefault({
+                          passedPersonalDetails: personalDetails?.[card.nameValuePairs.frozen.byAccountID],
+                          defaultValue: '',
+                          shouldFallbackToHidden: false,
+                          translate,
+                      }) || undefined
                     : undefined;
 
                 return {
@@ -150,7 +155,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
-        [allCards, defaultFundID, personalDetails, policyID, settlementCurrency],
+        [allCards, defaultFundID, personalDetails, policyID, settlementCurrency, translate],
     );
 
     const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
