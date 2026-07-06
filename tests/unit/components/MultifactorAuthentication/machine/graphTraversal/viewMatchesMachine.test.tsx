@@ -113,6 +113,11 @@ function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): st
     return drivenEventLabels.length > 0 ? drivenEventLabels.join(' -> ') : 'no driven events';
 }
 
+const walkedPathTestCases = walkedPaths.map((path) => ({
+    title: `stays in sync with the machine along [${describeDrivenEvents(path.steps)}] to ${JSON.stringify(path.state.value)}`,
+    path,
+}));
+
 describe('the real MFA modal matches the machine at every step of every generated path', () => {
     // The navigation buffer is deliberately not reset here. The machine resets it when it enters
     // `closed`, which also runs when each test's fresh actor starts, so a reset here would hide a
@@ -125,13 +130,11 @@ describe('the real MFA modal matches the machine at every step of every generate
         jest.clearAllMocks();
     });
 
-    for (const path of walkedPaths) {
-        it(`stays in sync with the machine along [${describeDrivenEvents(path.steps)}] to ${JSON.stringify(path.state.value)}`, async () => {
-            renderMfaUi();
-            await waitForBatchedUpdatesWithAct();
-            await path.test(testConfig);
-        });
-    }
+    it.each(walkedPathTestCases)('$title', async ({path}) => {
+        renderMfaUi();
+        await waitForBatchedUpdatesWithAct();
+        await path.test(testConfig);
+    });
 });
 
 // Every settleable leaf must occur in a path that the walk above drives. `everyStateReachable.test.ts`
