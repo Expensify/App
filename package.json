@@ -149,7 +149,7 @@
     "expo-modules-core": "55.0.25",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "55.0.2",
-    "expo-video": "55.0.3",
+    "expo-video": "55.0.7",
     "expo-web-browser": "15.0.10",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
