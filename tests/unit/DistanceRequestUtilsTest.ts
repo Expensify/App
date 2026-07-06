@@ -1,8 +1,10 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -389,6 +391,47 @@ describe('DistanceRequestUtils', () => {
             const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
             const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
             expect(result.customUnitRateID).toBeUndefined();
+        });
+
+        describe('output currency resolution', () => {
+            // getRate resolves the currency as `policy.outputCurrency ?? personalPolicyOutputCurrency ?? personal policy ?? USD`.
+            // Every caller that threads personalPolicyOutputCurrency relies on this precedence, and it's what lets the
+            // getPersonalPolicy() fallback be removed later: a caller that passes the currency must get the same result.
+            // A non-P2P rate ID that doesn't resolve to any policy rate + `isMovingTransactionFromTrackExpense` forces the
+            // mileage rate to be undefined, so the returned `currency` falls through to the resolved policy currency.
+            const unresolvedRateTransaction = {
+                ...createRandomTransaction(1),
+                comment: {customUnit: {customUnitRateID: 'nonexistent-rate-id'}},
+            } as Transaction;
+
+            it('uses personalPolicyOutputCurrency when no policy currency is available', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('EUR');
+            });
+
+            it('prefers the policy outputCurrency over personalPolicyOutputCurrency', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: {...FAKE_POLICY, outputCurrency: 'GBP'},
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('GBP');
+            });
+
+            it('falls back to USD when neither a policy currency nor personalPolicyOutputCurrency is provided', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                });
+                expect(result.currency).toBe(CONST.CURRENCY.USD);
+            });
         });
     });
 

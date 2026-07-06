@@ -1,6 +1,7 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
@@ -63,6 +64,15 @@ type TableRow<DataType extends TableData> = DataType & {
 
     /** Whether or not the row should animate in highlighted */
     shouldAnimateInHighlight?: boolean;
+};
+
+/**
+ * Props passed to table row render callbacks.
+ */
+type TableRenderRowProps<TItem extends TableData> = {
+    item: TItem;
+    rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
 };
 
 /**
@@ -137,6 +147,14 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
 
+        /**
+         * Whether the selection UX (checkboxes / long-press selection mode) should be driven by the real screen size
+         * (isSmallScreenWidth) instead of shouldUseNarrowLayout. Set this for tables rendered inside a narrow pane modal
+         * (RHP), where shouldUseNarrowLayout is always true and would otherwise suppress selection entirely. Defaults to
+         * false so central-pane tables keep their existing behavior.
+         */
+        shouldEnableSelectionInNarrowPaneModal?: boolean;
+
         /** Column configuration defining what columns to display and how. */
         columns: Array<TableColumn<ColumnKey>>;
 
@@ -187,6 +205,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 export type {
     TableData,
     TableRow,
+    TableRenderRowProps,
     TableColumn,
     TableMethods,
     TableHandle,

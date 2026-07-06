@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
@@ -7,8 +6,11 @@ import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFARes
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  * Passkey authentication type metadata.

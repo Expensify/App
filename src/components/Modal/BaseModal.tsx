@@ -1,13 +1,9 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
-// Animated required for side panel navigation
-// eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -18,16 +14,28 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+// Animated required for side panel navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+
+import type BaseModalProps from './types';
+
 import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
-import type BaseModalProps from './types';
 
 function BaseModal({
     isVisible,
