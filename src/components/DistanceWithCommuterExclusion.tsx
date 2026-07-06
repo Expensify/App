@@ -1,8 +1,12 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import type {Unit} from '@src/types/onyx/Policy';
+
+import React from 'react';
+
 import Text from './Text';
 
 type DistanceWithCommuterExclusionProps = {

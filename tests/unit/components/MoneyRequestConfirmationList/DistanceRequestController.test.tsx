@@ -1,9 +1,14 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+
 import createMock from '../../../utils/createMock';
 
 const mockSetMoneyRequestAmount = jest.fn();

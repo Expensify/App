@@ -9,7 +9,6 @@ import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -17,6 +16,7 @@ import {format, parseISO} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import DateUtils from './DateUtils';
+import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
