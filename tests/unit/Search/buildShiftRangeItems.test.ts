@@ -1,7 +1,9 @@
 import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {buildShiftRangeItems} from '@components/Search/selectionBuilders';
 import type {SearchData} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+
 import createRandomTransaction from '../../utils/collections/transaction';
 
 /** A fully-typed transaction row. The Transaction half comes from the shared factory; the rest are the list-item fields. */

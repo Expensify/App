@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
+
 import {applyShiftRangeBatchToKeySet, getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 

@@ -1,5 +1,6 @@
-import {useEffect, useRef, useState} from 'react';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
+
+import {useEffect, useRef, useState} from 'react';
 
 type ItemWithKey = {keyForList?: string | null};
 
