@@ -4,7 +4,6 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -70,20 +69,17 @@ function AIFeaturesPromoModal() {
 
     const isCloseButtonDismissalRef = useRef(false);
 
-    const handleDismiss = () => {
-        Log.info(`[AIFeaturesPromoModal] dismissing product training via ${isCloseButtonDismissalRef.current ? 'x' : 'click'}`);
+    const dismissModal = () => {
         dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isCloseButtonDismissalRef.current);
     };
 
-    useBeforeRemove(handleDismiss);
+    useBeforeRemove(dismissModal);
 
-    const onConfirm = () => {
-        Log.info('[AIFeaturesPromoModal] onConfirm called');
+    const goBack = () => {
         Navigation.goBack();
     };
 
     const onClose = () => {
-        Log.info(`[AIFeaturesPromoModal] onClose called, user closed modal without confirming`);
         isCloseButtonDismissalRef.current = true;
         Navigation.goBack();
     };
@@ -96,7 +92,7 @@ function AIFeaturesPromoModal() {
         >
             <FeatureTrainingCarousel
                 pages={pages}
-                onConfirm={onConfirm}
+                onConfirm={goBack}
                 onClose={onClose}
                 width={variables.aiFeaturesPromoModalWidth}
                 shouldRenderHTMLDescription

@@ -124,7 +124,7 @@ function FeatureTrainingCarousel({
         horizontalListRef.current?.scrollToIndex({index: Math.max(currentPage - 1, 0), animated: true});
     };
 
-    const handleConfirmPress = () => {
+    const confirmPage = () => {
         if (currentPage < pages.length - 1) {
             advanceCarousel();
             return;
@@ -265,7 +265,7 @@ function FeatureTrainingCarousel({
                         onHelp={onHelp}
                         helpSentryLabel={helpSentryLabel}
                         confirmSentryLabel={confirmSentryLabel}
-                        onConfirm={handleConfirmPress}
+                        onConfirm={confirmPage}
                         shouldShowBackButton={currentPage > 0}
                         onBack={goBack}
                         titleStyles={titleStyles}
