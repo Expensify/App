@@ -1,15 +1,9 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
@@ -24,6 +18,7 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -41,7 +36,6 @@ import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryU
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
-    getListItem,
     getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
@@ -67,9 +61,12 @@ import {
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+
 import EmptySearchView from '@pages/Search/EmptySearchView';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,16 +78,32 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {CommonSearchViewProps} from './searchViewProps';
+import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
+
+import ChatSearchView from './ChatSearchView';
+import ExpenseFlatSearchView from './ExpenseFlatSearchView';
+import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
+import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
-import SearchList from './SearchList';
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
-import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
+import TaskSearchView from './TaskSearchView';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -124,7 +137,7 @@ function Search({
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -688,7 +701,6 @@ function Search({
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
-    const ListItem = getListItem(type, status, validGroupBy);
 
     useSaveSortedReportIDs(type, sortedData);
 
@@ -1001,7 +1013,8 @@ function Search({
     }
 
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
-        <View style={[!isTask && styles.pr9, styles.flex1]}>
+        // Match the rows' trailing arrow spacing so the header columns line up with them.
+        <View style={[!isTask && styles.pr8, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1037,6 +1050,58 @@ function Search({
             />
         ) : undefined;
 
+    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
+    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
+    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    const commonViewProps: CommonSearchViewProps = {
+        ref: searchListRef,
+        queryJSON,
+        data: stableSortedData,
+        columns: columnsToShow,
+        onSelectRow,
+        canSelectMultiple,
+        SearchTableHeader: searchTableHeader,
+        tableHeaderVisible,
+        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        containerStyle: [styles.pv0],
+        onScroll: onSearchListScroll,
+        onEndReached: fetchMoreResults,
+        ListFooterComponent: listFooterComponent,
+        onLayout,
+        isMobileSelectionModeEnabled,
+        newTransactions,
+        hasLoadedAllTransactions,
+        isActionColumnWide: isTask || hasDeletedTransaction,
+    };
+
+    let searchListContent: React.JSX.Element;
+    if (isTransactionListView && !validGroupBy) {
+        searchListContent = (
+            <ExpenseFlatSearchView
+                {...commonViewProps}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            />
+        );
+    } else if (isTransactionListView) {
+        searchListContent = (
+            <ExpenseGroupedSearchView
+                {...commonViewProps}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            />
+        );
+    } else if (isChat) {
+        searchListContent = <ChatSearchView {...commonViewProps} />;
+    } else if (isExpenseReportType) {
+        searchListContent = <ExpenseReportSearchView {...commonViewProps} />;
+    } else {
+        // TASK is the only remaining data type.
+        searchListContent = <TaskSearchView {...commonViewProps} />;
+    }
+
     return (
         <SearchScopeProvider>
             <SearchWriteActionsProvider
@@ -1050,33 +1115,7 @@ function Search({
                 isExpenseReportType={isExpenseReportType}
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
-                <Animated.View style={[styles.flex1, animatedStyle]}>
-                    <SearchList
-                        ref={searchListRef}
-                        data={stableSortedData}
-                        ListItem={ListItem}
-                        onSelectRow={onSelectRow}
-                        canSelectMultiple={canSelectMultiple}
-                        shouldPreventLongPressRow={isChat || isTask}
-                        SearchTableHeader={searchTableHeader}
-                        contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                        containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
-                        onScroll={onSearchListScroll}
-                        onEndReachedThreshold={0.75}
-                        onEndReached={fetchMoreResults}
-                        ListFooterComponent={listFooterComponent}
-                        queryJSON={queryJSON}
-                        columns={columnsToShow}
-                        onLayout={onLayout}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                        newTransactions={newTransactions}
-                        hasLoadedAllTransactions={hasLoadedAllTransactions}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        isActionColumnWide={isTask || hasDeletedTransaction}
-                    />
-                </Animated.View>
+                <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>
     );

@@ -1,5 +1,6 @@
-import fetchFileDownload from './DownloadUtils';
 import type {FileDownload} from './types';
+
+import fetchFileDownload from './DownloadUtils';
 
 /**
  * The function downloads an attachment on web platforms.
@@ -13,6 +14,8 @@ const fileDownload: FileDownload = (
     formData = undefined,
     requestType = 'get',
     onDownloadFailed?: () => void,
-) => fetchFileDownload(translate, url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed);
+    shouldUnlink = false,
+    appendTimestamp = true,
+) => fetchFileDownload(translate, url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp);
 
 export default fileDownload;

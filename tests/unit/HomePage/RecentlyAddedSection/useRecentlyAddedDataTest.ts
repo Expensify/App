@@ -10,8 +10,11 @@
  *   - defensively excludes expenses owned by another account when the snapshot carries the parent report
  */
 import {renderHook} from '@testing-library/react-native';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -96,6 +99,15 @@ function setupSnapshot(transactions: Transaction[], reports: Report[]) {
         data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data};
+}
+
+/** Seeds the local `transactions_` collection (mirrors what optimistic expense creation writes to Onyx). */
+function setupLocalTransactions(transactions: Transaction[]) {
+    const collection: Record<string, Transaction> = {};
+    for (const transaction of transactions) {
+        collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+    }
+    onyxData[ONYXKEYS.COLLECTION.TRANSACTION] = collection;
 }
 
 function resultTransactionIDs(transactions: Transaction[]): string[] {
@@ -205,6 +217,153 @@ describe('useRecentlyAddedData — unreported expenses', () => {
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['unreported', 'reported']);
+    });
+});
+
+describe('useRecentlyAddedData — locally pending (offline-created) expenses', () => {
+    it('surfaces a locally-pending expense that has not yet reached the snapshot', () => {
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'pending', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // The pending expense is newer, so it ranks ahead of the synced one.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['pending', 'synced']);
+    });
+
+    it('exposes the pending action so the row can render the offline pending treatment', () => {
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'pending', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    });
+
+    it('does not duplicate an expense present in both the snapshot and the local collection', () => {
+        setupSnapshot([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['shared']);
+    });
+
+    it('ignores local transactions that are not pending creation (on-demand data is not a source of expenses)', () => {
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'onDemand', inserted: '2026-06-09 10:00:00'})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['synced']);
+    });
+});
+
+describe('useRecentlyAddedData — split expenses', () => {
+    it('drops the original expense once it is split, keeping only the resulting splits', () => {
+        // Splitting reassigns the original transaction to the synthetic SPLIT_REPORT_ID and adds the split children
+        // as new pending expenses. The snapshot still carries the (now reassigned) original.
+        setupSnapshot(
+            [
+                makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'}),
+                makeTransaction({transactionID: 'unrelated', reportID: 'report_owned', inserted: '2026-06-02 10:00:00'}),
+            ],
+            [makeReport('report_owned', ACCOUNT_ID)],
+        );
+        setupLocalTransactions([
+            makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'}),
+            makeTransaction({transactionID: 'splitChild1', reportID: 'report_owned', inserted: '2026-06-03 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+            makeTransaction({transactionID: 'splitChild2', reportID: 'report_owned', inserted: '2026-06-04 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+        ]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['splitChild2', 'splitChild1', 'unrelated']);
+    });
+
+    it('drops the split-parent when only its local copy has been reassigned (snapshot not yet refreshed)', () => {
+        // Offline split: the snapshot still holds the original reportID, but the local copy is already reassigned.
+        setupSnapshot([makeTransaction({transactionID: 'splitParent', reportID: 'report_owned', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual([]);
+    });
+});
+
+describe('useRecentlyAddedData — offline-edited expenses', () => {
+    it('surfaces the pending action for an expense edited offline, derived from its local pendingFields', () => {
+        // The snapshot keeps the stale, pre-edit copy; the offline edit lives only on the local `transactions_` copy.
+        setupSnapshot([makeTransaction({transactionID: 'edited', amount: 1000, merchant: 'Old Merchant', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([
+            makeTransaction({
+                transactionID: 'edited',
+                amount: 2500,
+                merchant: 'New Merchant',
+                inserted: '2026-06-01 10:00:00',
+                pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            }),
+        ]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // A single row (no duplicate), reflecting the optimistic edit and flagged as a pending UPDATE.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['edited']);
+        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        expect(result.current.transactions.at(0)?.amount).toBe(2500);
+        expect(result.current.transactions.at(0)?.merchant).toBe('New Merchant');
+    });
+
+    it('leaves a fully-synced expense without a pending action', () => {
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
+    });
+});
+
+describe('useRecentlyAddedData — amount sign', () => {
+    it('preserves the negative sign for self-DM credits/refunds', () => {
+        setupSnapshot(
+            [makeTransaction({transactionID: 'selfDMCredit', reportID: 'selfDM', amount: 1000, inserted: '2026-06-01 10:00:00'})],
+            [makeReport('selfDM', ACCOUNT_ID, {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM})],
+        );
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+    });
+
+    it('preserves the negative sign for unreported (tracked) credits/refunds', () => {
+        setupSnapshot([makeTransaction({transactionID: 'trackedCredit', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 1000, inserted: '2026-06-01 10:00:00'})], []);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+    });
+
+    it('negates the inverted sign of expense-report transactions', () => {
+        setupSnapshot(
+            [makeTransaction({transactionID: 'expense', reportID: 'report_owned', amount: 1000, inserted: '2026-06-01 10:00:00'})],
+            [makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE})],
+        );
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+    });
+
+    it('returns the absolute amount for non self-DM, non expense-report transactions', () => {
+        setupSnapshot(
+            [makeTransaction({transactionID: 'iou', reportID: 'report_iou', amount: -1000, inserted: '2026-06-01 10:00:00'})],
+            [makeReport('report_iou', ACCOUNT_ID, {type: CONST.REPORT.TYPE.IOU})],
+        );
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(1000);
     });
 });
 

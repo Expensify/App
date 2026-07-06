@@ -1,15 +1,19 @@
-import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+
+import React from 'react';
 
 function useCopyPolicySettingsProgressModal() {
     const {translate} = useLocalize();
