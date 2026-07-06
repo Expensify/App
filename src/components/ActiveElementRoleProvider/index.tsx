@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+
 import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
 
 const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>({

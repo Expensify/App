@@ -1,7 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+
 import useNetwork from './useNetwork';
 
 type UseLoadReportActionsArguments = {

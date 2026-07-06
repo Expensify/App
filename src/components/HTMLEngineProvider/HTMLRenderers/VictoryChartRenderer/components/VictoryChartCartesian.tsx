@@ -1,6 +1,3 @@
-import React, {useRef} from 'react';
-import type {TNode} from 'react-native-render-html';
-import {CartesianChart, type CartesianChartRenderArg} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
@@ -11,9 +8,15 @@ import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
+
 import ThemeContext from '@styles/theme/context/ThemeContext';
+
+import React from 'react';
+import {CartesianChart} from 'victory-native';
+
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -124,7 +127,7 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                     );
 
                     if (headless) {
-                        return overlayContent;
+                        return <ThemeContext.Provider value={theme}>{overlayContent}</ThemeContext.Provider>;
                     }
 
                     // React context does not propagate across the Skia renderOutside boundary.

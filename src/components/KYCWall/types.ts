@@ -1,12 +1,13 @@
-import type {ForwardedRef, RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {ForwardedRef, RefObject} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 

@@ -1,22 +1,28 @@
-import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
