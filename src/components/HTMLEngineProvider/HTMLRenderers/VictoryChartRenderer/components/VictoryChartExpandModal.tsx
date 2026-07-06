@@ -3,6 +3,7 @@ import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRendere
 import Modal from '@components/Modal';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -35,8 +36,9 @@ type VictoryChartExpandModalProps = {
  */
 function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {chartContentStyles} = useVictoryChartContext();
+    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
@@ -52,6 +54,11 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
 
     // Uniform scale that fits the chart's design box inside the available modal area (may be > 1).
     const scale = hasDesignDimensions && isMeasured ? Math.min(availableSize.width / designWidth, availableSize.height / designHeight) : 1;
+
+    // Visual styles parsed from the chart HTML — applied the same way VictoryChartContainerFixed
+    // applies them inline, so the expanded chart keeps the same background and rounding.
+    const backgroundColor = chartContainerStyles.backgroundColor;
+    const borderRadius = chartContainerStyles.borderRadius;
 
     return (
         <Modal
@@ -71,9 +78,19 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
             >
                 {isMeasured &&
                     (hasDesignDimensions ? (
-                        <View style={{width: designWidth * scale, height: designHeight * scale, overflow: 'hidden'}}>
+                        <View style={[StyleUtils.getWidthAndHeightStyle(designWidth * scale, designHeight * scale), styles.overflowHidden]}>
                             {/* Fixed design-size box so the fluid chart renders at design size, then scaled uniformly. */}
-                            <View style={{width: designWidth, height: designHeight, transform: [{scale}], transformOrigin: 'top left'}}>
+                            <View
+                                style={[
+                                    chartContentStyles,
+                                    StyleUtils.getWidthAndHeightStyle(designWidth, designHeight),
+                                    backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
+                                    typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                    styles.overflowHidden,
+                                    styles.chartExpandedContent,
+                                    StyleUtils.getTransformScaleStyle(scale),
+                                ]}
+                            >
                                 <VictoryChartContent />
                             </View>
                         </View>

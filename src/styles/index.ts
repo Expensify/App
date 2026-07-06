@@ -6285,13 +6285,8 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
-        chartExpandButton: {
-            backgroundColor: theme.buttonDefaultBG,
-            borderRadius: variables.componentBorderRadiusSmall,
-            padding: 4,
-        },
-        chartExpandButtonHovered: {
-            backgroundColor: theme.buttonHoveredBG,
+        chartExpandedContent: {
+            transformOrigin: 'top left',
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
