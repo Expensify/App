@@ -1,4 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
@@ -19,6 +20,8 @@ jest.mock('@hooks/useBeforeRemove', () => ({
 let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockIsFocused,
+    // The hook reads `route.name` to key its tab-switch guard
+    useRoute: () => ({name: 'test-route'}),
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, []);
     },

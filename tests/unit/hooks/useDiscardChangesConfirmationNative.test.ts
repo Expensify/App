@@ -1,7 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {BackHandler} from 'react-native';
+
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
+
+import {BackHandler} from 'react-native';
 
 type MockBeforeRemoveEvent = {data: {action: {type: string}}};
 
@@ -14,6 +16,8 @@ jest.mock('@react-navigation/native', () => ({
         mockPreventRemoveCallback = callback;
     },
     useIsFocused: () => mockIsFocused,
+    // The hook reads `route.name` to key its tab-switch guard
+    useRoute: () => ({name: 'test-route'}),
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);
