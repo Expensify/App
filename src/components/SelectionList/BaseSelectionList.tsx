@@ -7,9 +7,6 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {applyShiftRangeByToggle} from '@libs/shiftRangeSelection';
-import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
-
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -128,18 +125,9 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
-    // Shift-range works for any multi-select list without per-page wiring: via the consumer's onShiftRangeApply, else by fanning the
-    // batch through the row checkbox toggle — onSelectionButtonPress, never onSelectRow (some lists use it to navigate, not select).
-    const shiftRangeEnabled = canSelectMultiple && (!!onShiftRangeApply || !!onSelectionButtonPress);
-    const applyShiftRange = (batch: ShiftRangeBatch<TItem>) => {
-        if (onShiftRangeApply) {
-            onShiftRangeApply(batch);
-            return;
-        }
-        if (onSelectionButtonPress) {
-            applyShiftRangeByToggle(batch, isItemSelected, (item) => onSelectionButtonPress(item, undefined, false));
-        }
-    };
+    // Shift-range needs an atomic apply: onShiftRangeApply sets the whole range in one update. A per-item fan-out through the row toggle
+    // would drop rows for consumers whose setter reads a closed-over array instead of using a functional update.
+    const shiftRangeEnabled = !!onShiftRangeApply;
 
     const rangeApi = useShiftRangeSelection<TItem>({
         items: data,
@@ -155,7 +143,7 @@ function BaseSelectionList<TItem extends ListItem>({
             return keys;
         },
         isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
-        onApplyRange: applyShiftRange,
+        onApplyRange: onShiftRangeApply,
     });
 
     const handleSelectionButtonPress = useCallback(

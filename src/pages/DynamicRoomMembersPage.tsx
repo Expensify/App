@@ -47,6 +47,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatUtils,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import StringUtils from '@libs/StringUtils';
 
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
@@ -470,6 +471,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         ListItem={TableListItem}
                         onSelectRow={openRoomMemberDetails}
                         onSelectionButtonPress={toggleUser}
+                        onShiftRangeApply={(batch) => setSelectedMembers((prev) => applyShiftRangeBatchToKeySet(batch, prev, (m) => m.accountID))}
                         textInputOptions={textInputOptions}
                         shouldShowTextInput={shouldShowTextInput}
                         shouldShowLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}

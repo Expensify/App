@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
-import {applyShiftRangeBatchToKeySet, applyShiftRangeByToggle, getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+import {applyShiftRangeBatchToKeySet, getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type Row = {keyForList: string; isHeader?: boolean; isDisabled?: boolean};
@@ -670,30 +670,5 @@ describe('applyShiftRangeBatchToKeySet', () => {
         type WithNullKey = {keyForList: string | null};
         const out = applyShiftRangeBatchToKeySet<WithNullKey, string>({toSelect: [{keyForList: null}, {keyForList: 'c'}], toDeselect: []}, ['a'], (i) => i.keyForList);
         expect(out).toEqual(['a', 'c']);
-    });
-});
-
-describe('applyShiftRangeByToggle', () => {
-    const calledKeys = (toggle: ReturnType<typeof jest.fn<void, [Row]>>) => toggle.mock.calls.map(([row]) => row.keyForList);
-
-    it('toggles only the toSelect items that are not already selected', () => {
-        const toggle = jest.fn<void, [Row]>();
-        const selected = new Set(['b']);
-        applyShiftRangeByToggle<Row>({toSelect: [ROW_A, ROW_B, ROW_C], toDeselect: []}, (item) => selected.has(item.keyForList), toggle);
-        expect(calledKeys(toggle)).toEqual(['a', 'c']);
-    });
-
-    it('toggles only the toDeselect items that are currently selected', () => {
-        const toggle = jest.fn<void, [Row]>();
-        const selected = new Set(['c', 'd']);
-        applyShiftRangeByToggle<Row>({toSelect: [], toDeselect: [ROW_C, ROW_D, ROW_E]}, (item) => selected.has(item.keyForList), toggle);
-        expect(calledKeys(toggle)).toEqual(['c', 'd']);
-    });
-
-    it('applies deselections before selections', () => {
-        const toggle = jest.fn<void, [Row]>();
-        const selected = new Set(['e']);
-        applyShiftRangeByToggle<Row>({toSelect: [ROW_A], toDeselect: [ROW_E]}, (item) => selected.has(item.keyForList), toggle);
-        expect(calledKeys(toggle)).toEqual(['e', 'a']);
     });
 });

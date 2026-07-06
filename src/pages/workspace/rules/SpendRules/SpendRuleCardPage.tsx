@@ -27,6 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -246,6 +247,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         onSelectAll={listData.length > 0 ? toggleSelectAll : undefined}
                         onSelectionButtonPress={toggleCard}
                         onSelectRow={toggleCard}
+                        onShiftRangeApply={(batch) => setSelectedCardIDs((prev) => applyShiftRangeBatchToKeySet(batch, prev, (item) => item.keyForList))}
                         selectedItems={selectedCardIDs}
                         ListItem={CardListItem}
                         shouldUpdateFocusedIndex

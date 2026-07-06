@@ -363,6 +363,8 @@ function SearchWriteActionsProvider({
     // Group-by children load lazily in `GroupChildrenContent`, which publishes them here for the shift-range source.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
+    // These stay referentially stable (they close over only setGroupChildrenByKey, so the React Compiler memoizes them). GroupChildrenContent's
+    // register effect lists them as deps, so an unstable identity would loop register↔unregister; the compliance gate keeps them stable.
     const registerGroupChildren = (groupKey: string, groupChildren: TransactionListItemType[]) => {
         setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren}));
     };
