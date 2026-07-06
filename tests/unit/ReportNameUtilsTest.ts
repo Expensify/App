@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -24,7 +26,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {formatPhoneNumber} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserLogin = 'lagertha2@vikings.net';
@@ -50,6 +52,7 @@ describe('ReportNameUtils', () => {
             reportActions,
             currentUserAccountID: currentUserID,
             currentUserLogin,
+            translate: translateLocal,
             isTrackIntentUser: false,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
@@ -560,6 +563,7 @@ describe('ReportNameUtils', () => {
                 reportActions: reportActionsCollection,
                 currentUserAccountID,
                 currentUserLogin: '',
+                translate: translateLocal,
                 allPolicyTags: policyTagsCollection,
                 isTrackIntentUser: false,
             });
@@ -1052,6 +1056,7 @@ describe('ReportNameUtils', () => {
                 personalDetails: participantsPersonalDetails,
                 policy: undefined,
                 currentUserAccountID,
+                translate: translateLocal,
             });
 
             expect(name).toBe('Personal Workspace');
@@ -1071,6 +1076,7 @@ describe('ReportNameUtils', () => {
                 personalDetails: participantsPersonalDetails,
                 policy: undefined,
                 currentUserAccountID,
+                translate: translateLocal,
             });
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
@@ -1082,10 +1088,41 @@ describe('ReportNameUtils', () => {
                 reportID: 'invoice-chat-3',
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
             };
-            const name = getInvoicePayerName(report, undefined, null);
+            const name = getInvoicePayerName(report, translateLocal, undefined, null);
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
             expect(normalizedName).toBe('Ragnar Lothbrok');
+        });
+
+        test('Invoice room resolves the hidden fallback through the provided translate function', () => {
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+            const report: Report = {
+                reportID: 'invoice-chat-4',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 424242},
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy: undefined,
+                personalDetails: {},
+                policy: undefined,
+                currentUserAccountID,
+                translate: translateWithHiddenMarker,
+            });
+
+            expect(name).toBe('HiddenMarker');
+        });
+
+        test('Invoice payer name resolves the hidden fallback through the provided translate function', () => {
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+            const report: Report = {
+                reportID: 'invoice-chat-5',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 424242},
+            };
+
+            const name = getInvoicePayerName(report, translateWithHiddenMarker, undefined, null);
+
+            expect(name).toBe('HiddenMarker');
         });
     });
 
@@ -1248,7 +1285,7 @@ describe('ReportNameUtils', () => {
             };
 
             // When we get the money request report name
-            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList});
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList, translate: translateLocal});
 
             // Then it should return "New Report"
             expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
@@ -1290,7 +1327,7 @@ describe('ReportNameUtils', () => {
             };
 
             // When we get the money request report name
-            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList});
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList, translate: translateLocal});
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
             expect(reportName).not.toBe('');
