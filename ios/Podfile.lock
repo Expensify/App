@@ -3350,7 +3350,6 @@ DEPENDENCIES:
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
-  - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
@@ -3573,8 +3572,6 @@ EXTERNAL SOURCES:
     :tag: hermes-v250829098.0.10
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
-  NitroFetch:
-    :path: "../node_modules/react-native-nitro-fetch"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:

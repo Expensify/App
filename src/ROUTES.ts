@@ -6,20 +6,22 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
-import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import StringUtils from './libs/StringUtils';
-import {getUrlWithParams} from './libs/Url';
-import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
+
+import Log from './libs/Log';
+import StringUtils from './libs/StringUtils';
+import {getUrlWithParams} from './libs/Url';
+import SCREENS from './SCREENS';
 
 type WorkspaceCompanyCardsAssignCardParams = {
     policyID: string;
@@ -4235,8 +4237,8 @@ const ROUTES = {
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings` as const,
     },
     DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
-        route: 'domain/:domainAccountID/members/settings/two-factor-auth',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/two-factor-auth` as const,
+        route: 'domain/:domainAccountID/members/settings/require-two-factor-auth',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/require-two-factor-auth` as const,
     },
     DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH: {
         route: 'domain/:domainAccountID/members/:accountID/force-two-factor-auth',

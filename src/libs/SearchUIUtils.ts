@@ -1,9 +1,3 @@
-/* eslint-disable max-lines */
-// TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {addDays, format, parse, subDays} from 'date-fns';
-import type {TextStyle, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -61,8 +55,11 @@ import type {
     SyntaxFilterKey,
 } from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,14 +91,24 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
+
+import type {TextStyle, ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/* eslint-disable max-lines */
+// TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
+import {addDays, format, parse, subDays} from 'date-fns';
+
+import type {TransactionPreviewData} from './actions/Search';
+import type {CardFeedForDisplay} from './CardFeedUtils';
+
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
-import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
-import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
@@ -147,6 +154,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
+    getReimbursableTotal,
     getReportCustomColumnValue,
     getReportOrDraftReport,
     getReportStatusTranslation,
@@ -312,6 +320,8 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
@@ -1097,7 +1107,7 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
+        const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
@@ -1742,6 +1752,7 @@ type PreprocessingContext = {
     violations: Record<string, OnyxTypes.TransactionViolation[] | undefined>;
     shouldShowMerchant: boolean;
     lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
+    firstApprovedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     allHoldReportActions: Map<string, OnyxTypes.ReportAction>;
@@ -1768,6 +1779,7 @@ function createPreprocessingContext(): PreprocessingContext {
         violations: {},
         shouldShowMerchant: false,
         lastExportedActionByReportID: new Map(),
+        firstApprovedActionByReportID: new Map(),
         moneyRequestReportActionsByTransactionID: new Map(),
         holdReportActionsByTransactionID: new Map(),
         allHoldReportActions: new Map(),
@@ -1798,12 +1810,24 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
 
+    // The first approver is the actor on the earliest APPROVED/FORWARDED action.
+    let firstApprovalTime = Infinity;
+    let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
             const currentTime = new Date(action.created).getTime();
             if (currentTime > latestExportTime) {
                 latestExportTime = currentTime;
                 latestExportAction = action;
+            }
+        }
+
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime < firstApprovalTime) {
+                firstApprovalTime = currentTime;
+                firstApprovalAction = action;
             }
         }
 
@@ -1824,6 +1848,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (latestExportAction) {
         ctx.lastExportedActionByReportID.set(reportID, latestExportAction);
+    }
+
+    if (firstApprovalAction) {
+        ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
     }
 }
 
@@ -2782,6 +2810,7 @@ function getReportSections({
         violations: allViolations,
         shouldShowMerchant,
         lastExportedActionByReportID,
+        firstApprovedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         transactionsByReportID,
@@ -2848,8 +2877,15 @@ function getReportSections({
                     emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
+                // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
+                const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
+                const firstApproverAccountID = firstApprovedAction?.actorAccountID;
+                const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
+                const firstApproved = firstApprovedAction?.created ?? '';
+
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
+                const formattedFirstApprover = firstApproverAccountID ? formatPhoneNumber(getDisplayNameOrDefault(firstApproverDetails)) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const policy = getPolicyFromKey(data, reportItem);
@@ -2889,6 +2925,10 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    firstApproved,
+                    firstApproverAvatar: firstApproverDetails?.avatar,
+                    firstApproverAccountID,
+                    formattedFirstApprover,
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -4092,18 +4132,8 @@ function getSortedReportData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
         return data.sort((a, b) => {
-            const aTotal = a.total;
-            const bTotal = b.total;
-
-            const aNonReimbursableTotal = a.nonReimbursableTotal;
-            const bNonReimbursableTotal = b.nonReimbursableTotal;
-
-            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
-                return 0;
-            }
-
-            const aValue = aTotal - aNonReimbursableTotal;
-            const bValue = bTotal - bNonReimbursableTotal;
+            const aValue = getReimbursableTotal(a);
+            const bValue = getReimbursableTotal(b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4321,6 +4351,10 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
             return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            return 'search.filters.firstApprover';
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+            return 'search.filters.firstApproved';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
@@ -4350,7 +4384,7 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            return 'common.originalAmount';
+            return 'common.purchaseAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:

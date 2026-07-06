@@ -1,4 +1,5 @@
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between settings split navigator's central screens and RHP screens.
