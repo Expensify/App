@@ -117,7 +117,7 @@ function getDrivingJourneyPaths() {
  * Returns the generated coverage paths plus the explicit driving journeys. The journeys are needed
  * because a shortest path can be empty, such as the path to the initial `closed` state, so the
  * generated paths alone would never drive the teardown. Paths with a delayed step are filtered out
- * because the UI walk cannot drive a timer. `everyStateReachable.test.ts` checks settleable-state
+ * because the UI walk cannot drive a timer. `everyStateReachable.test.ts` checks stable-state
  * reachability over the unfiltered graph, while the walk-coverage guard in
  * `viewMatchesMachine.test.tsx` catches a state that loses every UI-drivable route.
  *
