@@ -1,5 +1,4 @@
 import AccountUtils from '@libs/AccountUtils';
-import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -98,11 +97,6 @@ function useOnboardingFlowRouter() {
                 // corrupts its dynamic base route, and flashes the overlay. Once 2FA finishes, the success page clears
                 // twoFactorAuthSetupInProgress and explicitly starts onboarding.
                 if (AccountUtils.shouldShowRequire2FAPage(account, !!isOnboardingCompleted)) {
-                    Log.info('[Require2FA] Pausing onboarding redirect during required 2FA setup', false, {
-                        requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
-                        needsTwoFactorAuthSetup: account?.needsTwoFactorAuthSetup,
-                        twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
-                    });
                     return;
                 }
 

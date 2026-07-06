@@ -531,12 +531,12 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should skip Onboarding private domain for a validated public-domain user', async () => {
+    it('should skip Onboarding private domain for a validated public-domain user after guided setup is complete', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
+                hasCompletedGuidedSetupFlow: true,
             });
             // Validated public-domain user (original bug case): PRIVATE_DOMAIN would say "people on gmail.com" — skip to PURPOSE.
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
@@ -549,6 +549,26 @@ describe('OnboardingWorkEmail Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should stay on work-email for a validated public-domain user during incomplete guided setup', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

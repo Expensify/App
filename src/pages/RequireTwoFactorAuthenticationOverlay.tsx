@@ -11,7 +11,6 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
-import Log from '@libs/Log';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -58,7 +57,6 @@ function RequireTwoFactorAuthenticationOverlay() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
@@ -79,15 +77,7 @@ function RequireTwoFactorAuthenticationOverlay() {
         if (!onboardingInitialPath && activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
             updateOnboardingLastVisitedPath(activeRoute);
         }
-        const targetRoute = getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true});
-        Log.info('[Require2FA] Enable button pressed', false, {
-            activeRoute: Navigation.getActiveRoute(),
-            targetRoute,
-            requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
-            needsTwoFactorAuthSetup: account?.needsTwoFactorAuthSetup,
-            twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
-        });
-        Navigation.navigate(targetRoute);
+        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
     };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {

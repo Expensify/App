@@ -19,7 +19,6 @@ import AccountUtils from '@libs/AccountUtils';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -87,13 +86,6 @@ function DynamicTwoFactorAuthPage() {
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
-        }
-
-        if (isFocused && is2FAEnabled && isForcedOnboardingSetup) {
-            Log.info('[Require2FA] Skipping enabled-page bounce during forced onboarding setup', false, {
-                requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
-                twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
-            });
         }
 
         if (isLoadingOnyxValue(accountMetadata) || effectiveIs2FAEnabled || account?.recoveryCodes || !isUserValidated) {

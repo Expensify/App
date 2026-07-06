@@ -164,10 +164,6 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     // Allow required 2FA setup navigation even when the user is currently on onboarding.
     if (getShouldShowRequire2FAPage() && isTargetTwoFactorSetupRoute(action)) {
-        Log.info('[OnboardingGuard] Allowing RESET to 2FA setup while required-2FA overlay is active', false, {
-            currentScreen: currentFocusedRoute?.name,
-            targetScreen: targetFocusedRoute?.name,
-        });
         return false;
     }
 
@@ -215,11 +211,6 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         if (getShouldShowRequire2FAPage() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
-            Log.info('[OnboardingGuard] Allowing navigation to 2FA setup while required-2FA overlay is active', false, {
-                actionType: action.type,
-                targetScreen: getActionPayloadScreenName(action),
-                currentScreen: getDeepestFocusedScreen(state)?.name,
-            });
             return {type: 'ALLOW'};
         }
 

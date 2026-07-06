@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import AccountUtils from '@libs/AccountUtils';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -79,10 +78,6 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             return;
         }
         if (isForced2FAOnboardingSetup) {
-            Log.info('[Require2FA] Completing forced onboarding 2FA setup, dismissing 2FA modal before onboarding', false, {
-                requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
-                twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
-            });
             clearTwoFactorAuthData(true);
             Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
                 afterTransition: () => {

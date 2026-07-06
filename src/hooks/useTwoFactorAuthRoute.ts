@@ -1,4 +1,3 @@
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,33 +31,14 @@ function useTwoFactorAuthRoute(): TwoFactorAuthRouteResult {
 
     const getTwoFactorAuthRoute = (backTo?: Route, options?: TwoFactorAuthRouteOptions): Route => {
         if (is2FAEnabled && !options?.forceSetup) {
-            Log.info('[Require2FA] Resolved route to SETTINGS_2FA_ENABLED', false, {
-                is2FAEnabled,
-                forceSetup: options?.forceSetup,
-                backTo,
-            });
             return ROUTES.SETTINGS_2FA_ENABLED;
         }
 
         if (!account?.validated) {
-            const route = createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backTo);
-            Log.info('[Require2FA] Resolved route to verify-account', false, {
-                route,
-                backTo,
-                forceSetup: options?.forceSetup,
-                validated: account?.validated,
-            });
-            return route;
+            return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backTo);
         }
 
-        const route = createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
-        Log.info('[Require2FA] Resolved route to setup root', false, {
-            route,
-            backTo,
-            forceSetup: options?.forceSetup,
-            validated: account?.validated,
-        });
-        return route;
+        return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
     };
 
     return {getTwoFactorAuthRoute, is2FAEnabled};
