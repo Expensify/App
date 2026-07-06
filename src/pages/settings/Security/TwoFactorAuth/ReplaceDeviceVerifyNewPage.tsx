@@ -1,8 +1,3 @@
-import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';

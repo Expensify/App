@@ -1,6 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';

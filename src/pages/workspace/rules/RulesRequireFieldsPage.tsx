@@ -1,4 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

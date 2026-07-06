@@ -1,7 +1,3 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/ButtonComposed';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';

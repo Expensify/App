@@ -1,6 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';

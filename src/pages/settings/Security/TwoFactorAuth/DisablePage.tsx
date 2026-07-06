@@ -1,6 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';

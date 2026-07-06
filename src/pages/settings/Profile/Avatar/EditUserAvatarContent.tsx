@@ -18,6 +18,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import Navigation from '@libs/Navigation/Navigation';
 
 import {updateAvatar} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 

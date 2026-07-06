@@ -1,9 +1,3 @@
-import {cardByIdSelector} from '@selectors/Card';
-import {format, parseISO, subDays} from 'date-fns';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

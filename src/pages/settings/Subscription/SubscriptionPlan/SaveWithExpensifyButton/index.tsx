@@ -1,6 +1,5 @@
-import React from 'react';
-import {Linking} from 'react-native';
 import Button from '@components/ButtonComposed';
+
 import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';

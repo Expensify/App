@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';

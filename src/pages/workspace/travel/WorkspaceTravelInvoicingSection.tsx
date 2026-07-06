@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';

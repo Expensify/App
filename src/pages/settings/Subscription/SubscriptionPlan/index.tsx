@@ -1,5 +1,3 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Section from '@components/Section';

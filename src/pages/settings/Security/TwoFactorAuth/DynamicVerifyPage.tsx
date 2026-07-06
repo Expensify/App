@@ -1,4 +1,5 @@
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';

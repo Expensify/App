@@ -1,8 +1,3 @@
-import {FlashList} from '@shopify/flash-list';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRevokeError, revokeDevice} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDeviceDisplayName, getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
