@@ -1,4 +1,5 @@
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
 import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -3115,6 +3116,26 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionMemberGroupListItems);
         });
 
+        it('resolves member group fallback names through the provided translate function', () => {
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: {...searchResultsGroupByFrom.data, personalDetailsList: {}},
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateWithHiddenMarker,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+
+            expect(result.length).toBeGreaterThan(0);
+            expect(result).toEqual(expect.arrayContaining([expect.objectContaining({formattedFrom: 'HiddenMarker'})]));
+        });
+
         it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
             const mockCardFeeds = {
                 policy1: {
@@ -5013,6 +5034,42 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.formattedAssignee).toBe('Task\u00A0Assignee');
             expect(result.at(0)?.formattedCreatedBy).toBe('Task\u00A0Creator');
             expect(result.at(0)?.keyForList).toBe(taskReportID);
+        });
+
+        it('resolves task assignee and creator fallback names through the provided translate function', () => {
+            const taskReportID = 'task_report_hidden_members';
+            const taskReport = {
+                type: CONST.REPORT.TYPE.TASK,
+                reportID: taskReportID,
+                reportName: 'Task without known members',
+                description: '',
+                accountID: 33333,
+                managerID: 44444,
+                parentReportID: 'parent_report_hidden_members',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                created: '2025-01-15 10:00:00',
+            } as const;
+            const taskData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`report_${taskReportID}`]: taskReport,
+            };
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.TASK,
+                data: taskData,
+                currentAccountID: 33333,
+                currentUserEmail: 'creator@test.com',
+                translate: translateWithHiddenMarker,
+                formatPhoneNumber,
+                bankAccountList: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)).toEqual(expect.objectContaining({formattedAssignee: 'HiddenMarker', formattedCreatedBy: 'HiddenMarker'}));
         });
 
         it('should return empty task sections when no task reports exist in data', () => {
