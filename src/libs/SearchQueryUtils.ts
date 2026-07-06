@@ -62,7 +62,7 @@ import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
@@ -102,6 +102,7 @@ const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
+const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -995,7 +996,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
                     filterKey === FILTER_KEYS.COLUMNS ||
-                    filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) &&
+                    filterKey === FILTER_KEYS.WITHDRAWAL_STATUS ||
+                    filterKey === FILTER_KEYS.PAID_STATUS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -1188,6 +1190,14 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((withdrawalStatus) => VALID_WITHDRAWAL_STATUSES.has(withdrawalStatus)) as Array<
                 ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>
             >;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS) {
+            const paidStatusValues = filterValues.filter((paidStatus): paidStatus is ValueOf<typeof CONST.SEARCH.PAID_STATUS> => VALID_PAID_STATUSES.has(paidStatus));
+            if (isNegated) {
+                filtersForm[FILTER_KEYS.PAID_STATUS_NOT] = paidStatusValues;
+            } else {
+                filtersForm[FILTER_KEYS.PAID_STATUS] = paidStatusValues;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
@@ -1536,7 +1546,9 @@ function getFilterDisplayValue({
         if (filterValue === CONST.SEARCH.ME) {
             return CONST.SEARCH.ME;
         }
-        return filterValue === currentUserAccountID.toString() ? CONST.SEARCH.ME : getDisplayNameOrDefault(personalDetails?.[filterValue], filterValue, false);
+        return filterValue === currentUserAccountID.toString()
+            ? CONST.SEARCH.ME
+            : temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[filterValue], defaultValue: filterValue, shouldFallbackToHidden: false, translate});
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         const cardID = parseInt(filterValue, 10);

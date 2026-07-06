@@ -7,7 +7,7 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
-import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -45,24 +45,27 @@ import {format, parseISO} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import type {WorkspaceCompanyCardsTableHeaderButtonsProps} from './WorkspaceCompanyCardsTableHeaderButtons';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
+import WorkspaceCompanyCardsDisplayButton from './WorkspaceCompanyCardsDisplayButton';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
 
-type WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps = Omit<WorkspaceCompanyCardsTableHeaderButtonsProps, 'children'> & {
+type WorkspaceCompanyCardsTableControlsProps = {
+    /** Current policy id */
+    policyID: string;
+
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
     /** Bank name */
     bankName: UseCompanyCardsResult['bankName'];
 
-    /** Whether to use the narrow table layout */
-    shouldUseNarrowTableLayout: boolean;
+    /** Whether the current member can edit company cards */
+    canWriteCompanyCards: boolean;
 
     /** Clear selected card rows */
     clearCardSelection: () => void;
@@ -99,19 +102,12 @@ function WorkspaceCompanyCardsSelectionSearchPruner({setSelectedCardKeys}: Works
     return null;
 }
 
-function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
-    domainOrWorkspaceAccountID,
-    bankName,
-    shouldUseNarrowTableLayout,
-    clearCardSelection,
-    ...headerButtonProps
-}: WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps) {
+function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountID, bankName, canWriteCompanyCards, clearCardSelection}: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
-    const {processedData} = useTableContext<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>();
-    const {policyID, canWriteCompanyCards} = headerButtonProps;
+    const {processedData, shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>();
 
     const selectedCards = processedData.filter((card) => card.selected && !card.disabled);
     const selectedAssignedCards = selectedCards.filter((card) => card.isAssigned && !!card.assignedCard);
@@ -223,8 +219,16 @@ function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
         return options;
     };
 
-    const selectedCardControls =
-        selectedCards.length > 0 ? (
+    if (selectedCards.length === 0) {
+        return (
+            <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')}>
+                <WorkspaceCompanyCardsDisplayButton />
+            </Table.FilterBar>
+        );
+    }
+
+    return (
+        <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
             <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                 success
                 onPress={() => {}}
@@ -235,9 +239,8 @@ function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
                 wrapperStyle={shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0}
             />
-        ) : undefined;
-
-    return <WorkspaceCompanyCardsTableHeaderButtons {...headerButtonProps}>{selectedCardControls}</WorkspaceCompanyCardsTableHeaderButtons>;
+        </View>
+    );
 }
 
 type WorkspaceCompanyCardsTableProps = {
@@ -315,7 +318,9 @@ function WorkspaceCompanyCardsTable({
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
-        ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
+        ? {
+              [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+          }
         : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
 
     const selectedFeedStatus = selectedFeed?.status;
@@ -496,14 +501,18 @@ function WorkspaceCompanyCardsTable({
 
     const filterConfig: FilterConfig = {
         status: {
+            filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
             label: translate('common.status'),
-            filterType: 'single-select',
             options: [
-                {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
-                {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
-                {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
+                {
+                    label: translate('workspace.moreFeatures.companyCards.assignedCards'),
+                    value: 'assigned',
+                },
+                {
+                    label: translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                    value: 'unassigned',
+                },
             ],
-            default: 'all',
         },
     };
 
@@ -534,33 +543,6 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-
-    // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
-    // When switching back to wide layout, we want to restore the previous sorting.
-    useEffect(() => {
-        if (shouldUseNarrowTableLayout) {
-            if (isNarrowLayoutRef.current) {
-                return;
-            }
-
-            isNarrowLayoutRef.current = true;
-            const activeSorting = tableRef.current?.getActiveSorting();
-
-            setActiveSortingInWideLayout(activeSorting);
-            tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
-            return;
-        }
-
-        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
-            return;
-        }
-
-        isNarrowLayoutRef.current = false;
-        tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
-
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -568,27 +550,15 @@ function WorkspaceCompanyCardsTable({
 
     const headerButtonsComponent = showTableHeaderButtons ? (
         <View style={styles.mb3}>
-            <WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions
+            <WorkspaceCompanyCardsTableHeaderButtons
                 isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
-                showTableControls={showTableControls}
                 canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
-                domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-                bankName={bankName}
-                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-                clearCardSelection={clearCardSelection}
             />
         </View>
     ) : undefined;
-
-    const ListHeader = (
-        <>
-            {headerButtonsComponent}
-            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
-        </>
-    );
 
     const LoadingComponent = (
         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -596,7 +566,11 @@ function WorkspaceCompanyCardsTable({
                 color={theme.spinner}
                 style={[styles.pl3]}
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'WorkspaceCompanyCardsTable', isLoading, isLoadingCards}}
+                reasonAttributes={{
+                    context: 'WorkspaceCompanyCardsTable',
+                    isLoading,
+                    isLoadingCards,
+                }}
             />
         </View>
     );
@@ -617,11 +591,10 @@ function WorkspaceCompanyCardsTable({
             selectedKeys={validSelectedCardKeys}
             onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
             <WorkspaceCompanyCardsSelectionSearchPruner setSelectedCardKeys={setSelectedCardKeys} />
-            {!shouldUseNarrowTableLayout && ListHeader}
+            {headerButtonsComponent}
 
             {isLoading && !feedErrorKey && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
@@ -629,7 +602,6 @@ function WorkspaceCompanyCardsTable({
                 <ScrollView addBottomSafeAreaPadding>
                     {isFeedPending && (
                         <View style={styles.flex1}>
-                            {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}
@@ -670,7 +642,19 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && <Table.Body />}
+            {showCards && (
+                <>
+                    <WorkspaceCompanyCardsTableControls
+                        policyID={policyID}
+                        domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                        bankName={bankName}
+                        canWriteCompanyCards={canWriteCompanyCards}
+                        clearCardSelection={clearCardSelection}
+                    />
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }
