@@ -1536,8 +1536,8 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is the manager of the supplied report
  */
-function isReportManager(report: OnyxEntry<Report>): boolean {
-    return !!(report && report.managerID === deprecatedCurrentUserAccountID);
+function isReportManager(report: OnyxEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
+    return !!(report && report.managerID === currentUserAccountID);
 }
 
 /**
@@ -2652,20 +2652,6 @@ function isPolicyAdmin(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
- */
-function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
-    const transactions = getReportTransactions(iouReportID);
-
-    // Early return false in case not having any transaction
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    return transactions.every((transaction) => isFetchingWaypointsFromServer(transaction));
-}
-
-/**
  * If the report is a thread and has a chat type set, it is a expense chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
@@ -2899,13 +2885,6 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (isDraftReport(moneyRequestReport?.reportID)) {
-        return false;
-    }
-    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
-}
-
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
@@ -2981,15 +2960,15 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
+function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean, currentUserAccountID?: number): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report) || isIOUReport(report)) {
         return false;
     }
 
-    const isManager = isReportManager(report);
-    const isSubmitter = isReportOwner(report);
+    const isManager = isReportManager(report, currentUserAccountID);
+    const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
         return isOpenReport(report) || isProcessingReport(report);
@@ -4555,9 +4534,8 @@ function getUnheldReimbursableTotal(report: OnyxInputOrEntry<Report> | Pick<Repo
 /**
  * Checks if the report contains at least one Non-Reimbursable transaction
  */
-function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions): boolean {
-    const transactions = getReportTransactions(iouReportID, reportsTransactionsParam);
-    return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
+function hasNonReimbursableTransactions(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): boolean {
+    return reportTransactions.some((transaction) => transaction.reimbursable === false);
 }
 
 function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchReports?: Report[]): SpendBreakdown {
@@ -5440,9 +5418,8 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
-    const transactions = getReportTransactions(iouReportID);
-    return transactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
+function getTransactionsWithReceipts(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): Transaction[] {
+    return reportTransactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
 }
 
 /**
@@ -5452,8 +5429,12 @@ function getTransactionsWithReceipts(iouReportID: string | undefined): Transacti
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" expense, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, reportPreviewAction: OnyxEntry<ReportAction>): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
+function areAllRequestsBeingSmartScanned(
+    iouReportID: string | undefined,
+    reportPreviewAction: OnyxEntry<ReportAction>,
+    reportTransactions: Transaction[] = getReportTransactions(iouReportID),
+): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, reportTransactions);
     // If we have more requests than requests with receipts, we have some manual requests
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -11064,8 +11045,8 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
 }
 
 /** Check if the current user is an owner of the report */
-function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
-    return report?.ownerAccountID === deprecatedCurrentUserAccountID;
+function isReportOwner(report: OnyxInputOrEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
+    return report?.ownerAccountID === currentUserAccountID;
 }
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {
@@ -13318,6 +13299,67 @@ function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackInten
     return getNextApproverAccountID(report) === report?.ownerAccountID;
 }
 
+/**
+ * Determines whether the current user is eligible to initiate a merge of the selected expense reports.
+ */
+function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserAccountID: number | undefined): boolean {
+    // Need at least 2 reports and a valid caller identity.
+    if (selectedReports.length < 2 || !currentUserAccountID) {
+        return false;
+    }
+
+    const firstSelectedReport = selectedReports.at(0);
+
+    const validator = (report: OnyxEntry<Report>): boolean => {
+        if (!report || !isExpenseReport(report)) {
+            return false;
+        }
+
+        // Cross-account merges are not supported.
+        if (!firstSelectedReport?.ownerAccountID || firstSelectedReport.ownerAccountID !== report.ownerAccountID) {
+            return false;
+        }
+
+        // Cross-workspace merges are not supported in v1.
+        if (!firstSelectedReport.policyID || firstSelectedReport.policyID !== report.policyID) {
+            return false;
+        }
+
+        // All reports must be at the same point in the approval workflow so that
+        // merging cannot be used to skip approval steps (e.g. merging an Open
+        // draft into a report that is already Processing / waiting for approval).
+        if (firstSelectedReport.stateNum !== report.stateNum || firstSelectedReport.statusNum !== report.statusNum) {
+            return false;
+        }
+
+        // When reports are in the Processing (submitted) state they must share
+        // the same managerID so the merged report lands in exactly one approver's
+        // inbox. For Open reports the managerID may legitimately be unset, but the
+        // same-state constraint above already prevents mixing Open and Processing.
+        if (isProcessingReport(report)) {
+            if (!firstSelectedReport.managerID || firstSelectedReport.managerID !== report.managerID) {
+                return false;
+            }
+        }
+
+        // The user must be able to write to the report, AND must be either the
+        // report owner or an admin / approver on the workspace.
+        const isReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, currentUserAccountID);
+
+        if (!hasWriteAccess || !isReportEligibleForMerge) {
+            return false;
+        }
+
+        return true;
+    };
+
+    return selectedReports.every(validator);
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     getAllPolicyExpenseChatReportActions,
@@ -13371,7 +13413,6 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
-    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
@@ -13492,7 +13533,6 @@ export {
     hasIOUWaitingOnCurrentUserBankAccount,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
-    hasOnlyTransactionsWithPendingRoutes,
     hasReceiptError,
     hasReportNameError,
     getReportActionWithSmartscanError,
@@ -13706,6 +13746,7 @@ export {
     getLinkedIOUTransaction,
     shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
+    canMergeReports,
     canModifyHoldStatus,
 };
 

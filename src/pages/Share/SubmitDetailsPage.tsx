@@ -256,6 +256,7 @@ function SubmitDetailsPage({
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
+                isDraftChatReport: !!reportDraft,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories},
                 action: CONST.IOU.TYPE.CREATE,
