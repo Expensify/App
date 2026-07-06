@@ -7,6 +7,7 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {RefObject} from 'react';
@@ -91,8 +92,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
 
-    const submitToContentKey = useMemo(() => `${reportID}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
+    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin)}`;
 
     const clearDismissGuard = useCallback(() => {
         setIsDismissGuardActive(false);
