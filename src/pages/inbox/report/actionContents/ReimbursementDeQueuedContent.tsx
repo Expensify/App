@@ -1,10 +1,15 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+
 import {getReimbursementDeQueuedOrCanceledActionMessage} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ReimbursementDeQueuedContentProps = {
     action: ReportAction;

@@ -1,13 +1,11 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Dimensions} from 'react-native';
-import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactions from '@hooks/useReportTransactions';
+
 import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -20,8 +18,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getAllPolicyExpenseChatReportActions, getBankAccountRoute, getInvoiceReceiverPolicyID, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts} from '@libs/WorkflowUtils';
+
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,6 +31,13 @@ import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
+
+import type {EmitterSubscription, View} from 'react-native';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Dimensions} from 'react-native';
+
 import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.

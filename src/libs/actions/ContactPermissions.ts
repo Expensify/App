@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Updates whether the user has denied the contact import prompt.

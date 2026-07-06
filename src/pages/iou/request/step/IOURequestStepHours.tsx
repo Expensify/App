@@ -1,9 +1,8 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -12,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {navigateToConfirmationPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -20,16 +20,24 @@ import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
+
 import variables from '@styles/variables';
+
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
