@@ -409,11 +409,11 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
-                    // s77rt TODO for release 2 make sure to subscribe to mapping fields errors
                     CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.rillet?.data?.fields.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [
