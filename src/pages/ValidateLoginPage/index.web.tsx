@@ -62,7 +62,13 @@ function ValidateLoginPage({
         credentials?.validateCode === validateCode &&
         credentials?.accountID === Number(accountID) &&
         (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED);
-    const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
+    // Exclude `exitTo` deep links (e.g. a workspace-chat invite link): those carry a specific
+    // destination that `handleExitToNavigation` owns, so this flag's Home redirect (focus effect
+    // below) must not fire and clobber it. Without `!exitTo`, a first-time invitee (no cached
+    // `login`, just signed in) matches this exactly and gets force-redirected Home instead of the
+    // workspace chat.
+    const isUserClickedSignIn =
+        !login && !exitTo && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
     // Fresh-session magic-link sign-in. Not gated on `isSignedIn` because `autoAuthState` lands

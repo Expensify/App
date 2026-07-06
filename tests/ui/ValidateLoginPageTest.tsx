@@ -156,6 +156,38 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
+    it('Should hand off to exitTo (not redirect Home) for a first-time invitee opening an exitTo magic link', async () => {
+        // Regression for #94549: an invited member opens `/v/<id>/<code>?exitTo=<destination>` with no
+        // cached `login` and JUST_SIGNED_IN. Before the fix `isUserClickedSignIn` matched this exactly and
+        // its focus effect force-redirected Home, clobbering the exitTo navigation. Excluding `exitTo`
+        // keeps that Home redirect from firing so `handleExitToNavigation` owns the deep-link destination.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                authToken: 'abcd',
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456', exitTo: 'concierge'});
+        await waitForBatchedUpdatesWithAct();
+
+        // The deferred destination handoff is registered with the exitTo route...
+        expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
+
+        // ...and even once protected routes become available, the competing Home redirect must not fire.
+        await act(async () => {
+            mockWaitForProtectedRoutes.resolve();
+            await Promise.resolve();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
+    });
+
     it('Should not navigate to home when a signed-in session opens /v/ to view the code (autoAuthState !== JUST_SIGNED_IN)', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
