@@ -1,11 +1,13 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 type ReportAttributesConfig = typeof reportAttributesModuleDefault;
 
