@@ -1,6 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -23,6 +20,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -32,6 +30,12 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
@@ -294,12 +298,20 @@ function openReportFromDeepLink(
 
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
+        // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
+        let initialHasCompletedGuidedSetupFlow: boolean | undefined;
         // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.NVP_ONBOARDING,
             callback: (val) => {
                 if (!val && !isAnonymousUser()) {
                     return;
+                }
+
+                // Capture once. Use the raw flag, not the selector, which returns `true` for the empty NVP a fresh sign-up briefly has.
+                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser()) {
+                    initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                 }
 
                 // Wait for TAB_NAVIGATOR's child router to mount before navigating. waitForProtectedRoutes()
@@ -339,6 +351,12 @@ function openReportFromDeepLink(
                             }
 
                             if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                                return;
+                            }
+
+                            // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
+                            // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
+                            if (initialHasCompletedGuidedSetupFlow === false) {
                                 return;
                             }
 

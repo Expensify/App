@@ -1,17 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import {useEffect} from 'react';
-import Onyx from 'react-native-onyx';
+
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import useBulkDuplicateAction from '@hooks/useBulkDuplicateAction';
 import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+
 import {bulkDuplicateExpenses, bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
-import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
+
+import {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
@@ -23,11 +31,14 @@ jest.mock('@libs/actions/Search', () => ({
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
+    getReportFromSearchSnapshot: jest.fn((reportID?: string, searchData?: Record<string, unknown>, allReports?: Record<string, unknown>) =>
+        reportID ? (searchData?.[`report_${reportID}`] ?? allReports?.[`report_${reportID}`]) : undefined,
+    ),
     getReportType: jest.fn(),
     getSearchPayOnyxData: jest.fn(() => ({})),
     getTotalFormattedAmount: jest.fn(() => ''),
@@ -128,6 +139,11 @@ let mockDefaultExpensePolicy: Policy | undefined;
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     __esModule: true,
     default: () => mockDefaultExpensePolicy,
+}));
+
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
 }));
 
 const mockClearSelectedTransactions = jest.fn();
@@ -267,6 +283,8 @@ function useSearchBulkActionsWithDuplicateReport({queryJSON}: {queryJSON: Search
     return actions;
 }
 
+const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
+
 describe('useSearchBulkActions - duplicate option', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -312,7 +330,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[transactionID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             const opt = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE);
@@ -328,7 +346,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[transactionID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -345,7 +363,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}300`, cashTxn);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}301`, cardTxn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -362,7 +380,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}400`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}401`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
@@ -373,7 +391,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {'500': makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}500`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: {...baseQueryJSON, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: {...baseQueryJSON, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -381,7 +399,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should not show duplicate option when no transactions are selected', () => {
         mockSelectedTransactions = {};
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
     });
 
@@ -407,7 +425,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {reportID: 'report1', policyID});
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -425,7 +443,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -463,7 +481,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {reportID: 'r2', policyID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r3`, {reportID: 'r3', policyID});
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -496,7 +514,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1801`, perDiemTxn);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1802`, distanceTxn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -516,7 +534,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             transactionIDs.map((id, i) => [id, makeSelectedTransaction({reportID: `r${i}`, action: states.at(i) ?? CONST.SEARCH.ACTION_TYPES.VIEW})]),
         );
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -536,7 +554,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -563,7 +581,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`, deletedTransaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${nonDeletedTransactionID}`, nonDeletedTransaction);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -575,7 +593,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.VIEW})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -597,7 +615,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}600`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}601`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -624,7 +642,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({policyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -647,7 +665,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -683,7 +701,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({policyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -721,7 +739,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({policyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -765,7 +783,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1100`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1101`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -795,7 +813,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -823,7 +841,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1300`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1301`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -849,7 +867,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             [txnID]: makeSelectedTransaction({reportID: 'report1', transaction: txn}),
         };
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -875,7 +893,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             [txnID]: makeSelectedTransaction({reportID: 'report1', transaction: txn}),
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -906,7 +924,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID: 'r_other', policyID: otherPolicyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -920,7 +938,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${txnID}`, [{name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -947,7 +965,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -993,7 +1011,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID: expenseReportID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -1013,7 +1031,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -1041,7 +1059,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -1071,7 +1089,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
@@ -1101,7 +1119,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Promise.all(mergePromises);
         mockSelectedTransactions = selected;
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -1125,7 +1143,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -1179,7 +1197,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction({reportID: 'report1', policyID})};
         mockSelectedReports = [makeSelectedReport({reportID: 'report1', policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             const opt = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT);
@@ -1208,7 +1226,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         };
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID}), makeSelectedReport({reportID: 'rpt3', policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeDefined();
@@ -1230,7 +1248,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction()};
         mockSelectedReports = [makeSelectedReport()];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1252,7 +1270,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction()};
         mockSelectedReports = [makeSelectedReport()];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1275,7 +1293,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction()};
         mockSelectedReports = [makeSelectedReport({ownerAccountID: otherUserAccountID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1308,7 +1326,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         };
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID, type: CONST.REPORT.TYPE.IOU})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1320,7 +1338,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
         mockSelectedReports = [];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
     });
@@ -1344,7 +1362,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         };
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: undefined, policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1375,7 +1393,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         };
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicateReport({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicateReport({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeDefined();
@@ -1407,7 +1425,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction({reportID: 'rpt1', policyID})};
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActionsWithDuplicateReport({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicateReport({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeDefined();

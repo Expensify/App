@@ -1,13 +1,16 @@
-import type {LinkingOptions} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {Linking} from 'react-native';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import {isTabNavigatorMounted, whenTabNavigatorReady} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+
+import type {LinkingOptions} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {Linking} from 'react-native';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {

@@ -1,17 +1,22 @@
-import React, {useCallback, useEffect} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+import getActionBadgeText from '@components/utils/getActionBadgeText';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
     /** Whether the button uses the success style */
@@ -83,12 +88,23 @@ type FloatingMessageCounterProps = {
 
     /** Callback when the action badge pill is clicked */
     onActionBadgePress?: () => void;
+
+    /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
+    isMarkAsDone?: boolean;
 };
 
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
-function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMessages, actionBadge, actionBadgeBrickRoadStatus, onActionBadgePress}: FloatingMessageCounterProps) {
+function FloatingMessageCounter({
+    isActive = false,
+    onClick = () => {},
+    hasNewMessages,
+    actionBadge,
+    actionBadgeBrickRoadStatus,
+    onActionBadgePress,
+    isMarkAsDone,
+}: FloatingMessageCounterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -123,6 +139,8 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
         transform: [{translateY: translateY.get()}],
     }));
 
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+
     return (
         <Animated.View
             accessibilityHint={translate(shouldShowActionBadgePill ? 'accessibilityHints.scrollToActionBadgeTarget' : 'accessibilityHints.scrollToNewestMessages')}
@@ -137,7 +155,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
                             onPress={onActionBadgePress}
                             icon={icons.UpArrow}
                             iconFill={theme.textLight}
-                            label={translate(`common.actionBadge.${actionBadge}`)}
+                            label={actionBadgeText}
                             textStyle={styles.textWhite}
                         />
                     ) : (

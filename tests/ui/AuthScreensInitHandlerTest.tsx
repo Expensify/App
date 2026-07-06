@@ -1,22 +1,28 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
+
 import {openApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -68,12 +74,7 @@ jest.mock('@userActions/App', () => ({
     openApp: jest.fn(),
     reconnectApp: jest.fn(),
     setUpPoliciesAndNavigate: jest.fn(),
-    confirmReadyToOpenApp: jest.fn(),
     setLocale: jest.fn(),
-}));
-
-jest.mock('@userActions/Agent', () => ({
-    openAgentsPage: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({

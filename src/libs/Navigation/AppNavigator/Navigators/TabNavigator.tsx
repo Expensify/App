@@ -1,21 +1,27 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setTabNavigatorMounted, setTabNavigatorUnmounted} from '@libs/Navigation/helpers/tabNavigatorReadiness';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
+import {getSpan} from '@libs/telemetry/activeSpans';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {setTabNavigatorMounted, setTabNavigatorUnmounted} from '@libs/Navigation/helpers/tabNavigatorReadiness';
-import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import {getSpan} from '@libs/telemetry/activeSpans';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+
 // Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';

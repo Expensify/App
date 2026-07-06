@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Account} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const isActingAsDelegateSelector = (account: OnyxEntry<Account>) => !!account?.delegatedAccess?.delegate;
 
@@ -19,6 +20,8 @@ const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactor
 
 const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.isFromInternalDomain;
 
+const canDowngradeSelector = (account: OnyxEntry<Account>) => !!account?.canDowngrade;
+
 export {
     isActingAsDelegateSelector,
     delegateEmailSelector,
@@ -29,4 +32,5 @@ export {
     accountGuideDetailsSelector,
     mfaCredentialIDsSelector,
     isFromInternalDomainSelector,
+    canDowngradeSelector,
 };

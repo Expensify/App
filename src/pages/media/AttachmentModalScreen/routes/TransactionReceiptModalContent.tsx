@@ -1,11 +1,8 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {RotationDegrees} from 'react-fast-pdf';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
+
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {openReport} from '@libs/actions/Report';
@@ -37,15 +35,24 @@ import {
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemFactory} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {RotationDegrees} from 'react-fast-pdf';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
@@ -96,6 +103,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     useRestartOnOdometerImagesFailure(isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined, reportID, iouTypeParam ?? CONST.IOU.TYPE.SUBMIT, backToReport);
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -257,9 +265,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
 
     /**
      * Remove odometer image and close the modal.
@@ -303,12 +311,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
                         transactionPolicyTagList: policyTagList,
+                        transactionViolations,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
     );
 
     const rotateReceipt = useCallback(() => {

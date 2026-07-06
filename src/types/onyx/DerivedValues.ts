@@ -1,6 +1,8 @@
+import type CONST from '@src/CONST';
+
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID} from './CardFeeds';
@@ -92,15 +94,6 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  * The derived value for report outstanding reports.
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
-
-/**
- * The derived value for reports grouped by policy ID.
- * Groups reports by their policyID where:
- * - The report has a policyID
- * - The report is owned by the current user
- * - The report state is open or submitted (stateNum <= 1)
- */
-type OpenAndSubmittedReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
  * The derived value for visible report actions.
@@ -239,34 +232,6 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
 /**
- * Metadata for todo search results.
- */
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
-};
-
-/**
- * The derived value for todos.
- */
-type TodosDerivedValue = {
-    /** Reports that need to be submitted */
-    reportsToSubmit: Report[];
-    /** Reports that need to be approved */
-    reportsToApprove: Report[];
-    /** Reports that need to be paid */
-    reportsToPay: Report[];
-    /** Reports that need to be exported */
-    reportsToExport: Report[];
-    /** Transactions grouped by report ID */
-    transactionsByReportID: Record<string, Transaction[]>;
-};
-
-/**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
@@ -289,14 +254,11 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

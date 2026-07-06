@@ -1,9 +1,12 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -93,19 +96,19 @@ afterEach(() => {
 
 describe('ConciergeThinkingMessage avatar prop integration', () => {
     test('should pass accountIDs=[CONCIERGE] to ReportActionAvatars in admin room', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountIDs).toEqual([conciergeAccountID]);
     });
 
     test('should pass accountIDs=[CONCIERGE] to ReportActionAvatars in announce room', () => {
-        render(<ConciergeThinkingMessage report={mockAnnounceRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountIDs).toEqual([conciergeAccountID]);
     });
 
     test('should pass exactly CONCIERGE account ID, not an empty array', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountIDs).toBeDefined();
         expect((mockCapturedAvatarProps.accountIDs as number[]).length).toBe(1);
@@ -113,8 +116,15 @@ describe('ConciergeThinkingMessage avatar prop integration', () => {
     });
 
     test('should not pass policyID to ReportActionAvatars (would force workspace avatar)', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.policyID).toBeUndefined();
+    });
+
+    test('should not pass reportID/chatReportID to ReportActionAvatars (report context would override the agent avatar with the report-preview sender)', () => {
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+        expect(mockCapturedAvatarProps.reportID).toBeUndefined();
+        expect(mockCapturedAvatarProps.chatReportID).toBeUndefined();
     });
 });

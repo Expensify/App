@@ -1,6 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
@@ -11,7 +8,6 @@ import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
@@ -23,11 +19,13 @@ import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackC
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
+
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -35,18 +33,26 @@ import NavBarManager from '@libs/NavBarManager';
 import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
-import ExpensifyCardContextProvider from '@pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
+
 import * as Modal from '@userActions/Modal';
+
 import CONST from '@src/CONST';
-import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import '@src/libs/subscribeToFullReconnect';
+
+import type {RouteProp} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import React, {useEffect} from 'react';
+
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
 import createRootStackNavigator from './createRootStackNavigator';
@@ -56,12 +62,10 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
-import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
@@ -169,13 +173,11 @@ function AuthScreens() {
                         FullScreenContextProvider,
                         SearchRouterContextProvider,
                         ProductTrainingContextProvider,
-                        ExpensifyCardContextProvider,
                         TravelCVVContextProvider,
                         KYCWallContextProvider,
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
                         CurrencyListContextProvider,
-                        OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
@@ -303,19 +305,9 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={ExplanationModalNavigator}
-                        />
-                        <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={TestDriveModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
@@ -324,7 +316,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />

@@ -1,19 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceRoomRowData = TableData & {
     /** The room reportID */
@@ -21,15 +23,6 @@ type WorkspaceRoomRowData = TableData & {
 
     /** The room display name */
     name: string;
-
-    /** Owner accountID for resolving the avatar */
-    ownerAccountID?: number;
-
-    /** Owner avatar source */
-    ownerAvatar?: AvatarSource;
-
-    /** Pre-formatted owner display name */
-    ownerDisplayName: string;
 
     /** Number of members in the room */
     memberCount: number;
@@ -47,28 +40,22 @@ type WorkspaceRoomsTableRowProps = {
 
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
-
-    /** Whether or not the row should animate in highlighted */
-    shouldAnimateInHighlight?: boolean;
 };
 
-function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldAnimateInHighlight}: WorkspaceRoomsTableRowProps) {
+function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceRoomsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const memberCountSubtitle = translate('domain.groups.memberCount', {count: item.memberCount});
-    const narrowSubtitle = item.ownerDisplayName ? `${translate('common.createdBy')}: ${item.ownerDisplayName} • ${memberCountSubtitle}` : memberCountSubtitle;
 
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
             accessibilityLabel={item.name}
-            skeletonReasonAttributes={{context: 'WorkspaceRoomsTableRow'}}
             onPress={item.action}
-            shouldAnimateInHighlight={shouldAnimateInHighlight}
         >
             {({hovered}) => (
                 <>
@@ -91,7 +78,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                                     numberOfLines={1}
                                     style={styles.textLabelSupporting}
                                 >
-                                    {narrowSubtitle}
+                                    {memberCountSubtitle}
                                 </Text>
                             </View>
                             <Icon
@@ -119,26 +106,6 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                                     text={item.name}
                                     style={[styles.optionDisplayName, styles.flexShrink1]}
                                 />
-                            </View>
-
-                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                                {!!item.ownerDisplayName && (
-                                    <>
-                                        {!!item.ownerAccountID && (
-                                            <Avatar
-                                                source={item.ownerAvatar}
-                                                avatarID={item.ownerAccountID}
-                                                type={CONST.ICON_TYPE_AVATAR}
-                                                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                                            />
-                                        )}
-                                        <TextWithTooltip
-                                            shouldShowTooltip
-                                            text={item.ownerDisplayName}
-                                            style={styles.flexShrink1}
-                                        />
-                                    </>
-                                )}
                             </View>
 
                             <View style={styles.flex1}>
