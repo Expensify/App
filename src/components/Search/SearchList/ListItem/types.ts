@@ -4,6 +4,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type CONST from '@src/CONST';
 import type {
@@ -241,6 +242,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The date the report was exported */
         exported?: string;
+
+        /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
+        firstApproved?: string;
+
+        /** The avatar of the first approver */
+        firstApproverAvatar?: AvatarSource;
+
+        /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
+        firstApproverAccountID?: number;
+
+        /** Final and formatted "first approver" value used for displaying and sorting */
+        formattedFirstApprover?: string;
 
         /** Whether the status field should be shown in a pending state */
         shouldShowStatusAsPending?: boolean;
