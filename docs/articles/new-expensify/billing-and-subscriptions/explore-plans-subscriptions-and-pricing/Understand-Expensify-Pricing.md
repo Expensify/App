@@ -32,7 +32,7 @@ Select your billing currency to view the subscription prices.
 
 <div class="currency-block" data-currency="usd" markdown="1">
 
-| Workspace plan | Subscription | Standard price | With Expensify Card* |
+| Workspace plan | Subscription | Standard price | With Expensify Card |
 | -------------- | ------------ | -------------: | -------------------: |
 | **Collect** | Pay-per-use | **$5** per unique member/month | — |
 | **Control** | Annual | **$18** per member included in your subscription size/month, plus **$36** per active member above your subscription size/month | **As low as $9** per member included in your subscription size/month |
