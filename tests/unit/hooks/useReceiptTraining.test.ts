@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useReceiptTraining from '@components/MoneyRequestConfirmationList/hooks/useReceiptTraining';
+
 import type * as OnyxTypes from '@src/types/onyx';
 
 jest.mock('@components/ProductTrainingContext', () => ({

@@ -1,3 +1,12 @@
+import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+import GitUtils from '@github/libs/GitUtils';
+import * as VersionUpdater from '@github/libs/versionUpdater';
+import type {SemverLevel} from '@github/libs/versionUpdater';
+
+import type {PackageJson} from 'type-fest';
+
 /**
  * @jest-environment node
  * @jest-config bail=true
@@ -7,13 +16,7 @@ import {execSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import type {PackageJson} from 'type-fest';
-import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
-import CONST from '@github/libs/CONST';
-import GithubUtils from '@github/libs/GithubUtils';
-import GitUtils from '@github/libs/GitUtils';
-import * as VersionUpdater from '@github/libs/versionUpdater';
-import type {SemverLevel} from '@github/libs/versionUpdater';
+
 import * as Log from '../../scripts/utils/Logger';
 
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');

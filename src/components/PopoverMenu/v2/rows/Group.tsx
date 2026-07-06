@@ -1,8 +1,11 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type GroupProps = {
     children: ReactNode;

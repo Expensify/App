@@ -1,8 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion, ValueOf} from 'type-fest';
-import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -10,11 +5,10 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
-import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {TableHandle} from '@components/Table';
+import type {ReportParticipantRowData, ReportParticipantsTableColumnKey} from '@components/Tables/ReportParticipantsTable';
+import ReportParticipantsTable from '@components/Tables/ReportParticipantsTable';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -27,18 +21,15 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useSearchResults from '@hooks/useSearchResults';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openRoomMembersPage, removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
-import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
-import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
@@ -54,35 +45,38 @@ import {
     isTaskReport,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
-import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>;
 function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path);
-    const navigateBackToReportDetails = useCallback(() => {
+    const navigateBackToReportDetails = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    };
+    const icons = useMemoizedLazyExpensifyIcons(['MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
-    const textInputRef = useRef<BaseTextInputRef>(null);
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const tableRef = useRef<TableHandle<ReportParticipantRowData, ReportParticipantsTableColumnKey, string>>(null);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const reportAttributes = useReportAttributes();
@@ -93,7 +87,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
-    const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
 
@@ -114,30 +107,14 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const firstSelectedMember = selectedMembers?.at(0);
     const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
 
-    const [searchValue, setSearchValue, searchFilteredParticipants] = useSearchResults(
-        participantsForDisplay,
-        (participant, search) => isSearchStringMatchUserDetails(participant.details, search),
-        undefined,
-        (participant) => isOffline || !participant.isPendingDelete,
-    );
+    // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
+    const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
-    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list
-    const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        if (shouldShowTextInput) {
-            setSearchValue(userSearchPhrase ?? '');
-        } else {
-            clearUserSearchPhrase();
-            setSearchValue('');
-        }
-    }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the list
+    const shouldShowSearchBar = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     useEffect(() => {
         if (!isAnnounceRoom(report)) {
@@ -155,40 +132,14 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                 return;
             }
 
-            setSearchValue('');
             navigateBackToReportDetails();
         },
     });
 
-    const toggleUser = (user: MemberOption) => {
-        if (user.accountID === currentUserAccountID) {
-            return;
-        }
-
-        if (selectedMembers.includes(user.accountID)) {
-            setSelectedMembers((prevSelected) => prevSelected.filter((id) => id !== user.accountID));
-        } else {
-            setSelectedMembers((prevSelected) => [...prevSelected, user.accountID]);
-        }
-    };
-
-    const toggleAllUsers = (memberList: MemberOption[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const someSelected = enabledAccounts.some((member) => selectedMembers.includes(member.accountID));
-        if (someSelected) {
-            setSelectedMembers([]);
-        } else {
-            setSelectedMembers(enabledAccounts.map((member) => member.accountID));
-        }
-    };
-
     const removeUsers = () => {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report, accountIDsToRemove);
-        setSearchValue('');
-
         setSelectedMembers([]);
-        clearUserSearchPhrase();
     };
 
     const showRemoveMembersModal = async () => {
@@ -203,10 +154,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             danger: true,
         });
 
-        if (textInputRef.current) {
-            textInputRef.current.focus();
-        }
-
         if (action === ModalActions.CONFIRM) {
             removeUsers();
         }
@@ -218,49 +165,37 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         setSelectedMembers([]);
     };
 
-    const openMemberDetails = (item: MemberOption) => {
+    const openMemberDetails = (accountID: number) => {
         if (isGroupChat && isCurrentUserAdmin) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(item.accountID)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(accountID)));
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
     };
 
-    // Build participants list
-    let participants: MemberOption[] = [];
-    for (const participantForDisplay of searchFilteredParticipants) {
+    const participants: ReportParticipantRowData[] = activeParticipants.map((participantForDisplay) => {
         const {accountID, details, isDisabled, pendingAction, role} = participantForDisplay;
 
-        const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
-
-        participants.push({
+        return {
             keyForList: `${accountID}`,
             accountID,
-            isSelected: selectedMembers.includes(accountID) && canSelectMultiple,
-            isDisabledCheckbox: accountID === currentUserAccountID,
-            isDisabled,
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-            alternateText: formatPhoneNumber(details?.login ?? ''),
-            rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : null,
+            login: details?.login ?? '',
+            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            email: formatPhoneNumber(details?.login ?? ''),
+            isAdmin: role === CONST.REPORT.ROLE.ADMIN,
+            isGroupChat,
+            disabled: isDisabled,
+            isSelectionDisabled: accountID === currentUserAccountID,
             pendingAction,
-            icons: [
-                {
-                    source: details?.avatar ?? icons.FallbackAvatar,
-                    name: formatPhoneNumber(details?.login ?? ''),
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: accountID,
-                },
-            ],
-        });
-    }
-    participants = participants.sort((a, b) => localeCompare((a.text ?? '').toLowerCase(), (b.text ?? '').toLowerCase()));
+            action: () => openMemberDetails(accountID),
+        };
+    });
+
+    const selectedKeys = selectedMembers.map(String);
 
     const isAtLeastOneAdminSelected = selectedMembers.some((accountId) => participantsForDisplayMap[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
     const isAtLeastOneMemberSelected = selectedMembers.some((accountId) => participantsForDisplayMap[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
 
-    // We use spread to define this array in one statement because showRemoveMembersModal accesses textInputRef.current.
-    // React Compiler can't tell that onSelected is a callback (not invoked during render), so modifying this array
-    // in a separate statement (e.g. with .push() or .filter()) triggers: "Cannot access refs during render"
     const bulkActionsButtonOptions: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
         {
             text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
@@ -268,46 +203,25 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             icon: icons.RemoveMembers,
             onSelected: showRemoveMembersModal,
         },
-        ...(isAtLeastOneAdminSelected
-            ? [
-                  {
-                      text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
-                      value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                      icon: icons.User,
-                      onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
-                  },
-              ]
-            : []),
-        ...(isAtLeastOneMemberSelected
-            ? [
-                  {
-                      text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
-                      value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                      icon: icons.MakeAdmin,
-                      onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
-                  },
-              ]
-            : []),
     ];
 
-    const headerContent = (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-            <View>
-                <Text style={[styles.textMicroSupporting, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
-            </View>
-            {isGroupChat && (
-                <View style={[StyleUtils.getMinimumWidth(60)]}>
-                    <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
-                </View>
-            )}
-        </View>
-    );
+    if (isAtLeastOneAdminSelected) {
+        bulkActionsButtonOptions.push({
+            text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+            icon: icons.User,
+            onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
+        });
+    }
 
-    const customListHeader = canSelectMultiple ? (
-        headerContent
-    ) : (
-        <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, shouldShowTextInput ? styles.mt3 : styles.mt0]}>{headerContent}</View>
-    );
+    if (isAtLeastOneMemberSelected) {
+        bulkActionsButtonOptions.push({
+            text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
+        });
+    }
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
@@ -315,10 +229,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report) || isGroupChat
             ? translate('common.members')
             : translate('common.details');
-
-    const memberNotFoundMessage = isGroupChat
-        ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
-        : translate('roomMembersPage.memberNotFound');
 
     return (
         <ScreenWrapper
@@ -337,7 +247,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         }
 
                         if (report) {
-                            setSearchValue('');
                             navigateBackToReportDetails();
                         }
                     }}
@@ -372,28 +281,14 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                     )}
                 </View>
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
-                    <SelectionListWithModal
-                        data={participants}
-                        ref={selectionListRef}
-                        ListItem={TableListItem}
-                        onSelectRow={openMemberDetails}
-                        textInputOptions={{
-                            label: translate('selectionList.findMember'),
-                            value: searchValue,
-                            onChangeText: setSearchValue,
-                            headerMessage: searchValue.trim() && !participants.length ? memberNotFoundMessage : '',
-                            ref: textInputRef,
-                        }}
-                        canSelectMultiple={canSelectMultiple}
-                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
-                        turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
-                        shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        onSelectAll={() => toggleAllUsers(participants)}
-                        onSelectionButtonPress={toggleUser}
-                        shouldShowTextInput={shouldShowTextInput}
-                        customListHeader={customListHeader}
-                        showScrollIndicator
+                    <ReportParticipantsTable
+                        ref={tableRef}
+                        members={participants}
+                        isGroupChat={isGroupChat}
+                        selectionEnabled={isCurrentUserGroupChatAdmin}
+                        selectedKeys={selectedKeys}
+                        shouldShowSearchBar={shouldShowSearchBar}
+                        onRowSelectionChange={onRowSelectionChange}
                     />
                 </View>
             </FullPageNotFoundView>

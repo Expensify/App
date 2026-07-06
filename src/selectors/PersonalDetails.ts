@@ -1,15 +1,19 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {
-    getDisplayNameOrDefault,
     getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailsByID,
     getPersonalDetailsListByIDs,
     newGetPersonalDetailsByIDs,
+    temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
@@ -22,7 +26,8 @@ const personalDetailsLoginSelector = (accountID: number | undefined) => (persona
 
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
-const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
+const personalDetailsDisplayNameSelector = (accountID: number, translate: LocalizedTranslate) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
+    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate});
 
 const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
