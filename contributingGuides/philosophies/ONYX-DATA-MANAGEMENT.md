@@ -115,3 +115,23 @@ compute: ([reports, personalDetails]) => {
 - Explain the purpose and dependencies
 - Document any special cases or performance considerations
 - Include type annotations for better developer experience
+
+## Onyx State Export
+
+Users can export their full Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.
+
+### - Every Onyx key MUST be deliberately categorized for export
+There is no safe implicit default: a key that leaks credentials and a key holding a harmless boolean flag both need an explicit decision. To make that decision impossible to skip, every top-level and `COLLECTION.*` key in `ONYXKEYS` is placed into exactly one of four mutually-exclusive buckets in `src/libs/ExportOnyxState/common.ts`:
+
+1. **`onyxKeysToRemove`** — keys that must never leave the device (push notification ID, Stripe customer ID, Plaid/merge-HR link tokens, Onfido token/applicant ID, billing dispute/status, and all `DERIVED` keys). Dropped entirely from the export.
+2. **`ONYX_KEY_EXPORT_RULES`** — keys with a per-field `allowList`/`maskList` for PII-aware export (e.g. `SESSION`, `ACCOUNT`, `COLLECTION.REPORT`, `COLLECTION.TRANSACTION`, `USER_WALLET`, `CARD_LIST`).
+3. **`safeOnyxKeys`** — keys confirmed PII-free that are exported as-is (boolean flags, loading states, feature flags, simple IDs, config values, timestamps). At runtime these skip `maskFragileData`.
+4. **`onyxKeysToMaskFragileData`** — keys with no explicit rule that fall through to the default `maskFragileData` treatment.
+
+### - When adding a new Onyx key you MUST place it in one of the four buckets
+The coverage test in `tests/unit/ExportOnyxStateTest.ts` fails whenever a key exists in `ONYXKEYS` but in none of the four buckets, so a newly-added key cannot silently inherit a default. That failure is the forcing function: it requires whoever adds the key to make an explicit masked-vs-unmasked decision.
+
+Note that `onyxKeysToMaskFragileData` is a hand-maintained mirror of the runtime `maskFragileData` fallback — it is **not** read at runtime, and listing a key there does not by itself mask anything. It exists only so the coverage test can tell "deliberately falls through to `maskFragileData`" apart from "the author forgot to categorize this key".
+
+### - Marking a key as safe is a security judgment, not a structural one
+Membership in `safeOnyxKeys` means the key is exported with no masking at all, so it MUST only contain data that carries no credentials, tokens, banking data, or personal details. No structural test can validate this (nothing in the suite knows which fields a key actually holds), so the decision is a manual review. A `knownSensitiveKeys` denylist test re-encodes that judgment for known-sensitive keys and fails loudly if any of them is ever moved into `safeOnyxKeys`.
