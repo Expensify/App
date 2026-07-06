@@ -1,11 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import TestToolRow from '@components/TestToolRow';
 
 import useLocalize from '@hooks/useLocalize';
 
 import testCrash from '@libs/testCrash';
+
 import CONST from '@src/CONST';
 
 import React from 'react';

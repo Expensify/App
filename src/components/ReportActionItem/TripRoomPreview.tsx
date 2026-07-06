@@ -1,8 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
-import {FlatList, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/ButtonComposed';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';

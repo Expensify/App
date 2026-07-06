@@ -1,5 +1,3 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import React from 'react';
 import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 

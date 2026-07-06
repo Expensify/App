@@ -1,6 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';

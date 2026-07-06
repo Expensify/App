@@ -1,7 +1,3 @@
-import {useNavigation} from '@react-navigation/core';
-import React, {useCallback} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/ButtonComposed';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';

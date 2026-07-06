@@ -1,5 +1,3 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import Button from '@components/ButtonComposed';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';

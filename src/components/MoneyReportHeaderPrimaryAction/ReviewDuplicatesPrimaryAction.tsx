@@ -1,5 +1,5 @@
-import React from 'react';
 import Button from '@components/ButtonComposed';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';

@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -23,6 +21,7 @@ import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/typ
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';

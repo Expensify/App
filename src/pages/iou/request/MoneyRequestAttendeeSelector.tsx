@@ -1,7 +1,3 @@
-import {SafeString} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
-import React, {memo, useEffect} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/ButtonComposed';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';

@@ -1,5 +1,3 @@
-import {domainNameSelector, groupsSelector} from '@selectors/Domain';
-import React, {useEffect, useState} from 'react';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

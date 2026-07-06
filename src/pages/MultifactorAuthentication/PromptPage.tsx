@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 

@@ -1,5 +1,5 @@
-import React from 'react';
 import Button from '@components/ButtonComposed';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';

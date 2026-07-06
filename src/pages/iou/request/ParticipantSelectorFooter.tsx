@@ -1,5 +1,3 @@
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';

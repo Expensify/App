@@ -1,8 +1,3 @@
-import type {NavigationState} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Text from '@components/Text';

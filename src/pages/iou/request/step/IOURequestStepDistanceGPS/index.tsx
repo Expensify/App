@@ -1,5 +1,3 @@
-import React from 'react';
-import {Linking, View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ImageSVG from '@components/ImageSVG';

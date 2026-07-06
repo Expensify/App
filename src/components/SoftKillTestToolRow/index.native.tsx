@@ -1,8 +1,8 @@
-import {NativeModules} from 'react-native';
 import Button from '@components/ButtonComposed';
 import TestToolRow from '@components/TestToolRow';
 
 import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
 
 import {NativeModules} from 'react-native';

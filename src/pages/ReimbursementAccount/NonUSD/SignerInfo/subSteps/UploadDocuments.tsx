@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';

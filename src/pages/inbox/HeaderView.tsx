@@ -1,10 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {accountGuideDetailsSelector} from '@selectors/Account';
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
-import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import {isPast} from 'date-fns';
-import React, {useMemo} from 'react';
-import {Keyboard, View} from 'react-native';
 import Button from '@components/ButtonComposed';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';

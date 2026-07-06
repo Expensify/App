@@ -1,11 +1,13 @@
-import React, {useState} from 'react';
 import Button from '@components/ButtonComposed';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import CommonFilterContent from '@components/Search/FilterComponents/AdvancedFilters/CommonFilterContent';
 import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
 import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
 
 function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, policyIDs, policyIDQuery, ready, onChange}: CommonFilterContentWrapperProps) {
     const {translate} = useLocalize();

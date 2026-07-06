@@ -1,6 +1,3 @@
-import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
