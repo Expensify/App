@@ -494,6 +494,10 @@ function getNewestPusherDraftLifecycleEvent(runtime: PusherDraftPacingRuntime): 
     return terminalEvent.sequence > target.sequence ? terminalEvent : target;
 }
 
+function isContentFreeTerminalEvent(event: ConciergeDraftEvent | null): boolean {
+    return event?.status === CONCIERGE_DRAFT_STATUS.COMPLETED && !event.bodyMarkdown && !event.finalRenderedHTML;
+}
+
 function revealFullPusherDraftTarget(runtime: PusherDraftPacingRuntime) {
     const {completedPusherDraftEventRef, lastPaceTickTimeRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef} = runtime;
     const newestTarget = getNewestPusherDraftTarget(runtime);
@@ -629,7 +633,9 @@ function isStalePusherDraftEventAgainstTarget(runtime: PusherDraftPacingRuntime,
         return true;
     }
 
-    const activeStreamSessionID = latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID;
+    const activeStreamSessionID = isContentFreeTerminalEvent(latestEvent)
+        ? currentDraftRef.current?.streamSessionID
+        : (latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID);
     return !!activeStreamSessionID && activeStreamSessionID !== event.streamSessionID && event.status !== CONCIERGE_DRAFT_STATUS.STARTED && event.status !== CONCIERGE_DRAFT_STATUS.UPDATED;
 }
 
@@ -638,12 +644,9 @@ function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Conci
 }
 
 function rememberContentFreeCompletedEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, terminalPusherDraftEventRef} = runtime;
+    const {completedPusherDraftEventRef, terminalPusherDraftEventRef} = runtime;
 
     terminalPusherDraftEventRef.current = event;
-    if (!latestPusherDraftEventRef.current?.bodyMarkdown && !latestPusherDraftEventRef.current?.finalRenderedHTML) {
-        latestPusherDraftEventRef.current = event;
-    }
     completedPusherDraftEventRef.current = null;
 }
 
