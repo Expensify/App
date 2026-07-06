@@ -1,12 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedRow from '@src/pages/home/GettingStartedSection/GettingStartedRow';
 import type {GettingStartedItem} from '@src/pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
