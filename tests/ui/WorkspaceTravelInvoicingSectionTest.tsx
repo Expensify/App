@@ -20,6 +20,8 @@ import type {Policy} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockUseSingleExecution from '../utils/mockUseSingleExecution';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -33,18 +35,8 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 // This component presses buttons and asserts on the resulting side effects, not on the
-// double-tap-prevention mechanism itself, which relies on a real (non-fake) timer to clear
-// `isExecuting` and won't resolve within this test's lifetime.
-jest.mock('@hooks/useSingleExecution', () => ({
-    __esModule: true,
-    default: () => ({
-        isExecuting: false,
-        singleExecution:
-            <T extends unknown[]>(action?: (...params: T) => void | Promise<void>) =>
-            (...params: T) =>
-                action?.(...params),
-    }),
-}));
+// double-tap-prevention mechanism itself (see tests/utils/mockUseSingleExecution.ts).
+jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof MockUseSingleExecution>('../utils/mockUseSingleExecution'));
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
