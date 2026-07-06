@@ -4,7 +4,6 @@ import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -20,8 +19,6 @@ import {
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
-import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -34,8 +31,6 @@ type GettingStartedItem = {
     label: string;
     isComplete: boolean;
     route: Route;
-    isFeatureEnabled?: boolean;
-    enableFeature?: () => void;
 };
 
 type UseGettingStartedItemsResult = {
@@ -144,28 +139,24 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areConnectionsEnabled,
-            enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
         });
-    } else {
+    } else if (policy.areCategoriesEnabled) {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
         });
     }
 
-    items.push({
-        key: 'linkCompanyCards',
-        label: translate('homePage.gettingStartedSection.linkCompanyCards'),
-        isComplete: hasCompanyCardFeeds(allCardFeeds),
-        route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
-        isFeatureEnabled: policy.areCompanyCardsEnabled,
-        enableFeature: () => enableCompanyCards(activePolicyID, true, false),
-    });
+    if (policy.areCompanyCardsEnabled) {
+        items.push({
+            key: 'linkCompanyCards',
+            label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+            isComplete: hasCompanyCardFeeds(allCardFeeds),
+            route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+        });
+    }
 
     if (arePolicyRulesEnabled(policy, policyCategories)) {
         items.push({
