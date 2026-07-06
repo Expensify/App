@@ -1204,7 +1204,6 @@
 "../../src/pages/home/FreeTrialSection/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
-"../../src/pages/home/SpendOverTimeSection/SpendOverTimeSectionContent.tsx"	"no-restricted-imports"	1
 "../../src/pages/home/SpendOverTimeSection/useSpendOverTimeData.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
