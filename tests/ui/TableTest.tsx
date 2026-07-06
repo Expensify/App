@@ -1,12 +1,16 @@
-import {NavigationContainer} from '@react-navigation/native';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Text from '@components/Text';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -483,6 +487,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: 'single-select',
                     options: [
                         {label: 'All', value: 'all'},
@@ -719,6 +724,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: 'single-select',
                     options: [{label: 'All', value: 'all'}],
                     default: 'all',
@@ -778,6 +784,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: 'single-select',
                     options: [
                         {label: 'All', value: 'all'},

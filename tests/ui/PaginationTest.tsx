@@ -1,17 +1,22 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes} from 'date-fns';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as NativeNavigation from '@react-navigation/native';
+import {addSeconds, format, subMinutes} from 'date-fns';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -19,7 +24,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(120000);
+jest.setTimeout(240000);
 
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),

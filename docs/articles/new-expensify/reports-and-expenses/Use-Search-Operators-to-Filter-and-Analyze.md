@@ -195,7 +195,7 @@ Here are some common examples:
 - **Custom date range (table)**  
   `type:expense date>=2026-01-01 date<=2026-01-31 group-by:category view:table`
 
-These searches update in real time and can be refined further using additional filters. You can save frequently used searches to reuse them later by clicking **Save search** in the search bar.
+These searches update in real time and can be refined further using additional filters. You can save frequently used searches to reuse them later by clicking **Save** in the search bar.
 
 For more advanced dashboards and exports, learn how to use [Insights in Expensify](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
