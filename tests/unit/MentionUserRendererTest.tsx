@@ -2,6 +2,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -98,11 +99,14 @@ let mockPersonalDetails: Record<number, Partial<PersonalDetails>> = {};
 jest.mock('@hooks/useOnyx', () => {
     const onyxModule = jest.requireActual<{default: {PERSONAL_DETAILS_LIST: string}}>('../../src/ONYXKEYS');
 
+    // Second tuple element is the Onyx result metadata. LocaleContextProvider passes it to
+    // isLoadingOnyxValue, so it must be a real metadata object rather than undefined.
+    const loadedMetadata = {status: 'loaded'};
     return (key: string) => {
         if (key === onyxModule.default.PERSONAL_DETAILS_LIST) {
-            return [mockPersonalDetails];
+            return [mockPersonalDetails, loadedMetadata];
         }
-        return [undefined];
+        return [undefined, loadedMetadata];
     };
 });
 
@@ -121,25 +125,27 @@ type ContextMenuStateOverrides = {
 function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides = {}) {
     return (
         <OnyxListItemProvider>
-            <ShowContextMenuStateContext.Provider
-                value={{
-                    anchor: null,
-                    report: overrides.report,
-                    action: overrides.action,
-                    isDisabled: overrides.isDisabled ?? true,
-                    shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
-                    originalReportID: overrides.originalReportID,
-                }}
-            >
-                <ShowContextMenuActionsContext.Provider
+            <LocaleContextProvider>
+                <ShowContextMenuStateContext.Provider
                     value={{
-                        onShowContextMenu: (fn: () => void) => fn(),
-                        checkIfContextMenuActive: () => false,
+                        anchor: null,
+                        report: overrides.report,
+                        action: overrides.action,
+                        isDisabled: overrides.isDisabled ?? true,
+                        shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
+                        originalReportID: overrides.originalReportID,
                     }}
                 >
-                    {children}
-                </ShowContextMenuActionsContext.Provider>
-            </ShowContextMenuStateContext.Provider>
+                    <ShowContextMenuActionsContext.Provider
+                        value={{
+                            onShowContextMenu: (fn: () => void) => fn(),
+                            checkIfContextMenuActive: () => false,
+                        }}
+                    >
+                        {children}
+                    </ShowContextMenuActionsContext.Provider>
+                </ShowContextMenuStateContext.Provider>
+            </LocaleContextProvider>
         </OnyxListItemProvider>
     );
 }
