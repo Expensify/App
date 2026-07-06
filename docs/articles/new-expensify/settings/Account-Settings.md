@@ -149,9 +149,6 @@ To edit your legal name:
 ## Why should I upload a profile photo?
 Your photo helps teammates identify you easily in chats, reports, and notifications.
 
-## What is my avatar if I don't add a profile photo?
-If you haven't added a profile photo, your avatar shows your initials on a colored background, based on your name or email. The color stays the same each time, so your avatar is consistent across chats, reports, and notifications. Accounts without a name or email—such as phone number-only accounts—show an illustrated avatar instead.
-
 ## Will changing my language affect reports?
 No. It only changes the language of your user interface, not the content of your reports.
 
