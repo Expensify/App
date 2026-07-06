@@ -25,10 +25,10 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const actionColumnVisible = hasFiltersAvailable || !!children;
 
     const appliedFilters = Object.entries(activeFilters ?? {})
-        .filter(([, value]) => value.length > 0)
+        .filter(([, value]) => !!value?.length)
         .map(([key, value]) => {
             const config = filterConfig?.[key];
-            const selectedFilterOptions = config?.options.filter((option) => value.includes(option.value)).map((option) => ({label: option.label, value: option.value})) ?? [];
+            const selectedFilterOptions = config?.options.filter((option) => !!value?.includes(option.value)).map((option) => ({label: option.label, value: option.value})) ?? [];
             const filterValue = selectedFilterOptions.map((option) => option.label);
 
             return {
