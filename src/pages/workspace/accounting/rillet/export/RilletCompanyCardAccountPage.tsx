@@ -70,7 +70,7 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 
-    const selectDefaultVendor = (item: AccountListItem) => {
+    const selectCreditCardAccount = (item: AccountListItem) => {
         if (item.value !== creditCardAccountCode && policyID) {
             updateRilletCreditCardAccount(policyID, item.value, creditCardAccountCode);
         }
@@ -87,7 +87,7 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             data={data}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={selectDefaultVendor}
+            onSelectRow={selectCreditCardAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={creditCardAccountCode}
             onBackButtonPress={() => Navigation.goBack(backPath)}
