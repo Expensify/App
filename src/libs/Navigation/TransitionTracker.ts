@@ -88,6 +88,15 @@ function startTransition(): TransitionHandle {
 }
 
 /**
+ * Returns whether any transition is currently in flight.
+ * Useful for synchronous guards that must decide *before* starting new work, as opposed to
+ * {@link runAfterTransitions}, which schedules a callback for *after* transitions settle.
+ */
+function hasActiveTransitions(): boolean {
+    return activeTransitions.size !== 0;
+}
+
+/**
  * Ends the transition identified by {@link handle}.
  * Clears the corresponding safety timeout since the transition ended normally.
  * When no active transitions remain, flushes all pending callbacks.
@@ -167,6 +176,7 @@ const TransitionTracker = {
     startTransition,
     endTransition,
     runAfterTransitions,
+    hasActiveTransitions,
 };
 
 export default TransitionTracker;
