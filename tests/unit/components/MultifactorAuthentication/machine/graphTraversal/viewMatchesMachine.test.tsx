@@ -9,7 +9,7 @@ import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithA
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
-import {handleInitialScreenLayout, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
+import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -30,11 +30,12 @@ jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: 
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
-// jsdom runs no real navigation transitions, so the mock controls when the transition callbacks fire.
+// The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
 jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
 
-// These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while
-// the MFA navigator is mounted.
+const INITIAL_SCREEN_TEST_ID = 'MultifactorAuthenticationInitialScreen';
+
+// These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while the MFA navigator is mounted.
 const OUTCOME_SCREEN_TEST_ID = 'MultifactorAuthenticationOutcomeScreen';
 const MODAL_BACKDROP_TEST_ID = 'MultifactorAuthenticationModalBackdrop';
 
@@ -63,9 +64,10 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
                 await executeScenario(MFA_TEST_SCENARIO_NAME);
             });
             await waitForBatchedUpdatesWithAct();
-            // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
-            // buffered navigation.
-            act(() => handleInitialScreenLayout());
+            // The test renderer does not calculate layout, so dispatch the event through the rendered View to exercise its onLayout wiring.
+            fireEvent(screen.getByTestId(INITIAL_SCREEN_TEST_ID), 'layout', {
+                nativeEvent: {layout: {width: 1, height: 1, x: 0, y: 0}},
+            });
             await waitForBatchedUpdatesWithAct();
         },
         CLOSE_MODAL: async () => {
@@ -95,8 +97,8 @@ const testConfig = {
         },
         [MFA_STATE.CLOSING]: () => {
             expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(1);
-            // The outcome stays mounted during the production close animation, while jsdom's goBack()
-            // removes it synchronously. Its presence is therefore not part of the closing-state contract.
+            // The outcome stays mounted during the production close animation, while the test renderer processes
+            // goBack() synchronously. Its presence is therefore not part of the closing-state contract.
         },
     },
 };
