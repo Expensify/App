@@ -53,10 +53,25 @@ function useTaxAmount({
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+    const currentDefaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = currentDefaultTaxCode ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
     const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
-    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
+
+    // A tax code the user never manually chose: it matches one of the policy's two auto-applied defaults
+    // (the workspace-currency default `defaultExternalID` or the foreign-currency default `foreignTaxDefault`),
+    // but not the default for the transaction's *current* currency. This is stale state left over when the
+    // currency changed after a default was auto-applied and nothing re-applied the new currency's default —
+    // e.g. the global-create (FAB) flow, where the amount step has no policy in context to recompute the tax
+    // code. `hasTaxRateWithMatchingValue` still sees the stale code as a valid rate, so without this guard we
+    // would keep it and show the wrong tax rate. Detecting it here lets the correct currency default re-apply,
+    // while a genuinely manual (non-default) selection is preserved because it never matches a policy default.
+    const isStaleAutoDefault =
+        !!transaction?.taxCode &&
+        (transaction.taxCode === policy?.taxRates?.defaultExternalID || transaction.taxCode === policy?.taxRates?.foreignTaxDefault) &&
+        transaction.taxCode !== currentDefaultTaxCode;
+
+    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode && !isStaleAutoDefault;
 
     // Calculate and set tax amount in transaction draft
     const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : Math.abs(transaction?.amount ?? 0);
