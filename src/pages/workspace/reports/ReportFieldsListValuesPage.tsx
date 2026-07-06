@@ -38,6 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -422,6 +423,16 @@ function ReportFieldsListValuesPage({
                         canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllValues')}
                         onSelectionButtonPress={toggleValue}
+                        onShiftRangeApply={(batch) =>
+                            setSelectedValues((prev) => {
+                                const nextKeys = applyShiftRangeBatchToKeySet(
+                                    batch,
+                                    Object.keys(prev).filter((key) => prev[key]),
+                                    (valueItem) => valueItem.value,
+                                );
+                                return Object.fromEntries(nextKeys.map((key) => [key, true]));
+                            })
+                        }
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress={canWriteReportFields}

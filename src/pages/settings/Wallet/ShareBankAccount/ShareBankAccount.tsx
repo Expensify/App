@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getEligibleBankAccountShareRecipients} from '@libs/PolicyUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -207,6 +208,22 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                         ListItem={UserListItem}
                         onSelectionButtonPress={toggleOption}
                         onSelectRow={toggleOption}
+                        onShiftRangeApply={(batch) =>
+                            setSelectedOptions((prev) => {
+                                const nextLogins = applyShiftRangeBatchToKeySet(
+                                    batch,
+                                    prev.map((option) => option.login).filter((login): login is string => !!login),
+                                    (option) => option.login,
+                                );
+                                const optionByLogin = new Map<string, MemberForList>();
+                                for (const option of [...prev, ...batch.toSelect]) {
+                                    if (option.login) {
+                                        optionByLogin.set(option.login, {...option, isSelected: true});
+                                    }
+                                }
+                                return nextLogins.map((login) => optionByLogin.get(login)).filter((option): option is MemberForList => !!option);
+                            })
+                        }
                         footerContent={
                             <FormAlertWithSubmitButton
                                 isLoading={isLoading}

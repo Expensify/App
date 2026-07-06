@@ -50,6 +50,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import StringUtils from '@libs/StringUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
@@ -494,6 +495,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onSelectRow={navigateToTagSettings}
                         shouldShowListEmptyContent={false}
                         onSelectionButtonPress={toggleTag}
+                        onShiftRangeApply={(batch) => setSelectedTags((prev) => applyShiftRangeBatchToKeySet(batch, prev, (tag) => tag.value))}
                         shouldHeaderBeInsideList
                         shouldShowRightCaret={canWriteTags}
                         showScrollIndicator

@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import React, {useState} from 'react';
@@ -192,6 +193,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCurrency}
                 onSelectionButtonPress={toggleCurrency}
+                onShiftRangeApply={(batch) => setSelectedCurrencies((prev) => applyShiftRangeBatchToKeySet(batch, prev, (currency) => currency.value))}
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
