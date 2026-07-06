@@ -4,10 +4,11 @@ import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/re
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
-import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 type ReportAttributesConfig = typeof reportAttributesModuleDefault;
 
