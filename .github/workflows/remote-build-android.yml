@@ -4,10 +4,14 @@ name: Remote Build Android
 on:
   workflow_dispatch:
     inputs:
-      mobile_expensify_pr:
-        description: 'Mobile-Expensify PR number to use for hybrid build'
+      app_pull_request_url:
+        description: 'The Expensify/App pull request URL. Its description is scanned for a MOBILE-EXPENSIFY entry.'
         required: false
-        type: string
+        default: ''
+      mobile_expensify_pull_request_url:
+        description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule. Overrides MOBILE-EXPENSIFY set in the App PR description.'
+        required: false
+        default: ''
   push:
     branches-ignore: [staging, production, cherry-pick-*]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
@@ -17,7 +21,17 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  getMobileExpensifyRef:
+    name: Resolve Mobile-Expensify ref
+    uses: ./.github/workflows/resolveMobileExpensifyRef.yml
+    with:
+      APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
+      MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.mobile_expensify_pull_request_url }}
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
   build:
+    needs: [getMobileExpensifyRef]
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
     strategy:
       fail-fast: false
@@ -35,18 +49,18 @@ jobs:
           submodules: ${{ matrix.is_hybrid_build || false }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Checkout Mobile-Expensify to specified branch or commit
+        if: ${{ matrix.is_hybrid_build && needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+          echo "Checked out Mobile-Expensify PR #${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_PR }} (${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }})"
+
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
-
-      - name: Checkout specific Mobile-Expensify PR
-        if: ${{ matrix.is_hybrid_build && github.event.inputs.mobile_expensify_pr }}
-        run: |
-          cd Mobile-Expensify
-          git fetch origin pull/${{ github.event.inputs.mobile_expensify_pr }}/head:pr-${{ github.event.inputs.mobile_expensify_pr }}
-          git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
-          echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
 
       - name: Configure AWS Credentials
         # v6
