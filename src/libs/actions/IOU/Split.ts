@@ -2135,7 +2135,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         // confirm or correct these values via the success-data replay. For any other method
         // (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
         const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-        const distanceRate = transaction.comment?.customUnit?.defaultP2PRate ?? 0;
+        const selectedRate = DistanceRequestUtils.getRate({transaction, policy});
+        const distanceRate = selectedRate?.rate ?? 0;
 
         const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance ?? 0, distanceUnit);
         if (commuterExclusionData) {
@@ -2149,9 +2150,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 distanceUnit,
                 distanceRate,
                 currency,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 // translateLocal is used intentionally: this runs outside a React render (in an
                 // action creator building optimistic data), so the useLocalize hook is unavailable.
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 Localize.translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,

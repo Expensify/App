@@ -336,12 +336,18 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
  * Computes the commuter exclusion breakdown (in display units) for a distance request.
  *
  * Prefers values already stored on the transaction (set optimistically or by the backend),
- * otherwise previews the exclusion from the policy's commuter exclusion configuration.
+ * otherwise previews the exclusion from the policy's commuter exclusion configuration
+ * (unless shouldFallbackToStoredPolicyCommuter is true).
  *
  * @param transaction - The distance transaction being confirmed/edited
  * @param policy - The policy the expense belongs to
  * @param distanceInMeters - The full route distance in meters
  * @param distanceUnit - The display unit (mi/km) the breakdown is expressed in
+ * @param shouldFallbackToStoredPolicyCommuter - When true, only use the commuter exclusion data
+ *                                               already stored on the transaction (from the policy
+ *                                               at creation time). For historical/readonly views.
+ *                                               When false (default), fall back to the current
+ *                                               policy's commuterExclusions to preview/compute.
  * @returns The commuter exclusion and reimbursable distance, or null when no exclusion applies
  */
 function getCommuterExclusionData(
@@ -349,8 +355,15 @@ function getCommuterExclusionData(
     policy: OnyxEntry<Policy>,
     distanceInMeters: number,
     distanceUnit: Unit,
+    shouldFallbackToStoredPolicyCommuter = false,
 ): {commuterExclusion: number; reimbursableDistance: number; distanceUnit: Unit} | null {
     const customUnit = transaction?.comment?.customUnit;
+
+    const hasStoredExclusionData = typeof customUnit?.commuterExclusion === 'number' || typeof customUnit?.reimbursableDistance === 'number';
+
+    if (shouldFallbackToStoredPolicyCommuter && !hasStoredExclusionData) {
+        return null;
+    }
 
     // Prefer the stored quantity; fall back to converting the route distance for route-based
     // requests whose quantity hasn't resolved yet.
