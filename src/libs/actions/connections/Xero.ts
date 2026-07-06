@@ -38,9 +38,9 @@ const getTrackingCategories = (policy: OnyxEntry<OnyxTypes.Policy>): Array<XeroT
     }));
 };
 
-function createXeroPendingFields<TSettingName extends keyof Connections['xero']['config']>(
+function createXeroPendingFields<TSettingName extends keyof NonNullable<Connections['xero']>['config']>(
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['xero']>['config'][TSettingName]>,
     pendingValue: OnyxCommon.PendingAction,
 ) {
     if (!isObject(settingValue)) {
@@ -53,9 +53,9 @@ function createXeroPendingFields<TSettingName extends keyof Connections['xero'][
     }, {});
 }
 
-function createXeroExportPendingFields<TSettingName extends keyof Connections['xero']['config']['export']>(
+function createXeroExportPendingFields<TSettingName extends keyof NonNullable<Connections['xero']>['config']['export']>(
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['xero']>['config']['export'][TSettingName]>,
     pendingValue: OnyxCommon.PendingAction,
 ) {
     if (!isObject(settingValue)) {
@@ -68,9 +68,9 @@ function createXeroExportPendingFields<TSettingName extends keyof Connections['x
     }, {});
 }
 
-function createXeroSyncPendingFields<TSettingName extends keyof Connections['xero']['config']['sync']>(
+function createXeroSyncPendingFields<TSettingName extends keyof NonNullable<Connections['xero']>['config']['sync']>(
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['xero']>['config']['sync'][TSettingName]>,
     pendingValue: OnyxCommon.PendingAction,
 ) {
     if (!isObject(settingValue)) {
@@ -83,9 +83,9 @@ function createXeroSyncPendingFields<TSettingName extends keyof Connections['xer
     }, {});
 }
 
-function createXeroErrorFields<TSettingName extends keyof Connections['xero']['config']>(
+function createXeroErrorFields<TSettingName extends keyof NonNullable<Connections['xero']>['config']>(
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['xero']>['config'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
     if (!isObject(settingValue)) {
@@ -98,9 +98,9 @@ function createXeroErrorFields<TSettingName extends keyof Connections['xero']['c
     }, {});
 }
 
-function createXeroExportErrorFields<TSettingName extends keyof Connections['xero']['config']['export']>(
+function createXeroExportErrorFields<TSettingName extends keyof NonNullable<Connections['xero']>['config']['export']>(
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['xero']>['config']['export'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
     if (!isObject(settingValue)) {
@@ -113,9 +113,9 @@ function createXeroExportErrorFields<TSettingName extends keyof Connections['xer
     }, {});
 }
 
-function createXeroSyncErrorFields<TSettingName extends keyof Connections['xero']['config']['sync']>(
+function createXeroSyncErrorFields<TSettingName extends keyof NonNullable<Connections['xero']>['config']['sync']>(
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['xero']>['config']['sync'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
     if (!isObject(settingValue)) {
@@ -128,11 +128,11 @@ function createXeroSyncErrorFields<TSettingName extends keyof Connections['xero'
     }, {});
 }
 
-function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero']['config']>(
+function prepareXeroOptimisticData<TSettingName extends keyof NonNullable<Connections['xero']>['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['xero']['config'][TSettingName]> | null,
+    settingValue: Partial<NonNullable<Connections['xero']>['config'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['xero']>['config'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -190,11 +190,11 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
     return {optimisticData, failureData, successData};
 }
 
-function prepareXeroExportOptimisticData<TSettingName extends keyof Connections['xero']['config']['export']>(
+function prepareXeroExportOptimisticData<TSettingName extends keyof NonNullable<Connections['xero']>['config']['export']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['xero']['config']['export'][TSettingName]> | null,
+    settingValue: Partial<NonNullable<Connections['xero']>['config']['export'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['xero']>['config']['export'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -256,11 +256,11 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
     return {optimisticData, failureData, successData};
 }
 
-function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['xero']['config']['sync']>(
+function prepareXeroSyncOptimisticData<TSettingName extends keyof NonNullable<Connections['xero']>['config']['sync']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['xero']['config']['sync'][TSettingName]> | null,
+    settingValue: Partial<NonNullable<Connections['xero']>['config']['sync'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['xero']>['config']['sync'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -324,8 +324,8 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
 
 function updateXeroImportTrackingCategories(
     policyID: string,
-    importTrackingCategories: Partial<Connections['xero']['config']['importTrackingCategories']>,
-    oldImportTrackingCategories?: Partial<Connections['xero']['config']['importTrackingCategories']>,
+    importTrackingCategories: Partial<NonNullable<Connections['xero']>['config']['importTrackingCategories']>,
+    oldImportTrackingCategories?: Partial<NonNullable<Connections['xero']>['config']['importTrackingCategories']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -345,8 +345,8 @@ function updateXeroImportTrackingCategories(
 
 function updateXeroImportTaxRates(
     policyID: string,
-    importTaxesRate: Partial<Connections['xero']['config']['importTaxRates']>,
-    oldImportTaxesRate?: Partial<Connections['xero']['config']['importTaxRates']>,
+    importTaxesRate: Partial<NonNullable<Connections['xero']>['config']['importTaxRates']>,
+    oldImportTaxesRate?: Partial<NonNullable<Connections['xero']>['config']['importTaxRates']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -371,7 +371,11 @@ function updateXeroTenantID(policyID: string, settingValue: string, oldSettingVa
     API.write(WRITE_COMMANDS.UPDATE_XERO_TENANT_ID, parameters, {optimisticData, successData, failureData});
 }
 
-function updateXeroMappings(policyID: string, mappingValue: Partial<Connections['xero']['config']['mappings']>, oldMappingValue?: Partial<Connections['xero']['config']['mappings']>) {
+function updateXeroMappings(
+    policyID: string,
+    mappingValue: Partial<NonNullable<Connections['xero']>['config']['mappings']>,
+    oldMappingValue?: Partial<NonNullable<Connections['xero']>['config']['mappings']>,
+) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(mappingValue),
@@ -385,8 +389,8 @@ function updateXeroMappings(policyID: string, mappingValue: Partial<Connections[
 
 function updateXeroImportCustomers(
     policyID: string,
-    importCustomers: Partial<Connections['xero']['config']['importCustomers']>,
-    oldImportCustomers?: Partial<Connections['xero']['config']['importCustomers']>,
+    importCustomers: Partial<NonNullable<Connections['xero']>['config']['importCustomers']>,
+    oldImportCustomers?: Partial<NonNullable<Connections['xero']>['config']['importCustomers']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -401,8 +405,8 @@ function updateXeroImportCustomers(
 
 function updateXeroEnableNewCategories(
     policyID: string,
-    enableNewCategories: Partial<Connections['xero']['config']['enableNewCategories']>,
-    oldEnableNewCategories?: Partial<Connections['xero']['config']['enableNewCategories']>,
+    enableNewCategories: Partial<NonNullable<Connections['xero']>['config']['enableNewCategories']>,
+    oldEnableNewCategories?: Partial<NonNullable<Connections['xero']>['config']['enableNewCategories']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -415,7 +419,11 @@ function updateXeroEnableNewCategories(
     API.write(WRITE_COMMANDS.UPDATE_XERO_ENABLE_NEW_CATEGORIES, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroAutoSync(policyID: string | undefined, autoSync: Partial<Connections['xero']['config']['autoSync']>, oldAutoSync?: Partial<Connections['xero']['config']['autoSync']>) {
+function updateXeroAutoSync(
+    policyID: string | undefined,
+    autoSync: Partial<NonNullable<Connections['xero']>['config']['autoSync']>,
+    oldAutoSync?: Partial<NonNullable<Connections['xero']>['config']['autoSync']>,
+) {
     if (!policyID) {
         return;
     }
@@ -433,8 +441,8 @@ function updateXeroAutoSync(policyID: string | undefined, autoSync: Partial<Conn
 
 function updateXeroExportBillStatus(
     policyID: string,
-    billStatus: Partial<Connections['xero']['config']['export']['billStatus']>,
-    oldBillStatus?: Partial<Connections['xero']['config']['export']['billStatus']>,
+    billStatus: Partial<NonNullable<Connections['xero']>['config']['export']['billStatus']>,
+    oldBillStatus?: Partial<NonNullable<Connections['xero']>['config']['export']['billStatus']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -449,8 +457,8 @@ function updateXeroExportBillStatus(
 
 function updateXeroExportExporter(
     policyID: string,
-    exporter: Partial<Connections['xero']['config']['export']['exporter']>,
-    oldExporter?: Partial<Connections['xero']['config']['export']['exporter']>,
+    exporter: Partial<NonNullable<Connections['xero']>['config']['export']['exporter']>,
+    oldExporter?: Partial<NonNullable<Connections['xero']>['config']['export']['exporter']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -465,8 +473,8 @@ function updateXeroExportExporter(
 
 function updateXeroExportBillDate(
     policyID: string,
-    billDate: Partial<Connections['xero']['config']['export']['billDate']>,
-    oldBillDate?: Partial<Connections['xero']['config']['export']['billDate']>,
+    billDate: Partial<NonNullable<Connections['xero']>['config']['export']['billDate']>,
+    oldBillDate?: Partial<NonNullable<Connections['xero']>['config']['export']['billDate']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -481,8 +489,8 @@ function updateXeroExportBillDate(
 
 function updateXeroExportNonReimbursableAccount(
     policyID: string,
-    nonReimbursableAccount: Partial<Connections['xero']['config']['export']['nonReimbursableAccount']>,
-    oldNonReimbursableAccount?: Partial<Connections['xero']['config']['export']['nonReimbursableAccount']>,
+    nonReimbursableAccount: Partial<NonNullable<Connections['xero']>['config']['export']['nonReimbursableAccount']>,
+    oldNonReimbursableAccount?: Partial<NonNullable<Connections['xero']>['config']['export']['nonReimbursableAccount']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -512,8 +520,8 @@ function updateXeroTravelInvoicingPayableAccount(policyID: string, settingValue:
 
 function updateXeroSyncInvoiceCollectionsAccountID(
     policyID: string,
-    invoiceCollectionsAccountID: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
-    oldInvoiceCollectionsAccountID?: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
+    invoiceCollectionsAccountID: Partial<NonNullable<Connections['xero']>['config']['sync']['invoiceCollectionsAccountID']>,
+    oldInvoiceCollectionsAccountID?: Partial<NonNullable<Connections['xero']>['config']['sync']['invoiceCollectionsAccountID']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -533,8 +541,8 @@ function updateXeroSyncInvoiceCollectionsAccountID(
 
 function updateXeroSyncReimbursementAccountID(
     policyID: string,
-    reimbursementAccountID: Partial<Connections['xero']['config']['sync']['reimbursementAccountID']>,
-    oldReimbursementAccountID?: Partial<Connections['xero']['config']['sync']['reimbursementAccountID']>,
+    reimbursementAccountID: Partial<NonNullable<Connections['xero']>['config']['sync']['reimbursementAccountID']>,
+    oldReimbursementAccountID?: Partial<NonNullable<Connections['xero']>['config']['sync']['reimbursementAccountID']>,
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
@@ -549,8 +557,8 @@ function updateXeroSyncReimbursementAccountID(
 
 function updateXeroSyncSyncReimbursedReports(
     policyID: string | undefined,
-    syncReimbursedReports: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
-    oldSyncReimbursedReports?: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
+    syncReimbursedReports: Partial<NonNullable<Connections['xero']>['config']['sync']['syncReimbursedReports']>,
+    oldSyncReimbursedReports?: Partial<NonNullable<Connections['xero']>['config']['sync']['syncReimbursedReports']>,
 ) {
     if (!policyID) {
         return;

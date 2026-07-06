@@ -19,11 +19,13 @@ import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     GustoConnectionConfig,
     MergeHRConnectionConfig,
     MergeHRConnectionLastSync,
     PolicyConnectionSyncProgress,
+    PolicyConnectionSyncStage,
     ZenefitsConnectionConfig,
 } from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -47,10 +49,7 @@ const SYNC_TIMEOUT = CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
 type GetHRCardsParams = Parameters<typeof getHRCards>[0];
 
-// `Connections` marks every integration as required, but a real policy only carries the connections it has
-// actually set up (a type bug to fix one day). We accept a partial `connections` and let the single `as Policy`
-// cast below absorb it here, so individual tests can pass just the connection(s) they care about.
-function makePolicy(overrides: Partial<Omit<Policy, 'connections'>> & {connections?: Partial<Connections>} = {}): Policy {
+function makePolicy(overrides: Partial<Policy> = {}): Policy {
     return {
         id: POLICY_ID,
         name: 'Test Workspace',
@@ -61,7 +60,7 @@ function makePolicy(overrides: Partial<Omit<Policy, 'connections'>> & {connectio
         isPolicyExpenseChatEnabled: true,
         outputCurrency: 'USD',
         ...overrides,
-    } as Policy;
+    };
 }
 
 function makeLastSync(overrides: Partial<ConnectionLastSync> = {}): ConnectionLastSync {
@@ -93,7 +92,7 @@ function makeMergeHRConnection({
     lastSync,
 }: {
     config?: Partial<MergeHRConnectionConfig>;
-    data?: Connections[typeof MERGE_HR]['data'];
+    data?: NonNullable<Connections[typeof MERGE_HR]>['data'];
     lastSync?: Partial<MergeHRConnectionLastSync>;
 } = {}): Connections[typeof MERGE_HR] {
     return {
@@ -107,13 +106,13 @@ function makeMergeHRConnection({
     };
 }
 
-function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1): PolicyConnectionSyncProgress {
+function makeSyncProgress(connectionName: ConnectionName, stage: PolicyConnectionSyncStage, minutesAgo = 1): PolicyConnectionSyncProgress {
     const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
     return {
         stageInProgress: stage,
         connectionName,
         timestamp,
-    } as PolicyConnectionSyncProgress;
+    };
 }
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));

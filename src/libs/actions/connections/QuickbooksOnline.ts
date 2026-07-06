@@ -33,7 +33,7 @@ function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntr
     return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
 }
 
-function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
+function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<NonNullable<Connections['quickbooksOnline']>['config']>>(
     policyID: string,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
@@ -99,11 +99,11 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
     };
 }
 
-function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksOnline']['config']>(
+function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof NonNullable<Connections['quickbooksOnline']>['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['quickbooksOnline']>['config'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['quickbooksOnline']>['config'][TSettingName]>,
 ) {
     const exporter = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT && settingValue && typeof settingValue === 'object' && 'exporter' in settingValue ? settingValue.exporter : undefined;
     const exporterOptimisticData = typeof exporter === 'string' ? {exporter} : {};
@@ -186,7 +186,10 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     };
 }
 
-function updateQuickbooksOnlineAutoSync<TSettingValue extends Connections['quickbooksOnline']['config']['autoSync']['enabled']>(policyID: string | undefined, settingValue: TSettingValue) {
+function updateQuickbooksOnlineAutoSync<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['autoSync']['enabled']>(
+    policyID: string | undefined,
+    settingValue: TSettingValue,
+) {
     if (!policyID) {
         return;
     }
@@ -200,7 +203,10 @@ function updateQuickbooksOnlineAutoSync<TSettingValue extends Connections['quick
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineEnableNewCategories<TSettingValue extends Connections['quickbooksOnline']['config']['enableNewCategories']>(policyID: string, settingValue: TSettingValue) {
+function updateQuickbooksOnlineEnableNewCategories<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['enableNewCategories']>(
+    policyID: string,
+    settingValue: TSettingValue,
+) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -211,7 +217,7 @@ function updateQuickbooksOnlineEnableNewCategories<TSettingValue extends Connect
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
+function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<NonNullable<Connections['quickbooksOnline']>['config']>>(
     policyID: string | undefined,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
@@ -231,7 +237,10 @@ function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<Co
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineSyncPeople<TSettingValue extends Connections['quickbooksOnline']['config']['syncPeople']>(policyID: string | undefined, settingValue: TSettingValue) {
+function updateQuickbooksOnlineSyncPeople<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['syncPeople']>(
+    policyID: string | undefined,
+    settingValue: TSettingValue,
+) {
     if (!policyID) {
         return;
     }
@@ -245,7 +254,7 @@ function updateQuickbooksOnlineSyncPeople<TSettingValue extends Connections['qui
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends Connections['quickbooksOnline']['config']['reimbursableExpensesAccount']>(
+function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['reimbursableExpensesAccount']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue: TSettingValue,
@@ -260,7 +269,7 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['quickbooksOnline']['config']['syncLocations']>(
+function updateQuickbooksOnlineSyncLocations<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['syncLocations']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -278,7 +287,7 @@ function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineSyncCustomers<TSettingValue extends Connections['quickbooksOnline']['config']['syncCustomers']>(
+function updateQuickbooksOnlineSyncCustomers<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['syncCustomers']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -296,7 +305,7 @@ function updateQuickbooksOnlineSyncCustomers<TSettingValue extends Connections['
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['quickbooksOnline']['config']['syncClasses']>(
+function updateQuickbooksOnlineSyncClasses<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['syncClasses']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -313,7 +322,7 @@ function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['qu
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksOnline']['config']['nonReimbursableBillDefaultVendor']>(
+function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['nonReimbursableBillDefaultVendor']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -328,7 +337,7 @@ function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue ex
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor<TSettingValue extends Connections['quickbooksOnline']['config']['nonReimbursableCreditCardDefaultVendor']>(
+function updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['nonReimbursableCreditCardDefaultVendor']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -459,7 +468,7 @@ function updateQuickbooksOnlineAccountingMethod(
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineSyncTax<TSettingValue extends Connections['quickbooksOnline']['config']['syncTax']>(policyID: string, settingValue: TSettingValue) {
+function updateQuickbooksOnlineSyncTax<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['syncTax']>(policyID: string, settingValue: TSettingValue) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -470,7 +479,7 @@ function updateQuickbooksOnlineSyncTax<TSettingValue extends Connections['quickb
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineReimbursementAccountID<TSettingValue extends Connections['quickbooksOnline']['config']['reimbursementAccountID']>(
+function updateQuickbooksOnlineReimbursementAccountID<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['reimbursementAccountID']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -488,7 +497,7 @@ function updateQuickbooksOnlineReimbursementAccountID<TSettingValue extends Conn
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID, parameters, onyxData);
 }
 
-function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connections['quickbooksOnline']['config']['export']>(
+function updateQuickbooksOnlinePreferredExporter<TSettingValue extends NonNullable<Connections['quickbooksOnline']>['config']['export']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,

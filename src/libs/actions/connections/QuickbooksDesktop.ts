@@ -17,7 +17,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']['export']>>(
+function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate extends Partial<NonNullable<Connections['quickbooksDesktop']>['config']['export']>>(
     policyID: string,
     configUpdate: TConfigUpdate,
     configCurrentData: Partial<TConfigUpdate>,
@@ -83,11 +83,11 @@ function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate ex
     };
 }
 
-function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']['export']>(
+function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyof NonNullable<Connections['quickbooksDesktop']>['config']['export']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['quickbooksDesktop']>['config']['export'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['quickbooksDesktop']>['config']['export'][TSettingName]>,
 ) {
     const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
     const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
@@ -172,11 +172,11 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     };
 }
 
-function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']['mappings']>(
+function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName extends keyof NonNullable<Connections['quickbooksDesktop']>['config']['mappings']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['quickbooksDesktop']['config']['mappings'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['mappings'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['quickbooksDesktop']>['config']['mappings'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['quickbooksDesktop']>['config']['mappings'][TSettingName]>,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -253,11 +253,11 @@ function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName ext
     };
 }
 
-function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']>(
+function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof NonNullable<Connections['quickbooksDesktop']>['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['quickbooksDesktop']['config'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config'][TSettingName]>,
+    settingValue: Partial<NonNullable<Connections['quickbooksDesktop']>['config'][TSettingName]>,
+    oldSettingValue?: Partial<NonNullable<Connections['quickbooksDesktop']>['config'][TSettingName]>,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -371,7 +371,7 @@ function updateQuickbooksCompanyCardExpenseAccount<
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['shouldAutoCreateVendor']>(
+function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['shouldAutoCreateVendor']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
 ) {
@@ -389,7 +389,7 @@ function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends Con
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Connections['quickbooksDesktop']['config']['markChecksToBePrinted']>(
+function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['markChecksToBePrinted']>(
     policyID: string,
     settingValue: TSettingValue,
 ) {
@@ -403,7 +403,7 @@ function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Conn
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['reimbursableAccount']>(
+function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['export']['reimbursableAccount']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -418,7 +418,10 @@ function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extend
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends Connections['quickbooksDesktop']['config']['enableNewCategories']>(policyID: string, settingValue: TSettingValue) {
+function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['enableNewCategories']>(
+    policyID: string,
+    settingValue: TSettingValue,
+) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
@@ -429,7 +432,7 @@ function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends Connec
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['classes']>(
+function updateQuickbooksDesktopSyncClasses<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['mappings']['classes']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -446,7 +449,7 @@ function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['q
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopSyncCustomers<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['customers']>(
+function updateQuickbooksDesktopSyncCustomers<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['mappings']['customers']>(
     policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -463,7 +466,7 @@ function updateQuickbooksDesktopSyncCustomers<TSettingValue extends Connections[
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopSyncItems<TSettingValue extends Connections['quickbooksDesktop']['config']['importItems']>(
+function updateQuickbooksDesktopSyncItems<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['importItems']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -477,7 +480,7 @@ function updateQuickbooksDesktopSyncItems<TSettingValue extends Connections['qui
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_ITEMS, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exporter']>(
+function updateQuickbooksDesktopPreferredExporter<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['export']['exporter']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -492,7 +495,7 @@ function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connecti
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopNonReimbursableExpensesAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['nonReimbursableAccount']>(
+function updateQuickbooksDesktopNonReimbursableExpensesAccount<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['export']['nonReimbursableAccount']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -507,7 +510,7 @@ function updateQuickbooksDesktopNonReimbursableExpensesAccount<TSettingValue ext
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['nonReimbursableBillDefaultVendor']>(
+function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['export']['nonReimbursableBillDefaultVendor']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -525,7 +528,7 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
 function updateQuickbooksDesktopTravelInvoicingPayableAccount(
     policyID: string,
     settingValue: string,
-    oldSettingValue?: Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID'],
+    oldSettingValue?: NonNullable<Connections['quickbooksDesktop']>['config']['export']['travelInvoicingPayableAccountID'],
 ) {
     const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
 
@@ -538,7 +541,7 @@ function updateQuickbooksDesktopTravelInvoicingPayableAccount(
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
+function updateQuickbooksDesktopExportDate<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['export']['exportDate']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
@@ -553,7 +556,10 @@ function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['qu
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quickbooksDesktop']['config']['autoSync']['enabled']>(policyID: string, settingValue: TSettingValue) {
+function updateQuickbooksDesktopAutoSync<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['autoSync']['enabled']>(
+    policyID: string,
+    settingValue: TSettingValue,
+) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, {enabled: settingValue}, {enabled: !settingValue});
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
@@ -564,7 +570,7 @@ function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quic
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopAccountingMethod<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['accountingMethod']>(
+function updateQuickbooksDesktopAccountingMethod<TSettingValue extends NonNullable<Connections['quickbooksDesktop']>['config']['export']['accountingMethod']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,

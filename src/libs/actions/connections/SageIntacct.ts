@@ -718,7 +718,12 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
     return {optimisticData, failureData, successData};
 }
 
-function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['sync'], settingValue: string | boolean, oldSettingValue?: string | boolean) {
+function prepareOnyxDataForSyncUpdate(
+    policyID: string,
+    settingName: keyof NonNullable<Connections['intacct']>['config']['sync'],
+    settingValue: string | boolean,
+    oldSettingValue?: string | boolean,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -791,7 +796,7 @@ function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Conne
     return {optimisticData, failureData, successData};
 }
 
-function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['autoSync'], settingValue: boolean) {
+function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof NonNullable<Connections['intacct']>['config']['autoSync'], settingValue: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

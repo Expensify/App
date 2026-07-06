@@ -2053,7 +2053,7 @@ type Connection<ConnectionData, ConnectionConfig, TLastSync extends ConnectionLa
 };
 
 /** Available integration connections */
-type Connections = {
+type Connections = Partial<{
     /** QuickBooks Online integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
@@ -2083,7 +2083,7 @@ type Connections = {
 
     /** Merge HR integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeHRConnectionLastSync>;
-};
+}>;
 
 /** All integration connections, including unsupported ones */
 type AllConnections = Connections & {
