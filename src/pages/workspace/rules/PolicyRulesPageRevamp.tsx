@@ -40,7 +40,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import RulesCardRestrictionsTab from './tabs/RulesCardRestrictionsTab';
