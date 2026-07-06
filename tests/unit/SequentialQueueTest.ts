@@ -1,15 +1,21 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as NetworkState from '@libs/NetworkState';
+
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as RequestModule from '../../src/libs/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type Request from '../../src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
 import type {MockFetch} from '../utils/TestHelper';
+
+import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as RequestModule from '../../src/libs/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
