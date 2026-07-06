@@ -59,7 +59,17 @@ function useTaxAmount({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
     const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
-    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
+
+    // A tax code the user never manually chose: it is one of the policy's auto-defaults (workspace-currency or
+    // foreign-currency default), but not the default for the *current* currency. This happens when the currency
+    // changed after the default was auto-applied and the amount step had no policy to recompute it (e.g. the create
+    // flow started from the FAB, where the amount step has no report/policy context). Treat it as stale so the current
+    // currency's default is re-applied instead of being preserved as if it were a deliberate selection.
+    const isStaleAutoDefault =
+        !!transaction?.taxCode &&
+        (transaction.taxCode === policy?.taxRates?.defaultExternalID || transaction.taxCode === policy?.taxRates?.foreignTaxDefault) &&
+        transaction.taxCode !== defaultTaxCode;
+    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode && !isStaleAutoDefault;
 
     // Calculate and set tax amount in transaction draft
     const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : Math.abs(transaction?.amount ?? 0);

@@ -19,14 +19,18 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
     },
 }));
 
+const mockGetDefaultTaxCode = jest.fn<string, unknown[]>();
+const mockGetTaxValue = jest.fn<string, unknown[]>();
+const mockHasTaxRateWithMatchingValue = jest.fn<boolean, unknown[]>();
+
 jest.mock('@libs/TransactionUtils', () => ({
     calculateTaxAmount: (taxPercentage: string, taxableAmount: number) => {
         const pct = Number.parseFloat(String(taxPercentage).replace('%', '')) || 0;
         return (taxableAmount * pct) / 100;
     },
-    getDefaultTaxCode: () => 'tax_default',
-    getTaxValue: () => '10%',
-    hasTaxRateWithMatchingValue: () => false,
+    getDefaultTaxCode: (...args: unknown[]) => mockGetDefaultTaxCode(...args),
+    getTaxValue: (...args: unknown[]) => mockGetTaxValue(...args),
+    hasTaxRateWithMatchingValue: (...args: unknown[]) => mockHasTaxRateWithMatchingValue(...args),
 }));
 
 type Params = Parameters<typeof useTaxAmount>[0];
@@ -43,6 +47,16 @@ const baseParams: Params = {
 };
 
 describe('useTaxAmount', () => {
+    beforeEach(() => {
+        mockGetDefaultTaxCode.mockReturnValue('tax_default');
+        mockGetTaxValue.mockReturnValue('10%');
+        mockHasTaxRateWithMatchingValue.mockReturnValue(false);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('returns the default tax code and value from policy resolution', () => {
         const {result} = renderHook(() => useTaxAmount(baseParams));
         expect(result.current.defaultTaxCode).toBe('tax_default');
@@ -64,5 +78,37 @@ describe('useTaxAmount', () => {
     it('shouldKeepCurrentTaxSelection is false when policy has no matching tax rate', () => {
         const {result} = renderHook(() => useTaxAmount(baseParams));
         expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
+    });
+
+    it('shouldKeepCurrentTaxSelection is false when the current tax code is a stale policy default from before a currency change (FAB flow)', () => {
+        // The current currency default is the foreign default, but the draft still carries the workspace-currency
+        // default that was auto-applied before the currency was switched (the amount step had no policy to recompute it).
+        mockGetDefaultTaxCode.mockReturnValue('tax_foreign');
+        mockHasTaxRateWithMatchingValue.mockReturnValue(true);
+        const policy = {taxRates: {defaultExternalID: 'tax_workspace', foreignTaxDefault: 'tax_foreign'}} as unknown as OnyxTypes.Policy;
+        const {result} = renderHook(() =>
+            useTaxAmount({
+                ...baseParams,
+                policy,
+                transaction: {transactionID: 'txn1', amount: 1000, currency: 'EUR', taxCode: 'tax_workspace'} as unknown as OnyxTypes.Transaction,
+                previousTransactionCurrency: 'EUR',
+            }),
+        );
+        expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
+    });
+
+    it('shouldKeepCurrentTaxSelection stays true for a manually selected non-default tax code', () => {
+        mockGetDefaultTaxCode.mockReturnValue('tax_foreign');
+        mockHasTaxRateWithMatchingValue.mockReturnValue(true);
+        const policy = {taxRates: {defaultExternalID: 'tax_workspace', foreignTaxDefault: 'tax_foreign'}} as unknown as OnyxTypes.Policy;
+        const {result} = renderHook(() =>
+            useTaxAmount({
+                ...baseParams,
+                policy,
+                transaction: {transactionID: 'txn1', amount: 1000, currency: 'EUR', taxCode: 'tax_custom'} as unknown as OnyxTypes.Transaction,
+                previousTransactionCurrency: 'USD',
+            }),
+        );
+        expect(result.current.shouldKeepCurrentTaxSelection).toBe(true);
     });
 });
