@@ -35,7 +35,7 @@ jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaReal
 
 // These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while
 // the MFA navigator is mounted.
-const OUTCOME_SCREEN_TEST_ID = 'OutcomeScreenBase';
+const OUTCOME_SCREEN_TEST_ID = 'MultifactorAuthenticationOutcomeScreen';
 const MODAL_BACKDROP_TEST_ID = 'MultifactorAuthenticationModalBackdrop';
 
 // This stable testID keeps the test independent of translated button text.
