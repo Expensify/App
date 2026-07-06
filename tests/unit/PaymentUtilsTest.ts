@@ -33,7 +33,6 @@ describe('PaymentUtils', () => {
     it('Test rounding wallet transfer instant fee', () => {
         expect(calculateWalletTransferBalanceFee(2100, CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT)).toBe(32);
     });
-
     describe('getActivePaymentType', () => {
         const randomPolicyA = createRandomPolicy(1);
         const randomPolicyB = createRandomPolicy(2);

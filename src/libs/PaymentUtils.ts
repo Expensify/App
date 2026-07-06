@@ -233,11 +233,6 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
     }
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        // if (!isUserValidated) {
-        //     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-        //     return;
-        // }
-        // setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         triggerKYCFlow({
             event,
             iouPaymentType,
