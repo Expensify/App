@@ -379,7 +379,6 @@ function countCategoriesWithRequireFieldsRules(policyCategories: PolicyCategorie
 }
 
 export {
-    categoryHasAnyRequireFieldsRule,
     categoryHasLegacyReceiptRules,
     countCategoriesWithRequireFieldsRules,
     deleteRequireFieldsRule,
