@@ -274,4 +274,6 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     };
 }
 
+export {isTableSelectionTab};
+export type {RulesTab, TableSelectionTab};
 export default useRulesTableBulkActions;

@@ -40,10 +40,11 @@ import type DismissedProductTraining from '@src/types/onyx/DismissedProductTrain
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+
+import type {RulesTab, TableSelectionTab} from './tabs/useRulesTableBulkActions';
 
 import RulesAgentsTab from './tabs/RulesAgentsTab';
 import RulesCardRestrictionsTab from './tabs/RulesCardRestrictionsTab';
@@ -51,21 +52,14 @@ import RulesExpenseDefaultsTab from './tabs/RulesExpenseDefaultsTab';
 import RulesFlagForReviewTab from './tabs/RulesFlagForReviewTab';
 import RulesGeneralTab from './tabs/RulesGeneralTab';
 import RulesRequireFieldsTab from './tabs/RulesRequireFieldsTab';
-import useRulesTableBulkActions from './tabs/useRulesTableBulkActions';
+import useRulesTableBulkActions, {isTableSelectionTab} from './tabs/useRulesTableBulkActions';
 
 const RULES_TAB = CONST.TAB.RULES;
-
-type RulesTab = ValueOf<typeof RULES_TAB>;
-type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL | typeof RULES_TAB.AGENTS>;
 
 const RULES_TAB_VALUES = new Set<string>(Object.values(RULES_TAB));
 
 function isRulesTab(key: string): key is RulesTab {
     return RULES_TAB_VALUES.has(key);
-}
-
-function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
-    return tab !== RULES_TAB.GENERAL && tab !== RULES_TAB.AGENTS;
 }
 
 function updateSelectionKeysIfChanged(previousKeys: string[], nextKeys: string[]) {
