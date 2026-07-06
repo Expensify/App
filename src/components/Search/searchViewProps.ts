@@ -75,4 +75,4 @@ type CommonSearchViewProps = {
     ref?: ForwardedRef<SearchListHandle>;
 };
 
-export type {CommonSearchViewProps, SearchListHandle};
+export default CommonSearchViewProps;

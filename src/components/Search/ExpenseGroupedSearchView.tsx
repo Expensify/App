@@ -18,7 +18,7 @@ import type {NativeSyntheticEvent} from 'react-native';
 import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
-import type {CommonSearchViewProps} from './searchViewProps';
+import type CommonSearchViewProps from './searchViewProps';
 import type {SearchQueryJSON, SelectedTransactions} from './types';
 
 import useSearchListViewState from './hooks/useSearchListViewState';
