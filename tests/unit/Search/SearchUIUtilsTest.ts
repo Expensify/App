@@ -6264,6 +6264,88 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
+        it('should keep the row order unchanged when sorting a column that is empty for every row (asc and desc are no-ops)', () => {
+            // Regression test for https://github.com/Expensify/App/issues/94893: sorting an all-empty column must be a no-op —
+            // the order stays the same and is identical for both directions. `created` is intentionally unsorted so that the
+            // previous created-based tie breaker would have reordered the rows and produced different asc/desc results.
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const emptyPostedTransactions = [
+                {...baseTransaction, transactionID: 'empty-posted-c', keyForList: 'empty-posted-c', created: '2024-03-03', posted: ''},
+                {...baseTransaction, transactionID: 'empty-posted-a', keyForList: 'empty-posted-a', created: '2024-01-01', posted: ''},
+                {...baseTransaction, transactionID: 'empty-posted-b', keyForList: 'empty-posted-b', created: '2024-02-02', posted: ''},
+            ] as TransactionListItemType[];
+            const inputOrder = emptyPostedTransactions.map((item) => item.transactionID);
+
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [...emptyPostedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.POSTED,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [...emptyPostedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.POSTED,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(inputOrder);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(inputOrder);
+        });
+
+        it.each([
+            {columnName: 'Reimbursable', sortBy: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, boolOverride: {reimbursable: true}},
+            {columnName: 'Billable', sortBy: CONST.SEARCH.TABLE_COLUMNS.BILLABLE, boolOverride: {billable: true}},
+        ])('should still tie-break tied $columnName rows by created honoring sortOrder (boolean-column behavior from #77800 is preserved)', ({sortBy, boolOverride}) => {
+            // Guards against this fix over-reaching: boolean columns resolve to a non-empty "yes"/"no" value, so every row
+            // ties on the primary comparison but is NOT empty — the created/transactionID tie breaker must still run and
+            // still honor sortOrder. `created` is intentionally unsorted in the input.
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const tiedTransactions = [
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-mar', keyForList: 'bool-mar', created: '2024-03-03'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-jan', keyForList: 'bool-jan', created: '2024-01-01'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-feb', keyForList: 'bool-feb', created: '2024-02-02'},
+            ] as TransactionListItemType[];
+
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [...tiedTransactions],
+                localeCompare,
+                translateLocal,
+                sortBy,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [...tiedTransactions],
+                localeCompare,
+                translateLocal,
+                sortBy,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-jan', 'bool-feb', 'bool-mar']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-mar', 'bool-feb', 'bool-jan']);
+        });
+
         it('should return getSortedReportData result when type is expense-report', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,

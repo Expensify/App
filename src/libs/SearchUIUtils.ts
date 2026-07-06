@@ -3837,10 +3837,15 @@ function getSortedSections(
  * Compares two values based on a specified sorting order and column.
  * Handles both string and numeric comparisons.
  */
+// A sort value counts as empty only when it is nullish or a blank string; 0 and false are meaningful values, not empty.
+function isEmptyValue(value: unknown): boolean {
+    return value === undefined || value === null || value === '';
+}
+
 function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare'], shouldCompareOriginalValue = false): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
-    const aIsEmpty = a === undefined || a === null || a === '';
-    const bIsEmpty = b === undefined || b === null || b === '';
+    const aIsEmpty = isEmptyValue(a);
+    const bIsEmpty = isEmptyValue(b);
 
     if (aIsEmpty && bIsEmpty) {
         return 0;
@@ -4076,7 +4081,14 @@ function getSortedTransactionData(
             return primaryComparison;
         }
 
-        // If we have a tie in the primary comparison, we add a tie breaker on date and/or transactionID as a last resort to make the sort deterministic
+        // When both rows are empty for the sorted column, keep their existing order via the stable sort so that a column
+        // with only empty values is a no-op and sorts identically for asc and desc.
+        if (isEmptyValue(aValue) && isEmptyValue(bValue)) {
+            return 0;
+        }
+
+        // Values are present but equal (e.g. the boolean Reimbursable/Billable columns), so we add a tie breaker on
+        // created and/or transactionID as a last resort to make the sort deterministic.
         const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
 
         if (createdComparison !== 0) {
