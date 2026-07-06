@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {
@@ -17,9 +19,13 @@ import {
     isInvoiceReport,
     isReportOwner,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, Report, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -288,7 +294,6 @@ jest.mock('@libs/MoneyRequestReportUtils', () => ({
 
 jest.mock('@libs/PaymentUtils', () => ({
     __esModule: true,
-    handleUnvalidatedAccount: jest.fn(),
     selectPaymentType: jest.fn(),
 }));
 

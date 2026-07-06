@@ -1,11 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useConfirmationAmount from '@components/MoneyRequestConfirmationList/hooks/useConfirmationAmount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useCurrencyList', () => ({
@@ -83,7 +87,7 @@ describe('useConfirmationAmount', () => {
     });
 
     it('divides amount by attendee count for per-attendee total', () => {
-        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees: [{}, {}, {}, {}] as Params['iouAttendees']}), {
+        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees: [{accountID: 1}, {accountID: 2}, {accountID: 3}, {accountID: 4}] as Params['iouAttendees']}), {
             wrapper: Wrapper,
         });
         // 100 / 4 = 25
