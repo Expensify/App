@@ -2605,13 +2605,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
         await waitForBatchedUpdates();
 
-        // Step 3b: Unreport splitTransactionID4 - move it out of the workspace report into the selfDM report.
+        // Step 3b: Remove splitTransactionID4 from the report - move it out of the workspace report into the selfDM report.
         // This mirrors what `changeTransactionsReport` does: a brand-new IOU action is created in the
         // destination report, and the old IOU action in the workspace report is blanked out (its
         // `IOUTransactionID` cleared) rather than removed.
         ({allReportActions} = await getLatestCollections());
-        const workspaceActionsBeforeUnreport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`] ?? {};
-        const splitTransactionID4Action = getIOUActionForTransactionID(Object.values(workspaceActionsBeforeUnreport), splitTransactionID4);
+        const workspaceActionsBeforeRemoval = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`] ?? {};
+        const splitTransactionID4Action = getIOUActionForTransactionID(Object.values(workspaceActionsBeforeRemoval), splitTransactionID4);
 
         const unreportedIOUAction = {
             ...buildOptimisticIOUReportAction({
@@ -2697,7 +2697,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const selfDMReport = createSelfDM(2, RORY_ACCOUNT_ID);
         const originalTransactionID = 'mixed-revert-original';
         const workspaceChildTransactionID = 'mixed-revert-workspace-child';
-        const selfDMChildTransactionID = 'mixed-revert-selfdm-child';
+        const selfDMChildTransactionID = 'mixed-revert-selfDM-child';
 
         const originalTransaction: Transaction = {
             transactionID: originalTransactionID,
@@ -2837,9 +2837,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
     it('should show the reverted transaction in search snapshots (not stale children) when reverting a pure selfDM split', async () => {
         // Given a selfDM report with an unreported expense that was split into two selfDM children
         const selfDMReport = createSelfDM(2, RORY_ACCOUNT_ID);
-        const originalTransactionID = 'pure-selfdm-revert-original';
-        const childTransactionID1 = 'pure-selfdm-revert-child-1';
-        const childTransactionID2 = 'pure-selfdm-revert-child-2';
+        const originalTransactionID = 'pure-selfDM-revert-original';
+        const childTransactionID1 = 'pure-selfDM-revert-child-1';
+        const childTransactionID2 = 'pure-selfDM-revert-child-2';
 
         const originalTransaction: Transaction = {
             transactionID: originalTransactionID,
