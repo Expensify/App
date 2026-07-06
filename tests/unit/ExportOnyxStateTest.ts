@@ -308,9 +308,10 @@ describe('Onyx key export coverage', () => {
         // Collect all collection prefix values
         const allCollectionKeys: string[] = Object.values(ONYXKEYS.COLLECTION);
 
-        // Build the set of all covered keys across the four buckets. onyxKeysToMaskFragileData is the
-        // computed fallback for anything not explicitly in the other three, so the four buckets together
-        // partition every ONYXKEYS value.
+        // Build the set of all covered keys across the four buckets. onyxKeysToMaskFragileData is a
+        // hand-maintained mirror of the runtime maskFragileData fallback (NOT derived from ONYXKEYS), so a
+        // newly-added key that isn't placed in one of the other three buckets — and isn't listed here on
+        // purpose — is absent from every bucket and fails this test, forcing an explicit categorization.
         const removeKeys = Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string');
         const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
 
@@ -406,5 +407,19 @@ describe('Onyx key export coverage', () => {
         for (const key of removeKeys) {
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
+    });
+
+    it('hand-maintained buckets must not contain keys that no longer exist in ONYXKEYS', () => {
+        // safeOnyxKeys and onyxKeysToMaskFragileData are hardcoded, not derived from ONYXKEYS. The coverage
+        // test only catches *newly-added* keys that are absent from every bucket; it cannot catch a *deleted*
+        // or *renamed* key whose stale string lingers here. This guard fails when that happens, so the lists
+        // stay an accurate inventory instead of silently drifting.
+        const validKeys = new Set<string>([...(Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string'), ...Object.values(ONYXKEYS.COLLECTION)]);
+
+        const staleSafeKeys = Array.from(safeOnyxKeys).filter((key) => !validKeys.has(key));
+        const staleMaskKeys = Array.from(onyxKeysToMaskFragileData).filter((key) => !validKeys.has(key));
+
+        expect(staleSafeKeys).toEqual([]);
+        expect(staleMaskKeys).toEqual([]);
     });
 });
