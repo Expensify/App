@@ -1,5 +1,3 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
@@ -11,11 +9,13 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
@@ -24,7 +24,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import {updateAgentAvatar} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +34,9 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type EditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_AVATAR>;
 
@@ -73,11 +78,10 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
 
-    const isSavingRef = useRef(false);
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isDirty,
     });
 
     let previewSource: AvatarSource = personalDetails?.avatar ?? '';
@@ -123,7 +127,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         if (!isDirty) {
             return;
         }
-        isSavingRef.current = true;
+        notifySaving();
 
         if (imageData.file) {
             if (onSave) {

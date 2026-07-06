@@ -1,0 +1,308 @@
+{
+  "totalRuns": 10,
+  "fullBugRuns": 1,
+  "partialBugRuns": 1,
+  "cleanRuns": 8,
+  "invalidPreconditionRuns": 0,
+  "noLogsRuns": 0,
+  "errorRuns": 0,
+  "unknownRuns": 0,
+  "repliesReceived": 10,
+  "runsWithHistoryEntry": 0,
+  "reproPossible": true,
+  "partialReproOnly": false,
+  "recommendation": "Full #90974 repro captured. Save the summary JSON and screen recording from the headed run.",
+  "runs": [
+    {
+      "attempt": 1,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 1)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: undefined, messageBeforeSession: undefined, hasUserSentMessage: false, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:17:44.092, messageBeforeSession: true, hasUserSentMessage: false, showConciergeSidePanelWelcome: true}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:17:49.422, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:17:44.181",
+        "newestUserMessageCreated": "2026-06-21 18:17:49.422",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": false,
+        "showsShowHistory": false,
+        "showsQuery": false
+      },
+      "classification": "full_bug",
+      "replyReceived": true,
+      "replyElapsedMs": 21578,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 2,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 2)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:18:14.703, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:18:17.166, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:17:44.181",
+        "newestUserMessageCreated": "2026-06-21 18:18:17.166",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 22257,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 3,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 3)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:18:44.180, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:18:46.664, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:17:44.181",
+        "newestUserMessageCreated": "2026-06-21 18:18:46.664",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": true,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 2237,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 4,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 4)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:17:44.181, newestUserMessageCreated: 2026-06-21 18:19:02.134, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:17:44.181",
+        "newestUserMessageCreated": "2026-06-21 18:19:02.134",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": false,
+        "showsShowHistory": false,
+        "showsQuery": true
+      },
+      "classification": "partial_bug",
+      "replyReceived": true,
+      "replyElapsedMs": 21509,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 5,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 5)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: undefined, messageBeforeSession: undefined, hasUserSentMessage: false, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:19:30.036, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:19:29.823",
+        "newestUserMessageCreated": "2026-06-21 18:19:30.036",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": true,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 3146,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 6,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 6)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:19:38.037, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:19:45.290, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:19:47.601, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:19:29.823",
+        "newestUserMessageCreated": "2026-06-21 18:19:47.601",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 21511,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 7,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 7)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:20:19.771, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:20:22.204, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:19:29.823",
+        "newestUserMessageCreated": "2026-06-21 18:20:22.204",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 21512,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 8,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 8)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:20:47.245, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:20:49.861, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:19:29.823",
+        "newestUserMessageCreated": "2026-06-21 18:20:49.861",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 21512,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 9,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 9)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:21:22.938, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:21:24.258, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:19:29.823",
+        "newestUserMessageCreated": "2026-06-21 18:21:24.258",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": false,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 22296,
+      "messagesInHistory": 0
+    },
+    {
+      "attempt": 10,
+      "cpuThrottleRate": 20,
+      "query": "how to use expensify (run 10)",
+      "logs": [
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:21:51.947, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}",
+        "[90974] useReportActionsVisibility {sessionStartTime: 2026-06-21 18:19:29.823, newestUserMessageCreated: 2026-06-21 18:21:53.910, messageBeforeSession: false, hasUserSentMessage: true, showConciergeSidePanelWelcome: false}"
+      ],
+      "parsedAskConcierge": null,
+      "parsedVisibility": {
+        "sessionStartTime": "2026-06-21 18:19:29.823",
+        "newestUserMessageCreated": "2026-06-21 18:21:53.910",
+        "messageBeforeSession": false,
+        "hasUserSentMessage": true,
+        "showConciergeSidePanelWelcome": false,
+        "hasPreviousMessages": true,
+        "fullBugState": false
+      },
+      "uiSnapshot": {
+        "showsThinking": true,
+        "showsGreeting": true,
+        "showsShowHistory": true,
+        "showsQuery": false
+      },
+      "classification": "clean",
+      "replyReceived": true,
+      "replyElapsedMs": 1910,
+      "messagesInHistory": 0
+    }
+  ]
+}

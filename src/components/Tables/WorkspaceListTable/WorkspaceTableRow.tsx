@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -8,15 +6,24 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WorkspaceRowData} from '.';
+
 import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
 import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
@@ -108,8 +115,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'WorkspaceRow'}}
-            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
             offlineWithFeedback={{

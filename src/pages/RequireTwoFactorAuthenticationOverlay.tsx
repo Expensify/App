@@ -1,11 +1,8 @@
-import {useNavigation} from '@react-navigation/core';
-import React, {useCallback} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,14 +10,25 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Log from '@libs/Log';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
+import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useNavigation} from '@react-navigation/core';
+import React, {useCallback, useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 /**
  * Checks if the 2FA is required because of Xero.
@@ -51,11 +59,26 @@ function RequireTwoFactorAuthenticationOverlay() {
     const {translate} = useLocalize();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
 
+    useEffect(() => {
+        if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
+            return;
+        }
+        const activeRoute = Navigation.getActiveRoute();
+        if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(activeRoute);
+        }
+    }, [shouldShowRequire2FAPage, isIn2FASetupFlow]);
+
     const handleOnPress = () => {
+        const activeRoute = Navigation.getActiveRoute();
+        if (!onboardingInitialPath && activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(activeRoute);
+        }
         const targetRoute = getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true});
         Log.info('[Require2FA] Enable button pressed', false, {
             activeRoute: Navigation.getActiveRoute(),

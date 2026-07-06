@@ -1,9 +1,14 @@
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
+
 import {useTableContext} from './TableContext';
 
 /**
@@ -42,6 +47,7 @@ type TableSearchBarProps = {
 };
 
 function TableSearchBar({label, style}: TableSearchBarProps) {
+    const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const inputRef = useRef<BaseTextInputRef>(null);
     const {
@@ -70,7 +76,7 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
         <SearchBar
             ref={inputRef}
             label={label}
-            style={style}
+            style={[styles.mnw200, style]}
             inputValue={activeSearchString}
             icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
             onChangeText={(text) => updateSearchString(text)}

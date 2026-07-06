@@ -1,6 +1,9 @@
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import AccountUtils from '@libs/AccountUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+
 import useOnyx from './useOnyx';
 
 /**

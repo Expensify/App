@@ -1,0 +1,45 @@
+{
+  "totalRuns": 5,
+  "fullBugRuns": 0,
+  "partialBugRuns": 0,
+  "cleanRuns": 0,
+  "invalidPreconditionRuns": 0,
+  "noLogsRuns": 0,
+  "errorRuns": 5,
+  "unknownRuns": 0,
+  "reproPossible": false,
+  "partialReproOnly": false,
+  "recommendation": "No browser repro on this setup. Method 1 unit test proves the logic; try --rates 20 or run on slower hardware.",
+  "runs": [
+    {
+      "attempt": 1,
+      "cpuThrottleRate": 4,
+      "error": "locator.click: Error: strict mode violation: getByTestId('searchButton') resolved to 2 elements:\n    1) <button tabindex=\"0\" role=\"button\" type=\"button\" aria-label=\"Search\" data-tag=\"pressable\" data-element=\"Pressable\" data-testid=\"searchButton\" data-component=\"GenericPressable\" data-sentry-label=\"Search-SearchButton\" data-source-file=\"BaseGenericPressable.tsx\" data-selection-scrapper-hidden-element=\"true\" class=\"css-view-g5y9jx r-touchAction-1otgn73 r-cursor-1loqt21 r-flexDirection-18u37iz r-alignItems-1awozwy r-height-eu3ka r-justifyContent-1777fci r-width-1aockid r-WebkitUserSelect-9ffhgg r-userSelec…>…</button> aka getByTestId('report-screen-3619988050878623').getByTestId('searchButton')\n    2) <button tabindex=\"0\" role=\"button\" type=\"button\" aria-label=\"Search\" data-tag=\"pressable\" data-element=\"Pressable\" data-testid=\"searchButton\" data-component=\"GenericPressable\" data-sentry-label=\"Search-SearchButton\" data-source-file=\"BaseGenericPressable.tsx\" data-selection-scrapper-hidden-element=\"true\" class=\"css-view-g5y9jx r-touchAction-1otgn73 r-cursor-1loqt21 r-flexDirection-18u37iz r-alignItems-1awozwy r-height-eu3ka r-justifyContent-1777fci r-width-1aockid r-marginLeft-1jkjb r-WebkitUserSelect…>…</button> aka getByTestId('report-screen-4521532078544462').getByTestId('searchButton')\n\nCall log:\n  - waiting for getByTestId('searchButton')\n",
+      "classification": "error"
+    },
+    {
+      "attempt": 2,
+      "cpuThrottleRate": 6,
+      "error": "Could not open search router. Confirm you are signed in on local dev.",
+      "classification": "error"
+    },
+    {
+      "attempt": 3,
+      "cpuThrottleRate": 10,
+      "error": "Could not open search router. Confirm you are signed in on local dev.",
+      "classification": "error"
+    },
+    {
+      "attempt": 4,
+      "cpuThrottleRate": 6,
+      "error": "Could not open search router. Confirm you are signed in on local dev.",
+      "classification": "error"
+    },
+    {
+      "attempt": 5,
+      "cpuThrottleRate": 20,
+      "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for getByTestId('searchButton')\n",
+      "classification": "error"
+    }
+  ]
+}

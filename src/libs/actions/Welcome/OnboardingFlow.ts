@@ -1,14 +1,11 @@
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import type {Video} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,7 +13,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Locale, Onboarding} from '@src/types/onyx';
+import type {Account, Locale, Onboarding} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -175,6 +179,42 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     return initialPath;
+}
+
+function buildOnboardingFlowParams(
+    account: OnyxEntry<Account>,
+    onboardingValues: OnyxEntry<Onboarding>,
+    onboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
+    onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
+    onboardingInitialPath: OnyxEntry<string> | null,
+): GetOnboardingInitialPathParamsType {
+    return {
+        onboardingValuesParam: onboardingValues ?? undefined,
+        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+        currentOnboardingCompanySize: onboardingCompanySize,
+        currentOnboardingPurposeSelected: onboardingPurposeSelected,
+        onboardingInitialPath,
+        onboardingValues,
+        isAccountValidated: !!account?.validated,
+    };
+}
+
+/**
+ * Resolves the onboarding path to resume after required-2FA setup during incomplete guided setup.
+ */
+function getRequired2FAOnboardingResumePath(onboardingFlowParams: GetOnboardingInitialPathParamsType): string {
+    const savedPath = onboardingFlowParams.onboardingInitialPath ?? '';
+
+    if (savedPath.includes(ROUTES.ONBOARDING_WORK_EMAIL.route)) {
+        return savedPath;
+    }
+
+    if ((!savedPath || savedPath === `/${ROUTES.ONBOARDING_ROOT.route}`) && onboardingFlowParams.isUserFromPublicDomain) {
+        return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+    }
+
+    return getOnboardingInitialPath(onboardingFlowParams);
 }
 
 const getOnboardingMessages = (locale?: Locale) => {
@@ -396,4 +436,4 @@ const getOnboardingMessages = (locale?: Locale) => {
 };
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
-export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};
+export {buildOnboardingFlowParams, getOnboardingInitialPath, getRequired2FAOnboardingResumePath, startOnboardingFlow, getOnboardingMessages};

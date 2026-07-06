@@ -1,13 +1,19 @@
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import type {Ref} from 'react';
-import React from 'react';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+
 import useOnyx from '@hooks/useOnyx';
+
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+
+import type {Ref} from 'react';
+
+import React from 'react';
 
 type BaseTwoFactorAuthFormProps = {
     // Set this to true in order to call the validateTwoFactorAuth action which is used when setting up 2FA for the first time.
