@@ -2,7 +2,7 @@
 title: Learn About Billing Terms and Definitions
 description: Learn what common subscription billing terms mean in Expensify, including plans, subscriptions, members, seats, payment methods, and billing settings.
 keywords: [billing terms, billing glossary, subscription, plan, active member, unique member, seats, payment card, Expensify Card]
-internalScope: Audience is workspace owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
+internalScope: Audience is Workspace owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
 retrievalIntent: Define common Expensify billing terminology, including subscriptions, plans, subscription types, members, seats, payment methods, and billing settings.
 contentType: topic
 platform: new
@@ -11,19 +11,19 @@ order: 3
 
 # Learn About Billing Terms and Definitions
 
-Subscription billing uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret billing information, compare subscription options, and understand how your subscription is calculated.
+Expensify billing uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret billing information, compare subscription options, and understand how your subscription is calculated.
 
-Most billing terminology is intended for workspace owners, since only workspace owners manage subscriptions.
+Most billing terminology is intended for Workspace owners, since only Workspace owners manage subscriptions.
 
 ---
 
 ## What subscription terms mean
 
-A **subscription** is the billing arrangement for a workspace. It determines how Expensify charges for your workspace and is managed from **Account > Subscription**.
+A **subscription** is the billing arrangement for a Workspace. It determines how Expensify charges for your Workspace and is managed from **Account > Subscription**.
 
 Every subscription includes both a **plan** and a **subscription type**.
 
-A **plan** determines which features are available for your workspace. Expensify currently offers two plans:
+A **plan** determines which features are available for your Workspace. Expensify currently offers two plans:
 
  - **Collect**
  - **Control**
@@ -45,13 +45,13 @@ To learn more, see [Learn How Billing and Subscriptions Work](/articles/new-expe
 
 A **member** is anyone who belongs to a workspace.
 
-Collect subscriptions bill based on **unique members**, which includes every member in the workspace, regardless of whether they used Expensify during the billing period.
+Collect subscriptions bill based on **unique members**, which includes every member in the Workspace, regardless of whether they used Expensify during the billing period.
 
 Control subscriptions bill based on **active members**, which are members who performed billable activity during the billing period. Billable activity includes creating, editing, submitting, approving, or exporting expense data, or chatting with Concierge. 
 
 You may also see the term **Workspace Admin**, which refers to a member who manages workspace settings. 
 
-The **workspace owner** is responsible for managing a workspace's subscription and payment method. 
+The **Workspace owner** is responsible for managing a workspace's subscription and payment method. 
 
 <!-- LINK: Workspace member roles article when created -->
 
