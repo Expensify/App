@@ -64,7 +64,11 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    // In the global-create (FAB) flow there is no report context, so `report?.policyID` is undefined. Fall back to
+    // the policy of an already-selected workspace participant so the tax-rate recompute in `submitAmount` has a policy
+    // when the user returns to this step to change the currency after picking a workspace on the confirmation page.
+    const participantPolicyID = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const policyID = (isTrackExpense ? policyForMovingExpensesID : report?.policyID) ?? participantPolicyID;
 
     const selfDMReport = useSelfDMReport();
     const isReportArchived = useReportIsArchived(report?.reportID);
