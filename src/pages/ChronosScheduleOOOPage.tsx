@@ -215,6 +215,16 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.TIME}
+                        label={translate('chronos.time')}
+                        accessibilityLabel={translate('chronos.time')}
+                        role={CONST.ROLE.PRESENTATION}
+                        placeholder="14:30"
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.END_DATE}
                         valueType="string"
@@ -222,16 +232,6 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         value={endDate}
                         minDate={startDateAsDate ?? undefined}
                         onValueChange={applyEndDate}
-                    />
-                </View>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.TIME}
-                        label={translate('chronos.time')}
-                        accessibilityLabel={translate('chronos.time')}
-                        role={CONST.ROLE.PRESENTATION}
-                        placeholder="14:30"
                     />
                 </View>
                 <View style={styles.mb4}>
