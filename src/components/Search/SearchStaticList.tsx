@@ -8,7 +8,6 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -84,7 +83,6 @@ function SearchStaticList({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
-    const reportAttributesDerivedValue = useReportAttributes();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
 
@@ -111,7 +109,7 @@ function SearchStaticList({
             bankAccountList: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
-            reportAttributesDerivedValue,
+            reportAttributesDerivedValue: undefined,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
