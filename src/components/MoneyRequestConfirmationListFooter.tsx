@@ -1,16 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import FormHelpMessage from './FormHelpMessage';
-import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
-import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {
     AmountDisplay,
     CompactControls,
@@ -23,6 +24,11 @@ import type {
     ToggleHandlers,
     VisibilityFlags,
 } from './MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import type {MeasurableInput} from './SelectionList/SelectionListWithSections/types';
+
+import FormHelpMessage from './FormHelpMessage';
+import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
+import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import DistanceMapSection from './MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
 import InvoiceSenderSection from './MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
 import PerDiemSection from './MoneyRequestConfirmationListFooter/sections/PerDiemSection';
@@ -106,7 +112,10 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Compact-mode controls (the footer derives `isCompactMode` itself) */
     compactControls?: CompactControls;
 
-    /** Triggers submit from inline inputs */
+    /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
+    scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
+    /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
     onSubmitForm?: () => void;
 };
 
@@ -136,6 +145,7 @@ function MoneyRequestConfirmationListFooter({
     toggleHandlers,
     receiptOptions,
     compactControls,
+    scrollFocusedInputIntoView,
     onSubmitForm,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
@@ -167,6 +177,8 @@ function MoneyRequestConfirmationListFooter({
             isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
             isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
             isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
+            scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+            onSubmitForm={onSubmitForm}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
@@ -208,7 +220,6 @@ function MoneyRequestConfirmationListFooter({
                     errorState={errorState}
                     toggleHandlers={toggleHandlers ?? {}}
                     compactState={{isCompactMode, setShowMoreFields}}
-                    onSubmitForm={onSubmitForm}
                 />
             </View>
         </ConfirmationFieldsProvider>

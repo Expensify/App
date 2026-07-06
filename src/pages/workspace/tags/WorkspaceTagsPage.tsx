@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -16,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
+
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
@@ -32,6 +31,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -52,6 +52,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    arePolicyRulesEnabled,
     getCleanedTagName,
     getConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -66,14 +67,21 @@ import {
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {PolicyTag, PolicyTagList} from './types';
 
 type WorkspaceTagsPageProps =
@@ -95,6 +103,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
@@ -130,7 +139,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return approverEmails;
     }, [isMultiLevelTags, policy, policyTagLists]);
 
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && !!policy?.areRulesEnabled && Object.keys(tagApproverEmails).length > 0;
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(tagApproverEmails).length > 0;
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -310,7 +319,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 );
             } else {
                 Navigation.navigate(
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue)) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tagValue),
+                    isQuickSettingsFlow
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue))
+                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(0, tagValue)),
                 );
             }
         },
@@ -353,7 +364,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: isSwitchEnabled,
                     tagCount,
                     disabled: isDisabled,
-                    isDisabledCheckbox: isSwitchDisabled,
+                    isSelectionDisabled: isSwitchDisabled,
                     isSwitchDisabled,
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
@@ -779,7 +790,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{getHeaderSubtitle()}</View>;
+    const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>{getHeaderSubtitle()}</View>;
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
@@ -880,7 +891,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 hasDependentTags={hasDependentTags}
                                 shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
-                                onRowSelectionChange={(selectedRowKeys) => setSelectedTagKeys(selectedRowKeys)}
+                                onRowSelectionChange={setSelectedTagKeys}
                                 EmptyStateComponent={emptyStateContent}
                             />
                         </>

@@ -1,16 +1,21 @@
-import React, {useCallback} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import {revealVirtualCardDetails} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback} from 'react';
+
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
@@ -64,7 +69,6 @@ function TravelCVVVerifyAccountPage() {
             validateError={validateError}
             clearError={() => setValidateError({})}
             onClose={() => {
-                resetValidateActionCodeSent();
                 navigateBack();
             }}
             isLoading={isLoading}

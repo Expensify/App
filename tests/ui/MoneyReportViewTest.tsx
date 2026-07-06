@@ -1,13 +1,18 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -245,12 +250,12 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
             buildTransaction('t1', 5000, false),
             {...buildTransaction('t2', 3000, false), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as OnyxTypes.Transaction,
         ];
-        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+        await seedReportAndTransactions(transactions, {total: -5000, unheldTotal: -5000, nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         });
 
-        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
+        renderMoneyReportView(buildExpenseReport({total: -5000, unheldTotal: -5000, nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {

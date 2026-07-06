@@ -1,8 +1,11 @@
-import {useCallback, useEffect, useState} from 'react';
-import {Keyboard} from 'react-native';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import {useCallback, useEffect, useState} from 'react';
+import {Keyboard} from 'react-native';
+
 import type {UseWebSelectionListBehaviorOptions, UseWebSelectionListBehaviorResult} from './types';
 
 /**

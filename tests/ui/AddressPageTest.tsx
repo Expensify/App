@@ -1,18 +1,25 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import PersonalAddressPage from '@pages/settings/Profile/PersonalDetails/PersonalAddressPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
