@@ -1,7 +1,9 @@
-import {StackActions} from '@react-navigation/native';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import {StackActions} from '@react-navigation/native';
 
 function dismissOnboardingModalBeforeExit() {}
 

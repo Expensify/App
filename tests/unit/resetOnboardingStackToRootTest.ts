@@ -1,8 +1,10 @@
-import {StackActions} from '@react-navigation/native';
 import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import {StackActions} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/helpers/OnboardingNavigationUtils', () =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
