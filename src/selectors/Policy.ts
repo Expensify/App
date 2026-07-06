@@ -81,7 +81,7 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     isJoinRequestPending: boolean;
 
     /** Projection of policyDetailsForNonMembers for join-request-pending policies */
-    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'avatar'> & {policyID: string};
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'ownerEmail' | 'avatar'> & {policyID: string};
 };
 
 /**
@@ -109,6 +109,7 @@ const createWorkspaceListPoliciesSelector =
                         name: details.name,
                         type: details.type,
                         ownerAccountID: details.ownerAccountID,
+                        ownerEmail: details.ownerEmail,
                         avatar: details.avatar,
                     };
                 }

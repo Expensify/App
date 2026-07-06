@@ -27,6 +27,7 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,8 +100,19 @@ function WorkspacesListPage() {
 
     for (const policy of workspaceListPolicies ?? []) {
         if (policy.isJoinRequestPending && policy.nonMemberDetails) {
-            const {policyID, ownerAccountID} = policy.nonMemberDetails;
-            const ownerDetails = ownerAccountID ? ownerDisplayDetails?.[ownerAccountID] : undefined;
+            const {policyID, ownerAccountID, ownerEmail} = policy.nonMemberDetails;
+            let ownerDetails = ownerAccountID ? ownerDisplayDetails?.[ownerAccountID] : undefined;
+
+            // The owner of a policy the user only requested to join is usually not in the personal details list,
+            // so fall back to the owner email and default avatar the join request already provides.
+            if (!ownerDetails && ownerAccountID && ownerEmail) {
+                ownerDetails = {
+                    accountID: ownerAccountID,
+                    login: ownerEmail,
+                    displayName: ownerEmail,
+                    avatar: getDefaultAvatarURL({accountID: ownerAccountID, accountEmail: ownerEmail}),
+                };
+            }
 
             const pendingWorkspaceRow: WorkspaceRowData = {
                 keyForList: policyID,
@@ -119,7 +131,7 @@ function WorkspacesListPage() {
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                 ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.name),
+                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.nonMemberDetails.name),
                 action: () => null,
                 dismissError: () => null,
             };

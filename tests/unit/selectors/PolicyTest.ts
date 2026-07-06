@@ -7,6 +7,7 @@ import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
     createOwnedPaidPoliciesCountsSelector,
+    createWorkspaceListPoliciesSelector,
     hasMultipleOutputCurrenciesSelector,
     hasOnlyPersonalPoliciesSelector,
     hasPoliciesConnectedToQBDSelector,
@@ -483,5 +484,44 @@ describe('hasOnlyPersonalPoliciesSelector', () => {
         };
 
         expect(hasOnlyPersonalPoliciesSelector(policies)).toBe(false);
+    });
+});
+
+describe('createWorkspaceListPoliciesSelector', () => {
+    it('projects owner details from policyDetailsForNonMembers for join-request-pending policies', () => {
+        const pendingPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            pendingPolicy: buildSelectorPolicy(1, {
+                isJoinRequestPending: true,
+                policyDetailsForNonMembers: {
+                    [pendingPolicyID]: {
+                        name: 'Pending Workspace',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        ownerAccountID: 42,
+                        ownerEmail: 'owner@example.com',
+                        avatar: '',
+                    },
+                },
+            }),
+        };
+
+        const selector = createWorkspaceListPoliciesSelector(TEST_LOGIN);
+        expect(selector(policies).at(0)?.nonMemberDetails).toEqual({
+            policyID: '1',
+            name: 'Pending Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            ownerAccountID: 42,
+            ownerEmail: 'owner@example.com',
+            avatar: '',
+        });
+    });
+
+    it('leaves nonMemberDetails undefined for regular policies', () => {
+        const policies: OnyxCollection<Policy> = {
+            teamPolicy: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        const selector = createWorkspaceListPoliciesSelector(TEST_LOGIN);
+        expect(selector(policies).at(0)?.nonMemberDetails).toBeUndefined();
     });
 });
