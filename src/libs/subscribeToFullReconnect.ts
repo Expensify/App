@@ -16,16 +16,17 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
     callback: (serverReconnectCutoffOnyxValue) => {
         serverReconnectCutoff = serverReconnectCutoffOnyxValue ?? '';
-        if (serverReconnectCutoff) {
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-                callback: (lastFullReconnectTimeOnyxValue) => {
-                    Onyx.disconnect(connection);
-                    lastFullReconnectTime = lastFullReconnectTimeOnyxValue ?? '';
-                    doFullReconnectIfNecessary();
-                },
-            });
+        if (!serverReconnectCutoff) {
+            return;
         }
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+            callback: (lastFullReconnectTimeOnyxValue) => {
+                Onyx.disconnect(connection);
+                lastFullReconnectTime = lastFullReconnectTimeOnyxValue ?? '';
+                doFullReconnectIfNecessary();
+            },
+        });
     },
 });
 
