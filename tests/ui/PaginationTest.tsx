@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
+import type * as PlatformHelper from '@shopify/flash-list/dist/native/config/PlatformHelper';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
 import {addSeconds, format, subMinutes} from 'date-fns';
@@ -32,6 +34,10 @@ jest.mock('@libs/BootSplash', () => ({
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@shopify/flash-list/dist/native/config/PlatformHelper', () => {
+    const actual = jest.requireActual<typeof PlatformHelper>('@shopify/flash-list/dist/native/config/PlatformHelper');
+    return {...actual, PlatformConfig: {...actual.PlatformConfig, defaultDrawDistance: 1500}};
+});
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
