@@ -2,7 +2,7 @@
 title: Find Your Expensify Billing Receipt
 description: Learn how to locate your monthly Expensify billing receipt in your subscription settings using View payment history.
 keywords: [where is my receipt, download receipt, view payment history, find billing receipt, locate receipt]
-internalScope: Audience is billing owners. Covers how to locate the monthly Expensify billing receipt in Subscription settings. Does not cover pricing or how to interpret the receipt.
+internalScope: Audience is Workspace owners. Covers how to locate the monthly Expensify billing receipt in Subscription settings. Does not cover pricing or how to interpret the receipt.
 platform: new
 contentType: task
 ---
@@ -29,6 +29,5 @@ To confirm who the Workspace owner is, see [Learn About Billing Permissions](/ar
 
 ## Related articles
 
-* [Review Your Expensify Billing Receipt](/articles/new-expensify/billing-and-subscriptions/manage-billing/Review-Your-Expensify-Billing-Receipt)
-* [Take Over Billing Ownership](/articles/new-expensify/billing-and-subscriptions/manage-billing/Take-Over-Billing-Ownership)
-
+ - [Review Your Expensify Billing Receipt](/articles/new-expensify/billing-and-subscriptions/manage-billing/Review-Your-Expensify-Billing-Receipt)
+ - [Take Over Billing Ownership](/articles/new-expensify/billing-and-subscriptions/manage-billing/Take-Over-Billing-Ownership)
