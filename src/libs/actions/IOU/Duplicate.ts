@@ -653,6 +653,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    chatReportActions,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -665,6 +666,7 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -727,7 +729,7 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
-                chatReportActions: undefined,
+                chatReportActions,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -760,6 +762,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 function duplicateExpenseTransaction({
@@ -786,6 +789,7 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
     currentUserLocalCurrency,
+    chatReportActions,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -894,6 +898,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        chatReportActions,
     });
 }
 
@@ -918,6 +923,7 @@ type DuplicateReportParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 function duplicateReport({
@@ -941,6 +947,7 @@ function duplicateReport({
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
+    chatReportActions,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1045,6 +1052,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            chatReportActions,
         });
 
         if (result?.iouReport) {
@@ -1076,6 +1084,7 @@ type BulkDuplicateExpensesParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 function bulkDuplicateExpenses({
@@ -1097,6 +1106,7 @@ function bulkDuplicateExpenses({
     recentWaypoints,
     currentUser,
     currentUserLocalCurrency,
+    chatReportActions,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1192,6 +1202,7 @@ function bulkDuplicateExpenses({
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
             currentUserLocalCurrency,
+            chatReportActions,
         });
 
         if (result?.iouReport) {
@@ -1227,6 +1238,7 @@ type BulkDuplicateReportsParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 function bulkDuplicateReports({
@@ -1250,6 +1262,7 @@ function bulkDuplicateReports({
     recentWaypoints,
     currentUserLogin,
     currentUserAccountID,
+    allReportActions,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1324,6 +1337,7 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID,
             currentUserLogin,
+            chatReportActions: parentChatReport?.reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReport.reportID}`] : undefined,
         });
     }
 
