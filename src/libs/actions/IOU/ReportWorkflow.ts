@@ -1383,7 +1383,7 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const approvalChain = getApprovalChain(policy, expenseReport);
+    const approvalChain = getApprovalChain(policy, expenseReport, submitterLogin);
     const managerIDFromChain = getKnownAccountIDByLogin(approvalChain.at(0));
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
