@@ -1,10 +1,13 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+
+import type EnvironmentType from './Environment/getEnvironment/types';
+
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getOldDotURLFromEnvironment} from './Environment/Environment';
-import type EnvironmentType from './Environment/getEnvironment/types';
 import fileDownload from './fileDownload';
 import {buildSecureDownloadURL} from './UrlUtils';
 
@@ -111,27 +114,33 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         return [];
     }
 
-    // A settlement can be selected two ways. When its row is collapsed it has no loaded transactions, so
-    // its group key is stored directly in selectedTransactions. When its row is expanded, its transactions
-    // are stored individually, each tagged with the settlement's groupKey. Collect the settlement keys from
-    // both forms. The PDF is generated for the whole settlement by entryID, so one selected transaction is
-    // enough to include it - we must not require every transaction in the settlement to be loaded.
-    const selectedGroupKeys = new Set<string>();
+    // The statement exports the whole settlement, so only offer it when the whole settlement is selected - never
+    // when the user selected a single transaction inside it. A settlement is selected in one of two ways:
+    //   1. Its row is collapsed and selected directly, so its group key is stored in selectedTransactions.
+    //   2. Its row is expanded and every transaction is selected; each transaction is tagged with the group key.
+    // Case 2 tags each selected child with the group key, and a single selected child carries the same tag, so we
+    // must count the selected children and require all of them (group count) rather than treat one as the whole.
+    const directlySelectedGroupKeys = new Set<string>();
+    const selectedCountByGroupKey = new Map<string, number>();
     for (const [key, selection] of Object.entries(selectedTransactions)) {
         if (!selection?.isSelected) {
             continue;
         }
         if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-            selectedGroupKeys.add(key);
+            directlySelectedGroupKeys.add(key);
         }
         if (selection.groupKey?.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-            selectedGroupKeys.add(selection.groupKey);
+            selectedCountByGroupKey.set(selection.groupKey, (selectedCountByGroupKey.get(selection.groupKey) ?? 0) + 1);
         }
     }
 
     const settlementGroups: SearchWithdrawalIDGroup[] = [];
     for (const [key, value] of Object.entries(searchData)) {
-        if (!selectedGroupKeys.has(key) || !isWithdrawalIDGroup(value)) {
+        if (!isWithdrawalIDGroup(value)) {
+            continue;
+        }
+        const isWholeSettlementSelected = directlySelectedGroupKeys.has(key) || (selectedCountByGroupKey.get(key) ?? 0) >= value.count;
+        if (!isWholeSettlementSelected) {
             continue;
         }
         settlementGroups.push(value);

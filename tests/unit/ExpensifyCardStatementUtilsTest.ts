@@ -1,7 +1,9 @@
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
+
 import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+
 import {makeSearchData, makeSelectedTransaction, makeSettlementGroup, makeSettlementSelection} from '../utils/ExpensifyCardStatementTestUtils';
 
 // Mirrors how production turns a selection into download params (useSearchBulkActions.exportExpensifyCardStatementPDF):
@@ -108,10 +110,20 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 
-    it('includes a settlement even when not all of its transactions are loaded or selected', () => {
+    it("hides the export when only some of a settlement's transactions are selected", () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
-        // Only 1 of the settlement's 2 transactions is selected; the PDF still covers the whole settlement.
+        // Only 1 of the settlement's 2 transactions is selected. The statement covers the whole settlement, so a
+        // single-transaction selection must not enable it - that would export expenses the user did not select.
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('includes a settlement when all of its transactions are selected', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        // Every transaction in the (expanded) settlement is selected, so the whole settlement is selected.
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
