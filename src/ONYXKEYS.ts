@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
@@ -1167,6 +1168,14 @@ const ONYXKEYS = {
         EXPENSE_RULE_FORM_DRAFT: 'expenseRuleFormDraft',
         MERCHANT_RULE_FORM: 'merchantRuleForm',
         MERCHANT_RULE_FORM_DRAFT: 'merchantRuleFormDraft',
+        REQUIRE_FIELDS_RULE_FORM: 'requireFieldsRuleForm',
+        REQUIRE_FIELDS_RULE_FORM_DRAFT: 'requireFieldsRuleFormDraft',
+        FLAG_FOR_REVIEW_RULE_FORM: 'flagForReviewRuleForm',
+        FLAG_FOR_REVIEW_RULE_FORM_DRAFT: 'flagForReviewRuleFormDraft',
+        MERCHANT_TYPE_RULE_FORM: 'merchantTypeRuleForm',
+        MERCHANT_TYPE_RULE_FORM_DRAFT: 'merchantTypeRuleFormDraft',
+        FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM: 'flagForReviewRuleMaxAmountForm',
+        FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM_DRAFT: 'flagForReviewRuleMaxAmountFormDraft',
         SPEND_RULE_FORM: 'spendRuleForm',
         SPEND_RULE_FORM_DRAFT: 'spendRuleFormDraft',
         ADD_DOMAIN_MEMBER_FORM: 'addDomainMemberForm',
@@ -1191,6 +1200,8 @@ const ONYXKEYS = {
         ADD_AGENT_RULE_FORM_DRAFT: 'addAgentRuleFormDraft',
         EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
+        RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
+        RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1200,9 +1211,7 @@ const ONYXKEYS = {
         NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
         PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
-        TODOS: 'todos',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
-        FLAGGED_EXPENSES: 'flaggedExpenses',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1325,6 +1334,10 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES]: FormTypes.SplitExpenseEditDateForm;
     [ONYXKEYS.FORMS.EXPENSE_RULE_FORM]: FormTypes.ExpenseRuleForm;
     [ONYXKEYS.FORMS.MERCHANT_RULE_FORM]: FormTypes.MerchantRuleForm;
+    [ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM]: FormTypes.RequireFieldsRuleForm;
+    [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM]: FormTypes.FlagForReviewRuleForm;
+    [ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM]: FormTypes.MerchantTypeRuleForm;
+    [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM]: FormTypes.FlagForReviewRuleMaxAmountForm;
     [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
@@ -1337,6 +1350,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
     [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
+    [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1690,9 +1704,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
-    [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
-    [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: OnyxTypes.FlaggedExpensesDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

@@ -1,13 +1,17 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 

@@ -1,12 +1,16 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const SECURE_ORIGIN = new URL(CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL).origin;
 

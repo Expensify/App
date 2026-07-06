@@ -1,10 +1,13 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 /**
  * Web: pushes the 3DS card-authentication screen when the SCA link (Onyx `verify3dsSubscription`) changes.

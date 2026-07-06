@@ -1,11 +1,13 @@
-import {getActionFromState} from '@react-navigation/core';
-import {findFocusedRoute} from '@react-navigation/native';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute} from '@react-navigation/native';
 
 /**
  * The 3DS card-authentication screen is a dynamic route layered on the current base path. It never receives an

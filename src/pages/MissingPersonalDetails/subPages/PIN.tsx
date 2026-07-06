@@ -1,17 +1,22 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isValidPIN} from '@libs/ValidationUtils';
+
 import {usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 /**
  * PIN entry step for UK/EU Expensify Card ordering flow.

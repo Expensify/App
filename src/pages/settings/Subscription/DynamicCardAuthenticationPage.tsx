@@ -1,17 +1,22 @@
-import React from 'react';
 import CardAuthenticationView from '@components/CardAuthenticationView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
+
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type DynamicCardAuthenticationPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.DYNAMIC_CARD_AUTHENTICATION>;
 

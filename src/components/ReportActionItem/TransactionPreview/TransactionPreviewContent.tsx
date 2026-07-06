@@ -1,7 +1,3 @@
-import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,6 +6,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -21,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -38,10 +36,19 @@ import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getStableReportSelector} from '@src/selectors/Report';
+
+import truncate from 'lodash/truncate';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -83,7 +90,7 @@ function TransactionPreviewContent({
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getStableReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
