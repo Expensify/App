@@ -204,7 +204,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
     // Skip when forceReplace is set so the caller's explicit REPLACE intent is preserved.
     const currentTopRoute = currentState.routes[currentState.index];
-    if (!forceReplace && currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
+    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
         (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
@@ -214,7 +214,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const currentActiveScreen = currentTopRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveScreenInRoute(currentTopRoute as NavigationPartialRoute) : undefined;
     const targetActiveScreen = targetTopRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveScreenInRoute(targetTopRoute) : undefined;
     const isTargetAtTabRoot = ROOT_TAB_SCREENS.has(focusedRouteFromPath?.name ?? '');
-    if (!forceReplace && currentActiveScreen && targetActiveScreen && currentActiveScreen !== targetActiveScreen && !isTargetAtTabRoot) {
+    if (currentActiveScreen && targetActiveScreen && currentActiveScreen !== targetActiveScreen && !isTargetAtTabRoot) {
         (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
         navigation.dispatch(action);
         return;
