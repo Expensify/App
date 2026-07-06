@@ -350,6 +350,10 @@ function WorkspaceCompanyCardsTable({
 
     const isLoading = isLoadingPage || isLoadingFeed;
 
+    // Unassign requests hide their rows while online (pending-delete filter below), so bulk unassigning every
+    // visible card would flash the empty feed state; treat that in-flight window as loading instead.
+    const hasPendingUnassignments = (companyCardEntries ?? []).some((entry) => entry.assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
     const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && !!feedName;
@@ -591,7 +595,7 @@ function WorkspaceCompanyCardsTable({
             selectedKeys={validSelectedCardKeys}
             onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
-            ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListEmptyComponent={isLoadingCards || hasPendingUnassignments ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
             <WorkspaceCompanyCardsSelectionSearchPruner setSelectedCardKeys={setSelectedCardKeys} />
             {headerButtonsComponent}
