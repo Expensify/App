@@ -843,9 +843,8 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
             // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
             .then(() => requestPusherReinitialize({accountID, email}))
             .then(() => {
-                // Keep OldDot in sync with NewDot. Without this, OD remains on the delegate session
-                // after a reauth-driven restoration (e.g. expired delegate token, invalidateAuthToken),
-                // causing the two halves of HybridApp to disagree about which account is active.
+                // Sync the account switch to the classic mobile app experience of HybridApp; otherwise the
+                // two experiences disagree about which account is active after a reauth-driven restoration.
                 if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
                     return;
                 }
