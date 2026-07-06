@@ -42,6 +42,7 @@ import type {
     SearchDatePreset,
     SearchFilterKey,
     SearchGroupBy,
+    SearchPaidStatus,
     SearchQueryJSON,
     SearchSortBy,
     SearchStatus,
@@ -5249,6 +5250,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.withdrawalStatus',
         icon: 'DotIndicator',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS]: {
+        labelKey: 'common.paidStatus',
+        icon: 'MoneyBag',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
         labelKey: 'iou.amount',
         icon: 'Coins',
@@ -5450,6 +5455,10 @@ function getDisplayValue(
         return getWithdrawalStatusDisplayText(form[key], translate);
     }
 
+    if (key === FILTER_KEYS.PAID_STATUS) {
+        return getPaidStatusDisplayText(form[key], translate);
+    }
+
     if (key === FILTER_KEYS.STATUS) {
         const status = form[key];
         if (!status?.length) {
@@ -5629,6 +5638,10 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
         return getWithdrawalStatusOptions(translate);
     }
 
+    if (filterKey === FILTER_KEYS.PAID_STATUS) {
+        return getPaidStatusOptions(translate);
+    }
+
     return [];
 }
 
@@ -5645,6 +5658,20 @@ function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefine
         return undefined;
     }
     return getWithdrawalStatusOptions(translate)
+        .filter((option) => value.includes(option.value))
+        .map((option) => option.text)
+        .join(', ');
+}
+
+function getPaidStatusOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.PAID_STATUS).map((value) => ({text: translate(`paidStatus.${value}`), value}));
+}
+
+function getPaidStatusDisplayText(value: SearchPaidStatus | undefined, translate: LocaleContextProps['translate']): string | undefined {
+    if (!value?.length) {
+        return undefined;
+    }
+    return getPaidStatusOptions(translate)
         .filter((option) => value.includes(option.value))
         .map((option) => option.text)
         .join(', ');

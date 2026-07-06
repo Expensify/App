@@ -426,6 +426,7 @@ const translations = {
         withdrawalID: 'Withdrawal ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         withdrawalStatus: 'Withdrawal status',
+        paidStatus: 'Paid status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -8925,6 +8926,11 @@ const translations = {
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
+    },
+    paidStatus: {
+        markedAsPaid: 'Marked as paid',
+        withdrawing: 'Withdrawing',
+        confirmed: 'Confirmed',
     },
     reportLayout: {
         reportLayout: 'Report layout',
