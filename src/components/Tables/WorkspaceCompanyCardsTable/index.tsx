@@ -574,6 +574,7 @@ function WorkspaceCompanyCardsTable({
                     context: 'WorkspaceCompanyCardsTable',
                     isLoading,
                     isLoadingCards,
+                    hasPendingUnassignments,
                 }}
             />
         </View>
