@@ -6339,7 +6339,7 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
 /**
  * Checks whether a transaction belongs to the given group list item, based on the active groupBy.
  */
-function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
+function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined): boolean {
     if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
         return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
     }

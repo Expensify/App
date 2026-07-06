@@ -89,6 +89,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
 import ChatSearchView from './ChatSearchView';
@@ -1054,7 +1055,7 @@ function Search({
     // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
     const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const commonViewProps = {
+    const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
         queryJSON,
         data: stableSortedData,
