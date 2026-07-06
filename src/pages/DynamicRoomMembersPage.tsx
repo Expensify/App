@@ -18,7 +18,6 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -132,7 +131,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     useCleanupSelectedOptions(clearTableSelection);
 
     const isFocusedScreen = useIsFocused();
-    const {isOffline} = useNetwork();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -194,42 +192,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         }
         removeUsers();
     }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails?.displayName, removeUsers]);
-
-    const shouldShowSearchBar = useMemo(() => {
-        const activeParticipants = participants.filter((accountID) => {
-            const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            if (!personalDetails?.[accountID]) {
-                return false;
-            }
-            return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        });
-        return activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    }, [participants, reportMetadata?.pendingChatMembers, personalDetails, isOffline]);
-
-    useEffect(() => {
-        if (!isFocusedScreen || !shouldShowSearchBar || isLoading) {
-            return;
-        }
-
-        const phrase = userSearchPhrase ?? '';
-        const currentSearchString = tableRef.current?.getActiveSearchString?.() ?? '';
-
-        if (currentSearchString === phrase) {
-            return;
-        }
-
-        tableRef.current?.updateSearchString(phrase);
-    }, [isFocusedScreen, isLoading, shouldShowSearchBar, userSearchPhrase]);
-
-    useEffect(() => {
-        if (!isFocusedScreen) {
-            return;
-        }
-        if (!shouldShowSearchBar) {
-            clearUserSearchPhrase();
-            clearTableSearch();
-        }
-    }, [clearTableSearch, isFocusedScreen, shouldShowSearchBar]);
 
     useSearchBackPress({
         onClearSelection: clearTableSelection,
@@ -295,6 +257,31 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         session?.accountID,
         translate,
     ]);
+
+    useEffect(() => {
+        if (!isFocusedScreen || members.length === 0 || isLoading) {
+            return;
+        }
+
+        const phrase = userSearchPhrase ?? '';
+        const currentSearchString = tableRef.current?.getActiveSearchString?.() ?? '';
+
+        if (currentSearchString === phrase) {
+            return;
+        }
+
+        tableRef.current?.updateSearchString(phrase);
+    }, [isFocusedScreen, isLoading, members.length, userSearchPhrase]);
+
+    useEffect(() => {
+        if (!isFocusedScreen) {
+            return;
+        }
+        if (members.length === 0) {
+            clearUserSearchPhrase();
+            clearTableSearch();
+        }
+    }, [clearTableSearch, isFocusedScreen, members.length]);
 
     const selectedKeys = selectedMembers.map(String);
 
@@ -397,7 +384,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                             members={members}
                             selectionEnabled
                             selectedKeys={selectedKeys}
-                            shouldShowSearchBar={shouldShowSearchBar}
                             onRowSelectionChange={onRowSelectionChange}
                             onSearchStringChange={updateUserSearchPhrase}
                         />

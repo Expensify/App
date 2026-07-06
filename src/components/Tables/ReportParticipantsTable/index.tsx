@@ -59,14 +59,11 @@ type ReportParticipantsTableProps = {
     /** The list of selected row keys */
     selectedKeys: string[];
 
-    /** Whether to show the find-member search bar */
-    shouldShowSearchBar: boolean;
-
     /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function ReportParticipantsTable({ref, members, isGroupChat, selectionEnabled, selectedKeys, shouldShowSearchBar, onRowSelectionChange}: ReportParticipantsTableProps) {
+export default function ReportParticipantsTable({ref, members, isGroupChat, selectionEnabled, selectedKeys, onRowSelectionChange}: ReportParticipantsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -126,7 +123,7 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {shouldShowSearchBar && <Table.SearchBar label={translate('selectionList.findMember')} />}
+            <Table.FilterBar label={translate('selectionList.findMember')} />
             <Table.Header />
             <Table.Body contentContainerStyle={styles.flexGrow1} />
         </Table>

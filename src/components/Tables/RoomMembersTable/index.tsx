@@ -43,9 +43,6 @@ type RoomMembersTableProps = {
     /** The list of selected row keys */
     selectedKeys: string[];
 
-    /** Whether to show the find-member search bar */
-    shouldShowSearchBar: boolean;
-
     /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
@@ -53,7 +50,7 @@ type RoomMembersTableProps = {
     onSearchStringChange?: (searchString: string) => void;
 };
 
-export default function RoomMembersTable({ref, members, selectionEnabled, selectedKeys, shouldShowSearchBar, onRowSelectionChange, onSearchStringChange}: RoomMembersTableProps) {
+export default function RoomMembersTable({ref, members, selectionEnabled, selectedKeys, onRowSelectionChange, onSearchStringChange}: RoomMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -102,7 +99,7 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
             onRowSelectionChange={onRowSelectionChange}
             onSearchStringChange={onSearchStringChange}
         >
-            {shouldShowSearchBar && <Table.SearchBar label={translate('selectionList.findMember')} />}
+            <Table.FilterBar label={translate('selectionList.findMember')} />
             <Table.Header />
             <Table.Body contentContainerStyle={styles.flexGrow1} />
         </Table>

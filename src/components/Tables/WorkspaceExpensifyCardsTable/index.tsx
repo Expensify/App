@@ -13,7 +13,6 @@ import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCar
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
@@ -182,7 +181,7 @@ export default function WorkspaceExpensifyCardsTable({
 
     const cardListHeaderContent = (
         <>
-            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
                 <WorkspaceCardListLabels
                     policyID={policyID}
                     cardSettings={cardSettingsBase}
@@ -196,13 +195,8 @@ export default function WorkspaceExpensifyCardsTable({
                     </View>
                 )}
             </View>
-            {cards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
-                <Table.SearchBar
-                    label={translate('workspace.expensifyCard.findCard')}
-                    style={[styles.mb0, styles.mt5]}
-                />
-            )}
-            <Table.Header style={styles.mt5} />
+            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.Header />
         </>
     );
 

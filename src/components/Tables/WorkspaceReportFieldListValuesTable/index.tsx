@@ -8,8 +8,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -115,7 +113,7 @@ export default function WorkspaceReportFieldListValuesTable({
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {listValues.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.reportFields.findReportField')} />}
+                    <Table.FilterBar label={translate('workspace.reportFields.findReportField')} />
                     <Table.Header />
                     <Table.Body />
                 </>
