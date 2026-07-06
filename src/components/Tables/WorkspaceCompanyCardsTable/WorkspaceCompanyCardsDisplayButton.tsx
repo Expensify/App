@@ -9,8 +9,8 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import type {ActiveSorting} from '@components/Table/middlewares/sorting';
 import {useTableContext} from '@components/Table/TableContext';
-import type {ActiveSorting} from '@components/Table/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
