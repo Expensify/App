@@ -274,19 +274,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
             action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
         },
-        ...(!isAgentAccount
-            ? [
-                  {
-                      translationKey: 'common.wallet' as const,
-                      icon: icons.Wallet,
-                      screenName: SCREENS.SETTINGS.WALLET.ROOT,
-                      brickRoadIndicator: walletBrickRoadIndicator,
-                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
-                      action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-                      badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
-                  },
-              ]
-            : []),
+        {
+            translationKey: 'common.wallet',
+            icon: icons.Wallet,
+            screenName: SCREENS.SETTINGS.WALLET.ROOT,
+            brickRoadIndicator: walletBrickRoadIndicator,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
+        },
         {
             translationKey: 'expenseRulesPage.title',
             icon: icons.Bolt,
@@ -294,17 +290,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.RULES,
             action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
         },
-        ...(!isAgentAccount
-            ? [
-                  {
-                      translationKey: 'common.preferences' as const,
-                      icon: icons.Gear,
-                      screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
-                      action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
-                  },
-              ]
-            : []),
+        {
+            translationKey: 'common.preferences',
+            icon: icons.Gear,
+            screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+        },
         {
             translationKey: 'delegate.copilot',
             icon: icons.Users,
@@ -339,7 +331,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         });
     }
 
-    if (!isAgentAccount && (subscriptionPlan || (amountOwed ?? 0) > 0)) {
+    if (subscriptionPlan || (amountOwed ?? 0) > 0) {
         accountItems.splice(1, 0, {
             translationKey: 'allSettingsScreen.subscription',
             icon: icons.CreditCard,

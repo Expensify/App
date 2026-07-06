@@ -17,18 +17,18 @@ const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../..
 type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_SETTINGS_SCREENS = {
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default),
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default,
     [SCREENS.SETTINGS.SECURITY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/SecuritySettingsPage').default),
     [SCREENS.SETTINGS.COPILOT]: () => require<ReactComponentModule>('../../../../pages/settings/Copilot/CopilotPage').default,
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,
-    [SCREENS.SETTINGS.WALLET.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletPage').default),
+    [SCREENS.SETTINGS.WALLET.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletPage').default,
     [SCREENS.SETTINGS.AGENTS.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AgentsPage').default),
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.HELP]: () => require<ReactComponentModule>('../../../../pages/settings/HelpPage/HelpPage').default,
     [SCREENS.SETTINGS.ABOUT]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/AboutPage').default,
     [SCREENS.SETTINGS.TROUBLESHOOT]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/TroubleshootPage').default,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettingsPage').default),
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettingsPage').default,
 } satisfies Screens;
 
 const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();

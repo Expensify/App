@@ -165,15 +165,15 @@ describe('InitialSettingsPage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    it('hides Wallet, Preferences and Security for agent account', async () => {
+    it('shows Wallet and Preferences but hides Security for agent account', async () => {
         await setupUser('agent_123@expensify.ai');
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-Wallet')).toBeNull();
-            expect(screen.queryByTestId('menu-item-Preferences')).toBeNull();
+            expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
+            expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
             expect(screen.queryByTestId('menu-item-Security')).toBeNull();
         });
     });
@@ -202,7 +202,7 @@ describe('InitialSettingsPage - agent account', () => {
         });
     });
 
-    it('hides Subscription for agent account', async () => {
+    it('shows Subscription for agent account', async () => {
         mockUseSubscriptionPlan.mockReturnValue(CONST.POLICY.TYPE.TEAM);
         await setupUser('agent_123@expensify.ai');
 
@@ -210,7 +210,7 @@ describe('InitialSettingsPage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-Subscription')).toBeNull();
+            expect(screen.getByTestId('menu-item-Subscription')).toBeDefined();
         });
     });
 
