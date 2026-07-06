@@ -19,7 +19,7 @@ type TableFilterBarProps = PropsWithChildren<{
 
 export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig, tableMethods, activeFilters, shouldUseNarrowTableLayout} = useTableContext();
+    const {filterConfig, tableMethods, activeFilters, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const actionColumnVisible = hasFiltersAvailable || !!children;
@@ -56,6 +56,10 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
             ))}
         </View>
     );
+
+    if (!originalDataLength) {
+        return null;
+    }
 
     return (
         <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
