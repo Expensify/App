@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -13,6 +10,7 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -27,6 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -36,7 +35,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -49,7 +48,9 @@ import {
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +59,13 @@ import type SCREENS from '@src/SCREENS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT>;
@@ -305,7 +312,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled,
                 isDisabledCheckbox,
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
@@ -335,6 +342,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         selectedMembers,
         session?.accountID,
         icons.FallbackAvatar,
+        translate,
     ]);
 
     const dismissError = useCallback(

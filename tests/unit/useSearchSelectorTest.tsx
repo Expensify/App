@@ -1,13 +1,19 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useSearchSelectorBase from '@hooks/useSearchSelector/base';
+
 import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -28,14 +34,14 @@ const MOCK_EMAIL = 'test@expensify.com';
 const mockGetValidOptions = jest.mocked(getValidOptions);
 const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('@components/OptionListContextProvider', () => ({
-    ...jest.requireActual('@components/OptionListContextProvider'),
-    useOptionsList: () => ({
+jest.mock('@hooks/useFilteredOptions', () => ({
+    __esModule: true,
+    default: () => ({
         options: {reports: [], personalDetails: []},
-        areOptionsInitialized: true,
-        initializeOptions: jest.fn(),
-        resetOptions: jest.fn(),
+        isLoading: false,
+        loadMore: jest.fn(),
+        hasMore: false,
+        isLoadingMore: false,
     }),
 }));
 

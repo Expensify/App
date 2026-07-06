@@ -1,7 +1,9 @@
-import type {ComponentType} from 'react';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import isChunkLoadError from '@libs/isChunkLoadError';
+
 import CONST from '@src/CONST';
+
+import type {ComponentType} from 'react';
 
 type Import<T> = Promise<{default: T}>;
 type ComponentImport<T> = () => Import<T>;
