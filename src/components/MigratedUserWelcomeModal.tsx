@@ -38,7 +38,7 @@ function MigratedUserWelcomeModal() {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
-    const hasClosedRef = useRef(false);
+    const hasStartedCloseRef = useRef(false);
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
@@ -58,25 +58,22 @@ function MigratedUserWelcomeModal() {
         [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
-    const handleDismiss = () => {
-        if (hasClosedRef.current) {
-            return;
-        }
-
-        hasClosedRef.current = true;
+    useBeforeRemove(() => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
-    };
+    });
 
-    useBeforeRemove((event) => {
-        if (hasClosedRef.current) {
+    const handleClose = () => {
+        if (hasStartedCloseRef.current) {
             return;
         }
 
-        event.preventDefault();
-        handleDismiss();
-    });
+        hasStartedCloseRef.current = true;
+        const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})});
+        Navigation.goBack(undefined, {
+            afterTransition: () => Navigation.navigate(spendRoute),
+        });
+    };
 
     const illustrationProps = isReduceMotionEnabled
         ? {image: illustrations.PlanetWithMobileApp}
@@ -97,7 +94,7 @@ function MigratedUserWelcomeModal() {
 
     return (
         <CenteredModalLayout
-            onBackdropPress={handleDismiss}
+            onBackdropPress={handleClose}
             contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
@@ -107,8 +104,7 @@ function MigratedUserWelcomeModal() {
                 confirmText={translate('migratedUserWelcomeModal.confirmText')}
                 helpText={translate('migratedUserWelcomeModal.helpText')}
                 onHelp={onHelp}
-                onConfirm={handleDismiss}
-                shouldCloseOnConfirm={false}
+                onClose={handleClose}
                 illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
                 illustrationOuterContainerStyle={styles.p0}
                 contentInnerContainerStyles={[styles.mb5, styles.gap2]}
