@@ -16,15 +16,5 @@ function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_S
     };
 }
 
-/**
- * Narrows a traversal event to the test-scenario INIT fixture shape. The scenario-name check is enough,
- * because {@link createInitEvent} is the only place that builds INIT events for the traversal. The
- * parameter accepts any typed event, because `xstate/graph` erases everything but `type` from the
- * event an executor receives.
- */
-function isTestScenarioInitEvent(event: {type: string}): event is MultifactorAuthenticationInitEvent<typeof MFA_TEST_SCENARIO_NAME> {
-    return event.type === 'INIT' && 'scenarioName' in event && event.scenarioName === MFA_TEST_SCENARIO_NAME;
-}
-
 export default createInitEvent;
-export {isTestScenarioInitEvent, MFA_TEST_SCENARIO_NAME};
+export {MFA_TEST_SCENARIO_NAME};

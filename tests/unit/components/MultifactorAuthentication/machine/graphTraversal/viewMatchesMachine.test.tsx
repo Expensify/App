@@ -1,5 +1,5 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
+import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
@@ -45,25 +45,18 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 type MfaEventType = MfaEvent['type'];
 
-/**
- * The event carries only its `type` here because `xstate/graph` erases the remaining fields from the
- * executor's step type. The INIT executor recovers them through `isTestScenarioInitEvent`.
- */
-type MfaEventExecutor = (step: {event: {type: MfaEventType}}) => Promise<void>;
+type MfaEventExecutor = () => Promise<void>;
 
 /**
- * `INIT` starts a flow through the public API, using the scenario from the step's own event.
- * `MODAL_CLOSED` runs the navigator's teardown callback. `satisfies Record<MfaEventType, ...>`
- * requires an explicit executor for every machine event.
+ * Maps every machine event to the action that produces it in the rendered app, such as a button press
+ * or a navigator callback. The walk drives each path step through this table, and the `satisfies`
+ * clause makes a machine event without an executor fail compilation.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 const mfaEventExecutors = {
-    INIT: async ({event}) => {
-        if (!isTestScenarioInitEvent(event)) {
-            throw new Error(`The INIT executor received an event outside the test-scenario fixtures: ${JSON.stringify(event)}`);
-        }
+    INIT: async () => {
         await act(async () => {
-            await getMfaControls().executeScenario(event.scenarioName);
+            await getMfaControls().executeScenario(MFA_TEST_SCENARIO_NAME);
         });
         await waitForBatchedUpdatesWithAct();
         // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
