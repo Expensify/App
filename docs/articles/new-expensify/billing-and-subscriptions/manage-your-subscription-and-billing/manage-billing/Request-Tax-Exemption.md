@@ -2,7 +2,7 @@
 title: Request Tax Exemption
 description: Learn how to request tax exemption for your Expensify subscription by submitting your organization's tax exemption documentation.
 keywords: [request tax-exempt status, tax exemption, sales tax exemption, nonprofit billing, VAT, ST-119, 501(c)]
-internalScope: Audience is Workspace Admins and billing contacts. Covers requesting tax-exempt status for an Expensify subscription. Does not cover removing tax-exempt status or tax refund requests.
+internalScope: Audience is Workspace Admins and Workspace owners. Covers requesting tax-exempt status for an Expensify subscription. Does not cover transferring Workspace ownership or troubleshooting. 
 retrievalIntent: Request tax exemption for an Expensify subscription.
 contentType: task
 ---
@@ -32,9 +32,9 @@ Your documentation should include your VAT number (or RUT if your organization i
 
 ## What happens after you request tax exemption
 
-Our team reviews your documentation and contacts you if additional information is required. Once your request has been processed, Concierge will send you a message to confirm your account has tax exempt status.
+Expensify reviews your documentation and contacts you if additional information is required. Once your request has been processed, Concierge will send you a message to confirm your account has tax exempt status.
 
-After your request is approved, sales tax will no longer be applied to future Expensify subscription invoices.
+After your request is approved, sales tax will no longer be applied to future Expensify subscription billings. 
 
 # FAQ
 
