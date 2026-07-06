@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
 
 import CONST from '@src/CONST';
@@ -73,18 +73,17 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         translate,
     });
 
-    const shouldShowNoneOptionForSearch = shouldShowNoneOption && translate('common.none').toLowerCase().includes(debouncedSearchValue.toLowerCase());
-    const noneOption: OptionTree[] = shouldShowNoneOptionForSearch
-        ? [
-              {
-                  text: translate('common.none'),
-                  keyForList: CONST.SEARCH.NONE_OPTION_KEY,
+    const noneOption: OptionTree[] = shouldShowNoneOption
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
+              (option): OptionTree => ({
+                  text: option.text,
+                  keyForList: option.keyForList,
                   searchText: '',
-                  tooltipText: translate('common.none'),
+                  tooltipText: option.text,
                   isDisabled: false,
-                  isSelected: !selectedCategory,
-              },
-          ]
+                  isSelected: option.isSelected,
+              }),
+          )
         : [];
     const noneOptionSection = {
         title: '',
@@ -92,9 +91,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         sectionIndex: -1,
     };
     const selectedCategorySectionIndex = sections.findIndex((section) => section.data.some((category) => category.searchText === selectedCategory));
-    const sectionsWithNoneOption = shouldShowNoneOptionForSearch
-        ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)]
-        : sections;
+    const sectionsWithNoneOption =
+        noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
     const categoriesCount = getEnabledCategoriesCount(categories);
