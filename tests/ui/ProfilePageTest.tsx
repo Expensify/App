@@ -32,6 +32,20 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// This page presses buttons and asserts on the resulting side effects/disabled state, not on
+// the double-tap-prevention mechanism itself, which relies on a real (non-fake) timer to clear
+// `isExecuting` and won't resolve within this test's lifetime.
+jest.mock('@hooks/useSingleExecution', () => ({
+    __esModule: true,
+    default: () => ({
+        isExecuting: false,
+        singleExecution:
+            <T extends unknown[]>(action?: (...params: T) => void | Promise<void>) =>
+            (...params: T) =>
+                action?.(...params),
+    }),
+}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),

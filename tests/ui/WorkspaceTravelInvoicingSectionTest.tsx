@@ -32,6 +32,20 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // Therefore, they cannot reference variables like POLICY_ID or WORKSPACE_ACCOUNT_ID.
 // We use literal values that match the constants above.
 
+// This component presses buttons and asserts on the resulting side effects, not on the
+// double-tap-prevention mechanism itself, which relies on a real (non-fake) timer to clear
+// `isExecuting` and won't resolve within this test's lifetime.
+jest.mock('@hooks/useSingleExecution', () => ({
+    __esModule: true,
+    default: () => ({
+        isExecuting: false,
+        singleExecution:
+            <T extends unknown[]>(action?: (...params: T) => void | Promise<void>) =>
+            (...params: T) =>
+                action?.(...params),
+    }),
+}));
+
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
