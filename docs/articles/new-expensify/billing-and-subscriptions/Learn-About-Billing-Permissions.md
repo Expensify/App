@@ -11,19 +11,19 @@ order: 2
 
 # Learn About Billing Permissions
 
-Every paid workspace has a workspace owner, sometimes called the billing owner. The owner is responsible for paying the workspace's Expensify subscription and is the only person who can manage billing-related settings like plans and subscriptions. 
+Every paid workspace has a Workspace owner, sometimes called the billing owner. The owner is responsible for paying the Workspace's Expensify subscription and is the only person who can manage billing-related settings like plans and subscriptions. 
 
-Workspace ownership is separate from workspace administration. Understanding the difference between workspace owner and Workspace Admins helps explain why some members can manage a workspace but cannot change its subscription.
+Workspace ownership is separate from Workspace administration. Understanding the difference between Workspace owner and Workspace Admins helps explain why some members can manage a Workspace but cannot change its subscription.
 
 ---
 
-## What is a workspace owner?
+## What is a Workspace owner?
 
-The workspace owner is the person whose payment card is charged for the workspace's Expensify subscription.
+The Workspace owner is the person whose payment card is charged for the Workspace's Expensify subscription.
 
-Each workspace has exactly one owner.
+Each Workspace has exactly one owner.
 
-Only the workspace owner can:
+Only the Workspace owner can:
 
  - Add or change the payment card
  - Retry failed subscription payments
@@ -33,30 +33,30 @@ Only the workspace owner can:
 
 The workspace owner also receives subscription billing alerts and billing-related notifications.
 
-You can confirm the owner of a workspace you're a member of by selecting **Workspaces** in the navigation tabs (on the left on web, on the bottom on mobile) and viewing the **Owner** column. 
+You can confirm the owner of a Workspace you're a member of by selecting **Workspaces** in the navigation tabs (on the left on web, on the bottom on mobile) and viewing the **Owner** column. 
 
 ---
 
-## What is the difference between a workspace owner and Workspace Admin?
+## What is the difference between a Workspace owner and Workspace Admin?
 
-The workspace owner is responsible for the workspace subscription and billing. They must also be a Workspace Admin.
+The Workspace owner is responsible for the Workspace subscription and billing. They must also be a Workspace Admin.
 
-A workspace can have multiple Workspace Admins, but only one workspace owner. While Workspace Admins can manage the workspace and its members, only the workspace owner has permission to manage billing and subscription settings.
+A Workspace can have multiple Workspace Admins, but only one workspace owner. While Workspace Admins can manage the workspace and its members, only the Workspace owner has permission to manage billing and subscription settings.
 
 
-| Billing owner                             | Workspace Admin                               |
+| Workspace owner                             | Workspace Admin                               |
 | ----------------------------------------- | --------------------------------------------- |
-| Pays for the workspace subscription       | Manages the workspace                         |
+| Pays for the Workspace subscription       | Manages the Workspace                         |
 | Manages billing and subscription settings | Manages members and workspace configuration   |
 | Receives billing alerts                   | Does not automatically receive billing alerts |
-| One per workspace                         | Multiple admins are allowed                   |
+| One per Workspace                         | Multiple admins are allowed                   |
 
 
 ---
 
-## How to change the workspace owner
+## How to change the Workspace owner
 
-Any Workspace Admin can transfer billing ownership to themselves if they need to assume responsibility for a workspace's subscription.
+Any Workspace Admin can transfer billing ownership to themselves if they need to assume responsibility for a Workspace's subscription.
 
 To learn more, see Take Over Workspace Ownership.
 
