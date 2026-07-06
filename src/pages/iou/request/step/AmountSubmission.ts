@@ -531,10 +531,14 @@ function submitAmount({
         return;
     }
 
-    // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+    // When the currency changes we re-apply the new currency's default tax rate, but only when the current tax rate is
+    // still the auto-applied default for the previous currency. A tax rate the user picked manually is preserved across
+    // the currency change (mirrors the create-flow guard in `navigateToNextPage`).
     const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
-    const taxCode = (selectedCurrency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+    const previousDefaultTaxCode = getDefaultTaxCode(policy, currentTransaction, transactionCurrency);
+    const isCurrentTaxAutoDefault = !transactionTaxCode || transactionTaxCode === previousDefaultTaxCode;
+    const taxCode = (selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 

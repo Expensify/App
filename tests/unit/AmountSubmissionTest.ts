@@ -332,6 +332,36 @@ describe('AmountSubmission', () => {
             expect(setMoneyRequestTaxRate).not.toHaveBeenCalled();
         });
 
+        it('applies the new currency default tax rate on edit when currency changes and tax is the auto-applied default', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idDefault'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idForeign'}));
+        });
+
+        it('preserves a manually selected tax rate on edit when currency changes', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idManual'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idManual'}));
+        });
+
         it('calls sendMoneyElsewhere on non-edit + skip-confirm + PAY (non-wallet)', () => {
             submitAmount(
                 buildBaseArgs({
