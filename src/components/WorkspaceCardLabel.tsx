@@ -1,15 +1,21 @@
-import type {ReactNode} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Popover from './Popover';
 import {PressableWithFeedback} from './Pressable';

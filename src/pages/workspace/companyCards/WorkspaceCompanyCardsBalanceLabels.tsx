@@ -1,10 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isDirectFeed} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import WorkspaceCompanyCardsBalanceLabel from './WorkspaceCompanyCardsBalanceLabel';
 
 type WorkspaceCompanyCardsBalanceLabelsProps = {

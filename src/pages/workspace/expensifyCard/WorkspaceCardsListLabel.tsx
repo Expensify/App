@@ -1,13 +1,7 @@
-import {useRoute} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {addDays, format} from 'date-fns';
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import WorkspaceCardLabel from '@components/WorkspaceCardLabel';
+
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,15 +10,28 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import {queueExpensifyCardForBilling} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {addDays, format} from 'date-fns';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
     /** Label type */

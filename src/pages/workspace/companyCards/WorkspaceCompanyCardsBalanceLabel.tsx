@@ -1,9 +1,12 @@
-import {format} from 'date-fns';
-import React from 'react';
 import WorkspaceCardLabel from '@components/WorkspaceCardLabel';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
+
+import {format} from 'date-fns';
+import React from 'react';
 
 type WorkspaceCompanyCardsBalanceLabelProps = {
     /** Which balance stat this label shows */
