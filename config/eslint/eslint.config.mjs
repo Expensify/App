@@ -523,6 +523,16 @@ const config = defineConfig([
         },
     },
 
+    // Storybook (loaded as native ESM by Storybook 10) and our Rspack/Rsbuild config
+    // entry points load .ts files directly and require explicit .ts extensions on
+    // relative imports — the opposite of bundled src/ code.
+    {
+        files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rspack/**/*.ts'],
+        rules: {
+            'import/extensions': 'off',
+        },
+    },
+
     {
         files: ['**/en.ts', '**/es.ts'],
         rules: {

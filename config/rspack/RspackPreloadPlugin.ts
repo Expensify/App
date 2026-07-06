@@ -1,7 +1,5 @@
+import type {JsHtmlPluginTag} from '@rspack/binding';
 import type {Compiler} from '@rspack/core';
-import type {HtmlTagObject} from 'html-webpack-plugin';
-
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 type Options = {
     rel: string;
@@ -30,17 +28,17 @@ class RspackPreloadPlugin {
 
     apply(compiler: Compiler): void {
         compiler.hooks.compilation.tap(this.constructor.name, (compilation) => {
-            // html-webpack-plugin's types are written against webpack's `Compilation` class, which
-            // declares dozens of internal properties (loggers, cache versions, etc.) that Rspack's
-            // `Compilation` binding doesn't expose. The `getHooks`/`alterAssetTags` API used below only
-            // relies on properties both compilers share (e.g. hooks, compiler), so this is safe at runtime.
-            const hooks = HtmlWebpackPlugin.getHooks(compilation as never);
+            // `compiler.rspack` (rather than a top-level `import {rspack} from '@rspack/core'`) is required
+            // here: our config files are loaded by `tsx` as a separate module graph from the one the `rspack`
+            // CLI uses internally, so a directly-imported `HtmlRspackPlugin` class fails `getCompilationHooks`'s
+            // `instanceof Compilation` check against the `compilation` instance the real compiler passes in.
+            const hooks = compiler.rspack.HtmlRspackPlugin.getCompilationHooks(compilation);
             hooks.alterAssetTags.tap(this.constructor.name, (htmlPluginData) => {
                 const {rel, as, fileWhitelist} = this.options;
                 const publicPath = compilation.outputOptions.publicPath;
                 const resolvedPublicPath = typeof publicPath === 'string' && publicPath !== 'auto' ? publicPath : '';
 
-                const links: HtmlTagObject[] = [...compilation.getAssets()]
+                const links: JsHtmlPluginTag[] = [...compilation.getAssets()]
                     .map((asset) => asset.name)
                     .filter((name) => !name.endsWith('.map'))
                     .filter((name) => fileWhitelist.some((regex) => regex.test(name)))
@@ -48,7 +46,6 @@ class RspackPreloadPlugin {
                     .map((file) => ({
                         tagName: 'link',
                         voidTag: true,
-                        meta: {},
                         // Fonts must be requested in CORS mode or the browser won't reuse the preloaded
                         // resource, matching @vue/preload-webpack-plugin's `as === 'font'` behavior.
                         attributes: as === 'font' ? {href: `${resolvedPublicPath}${file}`, rel, as, crossorigin: ''} : {href: `${resolvedPublicPath}${file}`, rel, as},

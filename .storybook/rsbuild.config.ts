@@ -4,13 +4,11 @@ import type {RsbuildConfig} from '@rsbuild/core';
 import {mergeRsbuildConfig} from '@rsbuild/core';
 import {pluginBabel} from '@rsbuild/plugin-babel';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
-import dotenv from 'dotenv';
 import path from 'path';
 import {fileURLToPath} from 'url';
 
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-// eslint-disable-next-line import/extensions
 import mockPaths from './mockPaths.ts';
 
 const filename = fileURLToPath(import.meta.url);
@@ -28,13 +26,10 @@ switch (process.env.ENV) {
         envFile = '.env';
 }
 
-const env = dotenv.config({path: path.resolve(dirname, `../${envFile}`)});
-
 const rsbuildFinal = async (config: RsbuildConfig): Promise<RsbuildConfig> => {
     // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
     // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-    // eslint-disable-next-line import/extensions
-    const {default: customFunction} = await import('../config/rspack/rspack.common.ts');
+    const {default: customFunction, getDefineValues, sharedAssetRules} = await import('../config/rspack/rspack.common.ts');
     const custom = customFunction({file: envFile});
 
     // Reuse the exact babel-loader rule (including its RN-package-aware exclude regex) from the
@@ -56,21 +51,15 @@ const rsbuildFinal = async (config: RsbuildConfig): Promise<RsbuildConfig> => {
             extensions: custom.resolve?.extensions,
         },
         source: {
-            /* eslint-disable @typescript-eslint/naming-convention */
-            define: {
-                __DEV__: process.env.NODE_ENV === 'development',
-                __REACT_WEB_CONFIG__: JSON.stringify(env),
-            },
-            /* eslint-enable @typescript-eslint/naming-convention */
+            // Reuse the same __DEV__/__REACT_WEB_CONFIG__/__GIT_BRANCH__ values the main app build
+            // defines for this env file, so Storybook doesn't drift from what the app actually ships.
+            define: getDefineValues(envFile),
         },
         tools: {
             rspack: (rspackConfig) => {
-                rspackConfig.ignoreWarnings = [
-                    ...(rspackConfig.ignoreWarnings ?? []),
-                    // We can ignore the "module not installed" warning from lottie-react-native
-                    // because we are not using the library for JSON format of Lottie animations.
-                    /node_modules\/lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/,
-                ];
+                // Reuse the main app build's ignoreWarnings (e.g. the lottie-react-native
+                // "module not installed" warning we don't hit since we don't use its JSON format).
+                rspackConfig.ignoreWarnings = [...(rspackConfig.ignoreWarnings ?? []), ...(custom.ignoreWarnings ?? [])];
                 // See rspack.common.ts for why __filename/__dirname are explicitly mocked (avoids a
                 // "Module parse warning" from canvaskit-wasm/expo that fails Storybook's `--smoke-test`).
                 rspackConfig.node = custom.node;
@@ -78,17 +67,7 @@ const rsbuildFinal = async (config: RsbuildConfig): Promise<RsbuildConfig> => {
                 rspackConfig.resolve.fallback = custom.resolve?.fallback;
                 rspackConfig.module ??= {rules: []};
                 rspackConfig.module.rules ??= [];
-                rspackConfig.module.rules.push(
-                    // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
-                    {
-                        test: /pdf\.worker\.min\.mjs$/,
-                        type: 'asset/source',
-                    },
-                    {
-                        test: /\.lottie$/,
-                        type: 'asset/resource',
-                    },
-                );
+                rspackConfig.module.rules.push(...sharedAssetRules);
             },
         },
         plugins: [

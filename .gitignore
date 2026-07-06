@@ -131,6 +131,9 @@ web-build/
 # Local https certificate/key
 config/rspack/*.pem
 
+# Rspack build profiling output (RSPACK_PROFILE=OVERVIEW|ALL)
+.rspack-profile-*/
+
 # Expo
 .expo
 dist/

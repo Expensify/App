@@ -2,7 +2,6 @@ import type {StorybookConfig} from 'storybook-react-rsbuild';
 
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-// eslint-disable-next-line import/extensions
 import rsbuildFinal from './rsbuild.config.ts';
 
 const main: StorybookConfig = {

@@ -81,6 +81,25 @@ If you want to set up both iOS and Android simulators at once:
 ### Browser DevTools
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
 
+### Build Profiling (Rspack)
+To time, profile, and analyze the Rspack build itself (as opposed to the app's runtime), set the `RSPACK_PROFILE` environment variable on any build or dev server command:
+
+```bash
+# Core build process timing (recommended)
+RSPACK_PROFILE=OVERVIEW npm run build
+
+# Every trace event - much larger output, only for deep investigation
+RSPACK_PROFILE=ALL npm run build
+```
+
+This generates a `.rspack-profile-<timestamp>-<pid>/rspack.log` file (JSON Lines) with per-loader/per-plugin timing for the build. To generate a [Perfetto](https://ui.perfetto.dev)-format trace instead, set `RSPACK_TRACE_LAYER=perfetto`:
+
+```bash
+RSPACK_TRACE_LAYER=perfetto RSPACK_PROFILE=OVERVIEW npm run build
+```
+
+Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `npm run analyze-packages`, which still runs `webpack-bundle-analyzer` against the Rspack output.
+
 ### Release Profiling for Web
 1. Install the necessary packages: `npm i`
 2. Run your web app in production mode

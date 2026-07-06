@@ -1,4 +1,4 @@
-import type {Configuration, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
+import type {Configuration, DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -6,23 +6,18 @@ import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import {createRequire} from 'module';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 
-// eslint-disable-next-line import/extensions
 import type Environment from './types.ts';
 
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-// eslint-disable-next-line import/extensions
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-// eslint-disable-next-line import/extensions
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-// eslint-disable-next-line import/extensions
 import RspackPreloadPlugin from './RspackPreloadPlugin.ts';
 
 const require = createRequire(import.meta.url);
@@ -81,6 +76,48 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
     }
     return environmentToLogoSuffixMap[environment];
 }
+
+/**
+ * `DefinePlugin`/Rsbuild `source.define` values shared between the main app build (via
+ * `rspack.DefinePlugin` below) and Storybook (via `.storybook/rsbuild.config.ts`'s `source.define`),
+ * so both bundle the same `__DEV__`/`__REACT_WEB_CONFIG__`/`__GIT_BRANCH__` values for a given env file.
+ */
+function getDefineValues(file: string): DefinePluginOptions {
+    const isDevelopmentFile = file === '.env' || file === '.env.development';
+    /* eslint-disable @typescript-eslint/naming-convention */
+    return {
+        process: {env: {}},
+        // Define EXPO_OS for web platform to fix expo-modules-core warning
+        'process.env.EXPO_OS': JSON.stringify('web'),
+        __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
+
+        // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
+        // react-native-render-html uses variable to log exclusively during development.
+        // See https://reactnative.dev/docs/javascript-environment
+        __DEV__: /staging|prod|adhoc/.test(file) === false,
+        // Expose the current git branch so the debug menu can display it in the browser tab title.
+        // Empty string in non-development builds.
+        __GIT_BRANCH__: JSON.stringify(isDevelopmentFile ? localBranchName : ''),
+    };
+    /* eslint-enable @typescript-eslint/naming-convention */
+}
+
+/**
+ * `module.rules` shared between the main app build and Storybook (which pushes these onto its own
+ * `tools.rspack` config rather than duplicating them, see `.storybook/rsbuild.config.ts`).
+ */
+const sharedAssetRules = [
+    // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
+    // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
+    {
+        test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
+        type: 'asset/source' as const,
+    },
+    {
+        test: /\.lottie$/,
+        type: 'asset/resource' as const,
+    },
+];
 
 /**
  * Get a production grade config for web
@@ -156,14 +193,23 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                           ],
                       }),
                   ]),
-            new HtmlWebpackPlugin({
+            new rspack.HtmlRspackPlugin({
                 template: 'web/index.html',
                 filename: 'index.html',
-                splashLogo: fs.readFileSync(path.resolve(dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
-                isWeb: platform === 'web',
-                isProduction: file === '.env.production',
-                isStaging: file === '.env.staging',
-                useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
+                // Unlike html-webpack-plugin, HtmlRspackPlugin only exposes its own recognized options (title,
+                // filename, meta, etc.) under `htmlRspackPlugin.options` — arbitrary custom keys are silently
+                // unavailable there. Custom values must be passed via `templateParameters` instead, where they
+                // become top-level template variables (e.g. `isStaging`, not `htmlRspackPlugin.options.isStaging`).
+                // A plain object only accepts string values there (real booleans get coerced to the truthy
+                // strings `"true"`/`"false"`), so a function is used to pass real booleans through untouched.
+                templateParameters: (defaultParameters) => ({
+                    ...defaultParameters,
+                    splashLogo: fs.readFileSync(path.resolve(dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
+                    isWeb: platform === 'web',
+                    isProduction: file === '.env.production',
+                    isStaging: file === '.env.staging',
+                    useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
+                }),
             }),
             // Inject <link rel="prefetch" /> into HTML
             // This is not "webpackPrefetch: true" equivalent!
@@ -232,20 +278,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                   ]
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
-            new rspack.DefinePlugin({
-                process: {env: {}},
-                // Define EXPO_OS for web platform to fix expo-modules-core warning
-                'process.env.EXPO_OS': JSON.stringify('web'),
-                __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
-
-                // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
-                // react-native-render-html uses variable to log exclusively during development.
-                // See https://reactnative.dev/docs/javascript-environment
-                __DEV__: /staging|prod|adhoc/.test(file) === false,
-                // Expose the current git branch so the debug menu can display it in the browser tab title.
-                // Empty string in non-development builds.
-                __GIT_BRANCH__: JSON.stringify(isDevelopment ? localBranchName : ''),
-            }),
+            new rspack.DefinePlugin(getDefineValues(file)),
             ...(isDevelopment ? [] : [new rspack.CssExtractRspackPlugin()]),
 
             // Upload source maps to Sentry
@@ -299,13 +332,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      */
                     exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|\\.native\\.(js|jsx|ts|tsx)$`)],
                 },
-                // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
-                // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
-                {
-                    test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
-                    type: 'asset/source',
-                },
-
                 // Rule for react-native-web-webview
                 {
                     test: /postMock.html$/,
@@ -348,10 +374,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     resourceQuery: /raw/,
                     type: 'asset/source',
                 },
-                {
-                    test: /\.lottie$/,
-                    type: 'asset/resource',
-                },
+                ...sharedAssetRules,
                 // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
                 // where Pager is imported without extension due to having platform-specific implementations
                 {
@@ -471,3 +494,4 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 /* eslint-enable @typescript-eslint/naming-convention */
 
 export default getCommonConfiguration;
+export {getDefineValues, sharedAssetRules};
