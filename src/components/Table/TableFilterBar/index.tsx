@@ -1,9 +1,13 @@
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {View} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
 import TableSearchBar from './TableSearchBar';

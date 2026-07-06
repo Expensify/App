@@ -1,14 +1,18 @@
-import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import {useTableContext} from '@components/Table/TableContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 
 export default function TableFilterTrigger() {
