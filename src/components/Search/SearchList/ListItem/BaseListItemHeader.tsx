@@ -1,17 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionGroupListItemType} from './types';
 
 /** Base group item type that includes common fields used by simple text-based group headers */
 type BaseGroupListItemType = TransactionGroupListItemType & {
@@ -45,7 +51,7 @@ type ColumnStyleKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
 
-type BaseListItemHeaderProps = {
+type BaseListItemHeaderProps<TItem extends ListItem> = {
     /** The group item being rendered */
     item: BaseGroupListItemType;
 
@@ -58,8 +64,8 @@ type BaseListItemHeaderProps = {
     /** The column style key for sizing (e.g., CATEGORY, MERCHANT) */
     columnStyleKey: ColumnStyleKey;
 
-    /** Group-header checkbox toggle; ignores Shift. */
-    onCheckboxPress?: () => void;
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -83,7 +89,7 @@ type BaseListItemHeaderProps = {
     columns?: SearchColumnType[];
 };
 
-function BaseListItemHeader({
+function BaseListItemHeader<TItem extends ListItem>({
     item,
     displayName,
     groupColumnKey,
@@ -96,7 +102,7 @@ function BaseListItemHeader({
     isExpanded,
     onDownArrowClick,
     columns,
-}: BaseListItemHeaderProps) {
+}: BaseListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -143,7 +149,7 @@ function BaseListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.()}
+                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}

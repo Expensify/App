@@ -1,6 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,9 +7,15 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MonthListItemHeader from '@components/Search/SearchList/ListItem/MonthListItemHeader';
 import type {TransactionMonthGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -193,7 +198,7 @@ describe('MonthListItemHeader', () => {
             const checkbox = screen.getByRole('checkbox');
             fireEvent.press(checkbox);
 
-            expect(onCheckboxPress).toHaveBeenCalled();
+            expect(onCheckboxPress).toHaveBeenCalledWith(monthItem);
         });
 
         it('should show checkbox as checked when isSelectAllChecked is true', async () => {

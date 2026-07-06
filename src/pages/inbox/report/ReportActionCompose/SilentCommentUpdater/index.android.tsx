@@ -1,6 +1,9 @@
-import {useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect} from 'react';
+
 import type SilentCommentUpdaterProps from './types';
 
 /**

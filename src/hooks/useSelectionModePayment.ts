@@ -1,7 +1,3 @@
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import truncate from 'lodash/truncate';
-import {useContext, useEffect, useRef} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -9,8 +5,10 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,11 +18,18 @@ import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {hasHeldExpensesFromTransactions, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import truncate from 'lodash/truncate';
+import {useContext, useEffect, useRef} from 'react';
+
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
@@ -119,17 +124,25 @@ function useSelectionModePayment({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesFromTransactions(transactions);
 
-    const shouldBlockAction = (paymentMethodType?: PaymentMethodType) => {
+    const presentBlockingAction = (action: () => void, deferBlockingPresentation: boolean) => {
+        if (deferBlockingPresentation) {
+            deferModalPresentationAfterPopoverDismiss(action);
+        } else {
+            action();
+        }
+    };
+
+    const shouldBlockAction = (paymentMethodType?: PaymentMethodType, deferBlockingPresentation = false) => {
         if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
+            presentBlockingAction(showDelegateNoAccessModal, deferBlockingPresentation);
             return true;
         }
         if (isAccountLocked) {
-            showLockedAccountModal();
+            presentBlockingAction(showLockedAccountModal, deferBlockingPresentation);
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            presentBlockingAction(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path)), deferBlockingPresentation);
             return true;
         }
         return false;
@@ -242,7 +255,7 @@ function useSelectionModePayment({
     })();
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        if (shouldBlockAction()) {
+        if (shouldBlockAction(undefined, true)) {
             return;
         }
         kycWallRef.current?.continueAction?.({policy: wp});
@@ -269,10 +282,7 @@ function useSelectionModePayment({
         return result;
     })();
 
-    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType)) {
-            return;
-        }
+    const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
             event,
             iouPaymentType,
@@ -296,6 +306,13 @@ function useSelectionModePayment({
         });
     };
 
+    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (shouldBlockAction(iouPaymentType, true)) {
+            return;
+        }
+        invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+    };
+
     const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
         confirmPayment({paymentType: type});
     };
@@ -306,6 +323,7 @@ function useSelectionModePayment({
     return {
         confirmPayment,
         shouldBlockAction,
+        invokePaymentSelect,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,

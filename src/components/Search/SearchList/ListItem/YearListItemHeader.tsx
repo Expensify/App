@@ -1,22 +1,46 @@
-import React from 'react';
+import type {ListItem} from '@components/SelectionList/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
-import BaseListItemHeader from './BaseListItemHeader';
 import type {TransactionYearGroupListItemType} from './types';
 
-type YearListItemHeaderProps = Omit<BaseListItemHeaderProps, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
+import BaseListItemHeader from './BaseListItemHeader';
+
+type YearListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The year group currently being looked at */
     year: TransactionYearGroupListItemType;
 };
 
-function YearListItemHeader({year: yearItem, ...baseProps}: YearListItemHeaderProps) {
+function YearListItemHeader<TItem extends ListItem>({
+    year: yearItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+    isExpanded,
+    onDownArrowClick,
+    columns,
+}: YearListItemHeaderProps<TItem>) {
+    const yearName = yearItem.formattedYear;
+
     return (
         <BaseListItemHeader
-            {...baseProps}
             item={yearItem}
-            displayName={yearItem.formattedYear}
+            displayName={yearName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR}
             columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR}
+            onCheckboxPress={onCheckboxPress}
+            isDisabled={isDisabled}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            isIndeterminate={isIndeterminate}
+            isExpanded={isExpanded}
+            onDownArrowClick={onDownArrowClick}
+            columns={columns}
         />
     );
 }

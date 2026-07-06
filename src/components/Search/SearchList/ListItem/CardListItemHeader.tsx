@@ -1,29 +1,36 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionCardGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionCardGroupListItemType} from './types';
 
-type CardListItemHeaderProps = {
+type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
 
-    /** Group-header checkbox toggle; ignores Shift. */
-    onCheckboxPress?: () => void;
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -50,7 +57,7 @@ type CardListItemHeaderProps = {
     columns?: SearchColumnType[];
 };
 
-function CardListItemHeader({
+function CardListItemHeader<TItem extends ListItem>({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -61,7 +68,7 @@ function CardListItemHeader({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps) {
+}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -143,7 +150,7 @@ function CardListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.()}
+                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}

@@ -1,21 +1,28 @@
-import React from 'react';
-import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import {useTableContext} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
@@ -57,14 +64,20 @@ export default function TableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const shouldEnableMobileSelectionLongPress = shouldUseNarrowLayout && !isInNarrowPaneModal;
-    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+
+    // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
+    // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
+    // tables keep the original shouldUseNarrowLayout behavior. Visual layout still uses shouldUseNarrowTableLayout.
+    const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
+    const shouldEnableMobileSelectionLongPress = isSmallScreenWidth && (shouldEnableSelectionInNarrowPaneModal || !isInNarrowPaneModal);
 
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
     const isDisabled = !!disabled;
     const isFirstRow = rowIndex === 0;
@@ -146,7 +159,7 @@ export default function TableRow({
             return;
         }
 
-        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+        if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
             onPress?.();
             return;
         }

@@ -1,11 +1,16 @@
-import React from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SelectionListProps} from '@components/SelectionList/types';
+
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
+
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+
+import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
 type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &

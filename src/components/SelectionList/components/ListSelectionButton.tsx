@@ -1,9 +1,13 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import SelectionButton from '@components/SelectionButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {
     /** The item to render the selection button for */

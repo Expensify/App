@@ -1,16 +1,32 @@
-import React from 'react';
+import type {ListItem} from '@components/SelectionList/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
-import BaseListItemHeader from './BaseListItemHeader';
 import type {TransactionCategoryGroupListItemType} from './types';
 
-type CategoryListItemHeaderProps = Omit<BaseListItemHeaderProps, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
+import BaseListItemHeader from './BaseListItemHeader';
+
+type CategoryListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The category currently being looked at */
     category: TransactionCategoryGroupListItemType;
 };
 
-function CategoryListItemHeader({category: categoryItem, ...baseProps}: CategoryListItemHeaderProps) {
+function CategoryListItemHeader<TItem extends ListItem>({
+    category: categoryItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+    isExpanded,
+    onDownArrowClick,
+    columns,
+}: CategoryListItemHeaderProps<TItem>) {
     const {translate} = useLocalize();
 
     // formattedCategory is pre-decoded in SearchUIUtils, just translate empty values
@@ -19,11 +35,18 @@ function CategoryListItemHeader({category: categoryItem, ...baseProps}: Category
 
     return (
         <BaseListItemHeader
-            {...baseProps}
             item={categoryItem}
             displayName={categoryName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY}
             columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.CATEGORY}
+            onCheckboxPress={onCheckboxPress}
+            isDisabled={isDisabled}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            isIndeterminate={isIndeterminate}
+            isExpanded={isExpanded}
+            onDownArrowClick={onDownArrowClick}
+            columns={columns}
         />
     );
 }

@@ -1,7 +1,9 @@
-import React, {useRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {useRef} from 'react';
 
 /**
  * This component is a workaround to resolve an issue for an Android issue where onPress does not trigger on Mapbox.MapView due to a PanResponder that captures touch events.

@@ -1,12 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,22 +14,30 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionWithdrawalIDGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionWithdrawalIDGroupListItemType} from './types';
 
-type WithdrawalIDListItemHeaderProps = {
+type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** The withdrawal ID currently being looked at */
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
 
-    /** Group-header checkbox toggle; ignores Shift. */
-    onCheckboxPress?: () => void;
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -53,7 +61,7 @@ type WithdrawalIDListItemHeaderProps = {
     columns?: SearchColumnType[];
 };
 
-function WithdrawalIDListItemHeader({
+function WithdrawalIDListItemHeader<TItem extends ListItem>({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -63,7 +71,7 @@ function WithdrawalIDListItemHeader({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps) {
+}: WithdrawalIDListItemHeaderProps<TItem>) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -184,7 +192,7 @@ function WithdrawalIDListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.()}
+                            onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
@@ -209,7 +217,7 @@ function WithdrawalIDListItemHeader({
                                     {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                             </View>

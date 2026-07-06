@@ -1,6 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -11,14 +8,13 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
-import Text from '@components/Text';
+import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
+import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
+
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,24 +24,24 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import tokenizedSearch from '@libs/tokenizedSearch';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
+
 import {close} from '@userActions/Modal';
 import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,16 +50,9 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PolicyOption = ListItem & {
-    /** subRateID is used as a key for identification of the entry */
-    subRateID: string;
-
-    /** rateID is used as a key for identification of the entry */
-    rateID: string;
-
-    /** subRateName is used for filters */
-    subRateName: string;
-};
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type SubRateData = {
     pendingAction?: PendingAction;
@@ -74,6 +63,10 @@ type SubRateData = {
     rateID: string;
     subRateID: string;
 };
+
+function getPerDiemRowKey(rateID: string, subRateID: string) {
+    return `${rateID}:${subRateID}`;
+}
 
 function getSubRatesData(customUnitRates: Rate[]) {
     const subRatesData: SubRateData[] = [];
@@ -96,36 +89,15 @@ function getSubRatesData(customUnitRates: Rate[]) {
     return subRatesData;
 }
 
-function generateSingleSubRateData(customUnitRates: Rate[], rateID: string, subRateID: string) {
-    const selectedRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-    if (!selectedRate) {
-        return null;
-    }
-    const selectedSubRate = selectedRate.subRates?.find((subRate) => subRate.id === subRateID);
-    if (!selectedSubRate) {
-        return null;
-    }
-    return {
-        pendingAction: selectedRate.pendingAction,
-        destination: selectedRate.name ?? '',
-        subRateName: selectedSubRate.name,
-        rate: selectedSubRate.rate,
-        currency: selectedRate.currency ?? CONST.CURRENCY.USD,
-        rateID: selectedRate.customUnitRateID,
-        subRateID: selectedSubRate.id,
-    };
-}
-
-type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM>;
 
 function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -139,15 +111,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
     const genericIllustration = useGenericEmptyStateIllustration();
 
-    const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
+    const [customUnit, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
         const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
         const allRates = Object.values(customUnitRates);
         const allSubRatesMemo = getSubRatesData(allRates);
-        return [customUnits, allRates, allSubRatesMemo];
+        return [customUnits, allSubRatesMemo];
     }, [policy]);
-
-    const canSelectMultiple = canWritePerDiem && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const fetchPerDiem = useCallback(() => {
         openPolicyPerDiemPage(policyID);
@@ -161,111 +131,36 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }, [fetchPerDiem]),
     );
 
-    const cleanupSelectedOption = useCallback(() => setSelectedPerDiem([]), []);
-    useCleanupSelectedOptions(cleanupSelectedOption);
-
-    const subRatesList = useMemo<PolicyOption[]>(
-        () =>
-            allSubRates.map((value) => {
-                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                return {
-                    text: value.destination,
-                    subRateID: value.subRateID,
-                    rateID: value.rateID,
-                    keyForList: value.subRateID,
-                    isDisabled,
-                    pendingAction: value.pendingAction,
-                    subRateName: value.subRateName,
-                    rightElement: (
-                        <>
-                            <View style={styles.flex2}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}
-                                >
-                                    {value.subRateName}
-                                </Text>
-                            </View>
-                            <View style={styles.flex2}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}
-                                >
-                                    {convertAmountToDisplayString(value.rate, value.currency)}
-                                </Text>
-                            </View>
-                        </>
-                    ),
-                };
-            }),
-        [allSubRates, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
-    );
-
-    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
-        const results = tokenizedSearch([rate], searchInput, (option) => [option.text ?? '', option.subRateName ?? '']);
-        return results.length > 0;
-    }, []);
-    const sortRates = useCallback((rates: PolicyOption[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), [localeCompare]);
-    const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
-
-    const toggleSubRate = (subRate: PolicyOption) => {
-        if (selectedPerDiem.find((selectedSubRate) => selectedSubRate.subRateID === subRate.subRateID) !== undefined) {
-            setSelectedPerDiem((prev) => prev.filter((selectedSubRate) => selectedSubRate.subRateID !== subRate.subRateID));
-        } else {
-            const subRateData = generateSingleSubRateData(allRatesArray, subRate.rateID, subRate.subRateID);
-            if (!subRateData) {
-                return;
+    const selectableSubRatesByKey = useMemo(() => {
+        const map: Record<string, SubRateData> = {};
+        for (const subRate of allSubRates) {
+            if (subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                map[getPerDiemRowKey(subRate.rateID, subRate.subRateID)] = subRate;
             }
-            setSelectedPerDiem((prev) => [...prev, subRateData]);
         }
-    };
+        return map;
+    }, [allSubRates]);
 
-    const toggleAllSubRates = () => {
-        if (selectedPerDiem.length > 0) {
-            setSelectedPerDiem([]);
-        } else {
-            const availablePerDiemRates = allSubRates.filter(
-                (subRate) =>
-                    subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && filteredSubRatesList.some((filteredSubRate) => filteredSubRate.subRateID === subRate.subRateID),
-            );
-            setSelectedPerDiem(availablePerDiemRates);
-        }
-    };
+    const filterSelectableSubRate = useCallback((subRate?: SubRateData) => !!subRate, []);
 
-    const getCustomListHeader = () => {
-        if (filteredSubRatesList.length === 0) {
-            return null;
-        }
-        const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.mr6]}>
-                <View style={styles.flex3}>
-                    <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
-                </View>
-                <View style={styles.flex2}>
-                    <Text style={[styles.textMicroSupporting, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
-                </View>
-                <View style={styles.flex2}>
-                    <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
-                </View>
-            </View>
-        );
-        if (canSelectMultiple) {
-            return header;
-        }
-        return <View style={!canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
-    };
+    const [selectedSubRateKeys, setSelectedSubRateKeys] = useFilteredSelection(selectableSubRatesByKey, filterSelectableSubRate);
+
+    const clearTableSelection = useCallback(() => {
+        setSelectedSubRateKeys((prev) => (prev.length > 0 ? [] : prev));
+    }, [setSelectedSubRateKeys]);
+
+    useCleanupSelectedOptions(clearTableSelection);
 
     const openSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
     }, [policyID]);
 
-    const openSubRateDetails = (rate: PolicyOption) => {
-        if (canWritePerDiem && isSmallScreenWidth && isMobileSelectionModeEnabled) {
-            toggleSubRate(rate);
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
-    };
+    const openSubRateDetails = useCallback(
+        (rateID: string, subRateID: string) => {
+            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+        },
+        [policyID],
+    );
 
     const showOfflineModal = useCallback(() => {
         close(() => {
@@ -278,12 +173,37 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         });
     }, [showConfirmModal, translate]);
 
-    const handleDeletePerDiemRates = () => {
-        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
-        setSelectedPerDiem([]);
-    };
+    const handleDeletePerDiemRates = useCallback(() => {
+        const subRatesToDelete = selectedSubRateKeys.map((rowKey) => selectableSubRatesByKey[rowKey]).filter((subRate): subRate is SubRateData => !!subRate);
+        deleteWorkspacePerDiemRates(policyID, customUnit, subRatesToDelete);
+        setSelectedSubRateKeys([]);
+        turnOffMobileSelectionMode();
+    }, [selectedSubRateKeys, selectableSubRatesByKey, policyID, customUnit, setSelectedSubRateKeys]);
 
-    const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
+    const perDiemRows: PerDiemTableRowData[] = useMemo(
+        () =>
+            allSubRates
+                .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map((subRate) => {
+                    const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                    return {
+                        keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
+                        subRateID: subRate.subRateID,
+                        rateID: subRate.rateID,
+                        destination: subRate.destination,
+                        subRateName: subRate.subRateName,
+                        rate: subRate.rate,
+                        formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
+                        disabled: isDeleting,
+                        pendingAction: subRate.pendingAction,
+                        action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
+                    };
+                }),
+        [allSubRates, isOffline, openSubRateDetails],
+    );
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -353,15 +273,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedPerDiem.length > 0) {
+        if (canWritePerDiem && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedSubRateKeys.length > 0)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
-                text: translate('workspace.perDiem.deleteRates', {count: selectedPerDiem.length}),
+                text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),
-                        prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedPerDiem.length}),
+                        prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -377,11 +297,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedPerDiem.length})}
+                    customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    isDisabled={!selectedPerDiem.length}
+                    isDisabled={!selectedSubRateKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
             );
@@ -415,32 +335,49 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             return;
         }
 
-        setSelectedPerDiem([]);
-    }, [setSelectedPerDiem, isMobileSelectionModeEnabled]);
+        setSelectedSubRateKeys([]);
+    }, [setSelectedSubRateKeys, isMobileSelectionModeEnabled]);
 
     useSearchBackPress({
-        onClearSelection: () => {
-            setSelectedPerDiem([]);
-        },
+        onClearSelection: clearTableSelection,
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const headerButtons = getHeaderButtons();
 
-    const headerContent = (
-        <>
-            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, styles.flexRow, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                <RenderHTML html={translate('workspace.perDiem.subtitle')} />
-            </View>
-            {subRatesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
-                <SearchBar
-                    label={translate('workspace.perDiem.findPerDiemRate')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
-                />
-            )}
-        </>
+    const subtitleContent = (
+        <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <RenderHTML html={translate('workspace.perDiem.subtitle')} />
+        </View>
+    );
+
+    const emptyStateContent = (
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+            <GenericEmptyStateComponent
+                {...genericIllustration}
+                title={translate('workspace.perDiem.emptyList.title')}
+                subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={
+                    canWritePerDiem
+                        ? [
+                              {
+                                  buttonText: translate('spreadsheet.importSpreadsheet'),
+                                  buttonAction: () => {
+                                      if (isOffline) {
+                                          showOfflineModal();
+                                          return;
+                                      }
+                                      Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
+                                  },
+                                  success: true,
+                              },
+                          ]
+                        : []
+                }
+            />
+        </ScrollView>
     );
 
     return (
@@ -466,7 +403,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
-                            setSelectedPerDiem([]);
+                            clearTableSelection();
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -479,10 +416,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {!!getHeaderButtons() && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!hasVisibleSubRates || isLoading) && headerContent}
+                {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {(!hasVisibleSubRates || isLoading) && subtitleContent}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -490,74 +427,17 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         reasonAttributes={reasonAttributes}
                     />
                 )}
-                {hasVisibleSubRates && !isLoading && (
-                    <SelectionListWithModal
-                        data={filteredSubRatesList}
-                        ListItem={TableListItem}
-                        onSelectRow={openSubRateDetails}
-                        canSelectMultiple={canSelectMultiple}
-                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllPerDiemRates')}
-                        onSelectionButtonPress={toggleSubRate}
-                        onShiftRangeApply={(batch) =>
-                            setSelectedPerDiem((prev) => {
-                                if (!batch.toSelect.length && !batch.toDeselect.length) {
-                                    return prev;
-                                }
-                                const nextKeys = applyShiftRangeBatchToKeySet(
-                                    batch,
-                                    prev.map((value) => value.subRateID),
-                                    (item) => item.subRateID,
-                                );
-                                const subRateDataByID = new Map<string, SubRateData>();
-                                for (const value of allSubRates) {
-                                    subRateDataByID.set(value.subRateID, value);
-                                }
-                                for (const value of prev) {
-                                    subRateDataByID.set(value.subRateID, value);
-                                }
-                                return nextKeys.map((key) => subRateDataByID.get(key)).filter((value): value is SubRateData => !!value);
-                            })
-                        }
-                        customListHeader={getCustomListHeader()}
-                        selectedItems={selectedPerDiem.map((item) => item.subRateID)}
-                        onSelectAll={canWritePerDiem && filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
-                        style={{listItemTitleContainerStyles: styles.flex3}}
-                        onTurnOnSelectionMode={(item) => canWritePerDiem && item && toggleSubRate(item)}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        customListHeaderContent={headerContent}
-                        shouldShowListEmptyContent={false}
-                        showScrollIndicator={false}
-                        turnOnSelectionModeOnLongPress={canWritePerDiem}
-                        shouldHeaderBeInsideList
-                        shouldShowRightCaret
-                    />
-                )}
-                {!hasVisibleSubRates && !isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <GenericEmptyStateComponent
-                            {...genericIllustration}
-                            title={translate('workspace.perDiem.emptyList.title')}
-                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                            headerStyles={styles.emptyStateCardIllustrationContainer}
-                            buttons={
-                                canWritePerDiem
-                                    ? [
-                                          {
-                                              buttonText: translate('spreadsheet.importSpreadsheet'),
-                                              buttonAction: () => {
-                                                  if (isOffline) {
-                                                      showOfflineModal();
-                                                      return;
-                                                  }
-                                                  Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                                              },
-                                              success: true,
-                                          },
-                                      ]
-                                    : []
-                            }
+                {!isLoading && (
+                    <>
+                        {hasVisibleSubRates && subtitleContent}
+                        <WorkspacePerDiemTable
+                            perDiemData={perDiemRows}
+                            selectionEnabled={canWritePerDiem}
+                            selectedKeys={selectedSubRateKeys}
+                            onRowSelectionChange={setSelectedSubRateKeys}
+                            EmptyStateComponent={emptyStateContent}
                         />
-                    </ScrollView>
+                    </>
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

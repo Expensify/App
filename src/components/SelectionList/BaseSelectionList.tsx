@@ -1,18 +1,25 @@
-import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+
+import {useIsFocused} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
+import type {DataDetailsType, ListItem, SelectionListProps} from './types';
+
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import SelectionListEmptyState from './components/SelectionListEmptyState';
@@ -24,7 +31,6 @@ import useSelectionListScroll from './hooks/useSelectionListScroll';
 import useSelectionListShortcuts from './hooks/useSelectionListShortcuts';
 import useSelectionListTextInput from './hooks/useSelectionListTextInput';
 import ListItemRenderer from './ListItem/ListItemRenderer';
-import type {DataDetailsType, ListItem, SelectionListProps} from './types';
 import {getListboxRole} from './utils/getListboxRole';
 
 const ANIMATED_HIGHLIGHT_DURATION =
