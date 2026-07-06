@@ -50,7 +50,7 @@ const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETA
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
 
-function PersonalInfoPage() {
+function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -193,7 +193,7 @@ function PersonalInfoPage() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={PersonalInfoPage.displayName}
+            wrapperID={AddPersonalBankAccountPage.displayName}
             headerTitle={translate('bankAccount.addBankAccount')}
             handleBackButtonPress={handleBackButtonPress}
         >
@@ -206,6 +206,6 @@ function PersonalInfoPage() {
     );
 }
 
-PersonalInfoPage.displayName = 'PersonalInfoPage';
+AddPersonalBankAccountPage.displayName = 'PersonalInfoPage';
 
-export default PersonalInfoPage;
+export default AddPersonalBankAccountPage;
