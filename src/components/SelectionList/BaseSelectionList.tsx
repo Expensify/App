@@ -7,6 +7,9 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {applyShiftRangeByToggle} from '@libs/shiftRangeSelection';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
+
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -125,6 +128,19 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
+    // Shift-range works for any multi-select list without per-page wiring: via the consumer's onShiftRangeApply, else by fanning the
+    // batch through the row checkbox toggle — onSelectionButtonPress, never onSelectRow (some lists use it to navigate, not select).
+    const shiftRangeEnabled = canSelectMultiple && (!!onShiftRangeApply || !!onSelectionButtonPress);
+    const applyShiftRange = (batch: ShiftRangeBatch<TItem>) => {
+        if (onShiftRangeApply) {
+            onShiftRangeApply(batch);
+            return;
+        }
+        if (onSelectionButtonPress) {
+            applyShiftRangeByToggle(batch, isItemSelected, (item) => onSelectionButtonPress(item, undefined, false));
+        }
+    };
+
     const rangeApi = useShiftRangeSelection<TItem>({
         items: data,
         getItemKey: (item) => item.keyForList ?? null,
@@ -139,12 +155,12 @@ function BaseSelectionList<TItem extends ListItem>({
             return keys;
         },
         isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
-        onApplyRange: onShiftRangeApply,
+        onApplyRange: applyShiftRange,
     });
 
     const handleSelectionButtonPress = useCallback(
         (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
-            if (onShiftRangeApply && rangeApi.applyShiftClick(item, shiftKey)) {
+            if (shiftRangeEnabled && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }
             if (onSelectionButtonPress) {
@@ -152,11 +168,11 @@ function BaseSelectionList<TItem extends ListItem>({
             } else {
                 onSelectRow(item);
             }
-            if (onShiftRangeApply) {
+            if (shiftRangeEnabled) {
                 rangeApi.notifyAnchor(item);
             }
         },
-        [onShiftRangeApply, rangeApi, onSelectionButtonPress, onSelectRow],
+        [shiftRangeEnabled, rangeApi, onSelectionButtonPress, onSelectRow],
     );
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
@@ -243,7 +259,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
-            if (onShiftRangeApply) {
+            if (shiftRangeEnabled) {
                 rangeApi.notifyAnchor(item);
             }
 
@@ -262,7 +278,7 @@ function BaseSelectionList<TItem extends ListItem>({
             isSmallScreenWidth,
             textInputOptions,
             handleSelectionButtonPress,
-            onShiftRangeApply,
+            shiftRangeEnabled,
             rangeApi,
             setFocusedIndex,
             focusTextInput,
@@ -499,8 +515,8 @@ function BaseSelectionList<TItem extends ListItem>({
     const handleSelectAll = useCallback(() => {
         const willSelectAll = !dataDetails.allSelected;
         onSelectAll?.();
-        // Skip the O(n) seed scan (and anchor bookkeeping) for lists that didn't opt into shift-range.
-        if (onShiftRangeApply) {
+        // Skip the O(n) seed scan (and anchor bookkeeping) for lists without shift-range.
+        if (shiftRangeEnabled) {
             if (willSelectAll) {
                 rangeApi.seedFullRange();
             } else {
@@ -510,7 +526,7 @@ function BaseSelectionList<TItem extends ListItem>({
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
             focusTextInput();
         }
-    }, [onSelectAll, onShiftRangeApply, rangeApi, dataDetails.allSelected, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
+    }, [onSelectAll, shiftRangeEnabled, rangeApi, dataDetails.allSelected, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,

@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
 
@@ -109,7 +108,6 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCategory}
                 onSelectionButtonPress={toggleCategory}
-                onShiftRangeApply={(batch) => setSelectedCategories((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.value))}
                 onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,
