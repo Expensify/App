@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {isTransactionGroupListItemType, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -26,7 +26,6 @@ import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './ty
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
-import {isTransactionMatchWithGroupItem} from './SearchList';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
@@ -251,7 +250,10 @@ function ExpenseGroupedSearchView({
                     return;
                 }
                 const item = data.at(index);
-                const splitIndex = item?.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
+                if (!item) {
+                    return;
+                }
+                const splitIndex = item.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
                 scrollToListIndex(splitIndex !== -1 ? splitIndex : index, animated);
             },
         }),
@@ -337,7 +339,7 @@ function ExpenseGroupedSearchView({
         const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
         return (
             <AnimatedExitRow
-                shouldApplyAnimation={index < listData.length - 1}
+                shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
             >
                 <TransactionGroupListItem

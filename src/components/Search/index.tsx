@@ -36,7 +36,6 @@ import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryU
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
-    getListItem,
     getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
@@ -100,7 +99,6 @@ import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
-import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -138,7 +136,7 @@ function Search({
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -178,7 +176,6 @@ function Search({
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
@@ -703,7 +700,6 @@ function Search({
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
-    const ListItem = getListItem(type, status, validGroupBy);
 
     useSaveSortedReportIDs(type, sortedData);
 
@@ -1053,161 +1049,56 @@ function Search({
             />
         ) : undefined;
 
-    const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
-    const isExpenseGroupedView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!validGroupBy;
+    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
+    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
+    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    // Flat-expense, grouped-expense, expense-report, task and chat each render through a dedicated view composed over BaseSearchList;
-    // the remaining types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers
-    // stay here so the data layer runs once.
+    const commonViewProps = {
+        ref: searchListRef,
+        queryJSON,
+        data: stableSortedData,
+        columns: columnsToShow,
+        onSelectRow,
+        canSelectMultiple,
+        SearchTableHeader: searchTableHeader,
+        tableHeaderVisible,
+        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        containerStyle: [styles.pv0],
+        onScroll: onSearchListScroll,
+        onEndReached: fetchMoreResults,
+        ListFooterComponent: listFooterComponent,
+        onLayout,
+        isMobileSelectionModeEnabled,
+        newTransactions,
+        hasLoadedAllTransactions,
+        isActionColumnWide: isTask || hasDeletedTransaction,
+    };
+
     let searchListContent: React.JSX.Element;
-    if (isFlatExpenseView) {
+    if (isTransactionListView && !validGroupBy) {
         searchListContent = (
             <ExpenseFlatSearchView
-                ref={searchListRef}
-                queryJSON={queryJSON}
-                data={stableSortedData}
-                columns={columnsToShow}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                SearchTableHeader={searchTableHeader}
-                tableHeaderVisible={tableHeaderVisible}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                isActionColumnWide={isTask || hasDeletedTransaction}
             />
         );
-    } else if (isExpenseGroupedView) {
+    } else if (isTransactionListView) {
         searchListContent = (
             <ExpenseGroupedSearchView
-                ref={searchListRef}
-                queryJSON={queryJSON}
-                data={stableSortedData}
-                columns={columnsToShow}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                SearchTableHeader={searchTableHeader}
-                tableHeaderVisible={tableHeaderVisible}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                isActionColumnWide={isTask || hasDeletedTransaction}
             />
         );
     } else if (isChat) {
-        searchListContent = (
-            <ChatSearchView
-                ref={searchListRef}
-                queryJSON={queryJSON}
-                data={stableSortedData}
-                columns={columnsToShow}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                SearchTableHeader={searchTableHeader}
-                tableHeaderVisible={tableHeaderVisible}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
-        );
+        searchListContent = <ChatSearchView {...commonViewProps} />;
     } else if (isExpenseReportType) {
-        searchListContent = (
-            <ExpenseReportSearchView
-                ref={searchListRef}
-                queryJSON={queryJSON}
-                data={stableSortedData}
-                columns={columnsToShow}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                SearchTableHeader={searchTableHeader}
-                tableHeaderVisible={tableHeaderVisible}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
-        );
-    } else if (isTask) {
-        searchListContent = (
-            <TaskSearchView
-                ref={searchListRef}
-                queryJSON={queryJSON}
-                data={stableSortedData}
-                columns={columnsToShow}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                SearchTableHeader={searchTableHeader}
-                tableHeaderVisible={tableHeaderVisible}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
-        );
+        searchListContent = <ExpenseReportSearchView {...commonViewProps} />;
     } else {
-        searchListContent = (
-            <SearchList
-                ref={searchListRef}
-                data={stableSortedData}
-                ListItem={ListItem}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                SearchTableHeader={searchTableHeader}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                queryJSON={queryJSON}
-                columns={columnsToShow}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
-                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                policyTags={policyTags}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
-        );
+        // TASK is the only remaining data type.
+        searchListContent = <TaskSearchView {...commonViewProps} />;
     }
 
     return (

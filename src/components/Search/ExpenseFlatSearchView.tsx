@@ -164,8 +164,8 @@ function ExpenseFlatSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);
-        // Flat view always animates row exits, so the only gate is excluding the last row.
-        const shouldApplyAnimation = index < data.length - 1;
+        // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
+        const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
 
         return (
             <AnimatedExitRow
