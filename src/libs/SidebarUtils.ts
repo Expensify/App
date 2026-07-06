@@ -1381,6 +1381,7 @@ function getOptionData({
     const reportIcons = getIcons(
         report,
         formatPhoneNumberPhoneUtils,
+        translate,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,
