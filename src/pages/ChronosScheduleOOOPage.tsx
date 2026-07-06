@@ -109,9 +109,15 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     };
 
     const applyDurationAmount = (newDurationAmount: string) => {
-        lastEditedRef.current = 'duration';
         setDurationAmount(newDurationAmount);
-        if (!startDate || !newDurationAmount) {
+        if (!newDurationAmount) {
+            // A cleared duration is no longer driving the range, so drop the pinned intent. This lets a
+            // later start-date change recompute the duration from the end date instead of doing nothing.
+            lastEditedRef.current = null;
+            return;
+        }
+        lastEditedRef.current = 'duration';
+        if (!startDate) {
             return;
         }
         setEndDate(computeEndDate(startDate, newDurationAmount, selectedDurationUnit));
