@@ -28,6 +28,9 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
     ONYXKEYS.ONFIDO_TOKEN,
     ONYXKEYS.ONFIDO_APPLICANT_ID,
+    // Secret with no debugging value; the `maskFragileData` fallback would NOT mask it because its
+    // `token` field name is not in `keysToMask`, so it must be dropped rather than routed there.
+    ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
@@ -205,7 +208,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_BLOCKED_FROM_CHAT,
     ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
     ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
-    ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
     ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION,
     ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
     ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
@@ -361,11 +363,13 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
     ONYXKEYS.JOINABLE_POLICIES,
     ONYXKEYS.LOGINS,
-    ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
     ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     ONYXKEYS.NVP_BILLING_FUND_ID,
     ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS,
+    // Populated from raw route strings (e.g. `SEARCH_ROOT.getRoute` appends `name` unencoded), so the URL
+    // can embed a raw email/PII; keep it here so `maskFragileData` redacts emails-in-strings on export.
+    ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
     ONYXKEYS.NVP_EXPENSE_RULES,
     ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
     ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
@@ -443,6 +447,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
 // Masking helpers
 // ============================================================
 const keysToMask = new Set([
+    'accountNumber',
     'addressCity',
     'addressName',
     'addressStreet',
