@@ -154,6 +154,8 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
         return <NotFoundPage />;
     }
 
+    const canEditCategory = canWriteRules && !isEditing;
+
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.flagForReviewRule.saveRule')}
@@ -189,14 +191,13 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        onPress={canEditCategory ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        shouldShowRightIcon={canEditCategory}
+                        interactive={canEditCategory}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
-                        disabled={isEditing}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     />
                     <MenuItemWithTopDescription

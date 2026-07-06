@@ -182,6 +182,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         return <NotFoundPage />;
     }
 
+    const canEditCategory = canWriteRules && !isEditing;
+
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.requireFieldsRule.saveRule')}
@@ -217,14 +219,13 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        onPress={canEditCategory ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        shouldShowRightIcon={canEditCategory}
+                        interactive={canEditCategory}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
-                        disabled={isEditing}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
