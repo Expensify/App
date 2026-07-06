@@ -1060,7 +1060,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
-                const reportType = getReportType(itemReportID);
+                const reportType = getReportType(itemReportID, itemReport);
                 const lastPolicyPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport);
 
                 if (!lastPolicyPaymentMethod) {
@@ -1162,7 +1162,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportID: item.reportID,
                     amount: item.amount,
                     paymentType: resolvedPaymentType,
-                    ...(isInvoiceReport(item.reportID)
+                    ...(isInvoiceReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`])
                         ? getPayMoneyOnSearchInvoiceParams(
                               item.policyID,
                               additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(item.chatReportID),
@@ -1179,7 +1179,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
                 const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
-                const isItemInvoice = isInvoiceReport(item.reportID);
+                const isItemInvoice = isInvoiceReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]);
 
                 if (isItemInvoice) {
                     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
