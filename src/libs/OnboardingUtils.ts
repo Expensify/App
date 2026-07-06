@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnboardingInvite} from '@src/CONST';
 import type {IntroSelected, OnboardingPurpose} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type SupportedInviteOnboardingChoice = typeof CONST.ONBOARDING_CHOICES.ADMIN | typeof CONST.ONBOARDING_CHOICES.SUBMIT | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 type SupportedPendingInviteIntroSelected = IntroSelected & {

@@ -1,4 +1,5 @@
 import getImageSource from '@components/Image/getImageSource';
+
 import CONST from '@src/CONST';
 import type Session from '@src/types/onyx/Session';
 

@@ -1,5 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {SharedValue} from 'react-native-reanimated';
 
 /** Range of zoom that can be applied to the content by pinching or double tapping. */
 type ZoomRange = {
