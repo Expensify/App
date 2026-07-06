@@ -203,7 +203,7 @@ function SubmitDetailsPage({
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
-            ? getParticipantsOption(participant, personalDetails)
+            ? getParticipantsOption(participant, personalDetails, translate)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 

@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {act, render, renderHook} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -2128,12 +2129,31 @@ describe('OptionsListUtils', () => {
             const currentUserAccountID = 2;
 
             // When we call getLastActorDisplayName
-            const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2'], currentUserAccountID);
-            const result2 = getLastActorDisplayName(PERSONAL_DETAILS['3'], currentUserAccountID);
+            const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2'], currentUserAccountID, translateLocal);
+            const result2 = getLastActorDisplayName(PERSONAL_DETAILS['3'], currentUserAccountID, translateLocal);
 
             // We should expect "You" for current user and first name for others
             expect(result1).toBe('You');
             expect(result2).toBe('Spider-Man');
+        });
+
+        it('should resolve the current user label and hidden fallback through the provided translate function', () => {
+            const currentUserAccountID = 2;
+            const translateWithMarkers: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'common.you') {
+                    return 'YouMarker';
+                }
+                if (path === 'common.hidden') {
+                    return 'HiddenMarker';
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // The current user resolves to the translated "you" label.
+            expect(getLastActorDisplayName(PERSONAL_DETAILS['2'], currentUserAccountID, translateWithMarkers)).toBe('YouMarker');
+
+            // An actor without firstName, displayName, or login falls back to the translated hidden label.
+            expect(getLastActorDisplayName({accountID: 999}, currentUserAccountID, translateWithMarkers)).toBe('HiddenMarker');
         });
     });
 
@@ -2145,7 +2165,7 @@ describe('OptionsListUtils', () => {
             const report = REPORTS['1'];
             const lastActorDetails = PERSONAL_DETAILS['3'];
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, undefined, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, undefined, currentUserAccountID, translateLocal);
             expect(result).toBe(false);
         });
 
@@ -2154,7 +2174,7 @@ describe('OptionsListUtils', () => {
             const report = REPORTS['1'];
             const lastAction = createRandomReportAction(1);
 
-            const result = shouldShowLastActorDisplayName(report, null, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, null, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(false);
         });
 
@@ -2165,7 +2185,7 @@ describe('OptionsListUtils', () => {
             const lastAction = createRandomReportAction(1);
 
             // When we call shouldShowLastActorDisplayName with a self DM report
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(false);
         });
 
@@ -2178,7 +2198,7 @@ describe('OptionsListUtils', () => {
             const lastActorDetails = PERSONAL_DETAILS['3'];
             const lastAction = createRandomReportAction(1);
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(false);
         });
 
@@ -2191,7 +2211,7 @@ describe('OptionsListUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             };
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(false);
         });
 
@@ -2207,7 +2227,7 @@ describe('OptionsListUtils', () => {
             };
             const lastAction = createRandomReportAction(1);
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(false);
         });
 
@@ -2222,7 +2242,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call shouldShowLastActorDisplayName with all valid conditions
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(true);
         });
 
@@ -2236,7 +2256,7 @@ describe('OptionsListUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             };
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(true);
         });
 
@@ -2251,7 +2271,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call shouldShowLastActorDisplayName with the current user as last actor
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translateLocal);
             expect(result).toBe(true);
         });
     });
@@ -4335,7 +4355,7 @@ describe('OptionsListUtils', () => {
                 accountID: 2,
                 login: 'tonystark@expensify.com',
             };
-            const result = getParticipantsOption(participant, PERSONAL_DETAILS);
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
 
             // formatPhoneNumber replaces spaces with non-breaking spaces, so normalize before comparing.
             expect(result.text?.replaceAll(String.fromCharCode(0xa0), ' ')).toBe('Iron Man');
@@ -4350,7 +4370,7 @@ describe('OptionsListUtils', () => {
                 login: 'tonystark@expensify.com',
                 displayName: 'Override Name',
             };
-            const result = getParticipantsOption(participant, PERSONAL_DETAILS);
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
 
             // participant.displayName takes precedence and is returned as-is.
             expect(result.text).toBe('Override Name');
@@ -4365,7 +4385,7 @@ describe('OptionsListUtils', () => {
                 text: 'John Smith',
             };
 
-            const result = getParticipantsOption(participant, PERSONAL_DETAILS);
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
 
             expect(result.text).toBe('John Smith');
             expect(result.login).toBe('+12025550123@expensify.sms');
@@ -4377,7 +4397,7 @@ describe('OptionsListUtils', () => {
                 login: '+12025550124@expensify.sms',
             };
 
-            const result = getParticipantsOption(participant, PERSONAL_DETAILS);
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
 
             // The display name should be derived from the login (formatted phone), not be empty.
             expect(result.text).toBeTruthy();
@@ -4387,7 +4407,7 @@ describe('OptionsListUtils', () => {
         it('uses participant.login when no accountID is provided', () => {
             const participant: Participant = {login: 'guest@example.com'};
 
-            const result = getParticipantsOption(participant, PERSONAL_DETAILS);
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
 
             expect(result.login).toBe('guest@example.com');
             expect(result.keyForList).toBe('guest@example.com');
@@ -4408,7 +4428,7 @@ describe('OptionsListUtils', () => {
             };
 
             const participant: Participant = {accountID: 42};
-            const result = getParticipantsOption(participant, personalDetails);
+            const result = getParticipantsOption(participant, personalDetails, translateLocal);
 
             expect(result.firstName).toBe('Agent');
             expect(result.lastName).toBe('Smith');
@@ -5907,7 +5927,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, translateLocal);
 
             // Then it should return the display name from lastActorDetails
             expect(result).toBe('Spider-Man');
@@ -5956,7 +5976,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, translateLocal);
 
             // Then it should return the display name from personalDetails for the actor
             expect(result).toBe('Spider-Man');
@@ -6006,7 +6026,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, translateLocal);
 
             // Then it should return the display name from reportAction.person
             // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
@@ -6055,7 +6075,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, undefined);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, undefined, translateLocal);
 
             // Then it should return "You" for the current user
             expect(result).toBe('You');
@@ -6103,7 +6123,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails, undefined);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails, undefined, translateLocal);
 
             // Then it should fall back to lastActorDetails
             // getLastActorDisplayName returns firstName if available, otherwise formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(...))
@@ -6125,7 +6145,7 @@ describe('OptionsListUtils', () => {
 
             // When we pass true for privateIsArchived (archived report)
             const privateIsArchived = true;
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, privateIsArchived);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, privateIsArchived, translateLocal);
 
             // Then it should still return the display name from lastActorDetails since there's no last visible action
             expect(result).toBe('Spider-Man');
@@ -7639,7 +7659,7 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(1);
 
@@ -7661,7 +7681,7 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(1);
 
@@ -7693,7 +7713,7 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(2);
 
@@ -7719,7 +7739,7 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, false);
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, false);
 
             expect(result.section.data).toHaveLength(1);
             // When shouldGetOptionDetails is false, the original selectedOptions are returned unchanged
@@ -7746,7 +7766,18 @@ describe('OptionsListUtils', () => {
             ];
 
             // Pass empty filtered lists so the selected option is not deduplicated
-            const result = formatSectionsFromSearchTerm('format', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                'format',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                formatPersonalDetails,
+                true,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
@@ -7773,7 +7804,7 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(1);
 
@@ -7785,7 +7816,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return empty section when no selectedOptions are provided', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(0);
         });
@@ -8348,7 +8379,7 @@ describe('OptionsListUtils', () => {
                 {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
             ];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
 
             // Should deduplicate by email - user1@example.com should only appear once
             const logins = result.map((r) => r.login);
@@ -8369,7 +8400,7 @@ describe('OptionsListUtils', () => {
                 {email: '', displayName: 'Another Name', avatarUrl: ''},
             ];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
 
             // Should deduplicate by displayName - Name Only should only appear once
             const logins = result.map((r) => r.login);
@@ -8386,7 +8417,7 @@ describe('OptionsListUtils', () => {
             }> = [];
             const recentAttendees = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
 
             // Name-only attendee should have displayName as login
             const johnSmith = result.find((r) => r.login === 'John Smith');
@@ -8402,7 +8433,7 @@ describe('OptionsListUtils', () => {
             }> = [];
             const recentAttendees: Attendee[] = [{displayName: 'Login Only User', avatarUrl: ''}];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
 
             expect(result.find((r) => r.login === 'Login Only User')).toBeDefined();
         });
@@ -8525,7 +8556,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('formatSectionsFromSearchTerm should accept policy parameter', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, PERSONAL_DETAILS, true);
+            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, translateLocal, PERSONAL_DETAILS, true);
             expect(result).toBeDefined();
             expect(result.section).toBeDefined();
         });

@@ -138,6 +138,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             false,
             undefined,

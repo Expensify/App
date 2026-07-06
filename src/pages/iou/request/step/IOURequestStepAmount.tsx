@@ -187,6 +187,7 @@ function IOURequestStepAmount({
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
         notifySaving();
         submitAmount({
+            translate,
             report,
             transaction,
             splitDraftTransaction,
