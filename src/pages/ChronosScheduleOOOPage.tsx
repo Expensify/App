@@ -75,7 +75,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         durationAmountRef.current?.updateNumber(String(days));
     };
 
-    const handleDurationUnitChange = (item: ValuePickerItem) => {
+    const applyDurationUnit = (item: ValuePickerItem) => {
         if (item.value) {
             lastEditedRef.current = 'duration';
             setSelectedDurationUnit(item.value);
@@ -86,7 +86,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         setIsDurationUnitModalVisible(false);
     };
 
-    const handleStartDateChange = (newStartDate: string) => {
+    const applyStartDate = (newStartDate: string) => {
         setStartDate(newStartDate);
         if (!newStartDate) {
             return;
@@ -108,7 +108,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
     };
 
-    const handleDurationAmountChange = (newDurationAmount: string) => {
+    const applyDurationAmount = (newDurationAmount: string) => {
         lastEditedRef.current = 'duration';
         setDurationAmount(newDurationAmount);
         if (!startDate || !newDurationAmount) {
@@ -117,7 +117,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         setEndDate(computeEndDate(startDate, newDurationAmount, selectedDurationUnit));
     };
 
-    const handleEndDateChange = (newEndDate: string) => {
+    const applyEndDate = (newEndDate: string) => {
         lastEditedRef.current = 'endDate';
         setEndDate(newEndDate);
         if (!startDate || !newEndDate) {
@@ -210,7 +210,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         valueType="string"
                         label={translate('chronos.date')}
                         value={startDate}
-                        onValueChange={handleStartDateChange}
+                        onValueChange={applyStartDate}
                     />
                 </View>
                 <View style={styles.mb4}>
@@ -221,7 +221,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         label={translate('chronos.endDate')}
                         value={endDate}
                         minDate={startDateAsDate ?? undefined}
-                        onValueChange={handleEndDateChange}
+                        onValueChange={applyEndDate}
                     />
                 </View>
                 <View style={styles.mb4}>
@@ -248,7 +248,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         currency={CONST.CURRENCY.USD}
                         decimals={2}
                         value={durationAmount}
-                        onValueChange={handleDurationAmountChange}
+                        onValueChange={applyDurationAmount}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
                         isCurrencyPressable
                         numberFormRef={durationAmountRef}
@@ -259,7 +259,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         selectedItem={durationUnitItems.find((item) => item.value === selectedDurationUnit)}
                         items={durationUnitItems}
                         onClose={() => setIsDurationUnitModalVisible(false)}
-                        onItemSelected={handleDurationUnitChange}
+                        onItemSelected={applyDurationUnit}
                         onBackdropPress={Navigation.dismissModal}
                         shouldEnableKeyboardAvoidingView={false}
                     />
