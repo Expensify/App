@@ -49,7 +49,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     });
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
+    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate);
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(
         getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
