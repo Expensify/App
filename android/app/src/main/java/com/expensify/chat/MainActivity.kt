@@ -2,11 +2,13 @@ package com.expensify.chat
 
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
+import android.view.WindowManager
 import com.expensify.chat.bootsplash.BootSplash
 import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
@@ -46,6 +48,11 @@ class MainActivity : ReactActivity() {
             .apply()
         BootSplash.init(this)
         super.onCreate(null)
+
+        // Keep sensitive data out of the recents snapshot the OS writes to disk.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(false)
+        }
 
         // Sets translucent status bar. This code is based on what the react-native StatusBar
         // module does, but we need to do it here to avoid the splash screen jumping on app start.
@@ -120,5 +127,22 @@ class MainActivity : ReactActivity() {
 
     override fun onStart() {
         super.onStart()
+    }
+
+    // Below API 33 there is no setRecentsScreenshotEnabled, so FLAG_SECURE is set only
+    // while the activity is paused: the recents snapshot (taken after onPause) comes out
+    // blank, while user screenshots and screen sharing keep working in the foreground.
+    override fun onPause() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 }

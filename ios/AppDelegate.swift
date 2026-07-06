@@ -45,6 +45,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  private var privacyOverlay: UIView?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
@@ -106,6 +107,38 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     return true
   }
 
+
+  // Cover the UI before the OS captures the app-switcher snapshot, so sensitive data
+  // never ends up in snapshot files stored on disk. This must happen in
+  // willResignActive (not didEnterBackground): the app switcher already shows the
+  // live UI while the app is merely inactive.
+  override func applicationWillResignActive(_ application: UIApplication) {
+    super.applicationWillResignActive(application)
+    showPrivacyOverlay()
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    hidePrivacyOverlay()
+  }
+
+  private func showPrivacyOverlay() {
+    guard privacyOverlay == nil, let window else {
+      return
+    }
+    guard let overlay = UIStoryboard(name: "BootSplash", bundle: nil).instantiateInitialViewController()?.view else {
+      return
+    }
+    overlay.frame = window.bounds
+    overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    window.addSubview(overlay)
+    privacyOverlay = overlay
+  }
+
+  private func hidePrivacyOverlay() {
+    privacyOverlay?.removeFromSuperview()
+    privacyOverlay = nil
+  }
 
   override func applicationWillTerminate(_ application: UIApplication) {
     if #available(iOS 16.2, *) {
