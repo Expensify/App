@@ -4608,7 +4608,6 @@ function shouldShowReportActionNotification(
     }
 
     // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notification.
-    console.log('should show notification', reportID, topmostOneTransactionThreadReportID, Visibility.isVisible(), Visibility.hasFocus());
     if (reportID === topmostOneTransactionThreadReportID && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because the report is a transaction thread associated with the current one-transaction report`);
         return false;
