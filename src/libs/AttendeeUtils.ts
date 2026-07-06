@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -19,13 +19,15 @@ function getNormalizedString(value?: string): string | undefined {
 }
 
 function normalizeAttendee(attendee: Attendee): Attendee {
-    const {email, displayName: attendeeDisplayName, ...rest} = attendee;
+    const {email, displayName: attendeeDisplayName, login: attendeeLogin, ...rest} = attendee;
     const normalizedEmail = getNormalizedString(email);
-    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? '';
+    const normalizedLogin = getNormalizedString(attendeeLogin);
+    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? normalizedLogin ?? '';
 
     return {
         ...rest,
         displayName,
+        login: normalizedLogin,
         ...(normalizedEmail ? {email: normalizedEmail} : {}),
     };
 }
@@ -96,7 +98,7 @@ function getIsMissingAttendeesViolation(
     const attendees = convertAttendeesToArray(iouAttendees);
     // Check both login and email since attendee objects may have identifier in either property
     const attendeesMinusCreatorCount = attendees.filter((a) => {
-        const attendeeIdentifier = a?.email;
+        const attendeeIdentifier = a?.login ?? a?.email;
         return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
     }).length;
 
@@ -150,28 +152,29 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     return violations;
 }
 
-type AttendeeWithAccountID = Attendee & {accountID?: number};
-
 /**
  * Enrich each attendee with live `personalDetails` and return them sorted alphabetically by displayName.
  */
+function enrichAndSortAttendees(attendees: Attendee[], personalDetailsList: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Attendee[];
 function enrichAndSortAttendees(
-    attendees: Attendee[] | undefined,
-    loginToAccountIDMap: OnyxEntry<LoginToAccountIDMapDerivedValue>,
+    attendees: Attendee[] | string | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
-): AttendeeWithAccountID[] | undefined {
+): Attendee[] | string | undefined;
+function enrichAndSortAttendees(
+    attendees: Attendee[] | string | undefined,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Attendee[] | string | undefined {
     if (!Array.isArray(attendees)) {
         return attendees;
     }
     return sortAlphabetically(
         attendees.map((a) => {
-            const accountID = loginToAccountIDMap?.[a.email ?? ''] ?? CONST.DEFAULT_NUMBER_ID;
-            const pd = personalDetailsList?.[accountID];
+            const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
             const freshAvatar = typeof pd?.avatar === 'string' ? pd.avatar : undefined;
             return {
                 ...a,
-                accountID,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
                 displayName: pd?.displayName || a?.displayName,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
