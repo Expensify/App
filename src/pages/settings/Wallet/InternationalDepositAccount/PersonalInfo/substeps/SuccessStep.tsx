@@ -1,9 +1,11 @@
-import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 function SuccessStep({onNext}: SubPageProps) {
     const {translate} = useLocalize();
@@ -22,7 +24,5 @@ function SuccessStep({onNext}: SubPageProps) {
         </ScrollView>
     );
 }
-
-SuccessStep.displayName = 'SuccessStep';
 
 export default SuccessStep;
