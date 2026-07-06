@@ -279,7 +279,10 @@ function submitAmount({
         // Only re-apply a currency default when the workspace actually tracks tax (mirrors the confirmation page's
         // `shouldShowTax` gate). Without this, a currency change would persist a tax code and amount on a workspace
         // that has tax tracking disabled. The amount step is always a manual expense, so distance is `false` here.
-        const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat(report), policy, false);
+        // In the global-create (FAB) flow there is no `report`, so recognize the workspace via the transaction's
+        // selected participant too — mirroring how `policyID` is resolved on this step.
+        const isPolicyExpenseChatParticipant = transaction?.participants?.some((participant) => participant.isPolicyExpenseChat) ?? false;
+        const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat(report) || isPolicyExpenseChatParticipant, policy, false);
 
         if (isMovingTransactionFromTrackExpense(action) || (isTaxEnabled && selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
             const taxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);

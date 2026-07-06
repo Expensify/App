@@ -363,6 +363,24 @@ describe('AmountSubmission', () => {
             expect(setMoneyRequestTaxAmount).not.toHaveBeenCalled();
         });
 
+        it('applies the new currency default tax rate on create from the FAB flow (no report) when the workspace is resolved from the participant', () => {
+            // Global-create (FAB) flow: there is no report context, so the workspace/tax tracking must be recognized
+            // from the transaction's selected policy-expense-chat participant instead of from `report`.
+            submitAmount(
+                buildBaseArgs({
+                    report: undefined,
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: {...buildTaxTransaction('idDefault'), participants: [{isPolicyExpenseChat: true, policyID: '200'}]},
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).toHaveBeenCalledWith('tx-1', 'idForeign');
+        });
+
         it('applies the new currency default tax rate on edit when currency changes and tax is the auto-applied default', () => {
             submitAmount(
                 buildBaseArgs({
