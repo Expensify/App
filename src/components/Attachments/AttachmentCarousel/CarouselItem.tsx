@@ -100,7 +100,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                     reportActionID={item.reportActionID}
                     isHovered={isModalHovered}
                     isFocused={isFocused}
-                    isUsedInAttachmentModal
+                    isUsedInAttachmentModal={isFocused}
                     duration={item.duration}
                     fallbackSource={icons.AttachmentNotFound}
                     reportID={reportID}
