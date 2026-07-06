@@ -18,6 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgentsPage} from '@userActions/Agent';
@@ -67,11 +68,15 @@ function AgentsPage() {
         if (!details) {
             return [];
         }
-        const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
-        const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
-        const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
         const pendingAction = agentPrompt?.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const mergedErrors = {
+            ...(shouldShowErrors(pendingAction) ? getLatestError(agentPrompt?.errors ?? undefined) : {}),
+            ...getLatestError(agentPrompt?.nameErrors ?? undefined),
+            ...getLatestError(agentPrompt?.promptErrors ?? undefined),
+            ...getLatestError(agentPrompt?.avatarErrors ?? undefined),
+        };
+        const rowErrors = getLatestError(mergedErrors);
 
         return [
             {
@@ -79,9 +84,8 @@ function AgentsPage() {
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
-                hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
                 pendingAction,
-                errors: shouldShowErrors(pendingAction) ? (agentPrompt?.errors ?? undefined) : undefined,
+                errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
                 onChatPress: () => chatWithAgent(accountID),
@@ -129,7 +133,7 @@ function AgentsPage() {
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
                 <>
-                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                    <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3]}>
                         <RenderHTML html={translate('agentsPage.subtitle')} />
                     </View>
                     <AgentsTable agents={agents} />

@@ -151,7 +151,6 @@ const BASE_ITEM: AgentRowData = {
     accountID: TEST_ACCOUNT_ID,
     displayName: 'Test Agent',
     login: 'agent@example.com',
-    hasUpdateErrors: false,
     action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID)),
     onChatPress: mockOnChatPress,
     onCopilotPress: mockOnCopilotPress,

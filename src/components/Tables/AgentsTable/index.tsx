@@ -16,7 +16,6 @@ type AgentRowData = TableData & {
     accountID: number;
     displayName: string;
     login: string;
-    hasUpdateErrors: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;

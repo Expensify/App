@@ -30,7 +30,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'ChatBubble']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ChatBubble']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const isPendingDeletion = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -83,12 +83,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                     </View>
 
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
-                        {item.hasUpdateErrors && (
-                            <Icon
-                                src={icons.DotIndicator}
-                                fill={theme.danger}
-                            />
-                        )}
                         {!shouldUseNarrowTableLayout && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Button
