@@ -235,6 +235,21 @@ function AttachmentView({
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
     if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
+        // Every mounted PDF viewer is a full PDF.js document parse (its own worker + parsed document), so in a
+        // carousel the memory cost scales with the number of PDF attachments — enough to OOM the WebContent
+        // process on iOS Safari and reload the tab when several PDFs are added at once. Only mount the viewer
+        // for the item the carousel currently focuses; off-screen items render a lightweight placeholder until
+        // they're swiped to. isFocused is undefined outside the carousel (single-attachment hosts), which must
+        // keep mounting immediately.
+        if (isFocused === false) {
+            return (
+                <DefaultAttachmentView
+                    fileName={file?.name}
+                    shouldShowLoadingSpinnerIcon
+                    containerStyles={containerStyles}
+                />
+            );
+        }
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
