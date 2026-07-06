@@ -1,10 +1,10 @@
 import {getIsP2PForAmount, getReportOrReportDraftForAmount, submitAmount} from '@pages/iou/request/step/AmountSubmission';
 
+import {setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
-
-import {setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
