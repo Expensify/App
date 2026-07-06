@@ -35,6 +35,7 @@ type Parameters = {
 
 let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
+let isSupportSession = false;
 
 // These session values are only used to help the user authentication with the API.
 // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
@@ -42,6 +43,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
+        isSupportSession = value?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         Sentry.setUser({
             id: value?.accountID,
@@ -175,7 +177,10 @@ function reauthenticate(command = ''): Promise<boolean> {
         const partnerName = shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_NAME : CONFIG.EXPENSIFY.LEGACY_PARTNER_NAME;
         const partnerPassword = shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_PASSWORD : CONFIG.EXPENSIFY.LEGACY_PARTNER_PASSWORD;
 
-        if (account?.isSAMLRequired) {
+        // Supportal sessions authenticate with a short-lived support auth token and must never be sent through the
+        // customer's SAML flow. Skipping the SAML redirect lets a support session fall through to the normal
+        // sign-in redirect below instead of bouncing the agent to the customer's IdP (e.g. Okta).
+        if (account?.isSAMLRequired && !isSupportSession && !isSupportAuthTokenUsed) {
             Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
             setIsAuthenticating(false);
             redirectToSignIn(undefined, true);

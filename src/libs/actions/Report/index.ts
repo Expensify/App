@@ -1653,8 +1653,8 @@ function openReport(params: OpenReportActionParams) {
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
         const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? currentUserLogin ?? '';
-        const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
+        const submitterPersonalDetails = submitterAccountID ? personalDetails?.[submitterAccountID] : undefined;
+        const submitterEmail = submitterPersonalDetails?.login ?? currentUserLogin ?? '';
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
             type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -2119,6 +2119,7 @@ function createGroupChat(
 
 function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
@@ -2127,7 +2128,7 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
     for (const accountID in existingReport.participants) {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         settledPersonalDetails[accountID] = null;
@@ -2248,8 +2249,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         participants,
-        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-        personalDetails: personalDetails ?? allPersonalDetails,
+        personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
@@ -3554,7 +3554,7 @@ function toggleSubscribeToChildReport(
             currentUserAccountID,
         });
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs, personalDetails);
         const participants = buildParticipantInfoFromLogins(participantLogins);
         openReport({
             reportID: newChat.reportID,
@@ -3982,18 +3982,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport(
-                [CONST.EMAIL.CONCIERGE],
-                personalDetails ?? allPersonalDetails,
-                currentUserAccountID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-                shouldDismissModal,
-                false,
-                linkToOptions,
-            );
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal, false, linkToOptions);
         });
     } else if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
