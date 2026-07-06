@@ -4123,7 +4123,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport, policy);
+            Report.moveIOUReportToPolicy(iouReport, policy, undefined);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4145,7 +4145,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicy(expenseReport, policy);
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -4170,7 +4170,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
             await waitForBatchedUpdates();
 
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, false);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, false);
             expect(result).toBeUndefined();
         });
 
@@ -4207,7 +4207,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, true);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, true);
             expect(result).toBeDefined();
             expect(result?.policyExpenseChatReportID).toBeDefined();
         });
@@ -4237,7 +4237,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`) as
@@ -4271,7 +4271,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`) as
@@ -4305,7 +4305,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4372,7 +4372,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4430,7 +4430,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4476,7 +4476,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4499,13 +4499,22 @@ describe('actions/Report', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
             };
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '', false);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(
+                iouReport,
+                undefined as unknown as OnyxTypes.Policy,
+                (phone: string) => phone,
+                {},
+                undefined,
+                TEST_USER_ACCOUNT_ID,
+                '',
+                false,
+            );
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '', false);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
             expect(result).toBeUndefined();
         });
     });
@@ -7935,6 +7944,50 @@ describe('actions/Report', () => {
             expect(result?.failureData).toBeDefined();
         });
 
+        it('should return guided setup data for pending invite onboarding when regular guided setup is completed', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.ADMIN,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
+                isInviteOnboardingComplete: false,
+            };
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+
+            expect(result).toBeDefined();
+            expect(result?.guidedSetupData).toContain(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+            expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)).toBeUndefined();
+        });
+
+        it('should complete regular onboarding for first-time pending invite onboarding', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.ADMIN,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
+                isInviteOnboardingComplete: false,
+            };
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+
+            expect(result).toBeDefined();
+            expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)?.value).toEqual({hasCompletedGuidedSetupFlow: true});
+        });
+
+        it('should return undefined for completed regular onboarding when invite onboarding is not pending', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+
+            expect(result).toBeUndefined();
+        });
+
         it.each<[boolean, string]>([
             [true, 'should be defined'],
             [false, 'should be undefined'],
@@ -8687,6 +8740,67 @@ describe('actions/Report', () => {
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
             const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('prepareOnyxDataForCleanUpOptimisticParticipants', () => {
+        const REPORT_ID = '1';
+        const OPTIMISTIC_ACCOUNT_ID = 100;
+        const SETTLED_ACCOUNT_ID = 200;
+
+        it('marks only participants with optimistic personal details for clean up', async () => {
+            // Given a report with one optimistic and one settled participant
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                participants: {
+                    [OPTIMISTIC_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When preparing the clean up data using the provided personal details
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {
+                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+                [SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID},
+            });
+
+            // Then only the optimistic participant is marked for clean up
+            expect(result).toEqual({
+                settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
+                redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
+            });
+        });
+
+        it('returns empty clean up data when no participant has optimistic personal details', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                participants: {[SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            });
+            await waitForBatchedUpdates();
+
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {[SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID}});
+
+            expect(result).toEqual({settledPersonalDetails: {}, redundantParticipants: {}});
+        });
+
+        it('returns undefined when the report has no participants', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+            await waitForBatchedUpdates();
+
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {
+                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined when the report does not exist', () => {
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants('non-existent-report', {
+                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+            });
+
+            expect(result).toBeUndefined();
         });
     });
 });

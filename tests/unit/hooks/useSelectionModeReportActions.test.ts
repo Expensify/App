@@ -294,7 +294,6 @@ jest.mock('@libs/MoneyRequestReportUtils', () => ({
 
 jest.mock('@libs/PaymentUtils', () => ({
     __esModule: true,
-    handleUnvalidatedAccount: jest.fn(),
     selectPaymentType: jest.fn(),
 }));
 
