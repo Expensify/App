@@ -1,15 +1,19 @@
-import {addMonths, format, isPast, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addMonths, format, isPast, setDate} from 'date-fns';
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import isTrackOnboardingChoice from './OnboardingUtils';
@@ -384,6 +388,7 @@ function getReportNextStep(
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    reportNextStep?: ReportNextStep,
 ) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
@@ -419,6 +424,12 @@ function getReportNextStep(
             isASAPSubmitBetaEnabled: false,
             predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
         });
+    }
+
+    // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
+    // respects the user's locale. The deprecated format is kept as the fallback for every other case.
+    if (reportNextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS) {
+        return reportNextStep;
     }
 
     return currentNextStep;

@@ -1,7 +1,5 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
@@ -10,6 +8,12 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -294,27 +298,30 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): string[] {
-    return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentLogin = getLoginByAccountID(accountID);
-        if (currentLogin) {
-            foundLogins.push(currentLogin);
-        }
-        return foundLogins;
-    }, []);
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+    return (
+        accountIDs?.reduce((foundLogins: string[], accountID) => {
+            const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
+            if (currentLogin) {
+                foundLogins.push(currentLogin);
+            }
+            return foundLogins;
+        }, []) ?? []
+    );
 }
 
 /**
  * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
+function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[], personalDetailsList: OnyxEntry<PersonalDetailsList>) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
     for (const [index, login] of logins.entries()) {
         const accountID = accountIDs.at(index) ?? -1;
-        if (isEmptyObject(allPersonalDetails?.[accountID])) {
+        if (isEmptyObject(personalDetailsList?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
         }
@@ -588,6 +595,21 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
 }
 
 /**
+ * Checks whether the personal details required for Expensify Card flows (ship + reveal)
+ * are missing. Stricter than {@link arePersonalDetailsMissing}: also requires individual
+ * address sub-fields (street, city, zip, country) that the backend asserts on those
+ * commands. Without this, a user whose `addresses[0]` exists but has empty fields would
+ * skip the missing-details prompt and hit a backend error on submit.
+ */
+function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (arePersonalDetailsMissing(privatePersonalDetails)) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+}
+
+/**
  * Checks if the user has a legal first and last name.
  */
 function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -621,6 +643,7 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,

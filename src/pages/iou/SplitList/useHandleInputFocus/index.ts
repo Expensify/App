@@ -1,5 +1,7 @@
-import {useCallback} from 'react';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
+
+import {useCallback} from 'react';
+
 import type UseHandleInputFocusProps from './types';
 
 function useHandleInputFocus({listRef}: UseHandleInputFocusProps) {
