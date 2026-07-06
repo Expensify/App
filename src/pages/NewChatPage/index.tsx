@@ -41,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {Ref} from 'react';
@@ -241,7 +242,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [guidedSetupAndTourStatus, guidedSetupAndTourStatusResult] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
 
@@ -400,7 +401,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     currentUserAccountID,
                     introSelected,
                     guidedSetupAndTourStatus?.isSelfTourViewed,
-                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    isLoadingOnyxValue(guidedSetupAndTourStatusResult) ? undefined : guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                 ),
             )();

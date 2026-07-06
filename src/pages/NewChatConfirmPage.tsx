@@ -125,7 +125,7 @@ function NewChatConfirmPage() {
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [guidedSetupAndTourStatus, guidedSetupAndTourStatusResult] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const participants = newGroupDraft?.participants ?? [];
@@ -191,7 +191,7 @@ function NewChatConfirmPage() {
             optimisticReportID: optimisticReportID.current,
             introSelected,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            hasCompletedGuidedSetupFlow: isLoadingOnyxValue(guidedSetupAndTourStatusResult) ? undefined : guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
             currentUserAccountID: personalData.accountID,
             avatarUri: newGroupDraft.avatarUri ?? '',
