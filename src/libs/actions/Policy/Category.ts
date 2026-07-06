@@ -31,7 +31,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {pushTransactionAutoSelectionsOnyxData, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
@@ -40,7 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
-import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -1454,7 +1454,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
     }
 }
 
-function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string) {
+function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string, customUnit?: CustomUnit) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1503,6 +1503,20 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
             },
         },
     ];
+
+    if (category === '' && customUnit) {
+        const updatedCustomUnit = removePendingFieldsFromCustomUnit({
+            ...customUnit,
+            defaultCategory: category,
+        });
+        const params = {
+            policyID,
+            customUnit: JSON.stringify(updatedCustomUnit),
+        };
+
+        API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, params, {optimisticData, successData, failureData});
+        return;
+    }
 
     const params = {
         policyID,

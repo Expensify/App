@@ -31,7 +31,8 @@ function DynamicDefaultCategorySelectorPage({route}: DynamicDefaultCategorySelec
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
-    const currentCategory = policy?.customUnits?.[customUnitID]?.defaultCategory ?? '';
+    const customUnit = policy?.customUnits?.[customUnitID];
+    const currentCategory = customUnit?.defaultCategory ?? '';
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.path);
 
     const onCategorySelected = (selectedCategory: ListItem) => {
@@ -44,7 +45,7 @@ function DynamicDefaultCategorySelectorPage({route}: DynamicDefaultCategorySelec
             Navigation.goBack(backPath);
             return;
         }
-        setPolicyCustomUnitDefaultCategory(policyID, customUnitID, currentCategory, newCategory);
+        setPolicyCustomUnitDefaultCategory(policyID, customUnitID, currentCategory, newCategory, customUnit);
         Navigation.goBack(backPath);
     };
 
