@@ -4,7 +4,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, addHours, addMinutes, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
+import {addDays, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
 
 import {replaceCommasWithPeriod} from './MoneyRequestUtils';
 import {getReportActionText} from './ReportActionsUtils';
@@ -103,11 +103,10 @@ function parseDate(value: string): Date | null {
 }
 
 /**
- * Computes the calendar end date to display for a start date and duration, matching how the chronos
- * backend turns "ooo {start} for N {unit}" into an end date: whole day, week, and month durations end
- * on the last covered calendar day, while fractional day and hour durations carry the remaining time
- * into the end day. Returns an empty string for an invalid start date and the start date itself
- * for a non-positive duration.
+ * Computes the calendar end date to display for a start date and duration. Day, week, and month
+ * durations use whole units and end on the last covered calendar day; hour durations are sub-day, so
+ * the OOO ends on the start day. Returns an empty string for an invalid start date and the start date
+ * itself for a non-positive duration.
  */
 function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
     const start = parseDate(startDate);
@@ -119,25 +118,19 @@ function computeEndDate(startDate: string, durationAmount: string, durationUnit:
     if (!Number.isFinite(amount) || amount <= 0) {
         return startDate;
     }
+    // Fractional durations are only meaningful for hours (which stay within the start day), so day, week,
+    // and month end dates are derived from whole units.
     const whole = Math.floor(amount);
-    const fraction = amount - whole;
     switch (durationUnit) {
         case CONST.CHRONOS.OOO_DURATION_UNITS.DAY:
-            // Whole-day durations end on the last covered calendar day; a fractional day carries the remaining hours into the end day.
-            if (fraction === 0) {
-                return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
-            }
-            return format(addHours(addDays(start, whole), Math.ceil(fraction * 24)), CONST.DATE.FNS_FORMAT_STRING);
+            return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
         case CONST.CHRONOS.OOO_DURATION_UNITS.WEEK:
-            // The backend uses whole weeks only.
             return format(addDays(start, Math.max(0, whole * 7 - 1)), CONST.DATE.FNS_FORMAT_STRING);
         case CONST.CHRONOS.OOO_DURATION_UNITS.MONTH:
-            // The backend uses whole months only.
             return format(addDays(addMonths(start, whole), -1), CONST.DATE.FNS_FORMAT_STRING);
         case CONST.CHRONOS.OOO_DURATION_UNITS.HOUR:
         default:
-            // Hours add to the start time; the end day only advances once the added time crosses midnight.
-            return format(addMinutes(addHours(start, whole), Math.ceil(fraction * 60)), CONST.DATE.FNS_FORMAT_STRING);
+            return startDate;
     }
 }
 

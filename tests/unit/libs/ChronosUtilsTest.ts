@@ -1,4 +1,5 @@
 import {buildOOOCommand, computeDurationDays, computeEndDate} from '@libs/ChronosUtils';
+
 import CONST from '@src/CONST';
 
 describe('buildOOOCommand', () => {
@@ -84,13 +85,14 @@ describe('computeEndDate', () => {
         expect(computeEndDate('2025-04-09', '1', DAY)).toBe('2025-04-09');
     });
 
-    test('carries the remaining hours of a fractional day into the end day', () => {
-        // 1.5 days = start + 1 day + 12h, which lands on the next calendar day
-        expect(computeEndDate('2025-04-09', '1.5', DAY)).toBe('2025-04-10');
+    test('floors fractional day durations to whole days', () => {
+        // Fractional days are not a supported case, so 1.5 days is treated as 1 day (ends on the start day)
+        expect(computeEndDate('2025-04-09', '1.5', DAY)).toBe('2025-04-09');
     });
 
-    test('normalizes a comma decimal separator', () => {
-        expect(computeEndDate('2025-04-09', '1,5', DAY)).toBe('2025-04-10');
+    test('normalizes a comma decimal separator before flooring', () => {
+        // '2,9' -> 2.9 -> floored to 2 days, ending the day after the start
+        expect(computeEndDate('2025-04-09', '2,9', DAY)).toBe('2025-04-10');
     });
 
     test('computes whole-week durations', () => {
@@ -107,8 +109,9 @@ describe('computeEndDate', () => {
         expect(computeEndDate('2025-01-31', '1', MONTH)).toBe('2025-02-27');
     });
 
-    test('returns the start date for hour durations', () => {
+    test('returns the start date for hour durations, including fractional hours', () => {
         expect(computeEndDate('2025-04-09', '5', HOUR)).toBe('2025-04-09');
+        expect(computeEndDate('2025-04-09', '1.5', HOUR)).toBe('2025-04-09');
     });
 
     test('returns an empty string for an invalid start date', () => {
