@@ -1,35 +1,47 @@
-import {useIsFocused} from '@react-navigation/core';
-import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+
+import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import Navigation from '@navigation/Navigation';
+
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
-import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+
 import type {MoneyRequestReportPreviewProps} from './types';
+
+import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 
 function MoneyRequestReportPreview({
     iouReportID,
+    iouReport,
     policyID,
     chatReportID,
+    chatReport,
     action,
     isHovered = false,
     isWhisper = false,
@@ -42,11 +54,18 @@ function MoneyRequestReportPreview({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
-    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const {isOffline} = useNetwork();
+    const transactions = useMemo(
+        () =>
+            Object.values(reportTransactionsCollection ?? {}).filter(
+                (transaction): transaction is Transaction => !!transaction && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+            ),
+        [reportTransactionsCollection, isOffline],
+    );
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -128,7 +147,7 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            chatReportID={chatReportID}
+            chatReport={chatReport}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
