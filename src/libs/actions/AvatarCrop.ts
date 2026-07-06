@@ -1,10 +1,12 @@
-import Onyx from 'react-native-onyx';
 import {serializeAvatarCropImage} from '@libs/AvatarCropUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AvatarCropMaskType} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import Onyx from 'react-native-onyx';
 
 type SetAvatarCropDraftParams = {
     token: string;

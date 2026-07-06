@@ -1,4 +1,5 @@
 import StatusBar from '@libs/StatusBar';
+
 import type UpdateStatusBarAppearanceProps from './types';
 
 export default function updateStatusBarAppearance({statusBarStyle}: UpdateStatusBarAppearanceProps) {

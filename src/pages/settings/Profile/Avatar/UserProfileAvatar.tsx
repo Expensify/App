@@ -1,14 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import AvatarPageFooter from '@components/AvatarPageFooter';
 import AvatarSelector from '@components/AvatarSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import AvatarPreview from './AvatarPreview';
 import useProfileAvatarForm from './useProfileAvatarForm';
 

@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type {PanGesture} from 'react-native-gesture-handler';
-import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {PanGesture} from 'react-native-gesture-handler';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 
 type ImageCropViewProps = {
     /** Link to image for cropping   */

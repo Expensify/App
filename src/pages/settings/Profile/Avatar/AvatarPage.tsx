@@ -1,5 +1,7 @@
-import React from 'react';
 import {useIsAgentAccount} from '@libs/SessionUtils';
+
+import React from 'react';
+
 import AgentProfileAvatar from './AgentProfileAvatar';
 import UserProfileAvatar from './UserProfileAvatar';
 

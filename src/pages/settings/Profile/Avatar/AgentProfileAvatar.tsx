@@ -1,10 +1,14 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
 import {EditAgentAvatarContent} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+
 import {updateAvatar} from '@userActions/PersonalDetails';
+
+import React from 'react';
 
 function AgentProfileAvatar() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

@@ -1,4 +1,3 @@
-import {useEffect, useRef} from 'react';
 import {clearAvatarCropResult, setAvatarCropDraft} from '@libs/actions/AvatarCrop';
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -6,11 +5,15 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import splitPathAndQuery from '@libs/Navigation/helpers/dynamicRoutesUtils/splitPathAndQuery';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AvatarCropMaskType} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useEffect, useRef} from 'react';
+
 import useOnyx from './useOnyx';
 
 const CROP_SUFFIX = `/${DYNAMIC_ROUTES.AVATAR_CROP.path}`;

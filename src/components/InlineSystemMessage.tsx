@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 

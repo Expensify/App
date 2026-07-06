@@ -1,14 +1,18 @@
-import React, {useEffect} from 'react';
 import AvatarCropView from '@components/AvatarCropModal/AvatarCropView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {clearAvatarCropDraft, setAvatarCropResult} from '@libs/actions/AvatarCrop';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect} from 'react';
 
 function AvatarCropPage() {
     const {translate} = useLocalize();

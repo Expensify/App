@@ -1,17 +1,23 @@
-import type {NavigationAction} from '@react-navigation/native';
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
-import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+
+import type {NavigationAction} from '@react-navigation/native';
+
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
+
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
+
+import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
 
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,

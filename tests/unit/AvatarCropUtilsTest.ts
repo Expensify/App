@@ -1,6 +1,7 @@
 import {buildFileFromAvatarCropResult, serializeAvatarCropImage} from '@libs/AvatarCropUtils';
 import {base64ToFile, convertFileObjectOrUriToBase64DataURL} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 import type {AvatarCropResult} from '@src/types/onyx';
 

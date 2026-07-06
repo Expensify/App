@@ -1,10 +1,12 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
 
 /** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
 type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];

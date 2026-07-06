@@ -1,4 +1,5 @@
 import type {TranslationPaths} from '@src/languages/types';
+
 import type AvatarCropImage from './AvatarCropImage';
 
 /** Shape of the avatar crop mask */

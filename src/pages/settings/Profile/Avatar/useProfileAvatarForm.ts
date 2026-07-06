@@ -1,12 +1,17 @@
-import {useRef, useState} from 'react';
 import useAvatarCrop from '@hooks/useAvatarCrop';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {updateAvatar} from '@userActions/PersonalDetails';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import {useRef, useState} from 'react';
+
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
 import type {ErrorData, ImageData} from './types';
 

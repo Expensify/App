@@ -1,9 +1,3 @@
-/* eslint-disable max-lines */
-// TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {addDays, format, parse, subDays} from 'date-fns';
-import type {TextStyle, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -61,8 +55,11 @@ import type {
     SyntaxFilterKey,
 } from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,14 +91,24 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
+
+import type {TextStyle, ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/* eslint-disable max-lines */
+// TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
+import {addDays, format, parse, subDays} from 'date-fns';
+
+import type {TransactionPreviewData} from './actions/Search';
+import type {CardFeedForDisplay} from './CardFeedUtils';
+
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
-import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
-import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
@@ -110,7 +117,7 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
-import {getDisplayNameOrDefault, getLoginByAccountID} from './PersonalDetailsUtils';
+import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     canSendInvoice,
@@ -147,6 +154,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
+    getReimbursableTotal,
     getReportCustomColumnValue,
     getReportOrDraftReport,
     getReportStatusTranslation,
@@ -265,6 +273,7 @@ type GetTransactionSectionsParams = {
     currentAccountID: number;
     currentUserEmail: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    translate: LocalizedTranslate;
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
@@ -312,6 +321,8 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
@@ -1097,7 +1108,7 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
+        const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
@@ -1181,17 +1192,18 @@ function getTransactionItemCommonFormattedProperties(
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
+    translate: LocalizedTranslate,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
-    const fromName = getDisplayNameOrDefault(from);
+    const fromName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate});
     const formattedFrom = formatPhoneNumber(fromName);
 
     // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
     // so for those cases we fallback to the display name of the personal detail data from onyx.
-    let toName = getDisplayNameOrDefault(to, '', false);
+    let toName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: to, defaultValue: '', shouldFallbackToHidden: false, translate});
     if (!toName && to?.accountID) {
-        toName = getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID));
+        toName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailsForAccountID(to?.accountID), translate});
     }
 
     const formattedTo = formatPhoneNumber(toName);
@@ -1618,7 +1630,10 @@ function getIOUReportName(
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     // For cases where the data personal detail for manager ID do not exist in search data.personalDetailsList
     // we fallback to the display name of the personal detail data from onyx.
-    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? getDisplayNameOrDefault(getPersonalDetailsForAccountID(reportItem.managerID));
+    const payerName =
+        payerPersonalDetails?.displayName ??
+        payerPersonalDetails?.login ??
+        temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailsForAccountID(reportItem.managerID), translate});
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         return translate('iou.payerPaidAmount', formattedAmount, payerName);
@@ -1742,6 +1757,7 @@ type PreprocessingContext = {
     violations: Record<string, OnyxTypes.TransactionViolation[] | undefined>;
     shouldShowMerchant: boolean;
     lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
+    firstApprovedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     allHoldReportActions: Map<string, OnyxTypes.ReportAction>;
@@ -1768,6 +1784,7 @@ function createPreprocessingContext(): PreprocessingContext {
         violations: {},
         shouldShowMerchant: false,
         lastExportedActionByReportID: new Map(),
+        firstApprovedActionByReportID: new Map(),
         moneyRequestReportActionsByTransactionID: new Map(),
         holdReportActionsByTransactionID: new Map(),
         allHoldReportActions: new Map(),
@@ -1798,12 +1815,24 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
 
+    // The first approver is the actor on the earliest APPROVED/FORWARDED action.
+    let firstApprovalTime = Infinity;
+    let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
             const currentTime = new Date(action.created).getTime();
             if (currentTime > latestExportTime) {
                 latestExportTime = currentTime;
                 latestExportAction = action;
+            }
+        }
+
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime < firstApprovalTime) {
+                firstApprovalTime = currentTime;
+                firstApprovalAction = action;
             }
         }
 
@@ -1824,6 +1853,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (latestExportAction) {
         ctx.lastExportedActionByReportID.set(reportID, latestExportAction);
+    }
+
+    if (firstApprovalAction) {
+        ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
     }
 }
 
@@ -2051,6 +2084,7 @@ function getTransactionsSections({
     currentAccountID,
     currentUserEmail,
     formatPhoneNumber,
+    translate,
     isActionLoadingSet,
     bankAccountList,
     reportActions = {},
@@ -2128,6 +2162,7 @@ function getTransactionsSections({
                 policy,
                 formatPhoneNumber,
                 report,
+                translate,
             );
             const actions =
                 reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ??
@@ -2532,6 +2567,7 @@ function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilit
 function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
@@ -2548,8 +2584,8 @@ function getTaskSections(
 
             const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
             const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
-            const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
-            const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
+            const formattedAssignee = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: assignee, translate}));
+            const formattedCreatedBy = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: createdBy, translate}));
 
             const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
             const parentReport = getReportOrDraftReport(taskItem.parentReportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${taskItem.parentReportID}`];
@@ -2782,6 +2818,7 @@ function getReportSections({
         violations: allViolations,
         shouldShowMerchant,
         lastExportedActionByReportID,
+        firstApprovedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         transactionsByReportID,
@@ -2848,8 +2885,14 @@ function getReportSections({
                     emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
-                const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
-                const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
+                // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
+                const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
+                const firstApproverAccountID = firstApprovedAction?.actorAccountID;
+                const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
+                const firstApproved = firstApprovedAction?.created ?? '';
+                const formattedFrom = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: fromDetails, translate}));
+                const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate})) : '';
+                const formattedFirstApprover = firstApproverAccountID ? formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate})) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const policy = getPolicyFromKey(data, reportItem);
@@ -2889,6 +2932,10 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    firstApproved,
+                    firstApproverAvatar: firstApproverDetails?.avatar,
+                    firstApproverAccountID,
+                    formattedFirstApprover,
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -2934,6 +2981,7 @@ function getReportSections({
                 policy,
                 formatPhoneNumber,
                 report,
+                translate,
             );
 
             const transactionReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
@@ -3178,6 +3226,7 @@ function getMemberSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
 ): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
@@ -3194,7 +3243,7 @@ function getMemberSections(
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...memberGroup,
-                formattedFrom: formatPhoneNumber(getDisplayNameOrDefault(personalDetails)),
+                formattedFrom: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate})),
                 keyForList: key,
             };
         }
@@ -3634,7 +3683,7 @@ function getSections({
         return [...getReportActionsSections(data, visibleReportActionsData, reportAttributesDerivedValue), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
+        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -3660,7 +3709,7 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, queryJSON, formatPhoneNumber);
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList, nonPersonalAndWorkspaceCardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
@@ -3688,6 +3737,7 @@ function getSections({
         currentAccountID,
         currentUserEmail,
         formatPhoneNumber,
+        translate,
         isActionLoadingSet,
         bankAccountList,
         reportActions,
@@ -4092,18 +4142,8 @@ function getSortedReportData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
         return data.sort((a, b) => {
-            const aTotal = a.total;
-            const bTotal = b.total;
-
-            const aNonReimbursableTotal = a.nonReimbursableTotal;
-            const bNonReimbursableTotal = b.nonReimbursableTotal;
-
-            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
-                return 0;
-            }
-
-            const aValue = aTotal - aNonReimbursableTotal;
-            const bValue = bTotal - bNonReimbursableTotal;
+            const aValue = getReimbursableTotal(a);
+            const bValue = getReimbursableTotal(b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4321,6 +4361,10 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
             return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            return 'search.filters.firstApprover';
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+            return 'search.filters.firstApproved';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
@@ -4350,7 +4394,7 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            return 'common.originalAmount';
+            return 'common.purchaseAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:

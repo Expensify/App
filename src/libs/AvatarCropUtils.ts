@@ -1,7 +1,9 @@
 import CONST from '@src/CONST';
 import type {AvatarCropResult} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {CustomRNImageManipulatorResult} from './cropOrRotateImage/types';
+
 import {base64ToFile, convertFileObjectOrUriToBase64DataURL} from './fileDownload/FileUtils';
 import getPlatform from './getPlatform';
 import Log from './Log';
