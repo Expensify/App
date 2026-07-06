@@ -8,8 +8,9 @@ type CapturedCallback = () => void;
 let pendingCloseCallback: CapturedCallback | undefined;
 
 /**
- * Captures the navigator's close callback so the test can observe `closing` before driving
- * `MODAL_CLOSED`.
+ * Captures the callback scheduled by the navigator through `runAfterUpcomingTransition`
+ * while the machine is `closing`. The `MODAL_CLOSED` executor runs it, causing the
+ * navigator to send `MODAL_CLOSED` and complete the transition to `closed`.
  */
 const pendingModalClose = {
     capture: (callback: CapturedCallback) => {
