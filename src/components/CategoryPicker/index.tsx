@@ -86,15 +86,14 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
               },
           ]
         : [];
+    const noneOptionSection = {
+        title: '',
+        data: noneOption,
+        sectionIndex: -1,
+    };
+    const selectedCategorySectionIndex = sections.findIndex((section) => section.data.some((category) => category.searchText === selectedCategory));
     const sectionsWithNoneOption = shouldShowNoneOptionForSearch
-        ? [
-              {
-                  title: '',
-                  data: noneOption,
-                  sectionIndex: -1,
-              },
-              ...sections,
-          ]
+        ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)]
         : sections;
 
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
