@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceRequireFieldsTableRowProps = {
     item: RequireFieldsTableItem;

@@ -20,6 +20,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import tseslint from 'typescript-eslint';
+
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
 import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
@@ -44,6 +45,16 @@ const localRulesDir = path.resolve(projectRoot, 'eslint-plugin-local-rules');
 rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
+    {
+        name: '@components/Button',
+        importNames: ['default'],
+        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
+    },
+    {
+        name: '@src/components/Button',
+        importNames: ['default'],
+        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
+    },
     {
         name: 'react-native',
         importNames: [

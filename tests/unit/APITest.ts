@@ -1,9 +1,7 @@
-import MockedOnyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {initReconnect} from '@libs/actions/Reconnect';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
-import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -16,7 +14,13 @@ import {sequentialQueueRequestThrottle} from '@src/libs/Network/SequentialQueue'
 import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import MockedOnyx from 'react-native-onyx';
+
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -336,7 +340,7 @@ describe('APITests', () => {
                     const [commandName2] = call2;
                     const [commandName3] = call3;
                     expect(commandName1).toBe('Mock');
-                    expect(commandName2).toBe(AUTHENTICATION_COMMAND);
+                    expect(commandName2).toBe('Authenticate');
                     expect(commandName3).toBe('Mock');
                 })
         );
@@ -487,7 +491,7 @@ describe('APITests', () => {
 
                 // Third command should be the call to Authenticate
                 const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
-                expect(thirdCommand).toBe(AUTHENTICATION_COMMAND);
+                expect(thirdCommand).toBe('Authenticate');
 
                 const [fourthCommand] = xhr.mock.calls.at(3) ?? [];
                 expect(fourthCommand).toBe('MockCommand');

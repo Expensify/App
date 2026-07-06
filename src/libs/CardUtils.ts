@@ -1,12 +1,10 @@
-import {format, fromUnixTime, isBefore} from 'date-fns';
-import groupBy from 'lodash/groupBy';
-import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +16,7 @@ import type {
     CardList,
     CompanyCardFeed,
     CurrencyList,
+    Domain,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
@@ -46,11 +45,19 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {format, fromUnixTime, isBefore} from 'date-fns';
+import groupBy from 'lodash/groupBy';
+import lodashSortBy from 'lodash/sortBy';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
-import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -522,12 +529,17 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
 }
 
-function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Card[] {
+function sortCardsByCardholderName(
+    cards: Card[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocalizedTranslate,
+): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = getDisplayNameOrDefault(userA);
-        const bName = getDisplayNameOrDefault(userB);
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
         return localeCompare(aName, bName);
     });
 }
@@ -1445,6 +1457,14 @@ function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings 
     return undefined;
 }
 
+/**
+ * Resolves the domain backing a fund (card account). Domains are normally keyed by their account ID,
+ * but as a fallback we scan for a domain whose `accountID` matches the fund.
+ */
+function getDomainByFundID(domains: OnyxCollection<Domain> | undefined, fundID: number): OnyxEntry<Domain> {
+    return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -2003,6 +2023,7 @@ export {
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
+    getDomainByFundID,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,

@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
+
 import useAncestors from '@hooks/useAncestors';
+
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
@@ -19,7 +17,9 @@ import {buildNextStepNew} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -36,6 +36,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {addSeconds, format, subMinutes} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -46,7 +56,6 @@ import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -8678,6 +8687,67 @@ describe('actions/Report', () => {
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
             const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('prepareOnyxDataForCleanUpOptimisticParticipants', () => {
+        const REPORT_ID = '1';
+        const OPTIMISTIC_ACCOUNT_ID = 100;
+        const SETTLED_ACCOUNT_ID = 200;
+
+        it('marks only participants with optimistic personal details for clean up', async () => {
+            // Given a report with one optimistic and one settled participant
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                participants: {
+                    [OPTIMISTIC_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When preparing the clean up data using the provided personal details
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {
+                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+                [SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID},
+            });
+
+            // Then only the optimistic participant is marked for clean up
+            expect(result).toEqual({
+                settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
+                redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
+            });
+        });
+
+        it('returns empty clean up data when no participant has optimistic personal details', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                participants: {[SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            });
+            await waitForBatchedUpdates();
+
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {[SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID}});
+
+            expect(result).toEqual({settledPersonalDetails: {}, redundantParticipants: {}});
+        });
+
+        it('returns undefined when the report has no participants', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+            await waitForBatchedUpdates();
+
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {
+                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined when the report does not exist', () => {
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants('non-existent-report', {
+                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+            });
+
+            expect(result).toBeUndefined();
         });
     });
 });

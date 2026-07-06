@@ -1,5 +1,5 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
@@ -8,8 +8,9 @@ import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import type {HRConnectionName} from '@libs/HRUtils';
 import {formatList} from '@libs/Localize';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -20,6 +21,8 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, GustoConnectionConfig, MergeHRConnectionConfig, PolicyConnectionSyncProgress, PolicyConnectionSyncStage, ZenefitsConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type HRCardConfig = MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsConnectionConfig | undefined;
 
@@ -203,7 +206,7 @@ function getFinalApproverDisplayName(finalApprover: string | undefined | null, t
     if (!finalApprover) {
         return translate('workspace.hr.notSet');
     }
-    return getDisplayNameOrDefault(getPersonalDetailByEmail(finalApprover), finalApprover, false);
+    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(finalApprover), defaultValue: finalApprover, shouldFallbackToHidden: false, translate});
 }
 
 /** Extracts the connection-specific config object (approval mode, final approver, pending/error fields) from the policy for a given HR provider. */

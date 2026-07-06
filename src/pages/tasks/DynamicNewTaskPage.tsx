@@ -1,204 +1,293 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import useAncestors from '@hooks/useAncestors';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import FullPageNotFoundView from "@components/BlockingViews/FullPageNotFoundView";
+import FormAlertWithSubmitButton from "@components/FormAlertWithSubmitButton";
+import FormHelpMessage from "@components/FormHelpMessage";
+import HeaderWithBackButton from "@components/HeaderWithBackButton";
+import MenuItem from "@components/MenuItem";
+import MenuItemWithTopDescription from "@components/MenuItemWithTopDescription";
+import ScreenWrapper from "@components/ScreenWrapper";
+import ScrollView from "@components/ScrollView";
 
-function DynamicNewTaskPage() {
-    const [task] = useOnyx(ONYXKEYS.TASK);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
-    const policy = usePolicy(parentReport?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
-    });
-    const styles = useThemeStyles();
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
-        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
-        false,
+import useAncestors from "@hooks/useAncestors";
+import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
+import useDynamicBackPath from "@hooks/useDynamicBackPath";
+import useLocalize from "@hooks/useLocalize";
+import useOnyx from "@hooks/useOnyx";
+import usePolicy from "@hooks/usePolicy";
+import useReportAttributes from "@hooks/useReportAttributes";
+import useSafeAreaPaddings from "@hooks/useSafeAreaPaddings";
+import useThemeStyles from "@hooks/useThemeStyles";
+
+import {
+  createTaskAndNavigate,
+  dismissModalAndClearOutTaskInfo,
+  getAssignee,
+  getShareDestination,
+  setShareDestinationValue,
+} from "@libs/actions/Task";
+import createDynamicRoute from "@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute";
+import Navigation from "@libs/Navigation/Navigation";
+import { getPersonalDetailsForAccountIDs } from "@libs/OptionsListUtils";
+import {
+  getDisplayNamesWithTooltips,
+  isAllowedToComment,
+} from "@libs/ReportUtils";
+
+import CONST from "@src/CONST";
+import ONYXKEYS from "@src/ONYXKEYS";
+import ROUTES, { DYNAMIC_ROUTES } from "@src/ROUTES";
+import { personalDetailsListSelector } from "@src/selectors/PersonalDetails";
+import { isEmptyObject } from "@src/types/utils/EmptyObject";
+
+import React, { useEffect, useRef, useState } from "react";
+import { View } from "react-native";
+
+type NewTaskPageProps = PlatformStackScreenProps<
+  NewTaskNavigatorParamList,
+  typeof SCREENS.NEW_TASK.ROOT
+>;
+
+function DynamicNewTaskPage({ route }: NewTaskPageProps) {
+  const [task] = useOnyx(ONYXKEYS.TASK);
+  const [parentReport] = useOnyx(
+    `${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`,
+  );
+  const policy = usePolicy(parentReport?.policyID);
+  const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+  const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+  const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+  const reportAttributes = useReportAttributes();
+  const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+  const [taskCreatorAndAssigneeDetails] = useOnyx(
+    ONYXKEYS.PERSONAL_DETAILS_LIST,
+    {
+      selector: personalDetailsListSelector([
+        currentUserPersonalDetails.accountID,
+        task?.assigneeAccountID,
+      ]),
+    },
+  );
+  const styles = useThemeStyles();
+  const { translate, formatPhoneNumber, localeCompare } = useLocalize();
+  const assignee = getAssignee(
+    task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    personalDetails,
+    translate,
+  );
+  const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+    getPersonalDetailsForAccountIDs(
+      task?.assigneeAccountID ? [task.assigneeAccountID] : [],
+      personalDetails,
+    ),
+    false,
+    localeCompare,
+    formatPhoneNumber,
+  );
+  const shareDestination = task?.shareDestination
+    ? getShareDestination(
+        parentReport,
+        personalDetails,
         localeCompare,
-        formatPhoneNumber,
-    );
-    const shareDestination = task?.shareDestination ? getShareDestination(parentReport, personalDetails, localeCompare, policy, conciergeReportID, translate, reportAttributes) : undefined;
-    const ancestors = useAncestors(parentReport);
-    const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
-    const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
-    const errorMessage = error.taskKey === taskKey ? error.message : '';
+        policy,
+        conciergeReportID,
+        translate,
+        reportAttributes,
+      )
+    : undefined;
+  const ancestors = useAncestors(parentReport);
+  const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
+  const [error, setError] = useState<{ message: string; taskKey: string }>({
+    message: "",
+    taskKey: "",
+  });
+  const errorMessage = error.taskKey === taskKey ? error.message : "";
 
-    const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
-    const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
+  const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
+  const isAllowedToCreateTask =
+    isEmptyObject(parentReport) || isAllowedToComment(parentReport);
 
-    const {paddingBottom} = useSafeAreaPaddings();
+  const { paddingBottom } = useSafeAreaPaddings();
 
-    const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
-    const confirmButtonRef = useRef<View>(null);
+  const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
+  const confirmButtonRef = useRef<View>(null);
 
-    useEffect(() => {
-        if (!task?.parentReportID) {
-            return;
-        }
-        setShareDestinationValue(task.parentReportID);
-    }, [task?.parentReportID]);
+  useEffect(() => {
+    if (!task?.parentReportID) {
+      return;
+    }
+    setShareDestinationValue(task.parentReportID);
+  }, [task?.parentReportID]);
 
-    // On submit, we want to call the createTask function and wait to validate
-    // the response
-    const onSubmit = () => {
-        if (!task?.title && !task?.shareDestination) {
-            setError({message: translate('newTaskPage.confirmError'), taskKey});
-            return;
-        }
+  // On submit, we want to call the createTask function and wait to validate
+  // the response
+  const onSubmit = () => {
+    if (!task?.title && !task?.shareDestination) {
+      setError({ message: translate("newTaskPage.confirmError"), taskKey });
+      return;
+    }
 
-        if (!task.title) {
-            setError({message: translate('newTaskPage.pleaseEnterTaskName'), taskKey});
-            return;
-        }
+    if (!task.title) {
+      setError({
+        message: translate("newTaskPage.pleaseEnterTaskName"),
+        taskKey,
+      });
+      return;
+    }
 
-        if (!task.shareDestination) {
-            setError({message: translate('newTaskPage.pleaseEnterTaskDestination'), taskKey});
-            return;
-        }
+    if (!task.shareDestination) {
+      setError({
+        message: translate("newTaskPage.pleaseEnterTaskDestination"),
+        taskKey,
+      });
+      return;
+    }
 
-        createTaskAndNavigate({
-            parentReport,
-            title: task.title,
-            description: task?.description ?? '',
-            assigneeEmail: task?.assignee ?? '',
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            currentUserEmail: currentUserPersonalDetails.email ?? '',
-            currentUserDisplayName: currentUserPersonalDetails.displayName,
-            currentUserAvatar: currentUserPersonalDetails.avatar,
-            assigneeAccountID: task.assigneeAccountID,
-            assigneeChatReport: task.assigneeChatReport,
-            policyID: parentReport?.policyID,
-            isCreatedUsingMarkdown: false,
-            quickAction,
-            ancestors,
-            taskCreatorAndAssigneeDetails,
-        });
-    };
+    createTaskAndNavigate({
+      parentReport,
+      title: task.title,
+      description: task?.description ?? "",
+      assigneeEmail: task?.assignee ?? "",
+      currentUserAccountID: currentUserPersonalDetails.accountID,
+      currentUserEmail: currentUserPersonalDetails.email ?? "",
+      currentUserDisplayName: currentUserPersonalDetails.displayName,
+      currentUserAvatar: currentUserPersonalDetails.avatar,
+      assigneeAccountID: task.assigneeAccountID,
+      assigneeChatReport: task.assigneeChatReport,
+      policyID: parentReport?.policyID,
+      isCreatedUsingMarkdown: false,
+      quickAction,
+      ancestors,
+      taskCreatorAndAssigneeDetails,
+    });
+  };
 
-    return (
-        <ScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
-            testID="DynamicNewTaskPage"
+  return (
+    <ScreenWrapper
+      shouldEnableKeyboardAvoidingView={false}
+      testID="DynamicNewTaskPage"
+    >
+      <FullPageNotFoundView
+        shouldShow={!isAllowedToCreateTask}
+        onBackButtonPress={() => dismissModalAndClearOutTaskInfo()}
+        shouldShowLink={false}
+      >
+        <HeaderWithBackButton
+          title={translate("newTaskPage.confirmTask")}
+          shouldShowBackButton
+          onBackButtonPress={() => {
+            Navigation.goBack(detailsBackPath);
+          }}
+          /** Skip focus of the first interactive element in the header to make sure that Enter key confirms the task instead of navigating back. */
+          shouldSkipFocusAfterTransition
+        />
+        {!!hasDestinationError && (
+          <FormHelpMessage
+            style={[styles.ph4, styles.mb4]}
+            isError={false}
+            shouldShowRedDotIndicator={false}
+            message={translate("quickAction.noLongerHaveReportAccess")}
+          />
+        )}
+        <ScrollView
+          contentContainerStyle={styles.flexGrow1}
+          // on iOS, navigation animation sometimes cause the scrollbar to appear
+          // on middle/left side of ScrollView. scrollIndicatorInsets with right
+          // to closest value to 0 fixes this issue, 0 (default) doesn't work
+          // See: https://github.com/Expensify/App/issues/31441
+          scrollIndicatorInsets={{ right: Number.MIN_VALUE }}
         >
-            <FullPageNotFoundView
-                shouldShow={!isAllowedToCreateTask}
-                onBackButtonPress={() => dismissModalAndClearOutTaskInfo()}
-                shouldShowLink={false}
-            >
-                <HeaderWithBackButton
-                    title={translate('newTaskPage.confirmTask')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack(detailsBackPath);
-                    }}
-                    /** Skip focus of the first interactive element in the header to make sure that Enter key confirms the task instead of navigating back. */
-                    shouldSkipFocusAfterTransition
-                />
-                {!!hasDestinationError && (
-                    <FormHelpMessage
-                        style={[styles.ph4, styles.mb4]}
-                        isError={false}
-                        shouldShowRedDotIndicator={false}
-                        message={translate('quickAction.noLongerHaveReportAccess')}
-                    />
-                )}
-                <ScrollView
-                    contentContainerStyle={styles.flexGrow1}
-                    // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of ScrollView. scrollIndicatorInsets with right
-                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
-                    // See: https://github.com/Expensify/App/issues/31441
-                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
-                >
-                    <View style={styles.flex1}>
-                        <View style={styles.mb5}>
-                            <MenuItemWithTopDescription
-                                description={translate('task.title')}
-                                title={task?.title}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path))}
-                                shouldShowRightIcon
-                                rightLabel={translate('common.required')}
-                                shouldParseTitle
-                                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('task.description')}
-                                title={task?.description}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path))}
-                                shouldShowRightIcon
-                                shouldParseTitle
-                                numberOfLinesTitle={2}
-                                titleStyle={styles.flex1}
-                            />
-                            <MenuItem
-                                label={assignee?.displayName ? translate('task.assignee') : ''}
-                                title={assignee?.displayName ?? ''}
-                                description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
-                                iconAccountID={task?.assigneeAccountID}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path))}
-                                shouldShowRightIcon
-                                titleWithTooltips={assigneeTooltipDetails}
-                            />
-                            <MenuItem
-                                label={shareDestination?.displayName ? translate('common.share') : ''}
-                                title={shareDestination?.displayName ?? ''}
-                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
-                                iconReportID={task?.shareDestination}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                                interactive={!task?.parentReportID}
-                                shouldShowRightIcon={!task?.parentReportID}
-                                titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
-                                rightLabel={translate('common.required')}
-                            />
-                        </View>
-                    </View>
-                    <View style={styles.flexShrink0}>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={!!errorMessage}
-                            message={errorMessage}
-                            onSubmit={onSubmit}
-                            enabledWhenOffline
-                            buttonRef={confirmButtonRef}
-                            buttonText={translate('newTaskPage.confirmTask')}
-                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5, !paddingBottom ? styles.mb5 : null]}
-                        />
-                    </View>
-                </ScrollView>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
-    );
+          <View style={styles.flex1}>
+            <View style={styles.mb5}>
+              <MenuItemWithTopDescription
+                description={translate("task.title")}
+                title={task?.title}
+                onPress={() =>
+                  Navigation.navigate(
+                    createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path),
+                  )
+                }
+                shouldShowRightIcon
+                rightLabel={translate("common.required")}
+                shouldParseTitle
+                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
+              />
+              <MenuItemWithTopDescription
+                description={translate("task.description")}
+                title={task?.description}
+                onPress={() =>
+                  Navigation.navigate(
+                    createDynamicRoute(
+                      DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path,
+                    ),
+                  )
+                }
+                shouldShowRightIcon
+                shouldParseTitle
+                numberOfLinesTitle={2}
+                titleStyle={styles.flex1}
+              />
+              <MenuItem
+                label={assignee?.displayName ? translate("task.assignee") : ""}
+                title={assignee?.displayName ?? ""}
+                description={
+                  assignee?.displayName
+                    ? formatPhoneNumber(assignee?.subtitle)
+                    : translate("task.assignee")
+                }
+                iconAccountID={task?.assigneeAccountID}
+                onPress={() =>
+                  Navigation.navigate(
+                    createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path),
+                  )
+                }
+                shouldShowRightIcon
+                titleWithTooltips={assigneeTooltipDetails}
+              />
+              <MenuItem
+                label={
+                  shareDestination?.displayName ? translate("common.share") : ""
+                }
+                title={shareDestination?.displayName ?? ""}
+                description={
+                  shareDestination?.displayName
+                    ? shareDestination.subtitle
+                    : translate("common.share")
+                }
+                iconReportID={task?.shareDestination}
+                onPress={() =>
+                  Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)
+                }
+                interactive={!task?.parentReportID}
+                shouldShowRightIcon={!task?.parentReportID}
+                titleWithTooltips={
+                  shareDestination?.shouldUseFullTitleToDisplay
+                    ? undefined
+                    : shareDestination?.displayNamesWithTooltips
+                }
+                rightLabel={translate("common.required")}
+              />
+            </View>
+          </View>
+          <View style={styles.flexShrink0}>
+            <FormAlertWithSubmitButton
+              isAlertVisible={!!errorMessage}
+              message={errorMessage}
+              onSubmit={onSubmit}
+              enabledWhenOffline
+              buttonRef={confirmButtonRef}
+              buttonText={translate("newTaskPage.confirmTask")}
+              containerStyles={[
+                styles.mh0,
+                styles.mt5,
+                styles.flex1,
+                styles.ph5,
+                !paddingBottom ? styles.mb5 : null,
+              ]}
+            />
+          </View>
+        </ScrollView>
+      </FullPageNotFoundView>
+    </ScreenWrapper>
+  );
 }
 
 export default DynamicNewTaskPage;

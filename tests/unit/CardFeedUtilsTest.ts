@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
 import {
     getCardFeedNamesWithType,
     getCardFeedsForDisplay,
@@ -7,11 +5,17 @@ import {
     getExpensifyCardFeedsForDisplay,
     getFeedInfo,
     getSelectedCardsFromFeeds,
+    getVisibleCompanyCardFeedsForSelector,
 } from '@libs/CardFeedUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -532,5 +536,73 @@ describe('country-aware domain feed picker', () => {
         expect(names['cards_5555_Expensify Card_TRAVEL_US'].type).toBe('workspace');
         expect(Object.keys(names)).toContain('cards_5555_Expensify Card');
         expect(names['cards_5555_Expensify Card'].type).toBe('domain');
+    });
+});
+
+describe('getVisibleCompanyCardFeedsForSelector', () => {
+    const fundID = 1234;
+    const currentUserAccountID = 777;
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+    }
+
+    function createAdminDomain(accountID: number, adminAccountID: number): Domain {
+        const domain: Domain = {
+            validated: true,
+            accountID,
+            email: '+@company.com',
+            domain_defaultSecurityGroupID: '0',
+        };
+        // Set the prefixed admin-access key separately so the object literal isn't widened to a string index
+        // signature (which would force an unsafe `as unknown as Domain` assertion).
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`] = adminAccountID;
+        return domain;
+    }
+
+    it('enumerates a feed once when the user is an admin of a policy backed by the fund (no linkedPolicyIDs)', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
+    });
+
+    it('enumerates a feed once when the user is a domain admin for the fund', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const domains: OnyxCollection<Domain> = {[`domain_${fundID}`]: createAdminDomain(fundID, currentUserAccountID)};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, {}, domains, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
+    });
+
+    it('excludes feeds when the user is neither a domain admin nor a workspace admin for the fund', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const policies: OnyxCollection<Policy> = {policy_OTHER: createTestPolicy({id: 'OTHER', policyAccountID: 9999})};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(0);
+    });
+
+    it('enumerates a feed with multiple linkedPolicyIDs exactly once (no per-policy duplication)', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {linkedPolicyIDs: ['WS', 'WS2', 'WS3']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.linkedPolicyIDs).toEqual(['WS', 'WS2', 'WS3']);
     });
 });

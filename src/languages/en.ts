@@ -1,12 +1,16 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import startCase from 'lodash/startCase';
+
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
@@ -1131,6 +1135,8 @@ const translations = {
             customizeCategories: 'Customize accounting categories',
             inviteAccountant: 'Invite your accountant',
             linkCompanyCards: 'Link company cards',
+            issueExpensifyCards: 'Issue Expensify cards',
+            issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             setupRules: 'Set up spend rules',
         },
         upcomingTravel: 'Upcoming travel',
@@ -1291,7 +1297,7 @@ const translations = {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
-        original: 'Original',
+        purchase: 'Purchase',
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
@@ -8775,6 +8781,8 @@ const translations = {
             past: 'Past',
             submitted: 'Submitted',
             approved: 'Approved',
+            firstApprover: 'First approver',
+            firstApproved: 'First approved',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
