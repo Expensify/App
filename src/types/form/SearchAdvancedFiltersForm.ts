@@ -7,6 +7,7 @@ import type {
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchPaidStatus,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
@@ -79,6 +80,9 @@ const FILTER_KEYS = {
 
     WITHDRAWAL_STATUS_NOT: 'withdrawalStatusNot',
     WITHDRAWAL_STATUS: 'withdrawalStatus',
+
+    PAID_STATUS_NOT: 'paidStatusNot',
+    PAID_STATUS: 'paidStatus',
 
     WITHDRAWN_NOT: 'withdrawnNot',
     WITHDRAWN_ON: 'withdrawnOn',
@@ -338,6 +342,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
         FILTER_KEYS.WITHDRAWAL_STATUS,
         FILTER_KEYS.WITHDRAWAL_STATUS_NOT,
+        FILTER_KEYS.PAID_STATUS,
+        FILTER_KEYS.PAID_STATUS_NOT,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -665,6 +671,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.WITHDRAWAL_STATUS]: SearchWithdrawalStatus;
         [FILTER_KEYS.WITHDRAWAL_STATUS_NOT]: SearchWithdrawalStatus;
+
+        [FILTER_KEYS.PAID_STATUS]: SearchPaidStatus;
+        [FILTER_KEYS.PAID_STATUS_NOT]: SearchPaidStatus;
 
         [FILTER_KEYS.WITHDRAWN_ON]: string;
         [FILTER_KEYS.WITHDRAWN_NOT]: string;

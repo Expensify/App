@@ -55,6 +55,9 @@ withdrawalType
 withdrawalStatus
   = "withdrawalStatus"
   / "withdrawal-status"i { return "withdrawalStatus"; }
+paidStatus
+  = "paidStatus"
+  / "paid-status"i { return "paidStatus"; }
 withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
