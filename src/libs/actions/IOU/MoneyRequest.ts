@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -24,8 +24,10 @@ import {
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
+    getDistanceRateTaxUpdates,
     getIsFromGlobalCreate,
     isDistanceRequest,
+    isExpenseUnreported,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -842,6 +844,7 @@ function updateDistanceRateOnExpenseDateChange({
     policy,
     policyForTrackExpense,
     lastSelectedDistanceRates,
+    isDraft,
 }: {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -852,6 +855,7 @@ function updateDistanceRateOnExpenseDateChange({
     policy: OnyxEntry<Policy>;
     policyForTrackExpense: OnyxEntry<Policy>;
     lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+    isDraft: boolean;
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;
@@ -867,7 +871,17 @@ function updateDistanceRateOnExpenseDateChange({
         expenseDate: newCreated,
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateID !== currentRateID);
+    const rateChanged = rateID !== currentRateID;
+    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateChanged);
+
+    if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
+        const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
+        const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
+        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, distanceUnit);
+        setMoneyRequestTaxRate(transactionID, taxCode || null, isDraft);
+        setMoneyRequestTaxAmount(transactionID, taxAmount, isDraft);
+        setMoneyRequestTaxValue(transactionID, taxValue ?? null, isDraft);
+    }
 }
 
 function setMoneyRequestReportID(transactionID: string, reportID: string) {

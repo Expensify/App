@@ -122,6 +122,7 @@ import {
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyPayer,
+    isSubmitPolicy,
 } from './PolicyUtils';
 import {
     getIOUActionForReportID,
@@ -2429,10 +2430,11 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
-    // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
+    // We check submit eligibility separately from approve: on Submit workspaces the popover picks
+    // the manager, so don't block Submit when the default submit-to route is the owner.
     if (
         canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
-        isAllowedToApproveExpenseReport
+        isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
@@ -2455,6 +2457,24 @@ function getActions(
  */
 function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID: number): SearchTransactionAction[] {
     return ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : [];
+}
+
+/**
+ * @private
+ * Whether the Search row may offer Submit. Submit workspaces use the submit-to popover, so they
+ * should not be blocked by `isSubmitterApproveBlockedOnSubmitWorkspace` on the default submit-to
+ * route (that guard is for Approve). Non-submit workspaces keep the preventSelfApproval gate.
+ */
+function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, submitToAccountID: number, currentUserAccountID: number): boolean {
+    if (isSubmitPolicy(policy)) {
+        const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
+        if (submitToAccountID === report?.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+            return false;
+        }
+        return true;
+    }
+
+    return isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 }
 
 /**

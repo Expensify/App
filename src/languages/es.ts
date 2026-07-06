@@ -1305,6 +1305,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '¿Estás seguro de que quieres eliminar estos informes?',
         }),
         settledExpensify: 'Pagado',
+        paidStatusMarkedAsPaid: 'Marcado como pagado',
+        paidStatusWithdrawing: 'Retirada',
+        paidStatusConfirmed: 'Confirmado',
         done: 'Listo',
         deleted: 'Eliminado',
         settledElsewhere: 'Pagado de otra forma',
@@ -1628,6 +1631,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
+        submitReportTo: {
+            sendExpense: 'Envía tu gasto a cualquier persona',
+            sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
+        },
         changeApprover: {
             title: 'Cambiar aprobador',
             header: (workflowSettingLink) =>
@@ -7768,7 +7775,14 @@ ${amount} para ${merchant} - ${date}`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} en ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Moneda ${adjective} «${value}»` : `moneda «${value}»`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} divisa de «${oldValue}» a «${newValue}»` : `moneda de '${oldValue}' a '${newValue}'`,
+                bodyCurrencyRestriction: 'la restricción de divisa',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `monedas ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `monedas que no están en ${currencies}`,
         },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
@@ -9510,10 +9524,6 @@ ${amount} para ${merchant} - ${date}`,
         bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
         goBackJustOnce: 'Volver solo esta vez',
-    },
-    listBoundary: {
-        errorMessage: 'Se ha producido un error al cargar más mensajes',
-        tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',

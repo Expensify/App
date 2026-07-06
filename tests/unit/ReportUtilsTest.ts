@@ -308,6 +308,7 @@ const computeReportName = (
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
         conciergeReportID,
+        isTrackIntentUser: false,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
