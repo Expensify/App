@@ -5535,6 +5535,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans Rillet et synchroniser à nouveau la connexion',
+            accountTypesDescription: 'Vos comptes Rillet seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Rillet seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Rillet sont importées en tant que tags',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Rillet.',
         },
         type: {
             free: 'Gratuit',
@@ -6308,6 +6313,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             importedFromAccountingSoftware: 'Les taxes ci-dessous sont importées depuis votre',
             taxCode: 'Code fiscal',
             updateTaxCodeFailureMessage: 'Une erreur s’est produite lors de la mise à jour du code de taxe, veuillez réessayer',
+            taxRates: 'Taux d’imposition',
         },
         duplicateWorkspace: {
             title: 'Nommez votre nouvel espace de travail',
