@@ -38,7 +38,6 @@ import {
 import {isPolicyAdmin} from './PolicyUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
-type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
 type CardFeedForDisplay = {
     id: string;
     feed: CardFeedWithNumber;
@@ -472,7 +471,6 @@ function getCombinedCardFeedsFromAllFeeds(
 }
 
 export type {CardFilterItem, CardFeedForDisplay};
-export type {DomainFeedData};
 export {
     buildCardsData,
     getFeedInfo,
