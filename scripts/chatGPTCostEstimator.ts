@@ -3,6 +3,7 @@
  * This script estimates the cost of OpenAI API calls based on input and output tokens.
  */
 import CLI from 'expensify-common/CLI';
+
 import COLORS from './utils/COLORS';
 
 /**

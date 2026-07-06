@@ -1,4 +1,5 @@
 import type {View} from 'react-native';
+
 import type {FocusableItem} from './ContentContext';
 
 // W3C `compareDocumentPosition` bit flags.

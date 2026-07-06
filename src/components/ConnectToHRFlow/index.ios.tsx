@@ -1,15 +1,20 @@
-import {openAuthSessionAsync} from 'expo-web-browser';
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getShortLivedAuthTokenURL} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+
+import {openAuthSessionAsync} from 'expo-web-browser';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
