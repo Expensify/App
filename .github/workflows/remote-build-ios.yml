@@ -12,6 +12,11 @@ on:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule. Overrides MOBILE-EXPENSIFY set in the App PR description.'
         required: false
         default: ''
+      reviewed_code:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
   push:
     branches-ignore: [staging, production, cherry-pick-*]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
@@ -21,7 +26,16 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # Validates the actor and that they reviewed the PR before any token is used or untrusted App PR code is checked out.
+  prep:
+    uses: ./.github/workflows/validateBuildRequest.yml
+    with:
+      REVIEWED_CODE: ${{ inputs.reviewed_code || false }}
+    secrets:
+      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
   resolveRefs:
+    needs: [prep]
     uses: ./.github/workflows/resolveBuildRefs.yml
     with:
       APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
@@ -30,7 +44,7 @@ jobs:
       OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   build:
-    needs: [resolveRefs]
+    needs: [prep, resolveRefs]
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer

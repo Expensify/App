@@ -19,6 +19,11 @@ on:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
         required: false
         default: ''
+      reviewed_code:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
   push:
     branches:
       - main
@@ -128,8 +133,17 @@ jobs:
             echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
           fi
 
+  # Validates the actor and that they reviewed the PR before any token is used or untrusted App PR code is checked out.
+  prep:
+    uses: ./.github/workflows/validateBuildRequest.yml
+    with:
+      REVIEWED_CODE: ${{ inputs.reviewed_code || false }}
+    secrets:
+      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
   resolveRefs:
     name: Resolve build refs
+    needs: [prep]
     uses: ./.github/workflows/resolveBuildRefs.yml
     with:
       APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
@@ -140,7 +154,7 @@ jobs:
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
-    needs: [verifyPatches, resolveRefs]
+    needs: [verifyPatches, prep, resolveRefs]
     if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
       # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
