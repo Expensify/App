@@ -25,6 +25,7 @@ type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+    shouldShowNoneOption?: boolean;
 
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
@@ -46,7 +47,7 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -71,7 +72,29 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         translate,
     });
 
-    const categoryData = sections?.at(0)?.data ?? [];
+    const shouldShowNoneOptionForSearch = shouldShowNoneOption && translate('common.none').toLowerCase().includes(debouncedSearchValue.toLowerCase());
+    const noneOption: ListItem[] = shouldShowNoneOptionForSearch
+        ? [
+              {
+                  text: translate('common.none'),
+                  keyForList: CONST.SEARCH.NONE_OPTION_KEY,
+                  searchText: '',
+                  isSelected: !selectedCategory,
+              },
+          ]
+        : [];
+    const sectionsWithNoneOption = shouldShowNoneOptionForSearch
+        ? [
+              {
+                  title: '',
+                  data: noneOption,
+                  sectionIndex: -1,
+              },
+              ...sections,
+          ]
+        : sections;
+
+    const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
@@ -87,7 +110,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
 
     return (
         <SelectionListWithSections
-            sections={sections}
+            sections={sectionsWithNoneOption}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}

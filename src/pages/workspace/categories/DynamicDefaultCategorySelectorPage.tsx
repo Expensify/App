@@ -35,14 +35,16 @@ function DynamicDefaultCategorySelectorPage({route}: DynamicDefaultCategorySelec
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.path);
 
     const onCategorySelected = (selectedCategory: ListItem) => {
-        if (!selectedCategory.searchText) {
+        const isNoneSelected = selectedCategory.keyForList === CONST.SEARCH.NONE_OPTION_KEY;
+        if (!isNoneSelected && !selectedCategory.searchText) {
             return;
         }
-        if (currentCategory === selectedCategory.searchText) {
+        const newCategory = isNoneSelected ? '' : (selectedCategory.searchText ?? '');
+        if (currentCategory === newCategory) {
             Navigation.goBack(backPath);
             return;
         }
-        setPolicyCustomUnitDefaultCategory(policyID, customUnitID, currentCategory, selectedCategory.searchText);
+        setPolicyCustomUnitDefaultCategory(policyID, customUnitID, currentCategory, newCategory);
         Navigation.goBack(backPath);
     };
 
@@ -67,6 +69,7 @@ function DynamicDefaultCategorySelectorPage({route}: DynamicDefaultCategorySelec
                     policyID={policyID}
                     selectedCategory={currentCategory}
                     onSubmit={onCategorySelected}
+                    shouldShowNoneOption
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
