@@ -2804,8 +2804,7 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
         return false;
     }
 
-    const currentTaxID = getCurrentTaxID(policy, taxCode);
-    const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
+    const currentTaxRate = policy?.taxRates?.taxes?.[taxCode];
     return !!currentTaxRate && !!currentTaxRate.previousTaxCode;
 }
 

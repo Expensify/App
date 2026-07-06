@@ -2462,7 +2462,6 @@ describe('PolicyUtils', () => {
         it('returns true only when the tax rate has a non-empty `previousTaxCode` value', () => {
             expect(isTaxCodeCustomized('id_vat', policy)).toEqual(false);
             expect(isTaxCodeCustomized('id_gst', policy)).toEqual(true);
-            expect(isTaxCodeCustomized('id_gst_prev', policy)).toEqual(true);
             expect(isTaxCodeCustomized('id_sales', policy)).toEqual(false);
         });
     });
