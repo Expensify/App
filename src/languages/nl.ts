@@ -1220,6 +1220,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Bedrag',
+        expenseAdded: 'Uitgave toegevoegd',
+        invoiceSent: 'Factuur verzonden',
         percent: 'Procent',
         date: 'Datum',
         taxAmount: 'Belastingbedrag',

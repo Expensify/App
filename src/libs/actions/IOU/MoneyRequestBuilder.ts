@@ -166,6 +166,15 @@ type RequestMoneyInformation = {
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
+    shouldHandleNavigation?: boolean;
+    /**
+     * When a confirmation submits several transactions, the orchestrator calls this action once per
+     * transaction in a loop. Post-create navigation + the "Expense added" growl are owned by the
+     * action, so they must fire only once - for the final transaction of the batch. Defaults to true
+     * so single-transaction callers keep their existing behavior.
+     */
+    isLastTransactionOfBatch?: boolean;
+    backToReport?: string;
     /** Retry-path cleanup only; the action itself never reads this. */
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;

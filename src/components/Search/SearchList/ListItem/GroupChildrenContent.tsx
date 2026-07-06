@@ -34,7 +34,6 @@ function GroupChildrenContent({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
-    newTransactionID,
     bankAccountList,
     cardFeeds,
     conciergeReportID,
@@ -126,15 +125,6 @@ function GroupChildrenContent({
             isOffline,
         });
     };
-
-    useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
-            return;
-        }
-        refreshTransactions();
-        // Only refresh when a new transaction is created in this group — refreshTransactions is excluded to avoid infinite loops
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newTransactionID, isExpanded]);
 
     useEffect(() => {
         if (!isExpanded || isExpenseReportType) {

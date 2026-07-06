@@ -278,7 +278,7 @@ function handleMoneyRequestStepDistanceNavigation({
             });
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
-                    // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
+                    // submitWithDismissFirst owns dismiss/reveal; pass its shouldHandleNavigation through so trackExpense doesn't also navigate.
                     executeWrite: (overrides) => {
                         trackExpense({
                             report,
@@ -330,8 +330,9 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                             currentUserLocalCurrency,
+                            shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
-                        cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        cleanupAfterSkipConfirmSubmit({
                             report,
                             action,
                             draftTransactionIDs,
@@ -406,7 +407,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             policyTagList,
                         },
                     });
-                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                    cleanupAfterSkipConfirmSubmit({
                         report,
                         action,
                         draftTransactionIDs,

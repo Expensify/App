@@ -67,7 +67,6 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -926,7 +925,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticTransactionID,
         delegateAccountID,
     } = submitPerDiemExpenseInformation;
-    const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
     if (
         isEmptyObject(policyParams.policy) ||
@@ -1033,13 +1032,11 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
-    return {iouReport, transactionID: transaction.transactionID};
+    return {iouReport, transactionID: transaction.transactionID, transactionThreadReportID};
 }
 
 /**

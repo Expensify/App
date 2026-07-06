@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {CardList, Transaction} from '@src/types/onyx';
+import type {CardList} from '@src/types/onyx';
 
 import type {ForwardedRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -26,7 +26,6 @@ import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './ty
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
-import {isTransactionMatchWithGroupItem} from './SearchList';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
@@ -72,9 +71,6 @@ type ExpenseGroupedSearchViewProps = {
 
     /** Whether everything has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
-
-    /** Transactions flagged for the post-create highlight animation. */
-    newTransactions: Transaction[];
 
     /** The navigation handler for a row tap (owned by the router). */
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
@@ -133,21 +129,6 @@ function buildSplitGroupData(data: SearchListItem[], shouldSplitGroups: boolean)
     };
 }
 
-/** Maps each group's `keyForList` to the id of a just-created transaction inside it, for the highlight animation. */
-function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Transaction[], groupBy: SearchQueryJSON['groupBy']) {
-    const map = new Map<string, string>();
-    if (newTransactions.length === 0) {
-        return map;
-    }
-    for (const item of data) {
-        const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-        if (matchedTransactionID && item.keyForList) {
-            map.set(item.keyForList, matchedTransactionID);
-        }
-    }
-    return map;
-}
-
 /**
  * The grouped-expense Search list (expense search with a valid group-by).
  *
@@ -170,7 +151,6 @@ function ExpenseGroupedSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    newTransactions,
     onSelectRow,
     ListFooterComponent,
     onEndReached,
@@ -224,8 +204,6 @@ function ExpenseGroupedSearchView({
         handleSelectRow,
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
-
-    const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
 
     // Selection is tracked per child transaction (plus empty groups), so flatten each group's transactions.
     const groupItems = data.filter(isTransactionGroupListItemType);
@@ -310,7 +288,6 @@ function ExpenseGroupedSearchView({
 
         if (isGroupChildrenContainerItem(item)) {
             const originalKey = (item.keyForList ?? '').replace('children_', '');
-            const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
             return (
                 <GroupChildrenContainer
                     item={item}
@@ -325,7 +302,6 @@ function ExpenseGroupedSearchView({
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onUndelete={handleUndelete}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                    newTransactionID={containerNewTransactionID}
                     bankAccountList={bankAccountList}
                     cardFeeds={cardFeeds}
                     conciergeReportID={conciergeReportID}
@@ -334,7 +310,6 @@ function ExpenseGroupedSearchView({
         }
 
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
-        const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
         return (
             <AnimatedExitRow
                 shouldApplyAnimation={index < listData.length - 1}
@@ -358,7 +333,6 @@ function ExpenseGroupedSearchView({
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onFocus={onFocus}
-                    newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
                     keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
@@ -412,7 +386,6 @@ function ExpenseGroupedSearchView({
                 ListFooterComponent={ListFooterComponent}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
-                newTransactions={newTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}

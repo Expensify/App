@@ -1173,6 +1173,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金额',
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         percent: '百分比',
         date: '日期',
         taxAmount: '税额',

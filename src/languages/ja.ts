@@ -1204,6 +1204,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金額',
+        expenseAdded: '経費を追加しました',
+        invoiceSent: '請求書を送信しました',
         percent: 'パーセント',
         date: '日付',
         taxAmount: '税額',

@@ -61,13 +61,6 @@ jest.mock('@libs/getPlatform', () => ({
     default: jest.fn(() => 'ios'),
 }));
 
-// The grouped view imports isTransactionMatchWithGroupItem from the heavy SearchList module; stub it out.
-jest.mock('@components/Search/SearchList', () => ({
-    __esModule: true,
-    default: () => null,
-    isTransactionMatchWithGroupItem: jest.fn(() => false),
-}));
-
 // Group header/children only render on the split path; stub them so importing the view stays lightweight.
 jest.mock('@components/Search/SearchList/ListItem/GroupHeader', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () => ({__esModule: true, default: () => null}));
@@ -203,7 +196,6 @@ function renderView(overrides: RenderOverrides = {}) {
                 isMobileSelectionModeEnabled={overrides.isMobileSelectionModeEnabled ?? false}
                 tableHeaderVisible={overrides.tableHeaderVisible ?? false}
                 hasLoadedAllTransactions={overrides.hasLoadedAllTransactions ?? true}
-                newTransactions={[]}
                 onSelectRow={onSelectRow}
                 onEndReached={onEndReached}
                 onLayout={onLayout}

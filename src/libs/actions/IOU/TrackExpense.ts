@@ -20,6 +20,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -54,7 +55,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isDraftReport,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -126,8 +126,7 @@ import type {
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import {handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
@@ -1628,6 +1627,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         gpsPoint,
         action,
         shouldPlaySound = true,
+        shouldHandleNavigation = true,
+        isLastTransactionOfBatch = true,
+        backToReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
@@ -1907,10 +1909,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
-    }
-
     if (deferredAPIWrite) {
         deferOrExecuteWrite(deferredAPIWrite, {
             shouldDeferForSearch: false,
@@ -1920,8 +1918,30 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         });
     }
 
-    if (!requestMoneyInformation.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    // Gate post-create navigation/growl to the final transaction of a multi-transaction batch so a
+    // multi-receipt submit fires a single dismiss/navigate and a single "Expense added" toast.
+    if (!requestMoneyInformation.isRetry && isLastTransactionOfBatch) {
+        if (shouldHandleNavigation) {
+            const navigationReportID = backToReport ?? activeReportID;
+            handleNavigateAfterExpenseCreate({
+                activeReportID: navigationReportID,
+                iouReportID: iouReport?.reportID,
+                transactionID: transaction.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                isFromGlobalCreate,
+                shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
+            });
+        } else {
+            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
+            // wherever the user lands: highlight the new row for in-report adds, otherwise the
+            // "Expense added" growl with a "View" deep link.
+            surfaceExpenseCreatedFeedback({
+                iouReportID: iouReport?.reportID,
+                transactionID: transaction.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                isMoneyRequestReport,
+            });
+        }
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -2347,6 +2367,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransaction,
         transactionParams: transactionData,
         accountantParams,
+        shouldHandleNavigation = true,
+        isLastTransactionOfBatch = true,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticTransactionID,
@@ -2745,8 +2767,28 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    if (!params.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    // Gate post-create navigation/growl to the final transaction of a multi-transaction batch so a
+    // multi-receipt submit fires a single dismiss/navigate and a single "Expense added" toast.
+    if (!params.isRetry && isLastTransactionOfBatch) {
+        if (shouldHandleNavigation) {
+            handleNavigateAfterExpenseCreate({
+                activeReportID,
+                iouReportID: iouReport?.reportID,
+                transactionID: transaction?.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                isFromGlobalCreate,
+                shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
+            });
+        } else {
+            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
+            // wherever the user lands: highlight the new row for in-report adds, otherwise the growl.
+            surfaceExpenseCreatedFeedback({
+                iouReportID: iouReport?.reportID,
+                transactionID: transaction?.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                isMoneyRequestReport,
+            });
+        }
     }
 
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);

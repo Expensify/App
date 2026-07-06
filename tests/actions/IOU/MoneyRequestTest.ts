@@ -72,19 +72,12 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// Cleanup helpers are spies so the move-from-track cleanup-id contract can be asserted.
-const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
-const mockCleanupAfterExpenseCreate = jest.fn();
-jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
+// cleanupAfterSkipConfirmSubmit is a spy so the move-from-track cleanup-id contract can be asserted. It's cleanup-only — the write action owns post-create navigation.
+const mockCleanupAfterSkipConfirmSubmit = jest.fn();
+jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => ({
     __esModule: true,
     default: (...args: unknown[]): void => {
-        mockCleanupAndNavigateAfterExpenseCreate(...args);
-    },
-}));
-jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
-    __esModule: true,
-    default: (...args: unknown[]): void => {
-        mockCleanupAfterExpenseCreate(...args);
+        mockCleanupAfterSkipConfirmSubmit(...args);
     },
 }));
 
@@ -185,10 +178,10 @@ describe('MoneyRequest', () => {
                 }),
             );
 
-            // Deferral is channel-driven; the action no longer receives a shouldDeferForSearch / shouldHandleNavigation flag.
+            // Deferral is channel-driven (no shouldDeferForSearch flag), but the action owns post-create navigation, so it receives shouldHandleNavigation.
             const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
-            expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
+            expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeTruthy();
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -702,7 +695,7 @@ describe('MoneyRequest', () => {
                 expect.objectContaining({
                     report: baseParams.report,
                     isDraftPolicy: false,
-                    // Action is nav-free — UI owns navigation; draft + optimistic IDs are threaded in.
+                    // The action owns post-create navigation; draft + optimistic IDs are threaded in alongside shouldHandleNavigation.
                     existingTransaction: baseParams.transaction,
                     transactionParams: expect.objectContaining({
                         amount: 0,
@@ -716,7 +709,7 @@ describe('MoneyRequest', () => {
             const distanceTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(typeof distanceTrackExpenseParams?.optimisticTransactionID).toBe('string');
             expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
-            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
+            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeTruthy();
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
@@ -751,8 +744,8 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionID: EXISTING_TRACKED_TRANSACTION_ID,
                 }),
@@ -772,7 +765,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionID: fakeTransaction.transactionID,
                 }),

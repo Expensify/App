@@ -19,10 +19,9 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateAfterExpenseCreate, {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
@@ -46,8 +45,6 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
-
-import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
@@ -295,13 +292,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
     function performPostBatchCleanup({
-        participant,
-        shouldHandleNavigation,
         allTransactionsCreated,
-        fallbackOptimisticChatReportID,
-        navigateBackToReport,
-        lastOptimisticTransactionID,
-        preResolvedChatTarget,
     }: {
         participant: Participant;
         shouldHandleNavigation: boolean;
@@ -316,32 +307,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!allTransactionsCreated) {
             return;
         }
-        if (!shouldHandleNavigation) {
-            cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
-            return;
-        }
-        // requestMoney passes the chat it wrote to (iouReport.chatReportID) as preResolvedChatTarget; trackExpense is void so it still derives (self-DM case).
-        const {report: resolvedReport, chatReportID} =
-            preResolvedChatTarget ??
-            resolveChatTargetForSubmitCleanup({
-                participant,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                report,
-                fallbackOptimisticChatReportID,
-                action,
-            });
-        // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.
-        const lastTransactionID = getExistingTransactionID(lastTransaction?.linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID;
-        cleanupAndNavigateAfterExpenseCreate({
-            report: resolvedReport,
-            action,
-            draftTransactionIDs,
-            transactionID: lastTransactionID,
-            isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
-            backToReport: navigateBackToReport,
-            optimisticChatReportID: chatReportID,
-            linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
-        });
+        // Navigation + the "Expense added" growl are owned by the IOU action itself (requestMoney/trackExpense
+        // call handleNavigateAfterExpenseCreate / showExpenseAddedGrowl internally). Doing it here as well fired
+        // the growl twice and ran navigation twice on the shouldHandleNavigation=true paths, so this only performs
+        // the non-navigation cleanup now.
+        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
     }
 
     function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
@@ -366,7 +336,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             const isTestReceipt = receipt?.isTestReceipt ?? false;
@@ -472,6 +442,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
                 optimisticTransactionID: lastOptimisticTransactionID,
+                // The action owns post-create navigation + growl, but only when the caller permits it
+                // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
+                // the destination themselves) and only for the final transaction of the batch.
+                shouldHandleNavigation,
+                isLastTransactionOfBatch: index === transactions.length - 1,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -598,14 +573,28 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
             if (result && targetReportID) {
-                navigateAfterExpenseCreate({
-                    activeReportID: targetReportID,
-                    transactionID: result.transactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
-                    shouldNavigate: shouldHandleNavigation,
-                });
+                if (shouldHandleNavigation) {
+                    navigateAfterExpenseCreate({
+                        activeReportID: targetReportID,
+                        iouReportID: result.iouReport?.reportID,
+                        transactionID: result.transactionID,
+                        transactionThreadReportID: result.transactionThreadReportID,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                        hasMultipleTransactions: reportTransactions.length > 0,
+                        shouldAddPendingNewTransactionIDs: targetReportID === chatReportID || isOneToTwoTransition,
+                    });
+                } else {
+                    // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface
+                    // feedback wherever the user lands: highlight the new row for in-report adds,
+                    // otherwise the "Expense added" growl with a "View" deep link - matching
+                    // requestMoney/trackExpense/split/invoice.
+                    surfaceExpenseCreatedFeedback({
+                        iouReportID: result.iouReport?.reportID,
+                        transactionID: result.transactionID,
+                        transactionThreadReportID: result.transactionThreadReportID,
+                        isMoneyRequestReport,
+                    });
+                }
             }
         }
     }
@@ -627,7 +616,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let lastOptimisticTransactionID: string | undefined;
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
@@ -683,6 +672,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
+                // The action owns post-create navigation + growl, but only when the caller permits it
+                // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
+                // the destination themselves) and only for the final transaction of the batch.
+                shouldHandleNavigation,
+                isLastTransactionOfBatch: index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,

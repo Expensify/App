@@ -18,7 +18,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
-import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import cleanupAfterSkipConfirmSubmit from '../../src/libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -105,8 +105,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
 
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
 
-// Action-assertion test: post-create navigation is exercised elsewhere; keep the nav helpers inert here.
-jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => jest.fn());
+// Action-assertion test: post-create navigation is exercised elsewhere; keep the cleanup helper inert here.
+jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
@@ -264,9 +264,9 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
             }),
         );
 
-        // The same optimisticTransactionID must reach the action AND post-create cleanup nav, else the destination report highlights the wrong transaction.
+        // The same optimisticTransactionID must reach the action AND post-create cleanup, else the destination report highlights the wrong transaction.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
-        const cleanupArg = jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0];
+        const cleanupArg = jest.mocked(cleanupAfterSkipConfirmSubmit).mock.calls.at(0)?.[0];
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
         expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
     });

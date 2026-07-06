@@ -214,7 +214,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
         });
 
-        it('calls cleanupAndNavigateAfterExpenseCreate (which composes cleanup) when shouldHandleNavigation=true', async () => {
+        it('does cleanup-only and never cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=true (IOU action owns nav/growl)', async () => {
             const {result} = renderHook(() => useExpenseSubmission(buildParams()));
             await waitForBatchedUpdatesWithAct();
 
@@ -224,14 +224,15 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            // cleanupAndNavigate is mocked here, so it never calls through to the real cleanupAfterExpenseCreate.
-            expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+            // Navigation + the "Expense added" growl are owned by requestMoney itself; the hook only runs the
+            // non-navigation cleanup regardless of shouldHandleNavigation.
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
         });
 
-        it('passes the existing tracked transaction ID (not a fresh optimistic id) to cleanup for a move-from-track SUBMIT', async () => {
-            // Move-from-track SUBMIT: the action writes the transaction under the EXISTING tracked transaction id,
-            // so cleanup must reference that same id — not a fresh rand64() optimistic one.
+        it('passes the moved transaction linkedTrackedExpenseReportAction to cleanup for a move-from-track SUBMIT', async () => {
+            // Move-from-track SUBMIT: cleanup is cleanup-only now, so it carries the moved transaction's
+            // linkedTrackedExpenseReportAction (used to release the original tracked expense draft).
             const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-99';
             const linkedTrackedExpenseReportAction = buildReportAction({
                 reportActionID: 'linked-action-1',
@@ -261,16 +262,17 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    linkedTrackedExpenseReportAction,
                 }),
             );
         });
 
-        // F2: requestMoney returns the chat it wrote to via {iouReport}; the UI reads that instead of re-deriving it through resolveChatTargetForSubmitCleanup.
-        it('uses iouReport.chatReportID for cleanup nav and does not re-derive it via resolveChatTargetForSubmitCleanup', async () => {
+        // The IOU action owns post-submit navigation now, so the hook no longer derives a chat target for cleanup nav.
+        it('does not derive the chat target via resolveChatTargetForSubmitCleanup (the IOU action owns post-submit nav)', async () => {
             mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1', chatReportID: 'iou-chat-77'}});
 
             const {result} = renderHook(() => useExpenseSubmission(buildParams()));
@@ -282,7 +284,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockResolveChatTargetForSubmitCleanup).not.toHaveBeenCalled();
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'iou-chat-77'}));
+            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
         });
 
         it('routes tracked per diem SUBMIT through requestMoney so the original tracked expense is moved', async () => {
@@ -354,7 +357,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
         });
 
-        it('calls cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=true', async () => {
+        it('does cleanup-only and never cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=true (IOU action owns nav/growl)', async () => {
             const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.TRACK})));
             await waitForBatchedUpdatesWithAct();
 
@@ -364,8 +367,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockTrackExpenseAction).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
         });
 
         it('forwards the per-iteration draft as existingTransaction so getTrackExpenseInformation finds it', async () => {

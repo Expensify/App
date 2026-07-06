@@ -1289,6 +1289,8 @@ const translations = {
     },
     iou: {
         amount: 'Amount',
+        expenseAdded: 'Expense added',
+        invoiceSent: 'Invoice sent',
         percent: 'Percent',
         date: 'Date',
         taxAmount: 'Tax amount',

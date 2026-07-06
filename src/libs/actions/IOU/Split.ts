@@ -10,6 +10,7 @@ import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@li
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -31,7 +32,6 @@ import {
     getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -88,8 +88,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2207,8 +2206,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
-    const isOneToTwoTransition = isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID));
-
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
@@ -2219,19 +2216,28 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+        const navigationActiveReportID = backToReport ?? activeReportID;
+        handleNavigateAfterExpenseCreate({
+            activeReportID: navigationActiveReportID,
+
+            iouReportID: parameters.iouReportID,
+            isFromGlobalCreate,
+
+            transactionID: parameters.transactionID,
+            transactionThreadReportID: parameters.transactionThreadReportID,
+            shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
+        });
     } else {
+        // Dismiss-first paths (orchestrator owns navigation). Surface feedback wherever the user lands:
+        // highlight the new row for in-report adds, otherwise the "Expense added" growl with "View".
+        surfaceExpenseCreatedFeedback({
+            iouReportID: parameters.iouReportID,
+            transactionID: parameters.transactionID,
+            transactionThreadReportID: parameters.transactionThreadReportID,
+            isMoneyRequestReport,
+        });
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
-
-    const navigationActiveReportID = backToReport ?? activeReportID;
-    handleNavigateAfterExpenseCreate({
-        activeReportID: navigationActiveReportID,
-        isFromGlobalCreate,
-        transactionID: parameters.transactionID,
-        shouldAddPendingNewTransactionIDs: isOneToTwoTransition || (shouldHandleNavigation && navigationActiveReportID === parameters.chatReportID),
-        shouldNavigate: shouldHandleNavigation,
-    });
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);

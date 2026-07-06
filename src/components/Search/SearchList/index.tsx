@@ -4,7 +4,7 @@ import SelectionTopBar from '@components/Search/primitives/SelectionTopBar';
 import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
@@ -17,7 +17,6 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 
-import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {splitGroupsIntoPairs} from '@libs/SearchUIUtils';
@@ -44,19 +43,7 @@ import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
-import type {
-    ReportActionListItemType,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionYearGroupListItemType,
-} from './ListItem/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './ListItem/types';
 
 import BaseSearchList from './BaseSearchList';
 import GroupChildrenContainer from './ListItem/GroupChildrenContainer';
@@ -111,8 +98,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
 
-    newTransactions?: Transaction[];
-
     /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
     nonPersonalAndWorkspaceCards?: CardList;
 
@@ -142,49 +127,6 @@ function isTransactionGroupListItemArray(data: SearchListItem[]): data is Transa
     return typeof firstElement === 'object' && 'transactions' in firstElement;
 }
 
-function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
-    if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-        return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-        return !!transaction.transactionID;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
-        return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
-        return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
-        const monthGroup = groupItem as TransactionMonthGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        return DateUtils.isDateStringInMonth(transactionDateString, monthGroup.year, monthGroup.month);
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
-        const weekGroup = groupItem as TransactionWeekGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        const datePart = transactionDateString.substring(0, 10);
-        const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
-        return datePart >= weekStart && datePart <= weekEnd;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.YEAR) {
-        const yearGroup = groupItem as TransactionYearGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
-        return transactionYear === yearGroup.year;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.QUARTER) {
-        const quarterGroup = groupItem as TransactionQuarterGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
-        const transactionMonth = parseInt(transactionDateString.substring(5, 7), 10);
-        // Calculate which quarter the transaction belongs to (1-4)
-        const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
-        return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
-    }
-    return false;
-}
-
 function SearchList({
     data,
     ListItem,
@@ -204,7 +146,6 @@ function SearchList({
     onLayout,
     shouldAnimate,
     isMobileSelectionModeEnabled,
-    newTransactions = [],
     nonPersonalAndWorkspaceCards,
     hasLoadedAllTransactions,
     policyTags,
@@ -377,22 +318,6 @@ function SearchList({
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
-    const newTransactionIDByItemKey = (() => {
-        if (newTransactions.length === 0) {
-            return CONST.EMPTY_MAP;
-        }
-
-        const mappedTransactionIDs = new Map<string, string>();
-        for (const item of data) {
-            const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-            if (matchedTransactionID && item.keyForList) {
-                mappedTransactionIDs.set(item.keyForList, matchedTransactionID);
-            }
-        }
-
-        return mappedTransactionIDs;
-    })();
-
     const {onLongPressRow, modal} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
 
     // In mobile selection mode a row tap toggles selection. This must live here (not in <Search>) because
@@ -506,7 +431,6 @@ function SearchList({
             if (isGroupChildrenContainerItem(item)) {
                 const containerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
-                const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
                 return (
                     <GroupChildrenContainer
                         item={containerItem}
@@ -521,7 +445,6 @@ function SearchList({
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                        newTransactionID={containerNewTransactionID}
                         bankAccountList={bankAccountList}
                         cardFeeds={cardFeeds}
                         conciergeReportID={conciergeReportID}
@@ -532,8 +455,6 @@ function SearchList({
             // Default rendering for non-group items
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < listData.length - 1;
-
-            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             return (
                 <AnimatedExitRow
@@ -559,7 +480,6 @@ function SearchList({
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         policyTags={policyTags}
                         onFocus={onFocus}
-                        newTransactionID={newTransactionID}
                         onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
@@ -571,7 +491,6 @@ function SearchList({
         [
             type,
             groupBy,
-            newTransactionIDByItemKey,
             shouldAnimate,
             listData.length,
             hasItemsBeingRemoved,
@@ -637,7 +556,6 @@ function SearchList({
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
-                newTransactions={newTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
@@ -664,4 +582,3 @@ function SearchList({
 }
 
 export default SearchList;
-export {isTransactionMatchWithGroupItem};

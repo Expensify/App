@@ -4,7 +4,6 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
 
 import type {ForwardedRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -54,9 +53,6 @@ type TaskSearchViewProps = {
     /** Whether everything has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
 
-    /** Rows flagged for the post-create highlight animation (feeds BaseSearchList extraData). */
-    newTransactions: Transaction[];
-
     /** The navigation handler for a row tap (owned by the router). */
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
@@ -104,7 +100,6 @@ function TaskSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    newTransactions,
     onSelectRow,
     ListFooterComponent,
     onEndReached,
@@ -194,7 +189,6 @@ function TaskSearchView({
                 ListFooterComponent={ListFooterComponent}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
-                newTransactions={newTransactions}
             />
             {modal}
         </SearchListViewLayout>

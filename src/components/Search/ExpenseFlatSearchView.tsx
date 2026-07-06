@@ -4,7 +4,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
 import CONST from '@src/CONST';
-import type {CardList, Transaction} from '@src/types/onyx';
+import type {CardList} from '@src/types/onyx';
 
 import type {ForwardedRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -60,9 +60,6 @@ type ExpenseFlatSearchViewProps = {
     /** Whether every transaction has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
 
-    /** Transactions flagged for the post-create highlight animation (feeds BaseSearchList extraData). */
-    newTransactions: Transaction[];
-
     /** The navigation/thread-creation handler for a row tap (owned by the router). */
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
@@ -102,8 +99,7 @@ const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_
  * renderer, single-pass visibility/selection counts, and the highlight-scroll imperative handle.
  * `TransactionListItem` is the only row renderer here and rows always animate, so the
  * group/sticky/chat/task branches of `SearchList` do not apply. Keyboard navigation is inherited from
- * `BaseSearchList`; the post-create highlight stays in the router (the snapshot stamps
- * `shouldAnimateInHighlight`, and `newTransactions` flows into `extraData`).
+ * `BaseSearchList`.
  */
 function ExpenseFlatSearchView({
     queryJSON,
@@ -117,7 +113,6 @@ function ExpenseFlatSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    newTransactions,
     onSelectRow,
     ListFooterComponent,
     onEndReached,
@@ -241,7 +236,6 @@ function ExpenseFlatSearchView({
                 ListFooterComponent={ListFooterComponent}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
-                newTransactions={newTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />

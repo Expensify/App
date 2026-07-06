@@ -87,7 +87,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     searchType,
-    newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
     nonPersonalAndWorkspaceCards,
@@ -242,24 +241,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
-
-    useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
-            return;
-        }
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
-
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: 0,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
-        });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
