@@ -1,7 +1,9 @@
 import SidePanelActions from '@libs/actions/SidePanel';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
 import type * as RHPVariantTest from '../../../../src/components/SidePanel/RHPVariantTest/index';
 
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);

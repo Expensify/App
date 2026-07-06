@@ -1,9 +1,11 @@
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import RootStackRouter from '@libs/Navigation/AppNavigator/createRootStackNavigator/RootStackRouter';
 import {evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
