@@ -5611,7 +5611,7 @@ const translations = {
                     },
                     [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
-                        description: 'Date the report was exported to Rillet..',
+                        description: 'Date the report was exported to Rillet.',
                     },
                     [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
