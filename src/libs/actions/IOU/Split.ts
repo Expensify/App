@@ -2150,6 +2150,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 distanceRate,
                 currency,
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
+                // translateLocal is used intentionally: this runs outside a React render (in an
+                // action creator building optimistic data), so the useLocalize hook is unavailable.
                 Localize.translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
