@@ -1,6 +1,3 @@
-import {format, parseISO} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
@@ -8,17 +5,24 @@ import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
+
+import {format, parseISO} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 type DistanceRateTableItemData = TableData & {
     rateID: string;
@@ -70,7 +74,6 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const {processedData} = useTableContext<DistanceRateTableItemData>();
 
     const {rate, formattedRate, pendingAction, errors} = item;
-    const isDeleting = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isSelected = processedData.at(rowIndex)?.selected ?? false;
 
     const status = getRateStatus(rate);
@@ -79,20 +82,19 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
 
     const accessibilityLabel = [rate.name, statusLabels[status], formattedRate, dateLabelText].filter(Boolean).join(', ');
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceDistanceRatesTableItem',
-        isDeleting,
-    };
-
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ROW}
-            offlineWithFeedback={{errors, pendingAction, dismissError: item.dismissError}}
+            offlineWithFeedback={{
+                errors,
+                pendingAction,
+                shouldHideOnDelete: false,
+                onClose: item.dismissError,
+            }}
             onPress={item.action}
         >
             {({hovered}) => (

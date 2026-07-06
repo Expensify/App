@@ -1,16 +1,17 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
@@ -20,11 +21,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {canEditWorkspaceSettings, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -34,8 +39,19 @@ import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
 type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
+
+// A user invited by phone is stored in the workflow with the raw login the admin typed, but the workspace
+// keys its members by the canonical SMS login (e164@expensify.sms). Normalize before any membership or
+// duplicate comparison so a freshly invited phone number isn't treated as both a pending invite and a
+// separate member (which made it show twice and lose its selection on back). This is a no-op for email logins.
+function normalizeLogin(login: string | null | undefined): string {
+    return addSMSDomainIfPhoneNumber(login ?? '');
+}
 
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
@@ -45,11 +61,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     // Set true when nextStep navigates to the invite-message page so the cleanup
     // effect below knows to leave the draft intact for that page to consume.
     const isHandingOffToInviteRef = useRef(false);
@@ -63,12 +81,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         debouncedSearchTerm,
         availableOptions,
         areOptionsInitialized,
-    } = useSearchSelector({
+    } = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
-        includeRecentReports: true,
+        includeRecentReports: false,
         shouldInitialize: true,
     });
 
@@ -76,8 +93,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const shouldShowNotFoundView =
-        (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
@@ -114,15 +130,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(
             approvalWorkflow.members
                 .filter((member) => {
-                    const isPolicyMember = !!policy?.employeeList?.[member.email];
+                    const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
                     // Keep policy members. For non-policy members, only keep if they're
                     // in the invite draft (meaning an invite flow is actively in progress).
                     // This mirrors the card flow's handleBackButtonPress cleanup pattern.
                     return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
                 })
                 .map((member) => {
-                    let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                    const isPolicyMember = !!policy?.employeeList?.[member.email];
+                    let accountID = Number(policyMemberEmailsToAccountIDs[normalizeLogin(member.email)] ?? '');
+                    const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
 
                     const personalDetail = getPersonalDetailByEmail(member.email);
 
@@ -154,7 +170,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         // Only show right element for policy members
                         rightElement: isPolicyMember ? (
                             <MemberRightIcon
-                                role={policy?.employeeList?.[member.email]?.role}
+                                role={policy?.employeeList?.[normalizeLogin(member.email)]?.role}
                                 owner={policy?.owner}
                                 login={login}
                             />
@@ -208,7 +224,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             })
             .filter(
-                (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
+                (member) =>
+                    (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) &&
+                    !selectedMembers.some((selectedOption) => normalizeLogin(selectedOption.login) === normalizeLogin(member.login)),
             );
 
         members.push(...availableMembers);
@@ -231,12 +249,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
             }
 
-            // Add search results that are not already workspace members
-            const searchResults = [...availableOptions.recentReports, ...availableOptions.personalDetails].filter((option) => {
-                const isMember = policy?.employeeList?.[option.login ?? ''];
-                const isAlreadyInList = members.some((m) => m.login === option.login);
-                return !isMember && !isAlreadyInList;
-            });
+            // Add search results that aren't already in the list (selected approvers or userToInvite)
+            const searchResults = availableOptions.personalDetails.filter((option) => !members.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login)));
 
             for (const option of searchResults) {
                 members.push({
@@ -261,27 +275,29 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         debouncedSearchTerm,
         areOptionsInitialized,
         availableOptions.userToInvite,
-        availableOptions.recentReports,
         availableOptions.personalDetails,
         icons.FallbackAvatar,
         policyMemberEmailsToAccountIDs,
     ]);
 
-    const goBack = useCallback(() => {
+    // Drop any selected members who never made it into the workspace. They were staged for invite but
+    // never confirmed, so leaving them in approvalWorkflow.members would carry an un-invited user into
+    // the form and fail backend validation with "Approvals can only be set for members of the policy".
+    // This must run on every back path, including when an explicit backTo is honored below.
+    const dropUnconfirmedStagedMembers = useCallback(() => {
         // Going back means we're done with this expenses-from session, so any
         // hand-off to the invite-message page is no longer in flight.
         isHandingOffToInviteRef.current = false;
 
-        // Drop any selected members who never made it into the workspace. They
-        // were staged for invite but never confirmed, so leaving them in
-        // approvalWorkflow.members would carry an un-invited user into the form
-        // and fail backend validation with "Approvals can only be set for
-        // members of the policy".
         const stagedMembers = approvalWorkflow?.members ?? [];
-        const confirmedMembers = stagedMembers.filter((m) => !!policy?.employeeList?.[m.email]);
+        const confirmedMembers = stagedMembers.filter((m) => !!policy?.employeeList?.[normalizeLogin(m.email)]);
         if (confirmedMembers.length !== stagedMembers.length) {
             setApprovalWorkflowMembers(confirmedMembers);
         }
+    }, [approvalWorkflow?.members, policy?.employeeList]);
+
+    const goBack = useCallback(() => {
+        dropUnconfirmedStagedMembers();
 
         let backTo;
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
@@ -292,12 +308,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
         // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
         Navigation.goBack(backTo, {compareParams: false});
-    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action, approvalWorkflow?.members, policy?.employeeList]);
+    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action, dropUnconfirmedStagedMembers]);
 
     // Fall back to goBack — plain Navigation.goBack() closes the modal after a refresh.
     const onBackButtonPress = () => {
         const {backTo} = route.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM];
         if (backTo) {
+            dropUnconfirmedStagedMembers();
             Navigation.goBack(backTo);
             return;
         }
@@ -306,26 +323,36 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const nextStep = useCallback(() => {
         const existingMembers: Member[] = [];
-        const usersToInvite: Array<{email: string; accountID?: number}> = [];
+        const usersToInvite: Array<{email: string; accountID?: number; displayName?: string; avatar?: AvatarSource}> = [];
 
         for (const member of selectedMembers) {
             if (!member.login) {
                 continue;
             }
-            const isPolicyMember = policy?.employeeList?.[member.login];
+            // Store the canonical SMS login (e164@expensify.sms) for phone members so it matches the key the
+            // invite writes into employeeList. If we kept the raw number, convertApprovalWorkflowToPolicyEmployees
+            // would index a separate, non-matching employee, so the member and submitsTo fall out of sync once
+            // online and the workflow gets dropped. No-op for email logins.
+            const memberLogin = normalizeLogin(member.login);
+            const isPolicyMember = policy?.employeeList?.[memberLogin];
             if (isPolicyMember) {
                 existingMembers.push({
                     displayName: member.text ?? '',
                     avatar: member.icons?.at(0)?.source,
-                    email: member.login,
+                    email: memberLogin,
                 });
             } else {
-                // This is a non-workspace member that needs to be invited
+                // This is a non-workspace member that needs to be invited.
+                // Carry the picker's display name and avatar so they survive the round-trip through
+                // approvalWorkflow.members, otherwise the invited user reverts to their email and a
+                // fallback avatar after returning from the invite step or on the confirm page.
                 const iconId = member.icons?.at(0)?.id;
                 const accountID = typeof iconId === 'number' ? iconId : undefined;
                 usersToInvite.push({
-                    email: member.login,
+                    email: memberLogin,
                     accountID,
+                    displayName: member.text,
+                    avatar: member.icons?.at(0)?.source,
                 });
             }
         }
@@ -340,9 +367,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const allMembers: Member[] = [
             ...normalizedExistingMembers,
             ...usersToInvite.map((user) => ({
-                displayName: user.email,
+                displayName: user.displayName ?? user.email,
                 email: user.email,
-                avatar: undefined,
+                avatar: typeof user.avatar === 'string' ? user.avatar : undefined,
             })),
         ];
         setApprovalWorkflowMembers(allMembers);
@@ -432,7 +459,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         email: member.login,
                         avatar: typeof iconSource === 'string' ? iconSource : undefined,
                     });
-                    if (policy?.employeeList?.[member.login]) {
+                    if (policy?.employeeList?.[normalizeLogin(member.login)]) {
                         continue;
                     }
                     const iconId = member.icons?.at(0)?.id;
@@ -477,6 +504,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsExpensesFromPage"
@@ -501,6 +530,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 shouldEnableHeaderMaxHeight
                 onSearchChange={setSearchSelectorTerm}
                 shouldUpdateFocusedIndex={false}
+                shouldRequirePolicyAdmin={false}
             />
         </AccessOrNotFoundWrapper>
     );

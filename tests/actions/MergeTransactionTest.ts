@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
@@ -7,6 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -19,13 +18,19 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Helper function to create mock violations
@@ -114,12 +119,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     const sourceTransactionThreadID = 'source-transaction-thread-123';
     const sourceIOUAction: ReportAction = {
         reportActionID: sourceIOUActionID,
+        reportID: sourceExpenseReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         created: '2024-01-01 12:00:00',
         originalMessage: {
             IOUTransactionID: sourceTransaction.transactionID,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: sourceExpenseReport.reportID,
         } as OriginalMessageIOU,
         childReportID: sourceTransactionThreadID,
         message: [{type: 'TEXT', text: 'Source IOU action'}],
@@ -134,12 +139,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     const targetTransactionThreadID = 'target-transaction-thread-456';
     const targetIOUAction: ReportAction = {
         reportActionID: targetIOUActionID,
+        reportID: targetReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         created: '2024-01-01 12:00:00',
         originalMessage: {
             IOUTransactionID: targetTransaction.transactionID,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: targetReport.reportID,
         } as OriginalMessageIOU,
         childReportID: targetTransactionThreadID,
         message: [{type: 'TEXT', text: 'Target IOU action'}],
@@ -1103,12 +1108,12 @@ describe('mergeTransactionRequest', () => {
 
             let sourceIOUAction: OnyxEntry<ReportAction> = {
                 reportActionID: 'source-action-123',
+                reportID: sourceReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '2024-01-01 12:00:00',
                 originalMessage: {
                     IOUTransactionID: sourceTransaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    IOUReportID: sourceReportID,
                 } as OriginalMessageIOU,
                 message: [{type: 'TEXT', text: 'Test IOU message'}],
             };
@@ -1131,10 +1136,10 @@ describe('mergeTransactionRequest', () => {
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -1290,12 +1295,12 @@ describe('mergeTransactionRequest', () => {
 
             const sourceIOUAction: ReportAction = {
                 reportActionID: 'source-action-123',
+                reportID: selfDMReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '2024-01-01 12:00:00',
                 originalMessage: {
                     IOUTransactionID: sourceTransaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    IOUReportID: selfDMReportID,
                 } as OriginalMessageIOU,
                 message: [{type: 'TEXT', text: 'Test IOU message'}],
             };
@@ -1315,10 +1320,10 @@ describe('mergeTransactionRequest', () => {
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),

@@ -1,8 +1,11 @@
-import {useEffect} from 'react';
 import {clearPendingPaymentContinue} from '@libs/actions/PendingPaymentContinue';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PendingPaymentContinue from '@src/types/onyx/PendingPaymentContinue';
+
+import {useEffect} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**

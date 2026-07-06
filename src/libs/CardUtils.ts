@@ -1,12 +1,10 @@
-import {format, fromUnixTime, isBefore} from 'date-fns';
-import groupBy from 'lodash/groupBy';
-import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +16,7 @@ import type {
     CardList,
     CompanyCardFeed,
     CurrencyList,
+    Domain,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
@@ -46,11 +45,19 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {format, fromUnixTime, isBefore} from 'date-fns';
+import groupBy from 'lodash/groupBy';
+import lodashSortBy from 'lodash/sortBy';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
-import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -522,12 +529,17 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
 }
 
-function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Card[] {
+function sortCardsByCardholderName(
+    cards: Card[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocalizedTranslate,
+): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = getDisplayNameOrDefault(userA);
-        const bName = getDisplayNameOrDefault(userB);
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
         return localeCompare(aName, bName);
     });
 }
@@ -1045,6 +1057,18 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
+function getCompanyCardCustomName(
+    cardID: string | number | undefined,
+    sharedCardCustomNames: OnyxEntry<Record<string, string>>,
+    customCardNames: OnyxEntry<Record<string, string>>,
+): string | undefined {
+    if (!cardID) {
+        return undefined;
+    }
+    return sharedCardCustomNames?.[cardID] ?? customCardNames?.[cardID];
+}
+
 /** Returns the date option for a card assignment — CUSTOM when not editing, or the existing option when editing. */
 function getCardAssignmentDateOption(isEditing: boolean | undefined, existingDateOption?: string): ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS> {
     if (!isEditing) {
@@ -1433,6 +1457,14 @@ function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings 
     return undefined;
 }
 
+/**
+ * Resolves the domain backing a fund (card account). Domains are normally keyed by their account ID,
+ * but as a fallback we scan for a domain whose `accountID` matches the fund.
+ */
+function getDomainByFundID(domains: OnyxCollection<Domain> | undefined, fundID: number): OnyxEntry<Domain> {
+    return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1482,6 +1514,29 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
 function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
     const {cardList, ...assignedCards} = cards ?? {};
     return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+}
+
+/**
+ * A virtual Expensify card is actionable for the missing-personal-details flow only when it is active, not expired,
+ * and not a Travel CVV card. This is the same card set that renders the "Add details" CTA in the Wallet list
+ * (PaymentMethodList) and the home time-sensitive section, so all of those surfaces stay in sync.
+ */
+function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
+    return !!card && isExpensifyCard(card) && !!card.nameValuePairs?.isVirtual && !isTravelCard(card) && !isExpiredCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails, isActingAsDelegate?: boolean) {
+    // Delegates can't complete the missing-personal-details flow (it requires the original
+    // account's magic code), so surfacing a brick road in the wallet would be misleading.
+    // Mirrors the same gate applied in useTimeSensitiveCards for the home prompt.
+    if (isActingAsDelegate) {
+        return false;
+    }
+    if (!areAddressAndPersonalDetailsMissing(privatePersonalDetails)) {
+        return false;
+    }
+    const {cardList, ...assignedCards} = cards ?? {};
+    return Object.values(assignedCards).some(isActionableVirtualExpensifyCard);
 }
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
@@ -1781,7 +1836,15 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
     return lodashSortBy(cards, getAssignedCardSortKey);
 }
 
-function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+/**
+ * Determines the currency of the card and/or feed. Data sources are prioritized as follows:
+ * 1. Card currency, if card is passed and has a currency set on it
+ * 2. Feed settings currency, if settings are passed and have a currency
+ * 3. Use USD for US program keys
+ * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
+ * 5. Finally, if all else fails, fallback to USD
+ */
+function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
@@ -1936,6 +1999,7 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
     getDomainOrWorkspaceAccountID,
@@ -1959,6 +2023,7 @@ export {
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
+    getDomainByFundID,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
@@ -1969,6 +2034,8 @@ export {
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
+    hasVirtualExpensifyCardMissingPersonalDetails,
+    isActionableVirtualExpensifyCard,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     getCardsByCardholderName,
@@ -2001,7 +2068,7 @@ export {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     isExpiredCard,
-    getCardCurrency,
+    getCardOrFeedCurrency,
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,

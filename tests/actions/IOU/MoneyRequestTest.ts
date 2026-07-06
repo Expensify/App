@@ -1,21 +1,27 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type * as IOU from '../../../src/libs/actions/IOU';
+import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
+
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
-import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -286,9 +292,9 @@ describe('MoneyRequest', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '',
+                reportID: 'report456',
                 originalMessage: {
                     IOUTransactionID: draftTransaction.transactionID,
-                    IOUReportID: 'report456',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };

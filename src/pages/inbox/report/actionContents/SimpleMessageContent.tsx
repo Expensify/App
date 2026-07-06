@@ -1,5 +1,5 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getDemotedFromWorkspaceMessage,
@@ -7,16 +7,19 @@ import {
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
-    getRemovedFromApprovalChainMessage,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
     isUnapprovedAction,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
 
 type SimpleMessageContentProps = {
     action: OnyxTypes.ReportAction;
@@ -38,7 +41,6 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
-    CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN,
     CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
 ]);
 
@@ -99,9 +101,6 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
         return <ReportActionItemBasicMessage message={getActionableCard3DSTransactionApprovalMessage(translate, action)} />;
-    }
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
-        return <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)) {
         return <ReportActionItemBasicMessage message={getMessageOfOldDotReportAction(translate, action)} />;

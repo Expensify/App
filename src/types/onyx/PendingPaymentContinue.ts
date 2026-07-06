@@ -1,4 +1,5 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
+
 import type {PaymentMethodType} from './OriginalMessage';
 
 /**

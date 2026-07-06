@@ -1,10 +1,3 @@
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import truncate from 'lodash/truncate';
-import React, {useCallback, useContext} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -14,6 +7,7 @@ import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/type
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
+
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,6 +21,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResumePaymentAfterValidation from '@hooks/useResumePaymentAfterValidation';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setPendingPaymentContinue} from '@libs/actions/PendingPaymentContinue';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -49,15 +44,27 @@ import {
 import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+
+import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
+
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import truncate from 'lodash/truncate';
+import React, {useCallback, useContext} from 'react';
+import {View} from 'react-native';
+
 import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -448,6 +455,7 @@ function SettlementButton({
                         if (payAsBusiness) {
                             navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
+                            clearPersonalBankAccount();
                             Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
                         }
                     },
@@ -514,7 +522,6 @@ function SettlementButton({
                 approveMoneyRequest({
                     expenseReport: iouReport,
                     expenseReportPolicy,
-                    policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
                     hasViolations,
@@ -561,15 +568,15 @@ function SettlementButton({
         }
     };
     const selectPaymentMethod = (event: KYCFlowEvent, paymentType: string, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
+        const shouldContinueKYCAfterAddingBankAccount = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
+
         triggerKYCFlow({
             event,
             iouPaymentType: paymentType as PaymentMethodType,
             paymentMethod,
             policy: selectedPolicy ?? (event ? lastPaymentPolicy : undefined),
+            personalBankAccountOnSuccessFallbackRoute: shouldContinueKYCAfterAddingBankAccount ? ROUTES.ENABLE_PAYMENTS : undefined,
         });
-        if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
-        }
     };
 
     const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {

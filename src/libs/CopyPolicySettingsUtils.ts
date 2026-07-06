@@ -1,11 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import {isAuthenticationError} from './actions/connections';
+
 import type {Part} from './actions/Policy/CopyPolicySettings';
-import {isTimeTrackingEnabled} from './PolicyUtils';
+
+import {isAuthenticationError} from './actions/connections';
+import {isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -256,6 +259,16 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
+/**
+ * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
+ * source re-provisions each target (the backend creates a fresh entity), which requires accepting
+ * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
+ * provisioning check in BookTravelButton.
+ */
+function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
+    return isWorkspaceProvisionedForTravel(policy?.travelSettings);
+}
+
 export {
     getConnectionCompanyID,
     getAccountingConnectionIdentity,
@@ -265,6 +278,7 @@ export {
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
+    isSourceProvisionedForTravel,
     getReceiptPartnersCopySettingsDescription,
     FEATURE_ROWS,
 };

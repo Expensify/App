@@ -1,13 +1,19 @@
-import type {KeyValueMapping} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
+
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
+
+import type {KeyValueMapping} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -57,7 +63,6 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -441,6 +446,15 @@ describe('ReportActionsUtils', () => {
             childReportID: undefined,
         };
 
+        // A deleted IOU action that is still pending deletion (e.g. deleted while offline).
+        const pendingDeleteLinkedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
+            childReportID: 'pendingDeleteChildReportID',
+        };
+
         const unlinkedAction = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
@@ -499,6 +513,29 @@ describe('ReportActionsUtils', () => {
                 mockedReports[IOUReportID],
                 mockedReports[mockChatReportID],
                 [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID],
+                false,
+            );
+            expect(result).toEqual(linkedActionWithChildReportID);
+        });
+
+        it('should count a pending-delete IOU action when offline so the report is no longer treated as a one-transaction report', () => {
+            // When offline, a pending-delete IOU action is still counted alongside the valid action,
+            // so there are effectively two transactions and the report is not a one-transaction report.
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, pendingDeleteLinkedAction],
+                true,
+            );
+            expect(result).toBeUndefined();
+        });
+
+        it('should ignore a pending-delete IOU action when online and return the single valid action', () => {
+            // When online, a pending-delete IOU action is excluded, leaving exactly one valid action.
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, pendingDeleteLinkedAction],
                 false,
             );
             expect(result).toEqual(linkedActionWithChildReportID);
@@ -564,6 +601,14 @@ describe('ReportActionsUtils', () => {
             },
         };
 
+        // A deleted IOU action that is still pending deletion (e.g. deleted while offline).
+        const pendingDeleteAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
+        };
+
         it('should return the childReportID for a valid single IOU action', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
@@ -599,6 +644,15 @@ describe('ReportActionsUtils', () => {
                 IOUTransactionID,
             ]);
             expect(result).toBeUndefined();
+        });
+
+        it('should respect the offline argument for a pending-delete IOU action', () => {
+            // Offline: the pending-delete action is counted, so there are two transactions and this is not a one-transaction report.
+            expect(getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, pendingDeleteAction], true)).toBeUndefined();
+            // Online: the pending-delete action is excluded, leaving a single valid action.
+            expect(getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, pendingDeleteAction], false)).toEqual(
+                linkedCreateAction.childReportID,
+            );
         });
     });
 
@@ -1563,6 +1617,76 @@ describe('ReportActionsUtils', () => {
 
         it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
             expect(getSendMoneyFlowAction([payAction, createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
+        });
+    });
+
+    describe('SendMoney phantom type=create filtering', () => {
+        // Modern SendMoney pay action: type=pay AND IOUDetails present. This is what makes
+        // isSentMoneyReportAction() return true and triggers our filter branch.
+        const sendMoneyPayAction = {
+            ...mockIOUAction,
+            reportActionID: 'expense-pay-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.PAY,
+                IOUDetails: {amount: 100, comment: '', currency: 'USD'},
+                IOUTransactionID: 'txn-1',
+                paymentType: 'Elsewhere',
+            },
+        };
+
+        // Phantom IOU create action that OpenReport synthesizes for legacy SendMoney transactions.
+        const phantomCreateAction = {
+            ...mockIOUAction,
+            reportActionID: 'phantom-create-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.CREATE,
+                IOUTransactionID: 'txn-1',
+            },
+        };
+
+        // Plain mark-as-paid-elsewhere pay action: type=pay, NO IOUDetails. Does not trigger the
+        // SendMoney filter branch, so type=create actions are not dropped from these reports.
+        const markAsPaidElsewhereAction = {
+            ...mockIOUAction,
+            reportActionID: 'mark-paid-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.PAY,
+                IOUDetails: undefined,
+                paymentType: 'Elsewhere',
+            },
+        };
+
+        // Legitimate IOU create action used to verify it survives when no SendMoney pay is present.
+        const legitimateCreateAction = {
+            ...mockIOUAction,
+            reportActionID: 'create-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.CREATE,
+                IOUTransactionID: 'txn-1',
+            },
+        };
+
+        describe('getCombinedReportActions', () => {
+            it('drops type=create IOU actions when a SendMoney pay action is present on the report', () => {
+                const result = getCombinedReportActions([sendMoneyPayAction, phantomCreateAction], 'thread-1', []);
+                expect(result.some((action) => action.reportActionID === sendMoneyPayAction.reportActionID)).toBe(true);
+                expect(result.some((action) => action.reportActionID === phantomCreateAction.reportActionID)).toBe(false);
+            });
+
+            it('keeps type=create when only a plain pay (no IOUDetails) action is present', () => {
+                const result = getCombinedReportActions([markAsPaidElsewhereAction, legitimateCreateAction], null, []);
+                expect(result.some((action) => action.reportActionID === legitimateCreateAction.reportActionID)).toBe(true);
+            });
+
+            it('keeps the SendMoney pay action itself (filter only drops type=create)', () => {
+                const result = getCombinedReportActions([sendMoneyPayAction, phantomCreateAction], 'thread-1', []);
+                const sendMoneyRendered = result.find((action) => action.reportActionID === sendMoneyPayAction.reportActionID);
+                expect(sendMoneyRendered).toBeDefined();
+            });
         });
     });
 
@@ -4359,6 +4483,57 @@ describe('ReportActionsUtils', () => {
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
         });
+
+        it('returns CONCIERGE for automatic DEW_APPROVE_FAILED when shouldUseRealActor is false', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, false);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns real actorAccountID for automatic DEW_APPROVE_FAILED when shouldUseRealActor is true', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(2701545);
+        });
+
+        it('returns real actorAccountID for harvest-created CREATED action when shouldUseRealActor is true', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(3, undefined), reportID: 'harvest-report-shouldUseRealActor'};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-456',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(9999);
+        });
     });
 
     describe('getInvoiceCompanyNameUpdateMessage', () => {
@@ -4554,6 +4729,53 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
             expect(result).toBe('disabled the company card purchases requirement');
+        });
+    });
+
+    describe('getReimbursedMessage', () => {
+        const buildReimbursedAction = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [],
+            }) as ReportAction;
+
+        it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
+            // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                accountNumber: 'XXXXXX4321',
+                creditBankAccountLast4: '5678',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then the message shows the last 4 digits of the account that funded the payment
+            const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
+                creditBankAccount: '5678',
+                expectedDate: undefined,
+            })}`;
+            expect(result).toBe(expected);
+        });
+
+        it('prefers debitBankAccountLast4 over accountNumber when both are present', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                accountNumber: 'XXXXXX4321',
+                creditBankAccountLast4: '5678',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
         });
     });
 
@@ -5249,7 +5471,7 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5259,6 +5481,23 @@ describe('ReportActionsUtils', () => {
                     ...baseParams,
                     message,
                     prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'deleted-action-id',
                     isOffline: false,
                 }),
             ).toBe(true);
@@ -5390,6 +5629,18 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it("clears the marker entirely when the only unread action is the current user's own new message", () => {
+            const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
+            const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [ownNew, olderRead],
+                    prevSortedVisibleReportActionsObjects: {},
+                }),
+            ).toEqual([null, -1]);
         });
     });
 
@@ -5753,6 +6004,51 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             } as ReportAction;
             expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+    });
+
+    describe('isPolicyCopyReportAction', () => {
+        function buildAction(actionName: ReportAction['actionName']): ReportAction {
+            return {
+                actionName,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+            } as unknown as ReportAction;
+        }
+
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL,
+        ])('returns true for the policy copy action %s', (actionName) => {
+            expect(ReportActionsUtils.isPolicyCopyReportAction(buildAction(actionName))).toBe(true);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME, CONST.REPORT.ACTIONS.TYPE.CREATED])(
+            'returns false for the non-copy action %s',
+            (actionName) => {
+                expect(ReportActionsUtils.isPolicyCopyReportAction(buildAction(actionName))).toBe(false);
+            },
+        );
+
+        it('returns false for an undefined action', () => {
+            expect(ReportActionsUtils.isPolicyCopyReportAction(undefined)).toBe(false);
         });
     });
 });

@@ -1,7 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
-import type {GestureResponderEvent} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
@@ -9,20 +5,27 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import type {ThemeStyles} from '@styles/index';
+
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
-import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Merge, ValueOf} from 'type-fest';
+
+import isEmpty from 'lodash/isEmpty';
+
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
-import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
@@ -42,7 +45,6 @@ type SelectPaymentTypeParams = {
     currentEmail: string;
     hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    isUserValidated?: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
@@ -216,7 +218,6 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         currentEmail,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        isUserValidated,
         confirmApproval,
         iouReport,
         iouReportNextStep,
@@ -232,12 +233,17 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
     }
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        if (!isUserValidated) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-            return;
-        }
-        triggerKYCFlow({event, iouPaymentType, policy});
-        setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+        // if (!isUserValidated) {
+        //     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        //     return;
+        // }
+        // setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+        triggerKYCFlow({
+            event,
+            iouPaymentType,
+            policy,
+            personalBankAccountOnSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+        });
         return;
     }
 
@@ -248,7 +254,6 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
-                policy,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
                 hasViolations,

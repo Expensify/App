@@ -1,14 +1,15 @@
-import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useTransactionsByID from '@hooks/useTransactionsByID';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -16,15 +17,23 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import {createNewReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -56,8 +65,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
         [personalDetails, selectedReport?.ownerAccountID],
     );
-    const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
-
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -71,8 +78,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [transactions] = useTransactionsByID(transactionIDs);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -92,9 +99,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                allTransactions,
                 policyTagList,
+                transactions,
                 allTransactionViolation: transactionViolations,
+                allReports,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -114,9 +122,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             accountID: currentUserPersonalDetails.accountID,
             email: currentUserPersonalDetails.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-            allTransactions,
             policyTagList,
+            transactions,
             allTransactionViolation: transactionViolations,
+            allReports,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -130,13 +139,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
         selectReport(
             {
                 value: optimisticReport.reportID,
                 keyForList: optimisticReport.reportID,
-                policyID: policyForNewReport?.id,
+                policyID: policyForMovingExpenses?.id,
             },
             optimisticReport,
         );
@@ -150,7 +158,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        const restrictionPolicy = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
+        const restrictionPolicy = policyForMovingExpenses;
         if (
             restrictionPolicy &&
             shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)

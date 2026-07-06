@@ -1,6 +1,7 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PendingPaymentContinue from '@src/types/onyx/PendingPaymentContinue';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Stores a payment action that was interrupted because the user's account is not yet validated, so the

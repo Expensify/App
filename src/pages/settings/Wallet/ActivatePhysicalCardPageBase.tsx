@@ -1,21 +1,23 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {activatePhysicalExpensifyCard, clearCardListErrors} from '@libs/actions/Card';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -23,14 +25,20 @@ import SCREENS from '@src/SCREENS';
 import type {CardList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 type ActivatePhysicalCardPageBaseProps = {
     cardID?: string;
     navigateBackTo?: Route;
+
+    /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+    isFromDomainCardDetail?: boolean;
 };
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 
-function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhysicalCardPageBaseProps) {
+function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomainCardDetail = false}: ActivatePhysicalCardPageBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -48,15 +56,18 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
     /**
-     * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
+     * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, return to the card details screen.
      */
     useEffect(() => {
         if (inactiveCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || inactiveCard?.isLoading) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-    }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state]);
+        // Collapse the activate flow back onto the existing card route instead of pushing a new one, so the user is not left
+        // with a duplicate card details screen and a stale route to back through.
+        const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
+        Navigation.goBack(cardDetailRoute, {compareParams: false});
+    }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state, isFromDomainCardDetail]);
 
     useEffect(() => {
         if (!inactiveCard?.cardID) {
@@ -100,7 +111,9 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(navigateBackTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
+            onBackButtonPress={() =>
+                Navigation.goBack(navigateBackTo ?? (isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID)))
+            }
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

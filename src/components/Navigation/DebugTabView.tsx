@@ -1,11 +1,7 @@
-import type {NavigationState} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,11 +14,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
 import {getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -32,6 +31,14 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
+import type {NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 function getActiveTabRoute(rootState: NavigationState | undefined) {
@@ -76,17 +83,21 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAProblemWithYourWalletTerms';
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return 'debug.indicatorStatus.aBankAccountIsLocked';
+        case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+            return 'debug.indicatorStatus.completeHrSetup';
+        case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
         default:
             return undefined;
     }
 }
 
-function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, policyIDWithErrors = ''): Route | undefined {
+function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, indicatorPolicyID = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
-            return ROUTES.WORKSPACE_MEMBERS.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return ROUTES.SETTINGS_CONTACT_METHODS.route;
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -94,7 +105,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
-            return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_INITIAL.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
             return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: reimbursementAccount?.achData?.policyID});
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
@@ -102,13 +113,16 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
+        case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+        case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
+            return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
         default:
             return undefined;
     }
@@ -127,7 +141,7 @@ function DebugTabView({selectedTab}: Props) {
     const {windowWidth} = useWindowDimensions();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
-    const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
+    const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
     const {orderedReportIDs, chatTabBrickRoad} = useSidebarOrderedReportsState();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -186,13 +200,13 @@ function DebugTabView({selectedTab}: Props) {
             }
         }
         if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
-            const route = getSettingsRoute(status, reimbursementAccount, policyIDWithErrors);
+            const route = getSettingsRoute(status, reimbursementAccount, indicatorPolicyID);
 
             if (route) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, indicatorPolicyID]);
 
     if (
         (shouldUseNarrowLayout && !isAtRoot) ||
