@@ -23,6 +23,7 @@ Onyx.connectWithoutView({
     },
 });
 
+// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
