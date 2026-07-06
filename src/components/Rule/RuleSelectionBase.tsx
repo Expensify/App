@@ -43,11 +43,14 @@ type RuleSelectionBaseProps = {
     /** The route to navigate back to */
     backToRoute: Route;
 
+    /** When true, shows a "None" option in the picker */
+    allowNoneOption?: boolean;
+
     /** Optional hash for rule not found validation */
     hash?: string;
 };
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
+function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, allowNoneOption = false, hash}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -69,7 +72,7 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                         items={items}
                         onSaveSelection={onSave}
                         shouldAutoSave
-                        allowNoneOption
+                        allowNoneOption={allowNoneOption}
                     />
                 </View>
             </ScreenWrapper>
