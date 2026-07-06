@@ -556,20 +556,28 @@ describe('SequentialQueue - offline read reconciliation', () => {
     /**
      * Mocks the network layer so that an offline AddComment resolves with a report onyxData update carrying
      * the given server-assigned lastVisibleActionCreated, and every other command resolves with no data.
-     * The mutated lastReadTime that the queue sends for the ReadNewestAction is captured for assertions.
+     * Returns the spy alongside a capture object recording the lastReadTime the queue sends for the
+     * ReadNewestAction, for assertions.
      */
-    function mockProcessWithMiddleware(commentServerTime: string | undefined, capture: {readLastReadTime?: string}) {
-        return jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(((request: AnyRequest): Promise<Response<OnyxKey> | void> => {
-            if (request.command === WRITE_COMMANDS.ADD_COMMENT && commentServerTime !== undefined) {
+    function mockProcessWithMiddleware(commentServerTime: string | undefined) {
+        const capture: {readLastReadTime?: string} = {};
+        const mockImpl = (mockedRequest: AnyRequest): Promise<Response<OnyxKey> | void> => {
+            if (mockedRequest.command === WRITE_COMMANDS.ADD_COMMENT && commentServerTime !== undefined) {
                 return Promise.resolve({
                     onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {lastVisibleActionCreated: commentServerTime}}],
-                } as Response<OnyxKey>);
+                });
             }
-            if (request.command === WRITE_COMMANDS.READ_NEWEST_ACTION) {
-                capture.readLastReadTime = typeof request.data?.lastReadTime === 'string' ? request.data.lastReadTime : undefined;
+            if (mockedRequest.command === WRITE_COMMANDS.READ_NEWEST_ACTION) {
+                capture.readLastReadTime = typeof mockedRequest.data?.lastReadTime === 'string' ? mockedRequest.data.lastReadTime : undefined;
             }
             return Promise.resolve();
-        }) as typeof RequestModule.processWithMiddleware);
+        };
+        // processWithMiddleware is generic over the Onyx key of the request/response; the mock only needs to
+        // read/return command-shaped data, so it's implemented against the widened AnyRequest/OnyxKey and
+        // installed via a cast rather than reproducing the generic signature.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- generic mock installed against a widened, non-generic implementation
+        const spy = jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(mockImpl as typeof RequestModule.processWithMiddleware);
+        return {spy, capture};
     }
 
     const buildComment = (): AnyRequest => ({command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID}, initiatedOffline: true});
@@ -587,8 +595,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     it('bumps a following offline ReadNewestAction forward to the offline comment server time', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';
-        const capture: {readLastReadTime?: string} = {};
-        const processSpy = mockProcessWithMiddleware(commentServerTime, capture);
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
         try {
             SequentialQueue.pause();
             await SequentialQueue.push(buildComment());
@@ -606,8 +613,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     it('never moves a ReadNewestAction backward when the read already covers a newer time than the comment', async () => {
         const commentServerTime = '2026-01-01 09:00:00.000';
         const newerReadTime = '2026-01-01 11:00:00.000';
-        const capture: {readLastReadTime?: string} = {};
-        const processSpy = mockProcessWithMiddleware(commentServerTime, capture);
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
         try {
             SequentialQueue.pause();
             await SequentialQueue.push(buildComment());
@@ -625,9 +631,8 @@ describe('SequentialQueue - offline read reconciliation', () => {
 
     it('does not bump the read when the report had no offline comment, so a later message from another user stays unread', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
-        const capture: {readLastReadTime?: string} = {};
         // No comment is pushed, so nothing is recorded for the report.
-        const processSpy = mockProcessWithMiddleware(undefined, capture);
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(undefined);
         try {
             SequentialQueue.pause();
             await SequentialQueue.push(buildRead(staleReadTime));
@@ -644,8 +649,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     it('does not leak a recorded comment time across queue flushes (map is cleared on drain)', async () => {
         const commentServerTime = '2026-01-01 12:00:00.000';
         const earlierReadTime = '2026-01-01 08:00:00.000';
-        const capture: {readLastReadTime?: string} = {};
-        const processSpy = mockProcessWithMiddleware(commentServerTime, capture);
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
         try {
             // Flush 1: an offline comment drains with NO following read. The recorded entry must be cleared.
             await SequentialQueue.push(buildComment());
