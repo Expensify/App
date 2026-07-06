@@ -9,7 +9,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
@@ -26,7 +26,6 @@ import isEmpty from 'lodash/isEmpty';
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
-import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
@@ -46,7 +45,6 @@ type SelectPaymentTypeParams = {
     currentEmail: string;
     hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    isUserValidated?: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
@@ -204,29 +202,6 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
 }
 
 /**
- * Navigates the user to the appropriate account verification page based on the current route context.
- */
-const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
-    const activeRoute = Navigation.getActiveRoute();
-    const reportID = iouReport?.reportID;
-    if (!reportID) {
-        // Technically possible but should never happen in real life
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-        return;
-    }
-
-    if (activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else {
-        Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    }
-};
-
-/**
  * Determines the appropriate payment action based on user validation and policy restrictions.
  * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
  * handles direct approvals, or proceeds with basic payment processing.
@@ -243,7 +218,6 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         currentEmail,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        isUserValidated,
         confirmApproval,
         iouReport,
         iouReportNextStep,
@@ -259,9 +233,6 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
     }
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        if (!isUserValidated) {
-            return handleUnvalidatedAccount(iouReport);
-        }
         triggerKYCFlow({
             event,
             iouPaymentType,
@@ -380,7 +351,6 @@ export {
     getBusinessBankAccountOptions,
     matchesCurrency,
     calculateWalletTransferBalanceFee,
-    handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
     isSecondaryActionAWorkspacePolicyOption,
