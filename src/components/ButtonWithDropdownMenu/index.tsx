@@ -223,15 +223,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         testID={testID}
                         sentryLabel={sentryLabel}
                     >
-                        {pressOnEnter && (
-                            <Button.KeyboardShortcut
-                                isDisabled={isDisabled || areAllOptionsDisabled}
-                                isLoading={isLoading}
-                                onPress={handlePress}
-                                pressOnEnter={pressOnEnter}
-                                enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                            />
-                        )}
+                        {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
                         {!!splitButtonIcon && (
                             <Button.Icon
                                 src={splitButtonIcon}
@@ -317,15 +309,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     testID={testID}
                     sentryLabel={sentryLabel}
                 >
-                    {pressOnEnter && (
-                        <Button.KeyboardShortcut
-                            isDisabled={isDisabled || !!options.at(0)?.disabled}
-                            isLoading={isLoading}
-                            onPress={handleSingleOptionPress}
-                            pressOnEnter={pressOnEnter}
-                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        />
-                    )}
+                    {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
                     {!!singleOptionButtonIcon && <Button.Icon src={singleOptionButtonIcon} />}
                     {secondLineText ? (
                         <DoubleLineButtonText
