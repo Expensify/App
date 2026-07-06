@@ -30,8 +30,8 @@ const pendingModalClose = {
 };
 
 /**
- * Provides only the biometric values read during `INIT`. The `Pick` makes renamed hook fields fail type
- * checking.
+ * Provides only the biometric values captured for telemetry while preparing `INIT`. They do not
+ * currently affect machine transitions. The `Pick` makes renamed hook fields fail type checking.
  */
 const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'areLocalCredentialsKnownToServer'> = {
     serverKnownCredentialIDs: [],
