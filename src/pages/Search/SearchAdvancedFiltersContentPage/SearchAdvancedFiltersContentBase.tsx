@@ -19,6 +19,8 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,8 +42,7 @@ function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
     return filterKey in FILTER_VIEW_MAP;
 }
 
-const CONFIRM_BUTTON_HEIGHT = 56;
-const MIN_HEADER_HEIGHT_ON_COLLAPSE_LANDSCAPE_MODE = 8;
+const CONFIRM_BUTTON_HEIGHT = variables.componentSizeLarge;
 
 function SearchAdvancedFiltersContentBase() {
     const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
@@ -127,8 +128,6 @@ function SearchAdvancedFiltersContentBase() {
                             collapsibleHeaderOffset={getCollapsibleHeaderOffset()}
                             // In landscape mode we want to show as much of the selection list as possible for filters that use it
                             alwaysCollapseHeaderOnKeyboard={isFilterWithSelectionList}
-                            // We want to leave some empty space above the inputs when the header collapses
-                            minHeaderHeightOnCollapse={MIN_HEADER_HEIGHT_ON_COLLAPSE_LANDSCAPE_MODE}
                         >
                             <HeaderWithBackButton
                                 title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
