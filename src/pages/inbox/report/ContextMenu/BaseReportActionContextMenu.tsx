@@ -384,8 +384,8 @@ function BaseReportActionContextMenu({
         });
     };
 
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         reportAction: (reportAction ?? null) as ReportAction,
         policyID,
     });
