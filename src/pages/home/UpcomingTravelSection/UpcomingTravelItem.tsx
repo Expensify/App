@@ -1,201 +1,153 @@
-import Icon from "@components/Icon";
-import MenuItemWithTopDescription from "@components/MenuItemWithTopDescription";
+import Icon from '@components/Icon';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
-import { useMemoizedLazyExpensifyIcons } from "@hooks/useLazyAsset";
-import useLocalize from "@hooks/useLocalize";
-import useResponsiveLayout from "@hooks/useResponsiveLayout";
-import useStyleUtils from "@hooks/useStyleUtils";
-import useTheme from "@hooks/useTheme";
-import useThemeStyles from "@hooks/useThemeStyles";
-import createDynamicRoute from "@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute";
-import Navigation from "@libs/Navigation/Navigation";
-import {
-  formatCancelledDescription,
-  getTripReservationIcon,
-} from "@libs/TripReservationUtils";
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from "@styles/variables";
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
 
-import CONST from "@src/CONST";
-import ROUTES, { DYNAMIC_ROUTES } from "@src/ROUTES";
-import type { Reservation } from "@src/types/onyx/Transaction";
+import variables from '@styles/variables';
 
-import { differenceInCalendarDays } from "date-fns";
-import { Str } from "expensify-common";
-import React from "react";
-import { View } from "react-native";
+import CONST from '@src/CONST';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Reservation} from '@src/types/onyx/Transaction';
 
-import type { UpcomingReservation } from "./useUpcomingTravelReservations";
+import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {UpcomingReservation} from './useUpcomingTravelReservations';
 
 type UpcomingTravelItemProps = {
-  reservation: UpcomingReservation;
+    reservation: UpcomingReservation;
 };
 
 function getDestinationCity(reservation: Reservation): string {
-  const isDestinationType =
-    reservation.type === CONST.RESERVATION_TYPE.FLIGHT ||
-    reservation.type === CONST.RESERVATION_TYPE.TRAIN;
-  const cityName = isDestinationType
-    ? reservation.end.cityName
-    : reservation.start.cityName;
-  return Str.recapitalize(cityName?.split(",")[0].trim() ?? "");
+    const isDestinationType = reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN;
+    const cityName = isDestinationType ? reservation.end.cityName : reservation.start.cityName;
+    return Str.recapitalize(cityName?.split(',')[0].trim() ?? '');
 }
 
-function getTitle(
-  translate: ReturnType<typeof useLocalize>["translate"],
-  reservation: Reservation,
-): string {
-  const city = getDestinationCity(reservation);
-  switch (reservation.type) {
-    case CONST.RESERVATION_TYPE.FLIGHT:
-      return translate("homePage.upcomingTravelSection.flightTo", {
-        destination: city,
-      });
-    case CONST.RESERVATION_TYPE.TRAIN:
-      return translate("homePage.upcomingTravelSection.trainTo", {
-        destination: city,
-      });
-    case CONST.RESERVATION_TYPE.HOTEL:
-      return translate("homePage.upcomingTravelSection.hotelIn", {
-        destination: city,
-      });
-    case CONST.RESERVATION_TYPE.CAR:
-      return translate("homePage.upcomingTravelSection.carRentalIn", {
-        destination: city,
-      });
-    default:
-      return city;
-  }
+function getTitle(translate: ReturnType<typeof useLocalize>['translate'], reservation: Reservation): string {
+    const city = getDestinationCity(reservation);
+    switch (reservation.type) {
+        case CONST.RESERVATION_TYPE.FLIGHT:
+            return translate('homePage.upcomingTravelSection.flightTo', {
+                destination: city,
+            });
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return translate('homePage.upcomingTravelSection.trainTo', {
+                destination: city,
+            });
+        case CONST.RESERVATION_TYPE.HOTEL:
+            return translate('homePage.upcomingTravelSection.hotelIn', {
+                destination: city,
+            });
+        case CONST.RESERVATION_TYPE.CAR:
+            return translate('homePage.upcomingTravelSection.carRentalIn', {
+                destination: city,
+            });
+        default:
+            return city;
+    }
 }
 
-function getRelativeTime(
-  translate: ReturnType<typeof useLocalize>["translate"],
-  startDate: string,
-): string {
-  const diffDays = differenceInCalendarDays(new Date(startDate), new Date());
+function getRelativeTime(translate: ReturnType<typeof useLocalize>['translate'], startDate: string): string {
+    const diffDays = differenceInCalendarDays(new Date(startDate), new Date());
 
-  // Today or in the past (shouldn't happen given the 7-day window filter, but handled for safety)
-  if (diffDays <= 0) {
-    return translate("homePage.upcomingTravelSection.today");
-  }
-  if (diffDays === CONST.UPCOMING_TRAVEL_WINDOW_DAYS) {
-    return translate("homePage.upcomingTravelSection.inOneWeek");
-  }
-  return translate("homePage.upcomingTravelSection.inDays", {
-    count: diffDays,
-  });
+    // Today or in the past (shouldn't happen given the 7-day window filter, but handled for safety)
+    if (diffDays <= 0) {
+        return translate('homePage.upcomingTravelSection.today');
+    }
+    if (diffDays === CONST.UPCOMING_TRAVEL_WINDOW_DAYS) {
+        return translate('homePage.upcomingTravelSection.inOneWeek');
+    }
+    return translate('homePage.upcomingTravelSection.inDays', {
+        count: diffDays,
+    });
 }
 
 function getTypeIdentifier(reservation: Reservation): string {
-  switch (reservation.type) {
-    case CONST.RESERVATION_TYPE.FLIGHT:
-      return [reservation.company?.shortName, reservation.route?.number]
-        .filter(Boolean)
-        .join(" ");
+    switch (reservation.type) {
+        case CONST.RESERVATION_TYPE.FLIGHT:
+            return [reservation.company?.shortName, reservation.route?.number].filter(Boolean).join(' ');
 
-    case CONST.RESERVATION_TYPE.HOTEL:
-      return Str.recapitalize(reservation.start.longName ?? "");
+        case CONST.RESERVATION_TYPE.HOTEL:
+            return Str.recapitalize(reservation.start.longName ?? '');
 
-    case CONST.RESERVATION_TYPE.CAR:
-    case CONST.RESERVATION_TYPE.TRAIN:
-      return reservation.vendor ?? "";
+        case CONST.RESERVATION_TYPE.CAR:
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return reservation.vendor ?? '';
 
-    default:
-      return "";
-  }
+        default:
+            return '';
+    }
 }
 
-function UpcomingTravelItem({
-  reservation: upcomingReservation,
-}: UpcomingTravelItemProps) {
-  const theme = useTheme();
-  const styles = useThemeStyles();
-  const StyleUtils = useStyleUtils();
-  const { translate } = useLocalize();
-  const { shouldUseNarrowLayout } = useResponsiveLayout();
-  const expensifyIcons = useMemoizedLazyExpensifyIcons([
-    "Plane",
-    "PlaneCircleSlash",
-    "Bed",
-    "BedCircleSlash",
-    "CarWithKey",
-    "CarCircleSlash",
-    "Train",
-    "TrainCircleSlash",
-    "Luggage",
-    "ArrowRight",
-  ]);
+function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelItemProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Plane',
+        'PlaneCircleSlash',
+        'Bed',
+        'BedCircleSlash',
+        'CarWithKey',
+        'CarCircleSlash',
+        'Train',
+        'TrainCircleSlash',
+        'Luggage',
+        'ArrowRight',
+    ]);
 
-  const { reservation, reportID, transactionID, sequenceIndex, isCancelled } =
-    upcomingReservation;
-  const reservationIcon = getTripReservationIcon(
-    expensifyIcons,
-    reservation.type,
-    isCancelled,
-  );
-  const title = getTitle(translate, reservation);
-  const relativeTime = getRelativeTime(translate, reservation.start.date);
-  const typeId = getTypeIdentifier(reservation);
-  const subtitle = typeId
-    ? `${relativeTime} ${CONST.DOT_SEPARATOR} ${typeId}`
-    : relativeTime;
+    const {reservation, reportID, transactionID, sequenceIndex, isCancelled} = upcomingReservation;
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
+    const title = getTitle(translate, reservation);
+    const relativeTime = getRelativeTime(translate, reservation.start.date);
+    const typeId = getTypeIdentifier(reservation);
+    const subtitle = typeId ? `${relativeTime} ${CONST.DOT_SEPARATOR} ${typeId}` : relativeTime;
 
-  const handlePress = () => {
-    Navigation.navigate(
-      createDynamicRoute(
-        DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(
-          transactionID,
-          String(reservation.reservationID),
-          sequenceIndex,
-        ),
-        ROUTES.REPORT_WITH_ID.getRoute(reportID),
-      ),
+    const handlePress = () => {
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionID, String(reservation.reservationID), sequenceIndex), ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        );
+    };
+
+    return (
+        <MenuItemWithTopDescription
+            description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
+            title={title}
+            titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}
+            accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
+            onPress={handlePress}
+            shouldShowRightIcon
+            leftComponent={
+                <View style={[styles.homeWidgetIconContainer, StyleUtils.getBackgroundColorStyle(theme.border)]}>
+                    <Icon
+                        src={reservationIcon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        fill={theme.icon}
+                    />
+                </View>
+            }
+            wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+            hasSubMenuItems
+            viewMode={CONST.OPTION_MODE.COMPACT}
+            rightIconWrapperStyle={styles.pl2}
+            shouldCheckActionAllowedOnPress={false}
+        />
     );
-  };
-
-  return (
-    <MenuItemWithTopDescription
-      description={formatCancelledDescription(
-        translate("iou.canceled"),
-        subtitle,
-        isCancelled,
-      )}
-      title={title}
-      titleStyle={
-        isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold
-      }
-      accessibilityLabel={
-        isCancelled
-          ? `${formatCancelledDescription(translate("iou.canceled"), subtitle, isCancelled)} ${title}`
-          : undefined
-      }
-      onPress={handlePress}
-      shouldShowRightIcon
-      leftComponent={
-        <View
-          style={[
-            styles.homeWidgetIconContainer,
-            StyleUtils.getBackgroundColorStyle(theme.border),
-          ]}
-        >
-          <Icon
-            src={reservationIcon}
-            width={variables.iconSizeNormal}
-            height={variables.iconSizeNormal}
-            fill={theme.icon}
-          />
-        </View>
-      }
-      wrapperStyle={[
-        styles.alignItemsCenter,
-        shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-      ]}
-      hasSubMenuItems
-      viewMode={CONST.OPTION_MODE.COMPACT}
-      rightIconWrapperStyle={styles.pl2}
-      shouldCheckActionAllowedOnPress={false}
-    />
-  );
 }
 
 export default UpcomingTravelItem;

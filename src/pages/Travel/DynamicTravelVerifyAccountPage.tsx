@@ -1,76 +1,59 @@
-import useOnyx from "@hooks/useOnyx";
-import usePermissions from "@hooks/usePermissions";
-import useDynamicBackPath from "@hooks/useDynamicBackPath";
-import {
-  requestTravelAccess,
-  setTravelProvisioningNextStep,
-} from "@libs/actions/Travel";
-import createDynamicRoute from "@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute";
-import Navigation from "@libs/Navigation/Navigation";
-import type { TravelNavigatorParamList } from "@libs/Navigation/types";
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
-import VerifyAccountPageBase from "@pages/settings/VerifyAccountPageBase";
+import {requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 
-import CONST from "@src/CONST";
-import ONYXKEYS from "@src/ONYXKEYS";
-import { DYNAMIC_ROUTES } from "@src/ROUTES";
-import type SCREENS from "@src/SCREENS";
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 
-import type { StackScreenProps } from "@react-navigation/stack";
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-import React, { useCallback, useEffect } from "react";
+import type {StackScreenProps} from '@react-navigation/stack';
 
-type DynamicTravelVerifyAccountPageProps = StackScreenProps<
-  TravelNavigatorParamList,
-  typeof SCREENS.TRAVEL.VERIFY_ACCOUNT
->;
+import React, {useCallback, useEffect} from 'react';
 
-function DynamicTravelVerifyAccountPage({
-  route,
-}: DynamicTravelVerifyAccountPageProps) {
-  const { domain, policyID } = route.params;
-  const backPath = useDynamicBackPath(
-    DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.path,
-  );
-  const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
-  const { isBetaEnabled } = usePermissions();
+type DynamicTravelVerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 
-  useEffect(() => {
-    return () => {
-      setTravelProvisioningNextStep();
-    };
-  }, []);
+function DynamicTravelVerifyAccountPage({route}: DynamicTravelVerifyAccountPageProps) {
+    const {domain, policyID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.path);
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+    const {isBetaEnabled} = usePermissions();
 
-  const isTravelVerifiedBetaEnabled = isBetaEnabled(
-    CONST.BETAS.IS_TRAVEL_VERIFIED,
-  );
+    useEffect(() => {
+        return () => {
+            setTravelProvisioningNextStep();
+        };
+    }, []);
 
-  // Determine where to navigate after successful OTP validation
-  const defaultForwardRoute = domain
-    ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID))
-    : undefined;
-  const navigateForwardTo = isTravelVerifiedBetaEnabled
-    ? (travelProvisioning?.nextStepRoute ?? defaultForwardRoute)
-    : undefined;
+    const isTravelVerifiedBetaEnabled = isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED);
 
-  const handleValidationSuccess = useCallback(() => {
-    requestTravelAccess();
-  }, []);
+    // Determine where to navigate after successful OTP validation
+    const defaultForwardRoute = domain ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID)) : undefined;
+    const navigateForwardTo = isTravelVerifiedBetaEnabled ? (travelProvisioning?.nextStepRoute ?? defaultForwardRoute) : undefined;
 
-  const handleClose = useCallback(() => {
-    Navigation.goBack(backPath);
-  }, [backPath]);
+    const handleValidationSuccess = useCallback(() => {
+        requestTravelAccess();
+    }, []);
 
-  return (
-    <VerifyAccountPageBase
-      navigateBackTo={backPath}
-      navigateForwardTo={navigateForwardTo}
-      handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
-      onValidationSuccess={
-        !isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined
-      }
-    />
-  );
+    const handleClose = useCallback(() => {
+        Navigation.goBack(backPath);
+    }, [backPath]);
+
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={backPath}
+            navigateForwardTo={navigateForwardTo}
+            handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
+            onValidationSuccess={!isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined}
+        />
+    );
 }
 
 export default DynamicTravelVerifyAccountPage;

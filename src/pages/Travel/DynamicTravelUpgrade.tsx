@@ -1,77 +1,73 @@
-import HeaderWithBackButton from "@components/HeaderWithBackButton";
-import ScreenWrapper from "@components/ScreenWrapper";
-import ScrollView from "@components/ScrollView";
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 
-import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
-import useDynamicBackPath from "@hooks/useDynamicBackPath";
-import useLocalize from "@hooks/useLocalize";
-import useNetwork from "@hooks/useNetwork";
-import useOnyx from "@hooks/useOnyx";
-import useThemeStyles from "@hooks/useThemeStyles";
-import createDynamicRoute from "@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute";
-import Navigation from "@libs/Navigation/Navigation";
-import { getActivePolicies, isPaidGroupPolicy } from "@libs/PolicyUtils";
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import UpgradeConfirmation from "@pages/workspace/upgrade/UpgradeConfirmation";
-import UpgradeIntro from "@pages/workspace/upgrade/UpgradeIntro";
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {getActivePolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
 
-import CONST from "@src/CONST";
-import ONYXKEYS from "@src/ONYXKEYS";
-import { DYNAMIC_ROUTES } from "@src/ROUTES";
+import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
+import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 
-import React from "react";
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 function DynamicTravelUpgrade() {
-  const styles = useThemeStyles();
-  const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path);
-  const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
-  const { translate } = useLocalize();
-  const { isOffline } = useNetwork();
-  const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-  const { login: currentUserLogin } = useCurrentUserPersonalDetails();
-  const groupPaidPolicies = getActivePolicies(
-    policies,
-    currentUserLogin,
-  ).filter(isPaidGroupPolicy);
+    const styles = useThemeStyles();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path);
+    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const groupPaidPolicies = getActivePolicies(policies, currentUserLogin).filter(isPaidGroupPolicy);
 
-  const isUpgraded = groupPaidPolicies.length > 0;
+    const isUpgraded = groupPaidPolicies.length > 0;
 
-  const openWorkspaceConfirmation = () => {
-    Navigation.navigate(
-      createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path),
+    const openWorkspaceConfirmation = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path));
+    };
+
+    return (
+        <ScreenWrapper
+            shouldShowOfflineIndicator
+            testID="TravelUpgrade"
+            offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
+        >
+            <HeaderWithBackButton
+                title={translate('common.upgrade')}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
+            />
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {isUpgraded ? (
+                    <UpgradeConfirmation
+                        afterUpgradeAcknowledged={() => Navigation.goBack()}
+                        policyName=""
+                        isTravelUpgrade
+                    />
+                ) : (
+                    <UpgradeIntro
+                        feature={feature}
+                        onUpgrade={openWorkspaceConfirmation}
+                        buttonDisabled={isOffline}
+                        loading={false}
+                        isCategorizing
+                    />
+                )}
+            </ScrollView>
+        </ScreenWrapper>
     );
-  };
-
-  return (
-    <ScreenWrapper
-      shouldShowOfflineIndicator
-      testID="TravelUpgrade"
-      offlineIndicatorStyle={styles.mtAuto}
-      shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
-    >
-      <HeaderWithBackButton
-        title={translate("common.upgrade")}
-        onBackButtonPress={() => Navigation.goBack(backPath)}
-      />
-      <ScrollView contentContainerStyle={styles.flexGrow1}>
-        {isUpgraded ? (
-          <UpgradeConfirmation
-            afterUpgradeAcknowledged={() => Navigation.goBack()}
-            policyName=""
-            isTravelUpgrade
-          />
-        ) : (
-          <UpgradeIntro
-            feature={feature}
-            onUpgrade={openWorkspaceConfirmation}
-            buttonDisabled={isOffline}
-            loading={false}
-            isCategorizing
-          />
-        )}
-      </ScrollView>
-    </ScreenWrapper>
-  );
 }
 
 export default DynamicTravelUpgrade;
