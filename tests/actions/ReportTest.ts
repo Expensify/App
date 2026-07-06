@@ -6424,6 +6424,23 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('resolveConciergeCategoryOptions', () => {
+        it('posts the selected category back to Concierge as a comment (routes through resolveConciergeOptions → addComment)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const REPORT_ID = 'concierge-opts-1';
+            const report = createMock<OnyxTypes.Report>({reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await waitForBatchedUpdates();
+
+            // When the user picks one of the Concierge-suggested category options
+            Report.resolveConciergeCategoryOptions(report, REPORT_ID, '5150', 'Food', CONST.DEFAULT_TIME_ZONE, 1, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the selection is posted back to Concierge as a comment
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        });
+    });
+
     // Shared test constants for leave functions
     const TEST_CONCIERGE_REPORT_ID = '999';
     const TEST_CURRENT_USER_ACCOUNT_ID = 1;
