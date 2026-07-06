@@ -1,6 +1,7 @@
 type ModifiedMouseEvent = {
     preventDefault?: () => void;
     stopPropagation?: () => void;
+    shiftKey?: boolean;
     metaKey?: boolean;
     ctrlKey?: boolean;
     button?: number;

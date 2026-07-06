@@ -5,6 +5,7 @@ import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 
 import {isMobileChrome} from '@libs/Browser';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -17,7 +18,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProp
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         normalizedIndex?: number;
-        selectRow: (item: TItem, indexToFocus?: number) => void;
+        selectRow: (item: TItem, indexToFocus?: number, shiftKey?: boolean) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
@@ -81,11 +82,12 @@ function ListItemRenderer<TItem extends ListItem>({
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onLongPressRow={onLongPressRow}
-                onSelectRow={() => {
+                onSelectRow={(_selectedItem?: unknown, _transactionPreviewData?: unknown, event?: ModifiedMouseEvent) => {
+                    const shiftKey = event?.shiftKey ?? false;
                     if (shouldSingleExecuteRowSelect) {
-                        singleExecution(() => selectRow(item, index))();
+                        singleExecution(() => selectRow(item, index, shiftKey))();
                     } else {
-                        selectRow(item, index);
+                        selectRow(item, index, shiftKey);
                     }
                 }}
                 onSelectionButtonPress={handleOnSelectionButtonPress()}

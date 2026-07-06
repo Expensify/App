@@ -229,8 +229,11 @@ function BaseSelectionList<TItem extends ListItem>({
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
-        (item: TItem, indexToFocus?: number) => {
+        (item: TItem, indexToFocus?: number, shiftKey?: boolean) => {
             if (!isFocused) {
+                return;
+            }
+            if (shiftRangeEnabled && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }
             if (canSelectMultiple) {
