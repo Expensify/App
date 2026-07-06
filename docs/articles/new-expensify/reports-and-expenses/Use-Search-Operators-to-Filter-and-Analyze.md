@@ -82,6 +82,7 @@ You can use the following operators to filter reports:
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
+- `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
