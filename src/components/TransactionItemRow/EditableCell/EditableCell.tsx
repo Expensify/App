@@ -154,6 +154,8 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                             <PressableWithFeedback
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.edit')}
+                                accessible={shouldShowEditIcon}
+                                tabIndex={0}
                                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                                 onPress={onStartEditing}
                                 onFocus={handleEditIconFocus}
