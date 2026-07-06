@@ -1,7 +1,9 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartDataPoint, LabelRotation} from '@components/Charts/types';
 import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount} from '@components/Charts/utils';
 import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
 import type useChartLabelMeasurements from './useChartLabelMeasurements';
 
 type LabelLayoutConfig = {

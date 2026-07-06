@@ -1,6 +1,5 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useState} from 'react';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding, extractRHPVariantFromResponse} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
@@ -8,9 +7,14 @@ import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFea
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {useState} from 'react';
+
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';

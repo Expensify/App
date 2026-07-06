@@ -1,6 +1,8 @@
 import {getOnboardingStepCounter} from '@libs/getOnboardingStepCounter';
 import type {OnboardingFlowContext, OnboardingScreen, OnboardingStepResult} from '@libs/getOnboardingStepCounter';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useOnyx from './useOnyx';
 
 function useOnboardingStepCounter(page: OnboardingScreen, overrides: Partial<Pick<OnboardingFlowContext, 'isAccountingEnabled'>> = {}): OnboardingStepResult | undefined {

@@ -1,10 +1,14 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import SidePanelActions from '@libs/actions/SidePanel';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingRHPVariant} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {HandleRHPVariantNavigation, ShouldOpenRHPVariant} from './types';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;

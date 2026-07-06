@@ -1,3 +1,11 @@
+import {handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import type {ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
 import type {
     CommonActions,
     NavigationRoute,
@@ -9,12 +17,6 @@ import type {
     StackActionType,
     StackNavigationState,
 } from '@react-navigation/native';
-import {handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
-import type {ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 // Stub the linking parser so the test does not depend on the production linking config.
 // Each test sets the parsed state (what getStateFromPath returns for the incoming route).
