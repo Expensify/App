@@ -478,10 +478,22 @@ function SearchWriteActionsProvider({
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
         items: flattenedShiftRangeItems,
         getItemKey: (item) => item.keyForList,
-        // So a cold shift+click resolves its anchor from the existing selection instead of the first row.
         getSelectedKeys: () => {
             const selected = getSelectedTransactions();
-            return Object.keys(selected).filter((key) => selected[key]?.isSelected);
+            const keys = new Set<string>();
+            for (const rangeItem of flattenedShiftRangeItems) {
+                if (!rangeItem.keyForList) {
+                    continue;
+                }
+                const rowSelected =
+                    isTransactionGroupListItemType(rangeItem) && rangeItem.transactions.length > 0
+                        ? rangeItem.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected)
+                        : selected[rangeItem.keyForList]?.isSelected;
+                if (rowSelected) {
+                    keys.add(rangeItem.keyForList);
+                }
+            }
+            return keys;
         },
         isDisabledItem: (item) => isTransactionListItemType(item) && isTransactionPendingDelete(item),
         onApplyRange: applyShiftRangeBatch,
