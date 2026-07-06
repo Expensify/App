@@ -1,7 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -11,9 +12,11 @@ import type {ValueOf} from 'type-fest';
 
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
 
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
+import isTrackOnboardingChoice from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -29,6 +32,15 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
+
+let introSelected: OnyxEntry<IntroSelected>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => {
+        introSelected = value;
+    },
+});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -146,7 +158,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackIntentUser ?? isTrackOnboardingChoice(introSelected?.choice), report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -210,7 +222,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser,
+                        isTrackIntentUser: isTrackIntentUser ?? isTrackOnboardingChoice(introSelected?.choice),
                         report,
                         policy,
                     })
@@ -560,7 +572,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
             {
-                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser, report, policy});
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackIntentUser ?? isTrackOnboardingChoice(introSelected?.choice), report, policy});
 
                 if (isRejectedReport) {
                     optimisticNextStep = {
