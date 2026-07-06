@@ -42,7 +42,7 @@ const LIST_SIZE = {
 };
 const LIST_CONTENT_SIZE = {
     width: 300,
-    height: 100,
+    height: 600,
 };
 const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
 
