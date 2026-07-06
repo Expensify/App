@@ -1,18 +1,24 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCurrentActionUnread, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import {readNewestAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';

@@ -1,6 +1,8 @@
-import {accountGuideDetailsSelector, canDowngradeSelector, primaryLoginSelector, requiresTwoFactorAuthSelector} from '@selectors/Account';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Account} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {accountGuideDetailsSelector, canDowngradeSelector, primaryLoginSelector, requiresTwoFactorAuthSelector} from '@selectors/Account';
 
 describe('primaryLoginSelector', () => {
     it('returns primaryLogin when present', () => {

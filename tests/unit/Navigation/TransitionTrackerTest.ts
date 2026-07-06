@@ -1,4 +1,5 @@
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
 
 describe('TransitionTracker', () => {

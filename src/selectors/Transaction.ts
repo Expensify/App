@@ -1,5 +1,6 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type TransactionType from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const transactionsByReportIDSelector = (transactions: OnyxCollection<TransactionType>): Record<string, TransactionType[]> => {
     const result: Record<string, TransactionType[]> = {};

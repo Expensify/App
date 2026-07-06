@@ -1,10 +1,11 @@
+import Git from '@scripts/utils/Git';
+
 /**
  * @jest-environment node
  */
 import {execSync} from 'child_process';
 import {Str} from 'expensify-common';
 import fs from 'fs';
-import Git from '@scripts/utils/Git';
 
 // Mock execSync to control git diff output
 jest.mock('child_process');
