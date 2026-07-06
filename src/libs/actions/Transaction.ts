@@ -88,18 +88,6 @@ import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReports = value;
-    },
-});
-
 type SaveWaypointProps = {
     transactionID: string;
     index: string;
@@ -1741,7 +1729,7 @@ function changeTransactionsReport({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {reimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.reimbursableTotal},
+            value: {reimbursableTotal: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.reimbursableTotal},
         });
     }
 
@@ -1756,7 +1744,7 @@ function changeTransactionsReport({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {
-                unheldReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldReimbursableTotal,
+                unheldReimbursableTotal: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldReimbursableTotal,
             },
         });
     }
