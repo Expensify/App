@@ -25,7 +25,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -127,7 +127,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 accountID: adminAccountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors) || isLoading,
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 icons: [

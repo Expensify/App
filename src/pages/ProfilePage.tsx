@@ -25,7 +25,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Permissions from '@libs/Permissions';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
@@ -137,7 +137,9 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
+    const displayName = formatPhoneNumber(
+        temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, shouldAddCurrentUserPostfix: isCurrentUser, youAfterTranslation: translate('common.you').toLowerCase(), translate}),
+    );
 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';

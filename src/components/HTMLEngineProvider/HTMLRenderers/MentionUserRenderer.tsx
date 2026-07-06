@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins, temporaryGetDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -34,7 +34,7 @@ type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRend
 function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const htmlAttribAccountID = tnode.attributes.accountid;
     const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
@@ -49,7 +49,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
+        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || temporaryGetDisplayNameOrDefault({passedPersonalDetails: user, translate});
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
@@ -68,7 +68,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     } else if (!isEmpty(htmlAttribAccountID)) {
         // accountID not found in personal details and mention data not provided
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = getDisplayNameOrDefault();
+        mentionDisplayText = temporaryGetDisplayNameOrDefault({translate});
         navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), Navigation.getReportRHPActiveRoute());
     } else {
         // If neither an account ID or email is provided, don't render anything
