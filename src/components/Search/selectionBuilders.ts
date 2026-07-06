@@ -8,7 +8,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePa
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type MapTransactionItemToSelectedEntryParams = {
@@ -313,11 +313,11 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
  * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
  * group-by views — children come from `groupChildrenByKey` (else `group.transactions`); expense-report and flat views pass through.
  */
-function buildShiftRangeItems(filteredData: SearchData, groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): Array<SearchData[number]> {
-    if (!groupsAreHeaders || !isGroupedItemArray(filteredData)) {
-        return filteredData;
+function buildShiftRangeItems(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): SearchListItem[] {
+    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
+        return sortedData;
     }
-    return filteredData.flatMap((group) => [group, ...(groupChildrenByKey[group.keyForList] ?? group.transactions ?? [])]);
+    return sortedData.flatMap((group) => [group, ...(groupChildrenByKey[group.keyForList] ?? group.transactions ?? [])]);
 }
 
 export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems};
