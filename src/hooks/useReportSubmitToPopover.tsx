@@ -1,14 +1,20 @@
-import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSubmitToEmail} from '@libs/PolicyUtils';
+
 import ReportSubmitToContent from '@pages/ReportSubmitToContent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {RefObject} from 'react';
+
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';

@@ -1,7 +1,3 @@
-import {accountIDSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,23 +7,34 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {accountIDSelector} from '@selectors/Session';
+import {Str} from 'expensify-common';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {PopoverMenuItem} from './PopoverMenu';
+
 import Avatar from './Avatar';
 import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
-import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';

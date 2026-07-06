@@ -1,30 +1,36 @@
-import React from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setPolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {policyTimeTrackingSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingDefaultRateForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
 
 type WorkspaceTimeTrackingDefaultRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE>;
 
