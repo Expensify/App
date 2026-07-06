@@ -579,26 +579,6 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
     return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
-/**
- * Get IOU report ID of report last action if the action is report action preview
- */
-function getIOUReportIDOfLastAction(
-    report: OnyxEntry<Report>,
-    privateIsArchived: boolean | undefined,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-    lastAction?: OnyxEntry<ReportAction>,
-): string | undefined {
-    if (!report?.reportID) {
-        return;
-    }
-    const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const action = lastAction ?? getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
-    if (!isReportPreviewAction(action)) {
-        return;
-    }
-    return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(action))?.reportID;
-}
-
 function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
@@ -3393,7 +3373,6 @@ export {
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getIOUReportIDOfLastAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
