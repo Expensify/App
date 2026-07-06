@@ -18,7 +18,7 @@ import Permissions from '@libs/Permissions';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from '@libs/TransactionUtils';
 
 import {
     getMoneyRequestParticipantsFromReport,
@@ -559,9 +559,12 @@ function submitAmount({
     const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
     const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, currentTransaction, transactionCurrency, transactionTaxCode);
-    // The edit path has no confirmation-page safety net, so heal a tax code that is no longer a valid rate on the
-    // policy (e.g. the rate was deleted or the expense moved workspaces) by falling back to the currency default.
-    const isTransactionTaxCodeValid = hasTaxRateWithMatchingValue(policy, currentTransaction);
+    // The edit path has no confirmation-page safety net, so heal a tax code that no longer exists on the policy
+    // (e.g. the rate was deleted or the expense moved workspaces) by falling back to the currency default. We only
+    // check that the code still resolves to a rate — not that its value matches — so a code whose value drifted
+    // (e.g. an admin edited the rate's percentage) keeps the user's selection and self-heals its `taxPercentage`
+    // from the policy on the next line.
+    const isTransactionTaxCodeValid = getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
     const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));

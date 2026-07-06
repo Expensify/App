@@ -426,6 +426,24 @@ describe('AmountSubmission', () => {
             expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idForeign'}));
         });
 
+        it('preserves a tax code whose stored value drifted from the policy on edit (heals only missing codes)', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    // The code still exists on the policy, but its stored value is stale (e.g. an admin edited the
+                    // rate's percentage after this expense was created). The currency is unchanged, so the only reason
+                    // to swap the code would be an invalid one — but a drifted value is not invalid, so it is preserved.
+                    transaction: {...buildTaxTransaction('idManual'), taxValue: '3%'},
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '20',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idManual'}));
+        });
+
         it('calls sendMoneyElsewhere on non-edit + skip-confirm + PAY (non-wallet)', () => {
             submitAmount(
                 buildBaseArgs({
