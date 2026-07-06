@@ -45,7 +45,7 @@ jest.mock(
                 x: 0,
                 y: 0,
                 width: 300,
-                height: 75,
+                height: 50,
             })),
         }) as Record<string, unknown>,
 );
