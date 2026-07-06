@@ -1,4 +1,5 @@
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
+import {useButtonContext} from '@components/ButtonComposed/context';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 
@@ -15,25 +16,20 @@ import {useCallback, useMemo} from 'react';
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
 /**
- * Registers an Enter-key keyboard shortcut that triggers the button's onPress handler.
+ * Registers an Enter-key keyboard shortcut that triggers the parent Button's onPress handler.
  * Renders nothing to the DOM — it is a pure-behavior primitive intended to be composed
  * alongside ButtonText, ButtonIconLeft, etc. as a child of Button.
  *
  * Usage:
- *   <Button onPress={submit}>
- *     <ButtonKeyboardShortcut pressOnEnter onPress={submit} isDisabled={isDisabled} />
+ *   <Button onPress={submit} isDisabled={isDisabled}>
+ *     <ButtonKeyboardShortcut />
  *     <ButtonText>Submit</ButtonText>
  *   </Button>
  */
-function ButtonKeyboardShortcut({
-    isDisabled = false,
-    isLoading = false,
-    onPress = () => {},
-    pressOnEnter,
-    allowBubble,
-    enterKeyEventListenerPriority,
-    isPressOnEnterActive = false,
-}: ButtonKeyboardShortcutProps) {
+function ButtonKeyboardShortcut({allowBubble, enterKeyEventListenerPriority, isPressOnEnterActive = false}: ButtonKeyboardShortcutProps) {
+    // The press handler and disabled/loading state come from the parent Button context.
+    const {onPress, isDisabled, isLoading} = useButtonContext();
+
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
@@ -51,12 +47,12 @@ function ButtonKeyboardShortcut({
 
     const config = useMemo(
         () => ({
-            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+            isActive: !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
             shouldBubble: allowBubble,
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        [pressOnEnter, shouldDisableEnterShortcut, isFocused, isPressOnEnterActive, allowBubble, enterKeyEventListenerPriority],
+        [shouldDisableEnterShortcut, isFocused, isPressOnEnterActive, allowBubble, enterKeyEventListenerPriority],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
