@@ -773,10 +773,15 @@ function completePaymentOnboarding(
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
     const {onboardingMessages} = getOnboardingMessages();
+    // choice can hold a backend value with no onboarding message (e.g. classicAdmin for Classic-invited admins), so skip instead of crashing on the undefined lookup below.
+    const onboardingMessage = onboardingMessages[onboardingPurpose];
+    if (!onboardingMessage) {
+        return;
+    }
 
     completeOnboarding({
         engagementChoice: onboardingPurpose,
-        onboardingMessage: onboardingMessages[onboardingPurpose],
+        onboardingMessage,
         firstName: personalDetails?.firstName,
         lastName: personalDetails?.lastName,
         adminsChatReportID,
