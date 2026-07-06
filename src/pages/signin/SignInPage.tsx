@@ -18,7 +18,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
 
-import {clearSignInData} from '@userActions/Session';
+import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +78,7 @@ type GetRenderOptionsParams = {
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
     isAccountValidated?: boolean;
+    isSupportalSession: boolean;
 };
 
 /**
@@ -100,6 +101,7 @@ function getRenderOptions({
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
     isAccountValidated,
+    isSupportalSession,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -107,14 +109,16 @@ function getRenderOptions({
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
     const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
-    // True, if the user has SAML required, and we haven't yet initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
+    // True, if the user has SAML required, and we haven't yet initiated SAML for their account.
+    // Supportal sessions authenticate with a support auth token and must bypass SAML entirely, so we never
+    // initiate SAML during a supportal session, even when the customer's account has SAML required.
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession;
     const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading && !isSupportalSession) {
         clearSignInData();
     }
 
@@ -222,6 +226,7 @@ function SignInPage({ref}: SignInPageProps) {
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
+        isSupportalSession: isSupportalSessionUtils(),
     });
 
     if (shouldInitiateSAMLLogin) {
