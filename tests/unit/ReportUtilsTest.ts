@@ -29,6 +29,7 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    areAllRequestsBeingSmartScanned,
     buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -124,6 +125,7 @@ import {
     getTransactionDetails,
     getTransactionReportName,
     getTransactionSortValue,
+    getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
@@ -132,6 +134,7 @@ import {
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasExportError,
+    hasNonReimbursableTransactions,
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
@@ -19816,5 +19819,78 @@ describe('getAllPolicyExpenseChatReportActions', () => {
 
     it('returns an empty object for undefined collections', () => {
         expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
+    });
+});
+
+describe('hasNonReimbursableTransactions', () => {
+    it('returns false when all transactions are reimbursable', () => {
+        const transactions: Transaction[] = [
+            {...createRandomTransaction(1), reimbursable: true},
+            {...createRandomTransaction(2), reimbursable: true},
+        ];
+        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(false);
+    });
+
+    it('returns true when at least one transaction is non-reimbursable', () => {
+        const transactions: Transaction[] = [
+            {...createRandomTransaction(1), reimbursable: true},
+            {...createRandomTransaction(2), reimbursable: false},
+        ];
+        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(true);
+    });
+
+    it('returns false for an empty transaction list', () => {
+        expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
+    });
+});
+
+describe('getTransactionsWithReceipts', () => {
+    it('returns only transactions that have a receipt (scan receipt or eReceipt)', () => {
+        const withScanReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}};
+        const withEReceipt: Transaction = {...createRandomTransaction(2), hasEReceipt: true, receipt: {}};
+        const withoutReceipt: Transaction = {...createRandomTransaction(3), hasEReceipt: false, receipt: {}};
+
+        expect(getTransactionsWithReceipts(undefined, [withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
+    });
+
+    it('returns an empty array when no transactions have receipts', () => {
+        const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
+        expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+    });
+});
+
+describe('areAllRequestsBeingSmartScanned', () => {
+    /** Builds a transaction whose receipt is actively being SmartScanned. */
+    function buildScanningTransaction(transactionID: number): Transaction {
+        return {
+            ...createRandomTransaction(transactionID),
+            hasEReceipt: false,
+            merchant: '',
+            modifiedMerchant: '',
+            modifiedAmount: '',
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+        };
+    }
+
+    it('returns true when every request is a receipt still being scanned', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const transactions = [buildScanningTransaction(1), buildScanningTransaction(2)];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(true);
+    });
+
+    it('returns false when there are more requests than receipts (manual requests exist)', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const transactions = [buildScanningTransaction(1)];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+
+    it('returns false when at least one receipt has finished scanning', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const scannedReceipt: Transaction = {...buildScanningTransaction(2), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        const transactions = [buildScanningTransaction(1), scannedReceipt];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
     });
 });
