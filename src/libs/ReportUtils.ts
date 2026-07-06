@@ -1536,8 +1536,8 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is the manager of the supplied report
  */
-function isReportManager(report: OnyxEntry<Report>): boolean {
-    return !!(report && report.managerID === deprecatedCurrentUserAccountID);
+function isReportManager(report: OnyxEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
+    return !!(report && report.managerID === currentUserAccountID);
 }
 
 /**
@@ -2934,13 +2934,6 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (isDraftReport(moneyRequestReport?.reportID)) {
-        return false;
-    }
-    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
-}
-
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
@@ -3016,15 +3009,15 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
+function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean, currentUserAccountID?: number): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report) || isIOUReport(report)) {
         return false;
     }
 
-    const isManager = isReportManager(report);
-    const isSubmitter = isReportOwner(report);
+    const isManager = isReportManager(report, currentUserAccountID);
+    const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
         return isOpenReport(report) || isProcessingReport(report);
@@ -11101,8 +11094,8 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
 }
 
 /** Check if the current user is an owner of the report */
-function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
-    return report?.ownerAccountID === deprecatedCurrentUserAccountID;
+function isReportOwner(report: OnyxInputOrEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
+    return report?.ownerAccountID === currentUserAccountID;
 }
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {
@@ -13355,6 +13348,67 @@ function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackInten
     return getNextApproverAccountID(report) === report?.ownerAccountID;
 }
 
+/**
+ * Determines whether the current user is eligible to initiate a merge of the selected expense reports.
+ */
+function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserAccountID: number | undefined): boolean {
+    // Need at least 2 reports and a valid caller identity.
+    if (selectedReports.length < 2 || !currentUserAccountID) {
+        return false;
+    }
+
+    const firstSelectedReport = selectedReports.at(0);
+
+    const validator = (report: OnyxEntry<Report>): boolean => {
+        if (!report || !isExpenseReport(report)) {
+            return false;
+        }
+
+        // Cross-account merges are not supported.
+        if (!firstSelectedReport?.ownerAccountID || firstSelectedReport.ownerAccountID !== report.ownerAccountID) {
+            return false;
+        }
+
+        // Cross-workspace merges are not supported in v1.
+        if (!firstSelectedReport.policyID || firstSelectedReport.policyID !== report.policyID) {
+            return false;
+        }
+
+        // All reports must be at the same point in the approval workflow so that
+        // merging cannot be used to skip approval steps (e.g. merging an Open
+        // draft into a report that is already Processing / waiting for approval).
+        if (firstSelectedReport.stateNum !== report.stateNum || firstSelectedReport.statusNum !== report.statusNum) {
+            return false;
+        }
+
+        // When reports are in the Processing (submitted) state they must share
+        // the same managerID so the merged report lands in exactly one approver's
+        // inbox. For Open reports the managerID may legitimately be unset, but the
+        // same-state constraint above already prevents mixing Open and Processing.
+        if (isProcessingReport(report)) {
+            if (!firstSelectedReport.managerID || firstSelectedReport.managerID !== report.managerID) {
+                return false;
+            }
+        }
+
+        // The user must be able to write to the report, AND must be either the
+        // report owner or an admin / approver on the workspace.
+        const isReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, currentUserAccountID);
+
+        if (!hasWriteAccess || !isReportEligibleForMerge) {
+            return false;
+        }
+
+        return true;
+    };
+
+    return selectedReports.every(validator);
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     getAllPolicyExpenseChatReportActions,
@@ -13408,7 +13462,6 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
-    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
@@ -13745,6 +13798,7 @@ export {
     getLinkedIOUTransaction,
     shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
+    canMergeReports,
     canModifyHoldStatus,
 };
 
