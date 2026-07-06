@@ -33,7 +33,7 @@ A **subscription type** determines how you pay for your plan.
 Subscription types include:
 
  - **Annual**, which includes a 12-month commitment with discounted pricing.
- - **Pay-per-use**, which bills month-to-month with no annual commitment.
+ - **Pay-per-use**, which has no annual commitment.
 
 Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
 
