@@ -78,6 +78,7 @@ import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/Network
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
+import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
@@ -1402,23 +1403,22 @@ function getGuidedSetupDataForOpenReport(
 ): GuidedSetupDataForOpenReport | undefined {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? onboarding?.hasCompletedGuidedSetupFlow ?? false;
+    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
 
     // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
     // Then we need to check the list request and prevent the guided setup data from being duplicated.
     const allPersistedRequests = getAll();
     const hasOpenReportWithGuidedSetupData = allPersistedRequests.some((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData);
 
-    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
-    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
-    if (!introSelected || isOnboardingCompleted || isInviteOnboardingComplete || hasOpenReportWithGuidedSetupData) {
+    // Prepare guided setup data only when nvp_introSelected is set and regular onboarding is pending or a supported invite onboarding flow still needs to run.
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages.
+    if (!introSelected || isInviteOnboardingComplete || hasOpenReportWithGuidedSetupData || (isOnboardingCompleted && !isPendingInviteOnboarding)) {
         return undefined;
     }
 
     const {choice, inviteType} = introSelected;
     const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
-    const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
-
-    if (!isInviteChoiceCorrect || isInviteIOUorInvoice) {
+    if (!isSupportedInviteOnboardingChoice(choice) || isInviteIOUorInvoice) {
         return undefined;
     }
 
@@ -1434,6 +1434,7 @@ function getGuidedSetupDataForOpenReport(
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
+        wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
     });
 
     if (!onboardingData) {
@@ -5861,6 +5862,20 @@ function resolveActionableMentionWhisper(
         resolution,
     };
 
+    if (isInviteResolution && originalMessage?.inviteeEmails?.length) {
+        // inviteeEmails[i] pairs with inviteeAccountIDs[i] (parallel arrays from the backend whisper). Forward
+        // only invitees not already in the room — the same skip-existing test as buildParticipantsInviteData
+        // above — so a stale whisper doesn't re-invite a member; an email with no accountID (new user) is kept.
+        const inviteeEmailsToInvite = originalMessage.inviteeEmails.filter((email, index) => {
+            const inviteeAccountID = inviteeAccountIDs.at(index);
+            return inviteeAccountID === undefined || !(inviteeAccountID in (report?.participants ?? {}));
+        });
+        if (inviteeEmailsToInvite.length > 0) {
+            parameters.reportID = reportID;
+            parameters.inviteeEmails = inviteeEmailsToInvite;
+        }
+    }
+
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
@@ -6661,6 +6676,7 @@ function deleteAppReport({
 function moveIOUReportToPolicy(
     iouReport: OnyxEntry<Report>,
     policy: Policy,
+    reportPreviewAction: OnyxEntry<ReportAction>,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
@@ -6687,6 +6703,7 @@ function moveIOUReportToPolicy(
         policy,
         policyID,
         optimisticExpenseChatReportID,
+        reportPreviewAction,
         reportTransactions,
     );
 
@@ -6710,6 +6727,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     policy: Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: OnyxCollection<ReportActions>,
+    reportPreviewAction: OnyxEntry<ReportAction>,
     currentUserAccountID: number,
     submitterLogin: string | undefined,
     doesSubmitterPersonalDetailExist: boolean,
@@ -6845,7 +6863,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         failureData: convertedFailureData,
         movedExpenseReportAction,
         movedReportAction,
-    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportTransactions);
+    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportPreviewAction, reportTransactions);
 
     optimisticData.push(...convertedOptimisticData);
     successData.push(...convertedSuccessData);
@@ -6864,7 +6882,14 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
 }
 
-function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, policyID: string, optimisticPolicyExpenseChatReportID: string, reportTransactions: Transaction[] = []) {
+function convertIOUReportToExpenseReport(
+    iouReport: Report,
+    policy: Policy,
+    policyID: string,
+    optimisticPolicyExpenseChatReportID: string,
+    reportPreviewAction: OnyxEntry<ReportAction>,
+    reportTransactions: Transaction[] = [],
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -6935,31 +6960,29 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
 
     // We need to move the report preview action from the DM to the expense chat.
     const oldChatReportID = iouReport.chatReportID;
-    const reportPreviewActionID = iouReport.parentReportActionID;
-    const reportPreview = !!oldChatReportID && !!reportPreviewActionID ? allReportActions?.[oldChatReportID]?.[reportPreviewActionID] : undefined;
 
-    if (reportPreview?.reportActionID) {
+    if (reportPreviewAction?.reportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-            value: {[reportPreview.reportActionID]: null},
+            value: {[reportPreviewAction.reportActionID]: null},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-            value: {[reportPreview.reportActionID]: reportPreview},
+            value: {[reportPreviewAction.reportActionID]: reportPreviewAction},
         });
 
         // Add the reportPreview action to expense chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatReportID}`,
-            value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
+            value: {[reportPreviewAction.reportActionID]: {...reportPreviewAction, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatReportID}`,
-            value: {[reportPreview.reportActionID]: null},
+            value: {[reportPreviewAction.reportActionID]: null},
         });
     }
 
