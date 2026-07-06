@@ -1,18 +1,22 @@
+import useOnyx from '@hooks/useOnyx';
+
+import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
+import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
+import {isDM} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type Report from '@src/types/onyx/Report';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
 import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
-import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
-import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
-import {isDM} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type Report from '@src/types/onyx/Report';
 
 type AgentZeroStatusState = {
     /**

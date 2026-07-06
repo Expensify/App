@@ -1,6 +1,3 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -8,47 +5,38 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {disableWorkspaceBillableExpenses, setPolicyBillableMode} from '@libs/actions/Policy/Policy';
+
+import {getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
 import {clearPolicyTagListErrors, setPolicyRequiresTag} from '@libs/actions/Policy/Tag';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions as hasEnabledOptionsUtil} from '@libs/OptionsListUtils';
 import {getTagLists as getTagListsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 type WorkspaceTagsSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS>;
-
-/**
- * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
- * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
- * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
- * */
-function billableExpensesPending(policy: OnyxEntry<Policy>) {
-    if (policy?.disabledFields?.defaultBillable) {
-        return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
-    }
-    return policy?.pendingFields?.disabledFields;
-}
-
-function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
-    if (policy?.disabledFields?.defaultBillable) {
-        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
-    } else if (policy) {
-        disableWorkspaceBillableExpenses(policy.id);
-    }
-}
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
@@ -57,6 +45,8 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
@@ -68,6 +58,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         [policyData],
     );
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS;
+    const shouldBlockEmptySettings = isRulesRevampEnabled && isMultiLevelTags && !isLoading;
 
     const getTagsSettings = (policy: OnyxEntry<Policy>) => (
         <View style={styles.flexGrow1}>
@@ -92,44 +83,48 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            <OfflineWithFeedback
-                errors={policy?.errorFields?.requiresTag}
-                pendingAction={policy?.pendingFields?.requiresTag}
-                errorRowStyles={styles.mh5}
-            >
-                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text
-                        style={[styles.textNormal, styles.flex1, styles.mr2]}
-                        accessible={false}
-                        aria-hidden
+            {!isRulesRevampEnabled && (
+                <>
+                    <OfflineWithFeedback
+                        errors={policy?.errorFields?.requiresTag}
+                        pendingAction={policy?.pendingFields?.requiresTag}
+                        errorRowStyles={styles.mh5}
                     >
-                        {translate('workspace.tags.requiresTag')}
-                    </Text>
-                    <Switch
-                        isOn={policy?.requiresTag ?? false}
-                        accessibilityLabel={translate('workspace.tags.requiresTag')}
-                        onToggle={updateWorkspaceRequiresTag}
-                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                    />
-                </View>
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text
-                        style={[styles.textNormal, styles.flex1, styles.mr2]}
-                        accessible={false}
-                        aria-hidden
-                    >
-                        {translate('workspace.tags.trackBillable')}
-                    </Text>
-                    <Switch
-                        isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                        accessibilityLabel={translate('workspace.tags.trackBillable')}
-                        onToggle={() => toggleBillableExpenses(policy)}
-                        disabled={!policy?.areTagsEnabled}
-                    />
-                </View>
-            </OfflineWithFeedback>
+                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.tags.requiresTag')}
+                            </Text>
+                            <Switch
+                                isOn={policy?.requiresTag ?? false}
+                                accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                onToggle={updateWorkspaceRequiresTag}
+                                disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={getBillableExpensesPendingAction(policy)}>
+                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.tags.trackBillable')}
+                            </Text>
+                            <Switch
+                                isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
+                                accessibilityLabel={translate('workspace.tags.trackBillable')}
+                                onToggle={() => toggleBillableExpenses(policy)}
+                                disabled={!policy?.areTagsEnabled}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                </>
+            )}
         </View>
     );
     return (
@@ -137,6 +132,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            shouldBeBlocked={shouldBlockEmptySettings}
         >
             {({policy}) => (
                 <ScreenWrapper

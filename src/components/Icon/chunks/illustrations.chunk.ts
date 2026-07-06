@@ -1,6 +1,3 @@
-// This file contains all the SVG imports for illustrations used in the app
-// Company Cards
-import type {SvgProps} from 'react-native-svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
@@ -80,6 +77,7 @@ import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-o
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
+import ReceiptWranglerSpaceCowgirl from '@assets/images/product-illustrations/receipt-wrangler-space-cowgirl.svg';
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -219,6 +217,10 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
+// This file contains all the SVG imports for illustrations used in the app
+// Company Cards
+import type {SvgProps} from 'react-native-svg';
+
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
@@ -288,6 +290,7 @@ const Illustrations = {
     MushroomTopHat,
     PaymentHands,
     PlanetWithMobileApp,
+    ReceiptWranglerSpaceCowgirl,
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
