@@ -1,4 +1,5 @@
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import {computeDynamicChartHeight} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
 import type {TNode} from 'react-native-render-html';
@@ -37,6 +38,16 @@ type VictoryChartProviderProps = {
 function VictoryChartProvider({tnode, processedResult, type, children}: VictoryChartProviderProps) {
     const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
+    const parsedDesignHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
+    const itemCount = categories?.length ?? Object.keys(data).length;
+    const effectiveChartHeight = computeDynamicChartHeight({
+        designHeight: parsedDesignHeight,
+        isHorizontal,
+        itemCount,
+        padding,
+    });
+    const effectiveChartContentStyles =
+        effectiveChartHeight !== undefined && effectiveChartHeight !== parsedDesignHeight ? {...chartContentStyles, height: effectiveChartHeight} : chartContentStyles;
 
     const contextValue: VictoryChartContextValue = {
         tnode,
@@ -52,7 +63,7 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         categories,
         labelItems,
         legendItems,
-        chartContentStyles,
+        chartContentStyles: effectiveChartContentStyles,
         chartContainerStyles,
         type,
     };
