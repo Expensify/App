@@ -36,3 +36,4 @@ const Button = Object.assign(ButtonBase, {
 });
 
 export default Button;
+export type {ButtonProps} from './types';
