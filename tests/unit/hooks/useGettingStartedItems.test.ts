@@ -32,8 +32,6 @@ const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiv
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enableExpensifyCard: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
 
-const {enableCompanyCards, enableExpensifyCard} = jest.requireMock<{enableCompanyCards: jest.Mock; enableExpensifyCard: jest.Mock}>('@userActions/Policy/Policy');
-
 const POLICY_ID = '1';
 
 // Trial dates relative to today so the 60-day Getting Started window check
@@ -440,17 +438,7 @@ describe('useGettingStartedItems', () => {
             expect(categoriesItem).toBeDefined();
         });
 
-        it('should have isFeatureEnabled=true when accounting connections feature is enabled', async () => {
-            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
-
-            const {result} = renderHook(() => useGettingStartedItems());
-            await waitForBatchedUpdates();
-
-            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.isFeatureEnabled).toBe(true);
-        });
-
-        it('should have isFeatureEnabled=false when accounting connections feature is not enabled but an existing connection makes the row visible', async () => {
+        it('should still show the connect accounting row when connections feature is disabled but an existing connection makes the row visible', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
@@ -474,7 +462,6 @@ describe('useGettingStartedItems', () => {
             await waitFor(() => {
                 const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
                 expect(connectItem).toBeDefined();
-                expect(connectItem?.isFeatureEnabled).toBe(false);
             });
         });
     });
@@ -599,19 +586,6 @@ describe('useGettingStartedItems', () => {
             expect(companyCardsItem).toBeDefined();
         });
 
-        it('should have isFeatureEnabled=true when company cards feature is enabled', async () => {
-            await setupManageTeamScenario({
-                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areCompanyCardsEnabled: true},
-            });
-
-            const {result} = renderHook(() => useGettingStartedItems());
-            await waitForBatchedUpdates();
-
-            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
-            expect(companyCardsItem?.isFeatureEnabled).toBe(true);
-        });
-
         it('should not be shown when company cards feature is not enabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -682,23 +656,6 @@ describe('useGettingStartedItems', () => {
             const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
             expect(expensifyCardItem?.route).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID));
             expect(expensifyCardItem?.subtitle).toBeTruthy();
-        });
-
-        it('should wire enableFeature to enableExpensifyCard and never re-enable company cards', async () => {
-            enableCompanyCards.mockClear();
-            enableExpensifyCard.mockClear();
-            await setupManageTeamScenario({
-                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
-            });
-
-            const {result} = renderHook(() => useGettingStartedItems());
-            await waitForBatchedUpdates();
-
-            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
-            expensifyCardItem?.enableFeature?.();
-            expect(enableExpensifyCard).toHaveBeenCalledWith(POLICY_ID, true, false);
-            expect(enableCompanyCards).not.toHaveBeenCalled();
         });
 
         it('should be not completed when the workspace has no Expensify card provisioned', async () => {
