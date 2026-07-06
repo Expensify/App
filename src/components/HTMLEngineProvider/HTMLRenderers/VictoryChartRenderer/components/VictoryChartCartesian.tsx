@@ -1,80 +1,60 @@
+import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
-import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import useVictoryChartTooltip from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartTooltip';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
-import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import ThemeContext from '@styles/theme/context/ThemeContext';
 
-import type {TNode} from 'react-native-render-html';
-import type {CartesianChartRenderArg} from 'victory-native';
-
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import {CartesianChart} from 'victory-native';
 
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
-import VictoryChartTooltipOverlay from './VictoryChartTooltipOverlay';
 
 type VictoryChartCartesianProps = {
     explicitSize?: {width: number; height: number};
     headless?: boolean;
 };
 
-function collectSeriesGeometry(children: readonly TNode[]): {barWidthByYKey: Partial<Record<YKey, number>>; isLineMode: Partial<Record<YKey, boolean>>} {
-    const barWidthByYKey: Partial<Record<YKey, number>> = {};
-    const isLineMode: Partial<Record<YKey, boolean>> = {};
-
-    const visit = (node: TNode) => {
-        const tag = node.tagName ?? '';
-        if (tag === 'victorybar') {
-            const yKey = getYKey(node);
-            const width = parseAttributeAsNumber(node.attributes.barwidth);
-            if (width !== undefined) {
-                barWidthByYKey[yKey] = width;
-            }
-            return;
-        }
-        if (tag === 'victoryline') {
-            isLineMode[getYKey(node)] = true;
-            return;
-        }
-        if (tag === 'victorygroup') {
-            for (const child of node.children) {
-                visit(child);
-            }
-        }
-    };
-
-    for (const child of children) {
-        visit(child);
-    }
-
-    return {barWidthByYKey, isLineMode};
-}
-
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
- * The chart is wrapped in `VictoryChartTooltipOverlay` so `<victorybar labels>` and `<victoryline labels>`
- * surface a tap/hover tooltip via the shared `ChartTooltip` component.
+ * The chart is wrapped in a `GestureDetector` powered by `useVictoryChartTooltip` so
+ * `<victorybar labels>` / `<victoryline labels>` surface a tap/hover tooltip via `<ChartTooltip>`.
  */
 function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
-    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, labelsByYKey, chartContentStyles} = useVictoryChartContext();
+    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const styles = useThemeStyles();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
-    const renderArgsRef = useRef<CartesianChartRenderArg<CartesianChartData, YKey> | null>(null);
-    const {barWidthByYKey, isLineMode} = collectSeriesGeometry(tnode.children);
+    const ref = useRef<View>(null);
+    // Track the container's actual layout width so <ChartTooltip>'s edge-clamp uses the real width,
+    // not the design width (which is `undefined` when the chart is authored with width: '100%').
+    const [containerCssWidth, setContainerCssWidth] = useState(0);
+    const {gestures, handleRender, hasAnyLabels, activeLabel, isTooltipActive, initialTooltipPosition} = useVictoryChartTooltip(ref);
+
+    const tooltipWrapperStyle = useAnimatedStyle(() => ({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        opacity: isTooltipActive.get() ? 1 : 0,
+    }));
 
     const resolvedXAxis = xAxis
         ? {
@@ -90,75 +70,86 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
     }));
 
     return (
-        <VictoryChartTooltipOverlay
-            renderArgsRef={renderArgsRef}
-            yKeys={yKeys}
-            isHorizontal={isHorizontal}
-            barWidthByYKey={barWidthByYKey}
-            isLineMode={isLineMode}
-            labelsByYKey={labelsByYKey}
-            chartWidth={designWidth ?? 0}
-        >
-            <CartesianChart
-                data={Object.values(data)}
-                xKey={xKey}
-                yKeys={yKeys}
-                xAxis={resolvedXAxis}
-                yAxis={resolvedYAxis}
-                domain={domain}
-                domainPadding={domainPadding}
-                padding={padding}
-                {...getChartLayoutModeProps(explicitSize, headless)}
-                renderOutside={(renderArgs) => {
-                    const overlayContent = (
-                        <VictoryChartRenderArgsProvider value={renderArgs}>
-                            {labelItems.map((labelItem) => (
-                                <VictoryChartLabel
-                                    key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
-                                    {...labelItem}
-                                    timezone={timezone}
-                                />
-                            ))}
-                            {legendItems.map((legendItem) => (
-                                <VictoryChartLegend
-                                    key={`legend-${legendItem.x}-${legendItem.y}`}
-                                    {...legendItem}
-                                    chartWidth={designWidth}
-                                />
-                            ))}
-                        </VictoryChartRenderArgsProvider>
-                    );
-
-                    if (headless) {
-                        return <ThemeContext.Provider value={theme}>{overlayContent}</ThemeContext.Provider>;
-                    }
-
-                    // React context does not propagate across the Skia renderOutside boundary.
-                    return (
-                        <ThemeContext.Provider value={theme}>
-                            <ChartFontsLoaderProvider>{overlayContent}</ChartFontsLoaderProvider>
-                        </ThemeContext.Provider>
-                    );
-                }}
+        <GestureDetector gesture={gestures}>
+            <Animated.View
+                style={[styles.w100, styles.h100]}
+                ref={ref}
+                onLayout={(e) => setContainerCssWidth(e.nativeEvent.layout.width)}
             >
-                {(renderArgs) => {
-                    // Mutating a ref during render is allowed (idempotent — always reflects current render-args)
-                    // and lets the RN-side tooltip overlay read points/chartBounds for hit-testing.
-                    renderArgsRef.current = renderArgs;
-                    return (
-                        <VictoryChartRenderArgsProvider value={renderArgs}>
-                            {tnode.children.map((child) => (
-                                <VictoryChartSeries
-                                    key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                                    tnode={child}
-                                    isHorizontal={isHorizontal}
-                                />
-                            ))}
-                        </VictoryChartRenderArgsProvider>
-                    );
-                }}
-            </CartesianChart>
-        </VictoryChartTooltipOverlay>
+                <CartesianChart
+                    data={Object.values(data)}
+                    xKey={xKey}
+                    yKeys={yKeys}
+                    xAxis={resolvedXAxis}
+                    yAxis={resolvedYAxis}
+                    domain={domain}
+                    domainPadding={domainPadding}
+                    padding={padding}
+                    {...getChartLayoutModeProps(explicitSize, headless)}
+                    renderOutside={(renderArgs) => {
+                        const overlayContent = (
+                            <VictoryChartRenderArgsProvider value={renderArgs}>
+                                {labelItems.map((labelItem) => (
+                                    <VictoryChartLabel
+                                        key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
+                                        {...labelItem}
+                                        timezone={timezone}
+                                    />
+                                ))}
+                                {legendItems.map((legendItem) => (
+                                    <VictoryChartLegend
+                                        key={`legend-${legendItem.x}-${legendItem.y}`}
+                                        {...legendItem}
+                                        chartWidth={designWidth}
+                                    />
+                                ))}
+                            </VictoryChartRenderArgsProvider>
+                        );
+
+                        if (headless) {
+                            return <ThemeContext.Provider value={theme}>{overlayContent}</ThemeContext.Provider>;
+                        }
+
+                        // React context does not propagate across the Skia renderOutside boundary.
+                        return (
+                            <ThemeContext.Provider value={theme}>
+                                <ChartFontsLoaderProvider>{overlayContent}</ChartFontsLoaderProvider>
+                            </ThemeContext.Provider>
+                        );
+                    }}
+                >
+                    {(renderArgs) => {
+                        // Push victory-native's live rendered pixel positions into the tooltip hook so
+                        // the hit-test always uses the coord space the chart just drew with, even after resizes.
+                        handleRender(renderArgs);
+                        return (
+                            <VictoryChartRenderArgsProvider value={renderArgs}>
+                                {tnode.children.map((child) => (
+                                    <VictoryChartSeries
+                                        key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                                        tnode={child}
+                                        isHorizontal={isHorizontal}
+                                    />
+                                ))}
+                            </VictoryChartRenderArgsProvider>
+                        );
+                    }}
+                </CartesianChart>
+                {hasAnyLabels && (
+                    <Animated.View
+                        style={tooltipWrapperStyle}
+                        pointerEvents="none"
+                    >
+                        <ChartTooltip
+                            label={activeLabel ?? ''}
+                            amount=""
+                            chartWidth={containerCssWidth || designWidth || 0}
+                            initialTooltipPosition={initialTooltipPosition}
+                        />
+                    </Animated.View>
+                )}
+            </Animated.View>
+        </GestureDetector>
     );
 }
 
