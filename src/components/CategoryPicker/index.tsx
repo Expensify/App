@@ -14,6 +14,7 @@ import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import type {OptionTree} from '@libs/OptionsListUtils/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,12 +74,14 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     });
 
     const shouldShowNoneOptionForSearch = shouldShowNoneOption && translate('common.none').toLowerCase().includes(debouncedSearchValue.toLowerCase());
-    const noneOption: ListItem[] = shouldShowNoneOptionForSearch
+    const noneOption: OptionTree[] = shouldShowNoneOptionForSearch
         ? [
               {
                   text: translate('common.none'),
                   keyForList: CONST.SEARCH.NONE_OPTION_KEY,
                   searchText: '',
+                  tooltipText: translate('common.none'),
+                  isDisabled: false,
                   isSelected: !selectedCategory,
               },
           ]
