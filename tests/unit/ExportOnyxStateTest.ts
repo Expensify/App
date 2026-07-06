@@ -1,4 +1,4 @@
-import {emailRegex, maskOnyxState} from '@libs/ExportOnyxState/common';
+import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
@@ -157,6 +157,51 @@ describe('maskOnyxState', () => {
         });
     });
 
+    describe('full pass-through safe collection keys', () => {
+        it('should pass through data as-is for safe collection keys', () => {
+            const mockViolations = [
+                {type: 'violation', name: 'missingCategory', data: {errorIndexes: []}},
+                {type: 'warning', name: 'tagOutOfPolicy', data: {tagName: 'Department'}},
+            ];
+
+            const input = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}txn123`]: mockViolations,
+            };
+            const result = maskOnyxState(input) as Record<string, unknown>;
+
+            // Safe collection key should pass through data unchanged
+            expect(result[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}txn123`]).toEqual(mockViolations);
+        });
+    });
+
+    describe('safe keys', () => {
+        it('should pass through safe keys without any masking', () => {
+            const input = {
+                session: mockSession,
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.NETWORK]: {isOffline: false},
+                [ONYXKEYS.PREFERRED_THEME]: 'dark',
+            };
+            const result = maskOnyxState(input) as Record<string, unknown>;
+
+            expect(result[ONYXKEYS.IS_LOADING_APP]).toBe(true);
+            expect(result[ONYXKEYS.NETWORK]).toEqual({isOffline: false});
+            expect(result[ONYXKEYS.PREFERRED_THEME]).toBe('dark');
+        });
+
+        it('should pass through safe keys even when masking is enabled', () => {
+            const input = {
+                session: mockSession,
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.CURRENT_DATE]: '2024-06-15',
+            };
+            const result = maskOnyxState(input, true) as Record<string, unknown>;
+
+            expect(result[ONYXKEYS.IS_LOADING_APP]).toBe(true);
+            expect(result[ONYXKEYS.CURRENT_DATE]).toBe('2024-06-15');
+        });
+    });
+
     it('should mask session details by default', () => {
         const input = {session: mockSession};
         const result = maskOnyxState(input) as ExampleOnyxState;
@@ -247,5 +292,119 @@ describe('maskOnyxState', () => {
 
         expect(result.edits).toEqual(['***', '***']);
         expect(result.lastMessageHtml).not.toEqual(input.lastMessageHtml);
+    });
+});
+
+// These tests enforce that every Onyx key is *categorized* into an export bucket and that
+// the buckets stay disjoint. That is a structural guarantee, NOT a data-safety guarantee:
+// nothing here knows which fields a key actually holds, so whether a key truly belongs in
+// safeOnyxKeys remains a manual security judgment. The denylist test below is the one place
+// that judgment is asserted, by failing if a known-sensitive key is ever marked safe.
+describe('Onyx key export coverage', () => {
+    it('every ONYXKEYS value (top-level + collection) must be in one of the four buckets', () => {
+        // Collect all top-level Onyx key string values (excluding sub-objects)
+        const allTopLevelKeys: string[] = (Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string');
+
+        // Collect all collection prefix values
+        const allCollectionKeys: string[] = Object.values(ONYXKEYS.COLLECTION);
+
+        // Build the set of all covered keys across the four buckets. onyxKeysToMaskFragileData is the
+        // computed fallback for anything not explicitly in the other three, so the four buckets together
+        // partition every ONYXKEYS value.
+        const removeKeys = Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string');
+        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
+
+        const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
+        const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
+
+        // These should be empty — every key is categorized, falling back to onyxKeysToMaskFragileData
+        // when not explicitly placed in one of the other three buckets.
+        expect(uncoveredTopLevel).toEqual([]);
+        expect(uncoveredCollection).toEqual([]);
+    });
+
+    it('FORMS keys should not need individual export rules (handled by maskFragileData fallback)', () => {
+        // Some top-level ONYXKEYS share string values with FORMS (e.g. personalBankAccount,
+        // reimbursementAccount, walletAdditionalDetails, assignCard). Those are legitimately
+        // in ONYX_KEY_EXPORT_RULES for the top-level key, not the form.
+        const topLevelValues = new Set<string>((Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string'));
+
+        const formOnlyValues = Object.values(ONYXKEYS.FORMS).filter((v) => !topLevelValues.has(v));
+        const rulesKeys = new Set(Object.keys(ONYX_KEY_EXPORT_RULES));
+
+        for (const formKey of formOnlyValues) {
+            // Form-only keys should NOT be in export rules — they use the maskFragileData fallback
+            expect(rulesKeys.has(formKey)).toBe(false);
+        }
+    });
+
+    it('DERIVED keys should all be in onyxKeysToRemove', () => {
+        const derivedValues = Object.values(ONYXKEYS.DERIVED);
+        for (const derivedKey of derivedValues) {
+            expect(onyxKeysToRemove.has(derivedKey)).toBe(true);
+        }
+    });
+
+    it('known-sensitive keys must never be classified as safe', () => {
+        // Membership in safeOnyxKeys is a manual security judgment: a key listed there is
+        // exported as-is, bypassing all masking. No structural test can validate that judgment,
+        // because nothing in the suite knows which fields each key actually holds. This guard
+        // re-encodes the judgment explicitly: every key below is known to carry credentials,
+        // tokens, banking data, or personal details, so if any of them is ever moved into
+        // safeOnyxKeys this test fails loudly. Keep this denylist in sync as sensitive keys
+        // are added.
+        const knownSensitiveKeys: string[] = [
+            ONYXKEYS.SESSION,
+            ONYXKEYS.STASHED_SESSION,
+            ONYXKEYS.CREDENTIALS,
+            ONYXKEYS.STASHED_CREDENTIALS,
+            ONYXKEYS.ACCOUNT,
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            ONYXKEYS.LOGINS,
+            ONYXKEYS.PLAID_DATA,
+            ONYXKEYS.FUND_LIST,
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+            ONYXKEYS.CARD_LIST,
+            ONYXKEYS.USER_WALLET,
+            ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+            ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+            ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
+            ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+            ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            ONYXKEYS.ONFIDO_TOKEN,
+            ONYXKEYS.ONFIDO_APPLICANT_ID,
+            ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
+            ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+            ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
+            ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
+            ONYXKEYS.COLLECTION.NEXT_STEP,
+            ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
+            ONYXKEYS.WALLET_TERMS,
+            ONYXKEYS.VALIDATE_ACTION_CODE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ];
+
+        for (const sensitiveKey of knownSensitiveKeys) {
+            expect(safeOnyxKeys.has(sensitiveKey)).toBe(false);
+        }
+    });
+
+    it('no key should appear in multiple buckets', () => {
+        const rulesKeys = Object.keys(ONYX_KEY_EXPORT_RULES);
+        const removeKeys = new Set<string>(Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'));
+        for (const key of rulesKeys) {
+            expect(safeOnyxKeys.has(key)).toBe(false);
+            expect(removeKeys.has(key)).toBe(false);
+            expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
+        }
+        for (const key of safeOnyxKeys) {
+            expect(removeKeys.has(key)).toBe(false);
+            expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
+        }
+        for (const key of removeKeys) {
+            expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
+        }
     });
 });
