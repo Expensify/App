@@ -89,7 +89,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
-import type CommonSearchViewProps from './searchViewProps';
+import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
 import ChatSearchView from './ChatSearchView';

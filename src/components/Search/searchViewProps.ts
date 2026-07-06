@@ -1,7 +1,7 @@
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
-import type {Transaction} from '@src/types/onyx';
+import type {CardList, Transaction} from '@src/types/onyx';
 
 import type React from 'react';
 import type {ForwardedRef} from 'react';
@@ -75,4 +75,13 @@ type CommonSearchViewProps = {
     ref?: ForwardedRef<SearchListHandle>;
 };
 
-export default CommonSearchViewProps;
+/** Extra props specific to the transaction views (expense/invoice/trip): attendee tracking and card rendering. */
+type TransactionViewExtras = {
+    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses). */
+    isAttendeesEnabledForMovingPolicy?: boolean;
+
+    /** Non-personal and workspace cards for row rendering (subscribed once by the router). */
+    nonPersonalAndWorkspaceCards?: CardList;
+};
+
+export type {CommonSearchViewProps, TransactionViewExtras};

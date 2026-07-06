@@ -1,14 +1,13 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
 import CONST from '@src/CONST';
-import type {CardList} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useImperativeHandle} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
-import type CommonSearchViewProps from './searchViewProps';
+import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
 
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
@@ -17,7 +16,7 @@ import BaseSearchList from './SearchList/BaseSearchList';
 import TransactionListItem from './SearchList/ListItem/TransactionListItem';
 import SearchListViewLayout from './SearchListViewLayout';
 
-type ExpenseFlatSearchViewProps = CommonSearchViewProps & {isAttendeesEnabledForMovingPolicy?: boolean; nonPersonalAndWorkspaceCards?: CardList};
+type ExpenseFlatSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 

@@ -11,14 +11,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {CardList, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
-import type CommonSearchViewProps from './searchViewProps';
+import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
 import type {SearchQueryJSON, SelectedTransactions} from './types';
 
 import useSearchListViewState from './hooks/useSearchListViewState';
@@ -31,7 +31,7 @@ import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupList
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
 
-type ExpenseGroupedSearchViewProps = CommonSearchViewProps & {isAttendeesEnabledForMovingPolicy?: boolean; nonPersonalAndWorkspaceCards?: CardList};
+type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
