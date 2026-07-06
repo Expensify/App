@@ -1058,6 +1058,10 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
 let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
 
+type PreInsertFullscreenUnderRHPOptions = {
+    shouldIgnoreLayout?: boolean;
+};
+
 /**
  * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
  * The route renders behind the fullscreen RHP so that when the user later submits,
@@ -1068,8 +1072,8 @@ let preInsertedFullscreenRouteName: string | undefined;
  * submission time, giving React time to mount the destination component tree while
  * the user is still filling in details.
  */
-function preInsertFullscreenUnderRHP(route: Route) {
-    if (!getIsNarrowLayout()) {
+function preInsertFullscreenUnderRHP(route: Route, options?: PreInsertFullscreenUnderRHPOptions) {
+    if (!options?.shouldIgnoreLayout && !getIsNarrowLayout()) {
         return;
     }
 
