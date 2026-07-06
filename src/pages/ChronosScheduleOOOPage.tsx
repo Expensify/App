@@ -68,6 +68,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const durationUnitButtonLabel = durationUnitItems.find((item) => item.value === selectedDurationUnit)?.label ?? '';
 
     const startDateAsDate = parseDate(startDate);
+    const isHourDuration = selectedDurationUnit === CONST.CHRONOS.OOO_DURATION_UNITS.HOUR;
 
     const applyDurationDays = (days: number) => {
         setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
@@ -79,7 +80,10 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         if (item.value) {
             lastEditedRef.current = 'duration';
             setSelectedDurationUnit(item.value);
-            if (startDate && durationAmount) {
+            if (item.value === CONST.CHRONOS.OOO_DURATION_UNITS.HOUR) {
+                // The end date field is hidden for hour durations, so clear any derived value.
+                setEndDate('');
+            } else if (startDate && durationAmount) {
                 setEndDate(computeEndDate(startDate, durationAmount, item.value));
             }
         }
@@ -229,17 +233,19 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         placeholder="14:30"
                     />
                 </View>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.END_DATE}
-                        valueType="string"
-                        label={translate('chronos.endDate')}
-                        value={endDate}
-                        minDate={startDateAsDate ?? undefined}
-                        onValueChange={applyEndDate}
-                    />
-                </View>
+                {!isHourDuration && (
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={DatePicker}
+                            inputID={INPUT_IDS.END_DATE}
+                            valueType="string"
+                            label={translate('chronos.endDate')}
+                            value={endDate}
+                            minDate={startDateAsDate ?? undefined}
+                            onValueChange={applyEndDate}
+                        />
+                    </View>
+                )}
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={AmountForm}
