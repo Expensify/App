@@ -4,6 +4,7 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPlatform from '@libs/getPlatform';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
@@ -1237,6 +1238,16 @@ function getTopmostSearchReportID(state = navigationRef.getRootState()): string 
 function openExpenseOverParentReport(parentReportID: string, childReportID: string, backTo: string) {
     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
     navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+
+    // On web, react-navigation mirrors every split-stack entry into window.history, and it decides push-vs-replace
+    // from the stack length, not the URL. The reset below grows the split stack by one route (the parent report),
+    // which the web history sync treats as a forward PUSH — a second history entry for the *unchanged* expense URL.
+    // That dead entry makes the first browser/OS back a no-op. Web needs no native single-slide trick: the expense's
+    // backTo (reportRoute) already drives the header back as expense -> report -> chat, and a browser back returns
+    // straight to the chat carousel.
+    if (getPlatform() === CONST.PLATFORM.WEB) {
+        return;
+    }
 
     setNavigationActionToMicrotaskQueue(() => {
         const rootState = navigationRef.getRootState();
