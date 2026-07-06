@@ -1,14 +1,20 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
+
 import CopyPolicySettingsConfirmPage from '@pages/workspace/copyPolicySettings/CopyPolicySettingsConfirmPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

@@ -1,12 +1,10 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -25,16 +24,22 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
 import {createCopySettingsEligibleTargetsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 
@@ -114,7 +119,7 @@ function WorkspacesListPage() {
                 ownerAccountID,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.name),
                 action: () => null,
@@ -143,7 +148,7 @@ function WorkspacesListPage() {
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                 pendingAction: policy.pendingAction,

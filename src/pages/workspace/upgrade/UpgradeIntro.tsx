@@ -1,5 +1,11 @@
-import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
+import Avatar from '@components/Avatar';
+import Badge from '@components/Badge';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+
+import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,11 +13,19 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {canAccessSubmitWorkspaceFeatures} from '@libs/PolicyUtils';
+
 import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import GenericFeaturesView from './GenericFeaturesView';
 import UpgradeIntroView from './UpgradeIntroView';
 
@@ -77,7 +91,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'Members',
         'Approval',
     ]);
-    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'AdvancedApprovalsSquare', 'Unlock']);
+    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'AdvancedApprovalsSquare', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
     const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
     if (missing.length) {

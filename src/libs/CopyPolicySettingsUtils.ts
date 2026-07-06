@@ -1,11 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import type {Part} from './actions/Policy/CopyPolicySettings';
+
 import {isAuthenticationError} from './actions/connections';
 import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
-import type {Part} from './actions/Policy/CopyPolicySettings';
 import {canPolicyAccessFeature, isCollectPolicy, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {

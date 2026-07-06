@@ -1,8 +1,6 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +38,14 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
+import type {MemberForList} from './OptionsListUtils';
+
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -47,11 +53,10 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
-import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
@@ -112,13 +117,13 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled && isControlPolicy(policy));
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
         const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return policy?.arePerDiemRatesEnabled && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
+        return isPerDiemEnabled(policy) && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
     });
 }
 
@@ -203,6 +208,40 @@ function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature:
 
 function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+}
+
+function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
+    if (!role) {
+        return false;
+    }
+
+    const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
+    if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
+        return false;
+    }
+
+    if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
+        return true;
+    }
+
+    // Reaching here: USER always, plus AUDITOR only on corporate policies (control-only roles are
+    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
+    // MEMBERS permission, and only on corporate policies.
+    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR;
+    return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
+}
+
+// Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
+function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
+    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
+}
+
+function canMemberManageMemberWithRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
+    if (canMemberAssignRole(policy, login, role)) {
+        return true;
+    }
+
+    return isSubmitPolicy(policy) && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && role === CONST.POLICY.ROLE.EDITOR;
 }
 
 /**
@@ -292,6 +331,15 @@ function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined
 }
 
 /**
+ * Whether Per Diem is enabled for the policy. Respects an explicit `arePerDiemRatesEnabled` toggle
+ * (true/false) and only falls back to the configured Per Diem custom unit when the flag was never
+ * provided (e.g. for migrated members), mirroring `canSubmitPerDiemExpenseFromWorkspace`.
+ */
+function isPerDiemEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.arePerDiemRatesEnabled ?? !!getPerDiemCustomUnit(policy)?.enabled;
+}
+
+/**
  * Finds a policy that contains the customUnitID from the transaction
  */
 function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
@@ -302,7 +350,7 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
     }
 
     return Object.values(policies).find((policy) => {
-        if (!policy?.customUnits || !policy?.arePerDiemRatesEnabled) {
+        if (!policy?.customUnits || !isPerDiemEnabled(policy)) {
             return false;
         }
         return customUnitID in policy.customUnits;
@@ -315,6 +363,27 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
+}
+
+function getPolicyIDOrDefault(policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {
+        return '-1';
+    }
+    return policyID;
+}
+
+/**
+ * Finds the policy that owns the given distance customUnitRateID.
+ */
+function getPolicyForDistanceRateID(customUnitRateID: string | undefined, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    if (!customUnitRateID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        const distanceUnit = getDistanceRateCustomUnit(policy);
+        return !!distanceUnit?.rates && customUnitRateID in distanceUnit.rates;
+    });
 }
 
 /**
@@ -539,7 +608,8 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowCustomUnitsError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
-        shouldShowQBOReimbursableExportDestinationAccountError(policy)
+        shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+        shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -1122,6 +1192,45 @@ function getLengthOfTag(tag: string): number {
         return 0;
     }
     return getTagArrayFromName(tag).length;
+}
+
+/**
+ * Resolves a transaction's tag to the GL codes configured on the matching policy tags.
+ * Multi-level tags resolve each level against the tag list with the same order weight,
+ * and the non-empty GL codes are joined into a single comma-separated string.
+ */
+function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag: string | undefined): string {
+    if (isEmptyObject(policyTagLists) || !transactionTag) {
+        return '';
+    }
+
+    const tagLists = getTagLists(policyTagLists);
+    const tagParts = getTagArrayFromName(transactionTag);
+    return tagParts
+        .map((tagName, index) => {
+            const levelTags = tagLists.at(index)?.tags;
+            if (!levelTags) {
+                return '';
+            }
+
+            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
+            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+            const parentTagPath = tagParts.slice(0, index).join(':');
+            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+                if (!levelTag || levelTag.name !== tagName) {
+                    return false;
+                }
+                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
+                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+            };
+
+            const directMatch = levelTags[tagName];
+            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+            const glCode = matchingTag?.['GL Code'];
+            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+        })
+        .filter(Boolean)
+        .join(', ');
 }
 
 /**
@@ -2431,14 +2540,13 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
 }
 
 /**
- * This method checks if the active policy is a paid group policy (Team/Corporate).
- * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
- *
- * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
- * and the user would be taken to the workspace selection page.
+ * Resolves the default workspace for report creation: the active policy when it's one of the eligible
+ * workspaces, otherwise the only eligible workspace, else undefined.
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && isPaidGroupPolicy(activePolicy)) {
+    // Only default to the active policy when it's actually eligible, so we never pick an ineligible policy
+    // (e.g. a Submit workspace when the SUBMIT_2026 beta is off) over an eligible fallback.
+    if (activePolicy && isGroupPolicy(activePolicy) && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
         return activePolicy;
     }
 
@@ -2750,6 +2858,9 @@ export {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
+    canMemberAssignRole,
+    canMemberAssignElevatedRole,
+    canMemberManageMemberWithRole,
     isGroupPolicy,
     isGroupPolicyByType,
     isPendingDeletePolicy,
@@ -2804,6 +2915,8 @@ export {
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
+    getPolicyForDistanceRateID,
+    getPolicyIDOrDefault,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
@@ -2859,10 +2972,12 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
+    getTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    isPerDiemEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,

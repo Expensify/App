@@ -15,10 +15,12 @@ import {
     shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 

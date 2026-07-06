@@ -1,16 +1,21 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/ButtonComposed/Button';
 import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
 import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
 import type {BaseButtonProps, ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 type ButtonWithIconsProps = BaseButtonProps &
     ButtonKeyboardShortcutProps & {
+        /** Whether pressing Enter triggers onPress — when true, the Enter-key shortcut is mounted. */
+        pressOnEnter?: boolean;
         // Icon Left Props
         iconLeft?: IconAsset;
         iconLeftFill?: string;
@@ -105,13 +110,9 @@ function ButtonWithIcons({
         >
             {!!pressOnEnter && (
                 <ButtonKeyboardShortcut
-                    pressOnEnter={pressOnEnter}
                     allowBubble={allowBubble}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     isPressOnEnterActive={isPressOnEnterActive}
-                    isDisabled={isDisabled}
-                    isLoading={isLoading}
-                    onPress={onPress}
                 />
             )}
             {!!iconLeft && (

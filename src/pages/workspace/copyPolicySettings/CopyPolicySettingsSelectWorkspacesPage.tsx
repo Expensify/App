@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,11 +5,13 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem, TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -20,12 +19,18 @@ import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types'
 // eslint-disable-next-line no-restricted-imports -- genuine paid-only check: copy-settings carries paid features, so only paid group (Collect/Control) workspaces are valid targets; Submit/Personal are intentionally excluded.
 import {isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 const SEARCH_THRESHOLD = 12;
 

@@ -1,22 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type UpgradeIntroViewProps = {
     /** Icon shown in the top-left of the card. When omitted, the icon is hidden. */
