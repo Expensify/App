@@ -16,6 +16,18 @@ import type {OnyxEntry} from 'react-native-onyx';
 import clone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
+/**
+ * Use this only in non-React contexts (e.g. request middleware) where `useOnyx` is not available;
+ * React code should read the list via `useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST)` and pass it down.
+ */
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        allPersonalDetails = value;
+    },
+});
+
 // Local cache of reportID to optimistic Onyx data
 const reportOptimisticData = new Map<string, {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined>();
 
@@ -37,7 +49,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             // We're opening a new report, which can be a new or preexisting report
             // For new report, clean up optimistic data after this request returned successfully
             // For report redirect a preexisting report, clean up optimistic data after the request of preexisting report returned successfully
-            reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID));
+            reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID, allPersonalDetails));
         }
 
         const responseOnyxData = response?.onyxData ?? [];
