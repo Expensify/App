@@ -3968,6 +3968,7 @@ function navigateToConciergeChat(
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed,
+                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
                 undefined,
                 betas,
                 shouldDismissModal,
