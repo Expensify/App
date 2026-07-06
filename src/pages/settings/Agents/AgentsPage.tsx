@@ -1,8 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,36 +13,44 @@ import ScrollView from '@components/ScrollView';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 import useChatWithAgent from '@hooks/useChatWithAgent';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgentsPage} from '@userActions/Agent';
+import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+type AgentsBulkActionType = typeof CONST.AGENTS.BULK_ACTION_TYPES.DELETE;
 
 function AgentsPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const {showConfirmModal} = useConfirmModal();
+    const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     useDocumentTitle(translate('agentsPage.title'));
 
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
+    const canSelectMultiple = !shouldUseNarrowLayout;
 
     useEffect(() => {
         if (!isCustomAgentEnabled) {
@@ -47,6 +58,20 @@ function AgentsPage() {
         }
         openAgentsPage();
     }, [isCustomAgentEnabled]);
+
+    useEffect(() => {
+        if (selectedAgents.length === 0) {
+            return;
+        }
+
+        setSelectedAgents((prevSelectedAgents) =>
+            prevSelectedAgents.filter((accountIDString) => {
+                const accountID = Number(accountIDString);
+                const agentPrompt = agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`];
+                return agentPrompt?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            }),
+        );
+    }, [agentPrompts, selectedAgents.length]);
 
     const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -91,7 +116,57 @@ function AgentsPage() {
         ];
     });
 
+    const clearSelectedAgents = useCallback(() => {
+        setSelectedAgents((prevSelectedAgents) => (prevSelectedAgents.length > 0 ? [] : prevSelectedAgents));
+    }, []);
+
+    useSearchBackPress({
+        onClearSelection: clearSelectedAgents,
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
+    const removeSelectedAgents = useCallback(() => {
+        for (const accountIDString of selectedAgents) {
+            const accountID = Number(accountIDString);
+            const agentLogin = personalDetailsList?.[accountID]?.login ?? '';
+            if (!agentLogin) {
+                continue;
+            }
+            deleteAgent(accountID, agentLogin, allPolicies, false);
+        }
+        clearSelectedAgents();
+    }, [allPolicies, clearSelectedAgents, personalDetailsList, selectedAgents]);
+
+    const askForConfirmationToDelete = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('agentsPage.deleteAgentsTitle', {count: selectedAgents.length}),
+            prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgents.length}),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldHandleNavigationBack: false,
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        removeSelectedAgents();
+    }, [removeSelectedAgents, selectedAgents.length, showConfirmModal, translate]);
+
+    const getBulkActionsButtonOptions = useCallback((): Array<DropdownOption<AgentsBulkActionType>> => {
+        return [
+            {
+                text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgents.length}),
+                value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
+                icon: icons.Trashcan,
+                onSelected: askForConfirmationToDelete,
+            },
+        ];
+    }, [askForConfirmationToDelete, icons.Trashcan, selectedAgents.length, translate]);
+
     const hasAgents = agents.length > 0;
+    const shouldShowBulkActionsButton = canSelectMultiple && selectedAgents.length > 0;
 
     const newAgentButton = (
         <Button
@@ -100,6 +175,21 @@ function AgentsPage() {
             text={translate('agentsPage.newAgent')}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
         />
+    );
+
+    const headerButtons = shouldShowBulkActionsButton ? (
+        <ButtonWithDropdownMenu<AgentsBulkActionType>
+            shouldAlwaysShowDropdownMenu
+            customText={translate('workspace.common.selected', {count: selectedAgents.length})}
+            buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+            onPress={() => null}
+            options={getBulkActionsButtonOptions()}
+            isSplitButton={false}
+            isDisabled={!selectedAgents.length}
+            testID="AgentsPage-header-dropdown-menu-button"
+        />
+    ) : (
+        newAgentButton
     );
 
     if (!isCustomAgentEnabled) {
@@ -124,7 +214,7 @@ function AgentsPage() {
                 shouldDisplayHelpButton
                 title={translate('agentsPage.title')}
             >
-                {!shouldUseNarrowLayout && newAgentButton}
+                {!shouldUseNarrowLayout && headerButtons}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
@@ -132,7 +222,12 @@ function AgentsPage() {
                     <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
                         <RenderHTML html={translate('agentsPage.subtitle')} />
                     </View>
-                    <AgentsTable agents={agents} />
+                    <AgentsTable
+                        agents={agents}
+                        canSelectAgents={canSelectMultiple}
+                        selectedKeys={selectedAgents}
+                        onRowSelectionChange={setSelectedAgents}
+                    />
                 </>
             ) : (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>

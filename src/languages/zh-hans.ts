@@ -2774,6 +2774,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '代理人',
         subtitle: `<muted-text>智能代理为你处理工作流程，让你每天多出数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解详情</a>。</muted-text>`,
         findAgent: '查找代理',
+        deleteAgentsTitle: () => ({
+            one: '删除代理',
+            other: '删除代理',
+        }),
+        deleteAgentsMessage: () => ({
+            one: '确定要删除此代理吗？此操作无法撤销。',
+            other: '确定要删除这些代理吗？此操作无法撤销。',
+        }),
         newAgent: '新代理人',
         emptyAgents: {
             title: '尚未创建代理',

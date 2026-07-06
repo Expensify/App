@@ -27,9 +27,12 @@ type AgentRowData = TableData & {
 
 type AgentsTableProps = {
     agents: AgentRowData[];
+    canSelectAgents: boolean;
+    selectedKeys: string[];
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({agents}: AgentsTableProps) {
+export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -77,6 +80,9 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             initialSortColumn="agent"
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
+            selectionEnabled={canSelectAgents}
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
         >
             {agents.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('agentsPage.findAgent')} />}
             <Table.Header />
