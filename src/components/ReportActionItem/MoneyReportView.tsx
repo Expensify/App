@@ -151,10 +151,6 @@ function MoneyReportView({
         return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
     }, [policy?.fieldList, report]);
 
-    // Whether the only report field configured for this report is the title field. This must be based on which fields are
-    // present/displayable, not on which are currently editable: after approval every field becomes read-only for the
-    // submitter, but a still-present custom field should keep showing. `shouldHideSingleReportField` hides the title field
-    // and list fields with no enabled option, so if it's true for every field then only the title field remains.
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);

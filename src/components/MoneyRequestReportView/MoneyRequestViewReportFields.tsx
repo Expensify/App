@@ -119,9 +119,6 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    // `sortedPolicyReportFields` is already filtered by `shouldHideSingleReportField`, so it only holds displayable non-title
-    // fields. When it's empty (only the title field remains) the early return below hides the section, so we don't need a
-    // separate "only the title field is configured" check here.
     const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled;
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
