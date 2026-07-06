@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import type {FeatureListItem} from './FeatureList';
@@ -38,7 +38,6 @@ function MigratedUserWelcomeModal() {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
-    const hasStartedCloseRef = useRef(false);
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
@@ -58,17 +57,14 @@ function MigratedUserWelcomeModal() {
         [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
-    useBeforeRemove(() => {
+    const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-    });
+    };
+
+    useBeforeRemove(persistDismissal);
 
     const handleClose = () => {
-        if (hasStartedCloseRef.current) {
-            return;
-        }
-
-        hasStartedCloseRef.current = true;
         const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})});
         Navigation.goBack(undefined, {
             afterTransition: () => Navigation.navigate(spendRoute),
@@ -89,7 +85,7 @@ function MigratedUserWelcomeModal() {
         const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
         const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
         openExternalLink(helpUrl);
-        dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+        persistDismissal();
     };
 
     return (
