@@ -1,19 +1,24 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {Dimensions} from '@src/types/utils/Layout';
+
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureType} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
+
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {cancelAnimation, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {Dimensions} from '@src/types/utils/Layout';
-import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
+
 import type {OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
+
+import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';

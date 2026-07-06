@@ -1,6 +1,7 @@
+import type {Route} from '@src/ROUTES';
+
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import type {Route} from '@src/ROUTES';
 
 type USDPageProps = {
     /** Handles submit button press */

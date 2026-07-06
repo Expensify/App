@@ -1,24 +1,31 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useContext, useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+
 import Navigation, {navigationRef} from '@navigation/Navigation';
+
 import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useContext, useEffect, useRef} from 'react';
+
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import LegalName from './substeps/LegalNameStep';

@@ -1,23 +1,22 @@
-import type {NavigationState} from '@react-navigation/native';
-import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+
 import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
+
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
+
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
@@ -25,9 +24,16 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getNavigationBaseTheme from './getNavigationBaseTheme';
 import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -225,6 +231,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
+        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
+        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        clearPreservedNavigatorStates();
+
         const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
         if (!stateToReset) {
             return;
@@ -234,9 +244,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             navigationRef.reset(stateToReset);
         } catch (error) {
             // A synthesized reset state can be rejected by RN; fall back to a known-valid
-            // SCREENS.HOME (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
+            // TAB_NAVIGATOR (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
             Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
-            navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
+            navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
         }
     }, [authenticated, previousAuthenticated]);
 

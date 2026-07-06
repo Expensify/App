@@ -1,15 +1,20 @@
-import React from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+
 import {clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 

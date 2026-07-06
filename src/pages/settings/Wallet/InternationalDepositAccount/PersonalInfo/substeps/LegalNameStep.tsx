@@ -1,11 +1,14 @@
-import React from 'react';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccountDetailsFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];

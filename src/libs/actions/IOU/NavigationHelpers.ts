@@ -1,8 +1,11 @@
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
+
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
 import {getAllTransactions} from './index';
 
 /**

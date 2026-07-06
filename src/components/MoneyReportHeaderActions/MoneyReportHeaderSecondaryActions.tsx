@@ -1,9 +1,3 @@
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import truncate from 'lodash/truncate';
-import React, {useContext, useEffect} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -13,8 +7,10 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -40,11 +36,14 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -61,13 +60,24 @@ import {
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import truncate from 'lodash/truncate';
+import React, {useContext, useEffect} from 'react';
+import {View} from 'react-native';
 
 type MoneyReportHeaderSecondaryActionsProps = {
     reportID: string | undefined;
@@ -75,6 +85,11 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+};
+
+const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
@@ -284,7 +299,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     }
 
     // Domain hooks
-    const lifecycleActions = useLifecycleActions({
+    const {actions: lifecycleActionEntries, confirmApproval} = useLifecycleActions({
         reportID,
         startApprovedAnimation,
         startAnimation,
@@ -352,7 +367,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         : [];
 
     // Merge all action implementations
-    const secondaryActionsImplementation: Record<string, (typeof lifecycleActions.actions)[string]> = {
+    const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -363,7 +378,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             },
         },
         ...exportActionEntries,
-        ...lifecycleActions.actions,
+        ...lifecycleActionEntries,
         ...expenseActions,
         ...holdRejectActions,
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
@@ -385,6 +400,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            return;
+        }
         selectPaymentType({
             event,
             iouPaymentType,
@@ -396,8 +415,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             currentEmail: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            isUserValidated,
-            confirmApproval: () => lifecycleActions.confirmApproval(),
+            confirmApproval: () => confirmApproval(),
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
             betas,
@@ -437,7 +455,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
-    const wrapperStyle = shouldTakeRemainingWidth ? styles.flex1 : undefined;
+    const wrapperStyle = shouldTakeRemainingWidth ? [styles.w100, styles.mnw0] : undefined;
     // Match the inner styles the real ButtonWithDropdownMenu applies when isSplitButton=false so text placement stays put on swap.
     const innerStyles = [StyleUtils.getDropDownButtonHeight(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM), styles.dropDownButtonCartIconView];
     return (
@@ -447,6 +465,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
                 iconRight={icons.DownArrow}
                 shouldShowRightIcon
                 innerStyles={innerStyles}
+                style={shouldTakeRemainingWidth ? styles.w100 : undefined}
                 onPress={() => {}}
             />
         </View>
@@ -454,21 +473,31 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
 }
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
+
     return (
-        <NavigationDeferredMount
-            placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
-            // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
-            // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
-            waitForUpcomingTransition={false}
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            wrapperStyle={shouldTakeRemainingWidth ? styles.w100 : undefined}
+            anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
-            <MoneyReportHeaderSecondaryActionsInner
-                reportID={reportID}
-                primaryAction={primaryAction}
-                isReportInSearch={isReportInSearch}
-                backTo={backTo}
-                dropdownMenuRef={dropdownMenuRef}
-            />
-        </NavigationDeferredMount>
+            <NavigationDeferredMount
+                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
+                // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
+                waitForUpcomingTransition={false}
+            >
+                <MoneyReportHeaderSecondaryActionsInner
+                    reportID={reportID}
+                    primaryAction={primaryAction}
+                    isReportInSearch={isReportInSearch}
+                    backTo={backTo}
+                    dropdownMenuRef={dropdownMenuRef}
+                />
+            </NavigationDeferredMount>
+        </ReportSubmitToPopoverAnchor>
     );
 }
 
