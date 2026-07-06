@@ -1,11 +1,3 @@
-import Avatar from '@components/Avatar';
-import Badge from '@components/Badge';
-import Button from '@components/Button';
-import Icon from '@components/Icon';
-import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
-
-import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +16,6 @@ import type {Route} from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 
 import GenericFeaturesView from './GenericFeaturesView';
 import UpgradeIntroView from './UpgradeIntroView';

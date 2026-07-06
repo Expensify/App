@@ -1,6 +1,6 @@
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -120,13 +120,14 @@ function UpgradeIntroView({
                 </View>
                 <Button
                     isLoading={loading}
-                    text={buttonText}
                     testID="upgrade-button"
-                    success
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                >
+                    <Button.Text>{buttonText}</Button.Text>
+                </Button>
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
                 <RenderHTML html={translate('workspace.upgrade.note', subscriptionLink)} />
