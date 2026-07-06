@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
@@ -8,12 +6,17 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);

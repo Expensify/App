@@ -1,7 +1,10 @@
-import React from 'react';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function TravelInvoicingLearnHow() {
     const {translate} = useLocalize();
