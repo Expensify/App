@@ -263,7 +263,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
         initialScrollKey,
-        shouldAutoscrollToBottom,
+        maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -519,9 +519,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
                     initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
                     initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
-                    maintainVisibleContentPosition={
-                        shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
-                    }
+                    maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
                     initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
