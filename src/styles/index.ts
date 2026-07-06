@@ -5542,6 +5542,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
+        agentsRulesEmptyStateIllustration: {
+            width: variables.agentsRulesEmptyStateIllustrationWidth,
+            height: variables.agentsRulesEmptyStateIllustrationHeight,
+        },
+
         agentRulePromptInput: {
             maxHeight: variables.agentRulePromptInputHeight,
         },

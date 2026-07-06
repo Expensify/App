@@ -42,7 +42,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const personalDetailsList = usePersonalDetails();
-    const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
+    const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const agentRules = policy?.rules?.agentRules;
@@ -79,8 +79,8 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     if (!hasRules) {
         return (
             <RulesTabEmptyState
-                illustration={illustrations.SortingMachine}
-                headerContentStyles={styles.sortingMachineRulesEmptyStateIllustration}
+                illustration={illustrations.AgentsIceCream}
+                headerContentStyles={styles.agentsRulesEmptyStateIllustration}
                 title={translate('workspace.rules.agentRulesEmptyState.title')}
                 subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
                 buttonText={translate('workspace.rules.agentRulesEmptyState.cta')}

@@ -83,7 +83,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Sparkles', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -228,7 +228,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                   {
                       key: RULES_TAB.AGENTS,
                       title: translate('workspace.rules.tabs.agents'),
-                      icon: icons.Sparkles,
+                      icon: icons.Bot,
                   },
               ]
             : []),
