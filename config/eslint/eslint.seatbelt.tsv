@@ -2074,7 +2074,6 @@
 "../../tests/unit/SubscriptionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/SuggestedFollowupTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/SuggestionMentionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/unit/TSCompilerUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	96
 "../../tests/unit/TagsOptionsListUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/TaxOptionsListUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/TelemetrySynchronizerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
