@@ -444,6 +444,23 @@ describe('AmountSubmission', () => {
             expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idManual'}));
         });
 
+        it('preserves an intentionally-cleared tax (empty code) on edit when only the amount changes', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    // The user deliberately cleared the tax (`taxCode === ''`). Editing only the amount (same currency)
+                    // must not re-add the workspace default tax — an empty code is a legitimate persisted selection.
+                    transaction: buildTaxTransaction(''),
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '20',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: ''}));
+        });
+
         it('calls sendMoneyElsewhere on non-edit + skip-confirm + PAY (non-wallet)', () => {
             submitAmount(
                 buildBaseArgs({

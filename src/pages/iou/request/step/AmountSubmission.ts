@@ -563,8 +563,9 @@ function submitAmount({
     // (e.g. the rate was deleted or the expense moved workspaces) by falling back to the currency default. We only
     // check that the code still resolves to a rate — not that its value matches — so a code whose value drifted
     // (e.g. an admin edited the rate's percentage) keeps the user's selection and self-heals its `taxPercentage`
-    // from the policy on the next line.
-    const isTransactionTaxCodeValid = getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
+    // from the policy on the next line. An empty code (`''`) is an intentionally-cleared tax, a legitimate
+    // persisted selection, so we treat it as valid and never heal it back to the default.
+    const isTransactionTaxCodeValid = transactionTaxCode === '' || getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
     const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
