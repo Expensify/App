@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,20 +5,28 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
+
 import TeachersUnite from '@userActions/TeachersUnite';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IKnowTeacherForm';
+
+import {Str} from 'expensify-common';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function KnowATeacherPage() {
     const styles = useThemeStyles();

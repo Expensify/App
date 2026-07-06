@@ -46,11 +46,9 @@ const SCREENS = {
     SEARCH: {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
-        MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: 'Search_Money_Request_Report_Verify_Account',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         COLUMNS_RHP: 'Search_Columns_RHP',
-        REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_CONTENT_RHP: 'Search_Advanced_Filters_Content_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
@@ -308,7 +306,6 @@ const SCREENS = {
         ADD_EXISTING_EXPENSE: 'AddExistingExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
-        REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
@@ -993,8 +990,6 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     DYNAMIC_REFERRAL_DETAILS: 'Dynamic_Referral_Details',
-    REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
-    EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     SHARE: {
         ROOT: 'Share_Root',
         SHARE_DETAILS: 'Share_Details',

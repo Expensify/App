@@ -1,5 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Beta, IntroSelected, Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {createTransactionThreadReport} from './actions/Report';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportOrDraftReport} from './ReportUtils';

@@ -1,6 +1,3 @@
-// This file contains all the SVG imports for illustrations used in the app
-// Company Cards
-import type {SvgProps} from 'react-native-svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
@@ -218,6 +215,10 @@ import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration_
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+
+// This file contains all the SVG imports for illustrations used in the app
+// Company Cards
+import type {SvgProps} from 'react-native-svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {

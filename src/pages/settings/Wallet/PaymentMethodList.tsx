@@ -1,17 +1,8 @@
-import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
-import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
-import {FlashList} from '@shopify/flash-list';
-import lodashSortBy from 'lodash/sortBy';
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
@@ -44,8 +36,10 @@ import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -54,9 +48,23 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ReactElement} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
+import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
+import {FlashList} from '@shopify/flash-list';
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {PaymentMethodItem} from './PaymentMethodListItem';
-import PaymentMethodListItem from './PaymentMethodListItem';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './WalletPage/types';
+
+import PaymentMethodListItem from './PaymentMethodListItem';
 
 type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void;
 
