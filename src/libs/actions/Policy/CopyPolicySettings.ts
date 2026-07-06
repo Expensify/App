@@ -182,6 +182,45 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
     return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
 }
 
+type CategoryRulesField = 'areCommentsRequired' | 'areAttendeesRequired' | 'maxAmountNoReceipt' | 'maxAmountNoItemizedReceipt' | 'maxExpenseAmount' | 'expenseLimitType';
+
+/**
+ * When copying the rules part, also copy per-category rule fields (Require fields / Flag for review)
+ * onto matching categories in the target workspace.
+ */
+function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCategories: PolicyCategories): PolicyCategories | undefined {
+    const patch: PolicyCategories = {};
+    let hasPatch = false;
+
+    for (const [categoryName, sourceCategory] of Object.entries(sourceCategories)) {
+        if (!sourceCategory?.enabled || sourceCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        const targetCategory = targetCategories[categoryName];
+        if (!targetCategory) {
+            continue;
+        }
+
+        const categoryRuleFields: Pick<PolicyCategories[string], CategoryRulesField> = {
+            areCommentsRequired: sourceCategory.areCommentsRequired,
+            areAttendeesRequired: sourceCategory.areAttendeesRequired,
+            maxAmountNoReceipt: sourceCategory.maxAmountNoReceipt,
+            maxAmountNoItemizedReceipt: sourceCategory.maxAmountNoItemizedReceipt,
+            maxExpenseAmount: sourceCategory.maxExpenseAmount,
+            expenseLimitType: sourceCategory.expenseLimitType,
+        };
+
+        patch[categoryName] = {
+            ...targetCategory,
+            ...categoryRuleFields,
+        };
+        hasPatch = true;
+    }
+
+    return hasPatch ? patch : undefined;
+}
+
 /**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
@@ -251,6 +290,7 @@ function buildCopyPolicySettingsData(
 
     const isCategoriesSelected = parts.includes('categories');
     const isTagsSelected = parts.includes('tags');
+    const isRulesSelected = parts.includes('rules');
     const isDistanceSelected = parts.includes('distanceRates');
     const isPerDiemSelected = parts.includes('perDiem');
     const isTimeTrackingSelected = parts.includes('timeTracking');
@@ -378,6 +418,27 @@ function buildCopyPolicySettingsData(
                 key: targetTagsKey,
                 value: previousTags,
             });
+        }
+
+        if (isRulesSelected && !isCategoriesSelected) {
+            const targetCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy.id}` as const;
+            const targetCategories = allPolicyCategories?.[targetCategoriesKey] ?? {};
+            const categoryRulesPatch = buildCategoryRulesPatch(sourceCategories, targetCategories);
+
+            if (categoryRulesPatch) {
+                const previousCategoryRules = Object.fromEntries(Object.keys(categoryRulesPatch).map((categoryName) => [categoryName, targetCategories[categoryName]]));
+
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: targetCategoriesKey,
+                    value: categoryRulesPatch,
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: targetCategoriesKey,
+                    value: previousCategoryRules,
+                });
+            }
         }
     }
 

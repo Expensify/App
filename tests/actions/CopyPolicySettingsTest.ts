@@ -487,6 +487,40 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(optimisticData.find((u) => u.key === catKeyA && u.onyxMethod === Onyx.METHOD.SET)?.value).toEqual(sourceCategories);
                 expect(optimisticData.find((u) => u.key === catKeyB && u.onyxMethod === Onyx.METHOD.SET)?.value).toEqual(sourceCategories);
             });
+
+            it('merges category rule fields onto matching target categories when rules selected without categories', () => {
+                const targetPolicy = makeTargetPolicy();
+                const sourceCategories: PolicyCategories = {
+                    Food: {name: 'Food', enabled: true, areCommentsRequired: true, areAttendeesRequired: false},
+                };
+                const targetCategories: PolicyCategories = {
+                    Food: {name: 'Food', enabled: true, areCommentsRequired: false, areAttendeesRequired: false},
+                };
+
+                const {optimisticData} = buildCopyPolicySettingsData(
+                    makeSourcePolicy(),
+                    [targetPolicy],
+                    ['rules'],
+                    {
+                        [SOURCE_CATEGORIES_KEY]: sourceCategories,
+                        [TARGET_CATEGORIES_KEY]: targetCategories,
+                    },
+                    {},
+                );
+
+                const categoryMerge = optimisticData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.MERGE);
+                expect(categoryMerge?.value).toEqual({
+                    Food: {
+                        ...targetCategories.Food,
+                        areCommentsRequired: true,
+                        areAttendeesRequired: false,
+                        maxAmountNoReceipt: undefined,
+                        maxAmountNoItemizedReceipt: undefined,
+                        maxExpenseAmount: undefined,
+                        expenseLimitType: undefined,
+                    },
+                });
+            });
         });
 
         describe('COPY_POLICY_SETTINGS lifecycle key', () => {
