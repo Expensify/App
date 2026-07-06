@@ -81,6 +81,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/company-cards/*/verify-work-email': '/workspaces/$1/company-cards/$2/verify-work-email',
     '/workspaces/*/company-cards/settings/*': '/workspaces/$1/company-cards/settings/$2',
     '/workspaces/*/company-cards/add-card-feed/*': '/workspaces/$1/company-cards/add-card-feed/$2',
+    '/workspaces/*/company-cards/select-feed/*': '/workspaces/$1/company-cards/select-feed/$2',
     '/workspaces/*/company-cards/*/*': '/workspaces/$1/company-cards/company-card-details/$2/$3',
     '/workspace/confirmation/currency': '/workspaces/workspace/confirmation/currency',
     '/workspace/confirmation': '/workspaces/workspace/confirmation',

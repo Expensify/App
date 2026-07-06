@@ -313,6 +313,10 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/company-cards/add-card-feed/layout-name')).toBe('/workspaces/p123/company-cards/add-card-feed/layout-name');
     });
 
+    it('does not rewrite the add-card-feed flow opened from the select-feed screen', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/select-feed/add-card-feed')).toBe('/workspaces/p123/company-cards/select-feed/add-card-feed');
+    });
+
     it('does not rewrite dynamic assign-card assignee paths', () => {
         expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee')).toBe(
             '/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee',
