@@ -17,6 +17,7 @@ import React, {useImperativeHandle, useRef} from 'react';
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps} from './types';
 
+import {getTableListMetadata} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -218,8 +219,14 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
     const shouldRenderStickyHeader = shouldUseStickyColumnHeader && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
-    const hasPageHeader = !!headerComponent || !!listProps.ListHeaderComponent;
-    const listDataRowOffset = (hasPageHeader ? 1 : 0) + (shouldRenderStickyHeader ? 1 : 0);
+    const tableListMetadata = getTableListMetadata({
+        headerComponent,
+        listHeaderComponent: listProps.ListHeaderComponent,
+        listEmptyComponent: listProps.ListEmptyComponent,
+        processedData,
+        isEmptyResult,
+        shouldRenderStickyHeader,
+    });
 
     /**
      * Exposes table control methods through the ref.
@@ -237,8 +244,13 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 }
 
                 if (property === 'scrollToIndex') {
+                    const scrollToIndex = listRef.current?.scrollToIndex;
+                    if (tableListMetadata.listDataRowOffset === 0 || !scrollToIndex) {
+                        return scrollToIndex;
+                    }
+
                     return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
-                        listRef.current?.scrollToIndex({...params, index: params.index + listDataRowOffset});
+                        scrollToIndex({...params, index: params.index + tableListMetadata.listDataRowOffset});
                     };
                 }
 
@@ -273,6 +285,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
         shouldRenderStickyHeader,
+        tableListMetadata,
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,

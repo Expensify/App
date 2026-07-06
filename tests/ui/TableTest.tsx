@@ -590,6 +590,57 @@ describe('Table', () => {
 
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
         });
+
+        it('should forward scrollToIndex without offset when no synthetic rows are present', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+            const tableHandle = tableRef.current;
+            if (!tableHandle) {
+                throw new Error('Expected table ref to be set');
+            }
+            const scrollToIndex = tableHandle.scrollToIndex as (params: {index: number; animated: boolean}) => void;
+
+            act(() => {
+                scrollToIndex({index: 0, animated: false});
+            });
+
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 0, animated: false});
+        });
+
+        it('should render page-header empty state as a synthetic list row', () => {
+            const props = createDefaultProps();
+            const EmptyState = <Text testID="empty-state">No items found</Text>;
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={[]}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    ListEmptyComponent={EmptyState}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getByTestId('empty-state')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+            expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+        });
     });
 
     describe('search functionality', () => {

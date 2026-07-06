@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -207,6 +207,12 @@ function WorkspacesListPage() {
             icon={icons.Plus}
         />
     );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="workspaces"
+            headerButton={headerButton}
+        />
+    );
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
@@ -219,44 +225,44 @@ function WorkspacesListPage() {
         <WorkspaceListLayout
             activeTabKey="workspaces"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
-            {(headerComponent) => (
-                <>
-                    {shouldShowLoadingIndicator ? (
-                        <>
-                            {headerComponent}
-                            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    reasonAttributes={
-                                        {
-                                            context: 'WorkspacesListPage',
-                                            isOffline,
-                                        } satisfies SkeletonSpanReasonAttributes
-                                    }
-                                />
-                            </View>
-                        </>
-                    ) : (
-                        <WorkspaceListTable
-                            ref={tableRef}
-                            workspaces={workspaceRows}
-                            headerComponent={headerComponent}
-                            onDeleteWorkspace={setPolicyIDToDelete}
-                            pendingDeletePolicyID={policyIDToDelete}
-                            copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
-                        />
-                    )}
-                    {!!policyIDToDelete && (
-                        <DeleteWorkspaceFlow
-                            key={policyIDToDelete}
-                            policyID={policyIDToDelete}
-                            onDismiss={() => setPolicyIDToDelete(undefined)}
-                        />
-                    )}
-                    <CopyPolicySettingsProgressModal />
-                </>
-            )}
+            <>
+                {shouldShowLoadingIndicator ? (
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={
+                                    {
+                                        context: 'WorkspacesListPage',
+                                        isOffline,
+                                    } satisfies SkeletonSpanReasonAttributes
+                                }
+                            />
+                        </View>
+                    </>
+                ) : (
+                    <WorkspaceListTable
+                        ref={tableRef}
+                        workspaces={workspaceRows}
+                        headerComponent={headerComponent}
+                        onDeleteWorkspace={setPolicyIDToDelete}
+                        pendingDeletePolicyID={policyIDToDelete}
+                        copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
+                    />
+                )}
+                {!!policyIDToDelete && (
+                    <DeleteWorkspaceFlow
+                        key={policyIDToDelete}
+                        policyID={policyIDToDelete}
+                        onDismiss={() => setPolicyIDToDelete(undefined)}
+                    />
+                )}
+                <CopyPolicySettingsProgressModal />
+            </>
         </WorkspaceListLayout>
     );
 }

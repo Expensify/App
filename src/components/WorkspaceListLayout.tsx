@@ -19,24 +19,26 @@ import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
 import TabSelectorBase from './TabSelector/TabSelectorBase';
 
-type WorkspaceListLayoutProps = {
-    children: React.ReactNode | ((headerComponent: React.ReactElement) => React.ReactNode);
+type WorkspaceListActiveTabKey = 'workspaces' | 'domains';
+
+type WorkspaceListHeaderContentProps = {
+    activeTabKey: WorkspaceListActiveTabKey;
     headerButton?: React.ReactNode;
-    activeTabKey: 'workspaces' | 'domains';
+    shouldShowHeaderButton?: boolean;
 };
 
-export default function WorkspaceListLayout({children, activeTabKey, headerButton}: WorkspaceListLayoutProps) {
+type WorkspaceListLayoutProps = {
+    children: React.ReactNode;
+    headerButton?: React.ReactNode;
+    headerComponent?: React.ReactElement;
+    activeTabKey: WorkspaceListActiveTabKey;
+    scrollHeaderWithTable?: boolean;
+};
+
+function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const isWorkspacesListPage = activeTabKey === 'workspaces';
-    const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
-    const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
-
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -64,8 +66,7 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         Navigation.navigate(matchingNavigationOption.route);
     };
 
-    const shouldRenderHeaderInTable = typeof children === 'function';
-    const renderHeaderContent = (shouldShowHeaderButton: boolean) => (
+    return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
             <TabSelectorBase
                 tabs={navigationOptions}
@@ -75,24 +76,32 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
             {shouldShowHeaderButton && headerButton}
         </View>
     );
-    const renderHeader = (shouldShowHeaderButton: boolean) => {
-        if (shouldRenderHeaderInTable) {
-            return null;
-        }
+}
 
-        return renderHeaderContent(shouldShowHeaderButton);
-    };
-    const headerComponent = renderHeaderContent(true);
-    let content: React.ReactNode = (
+function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    const isWorkspacesListPage = activeTabKey === 'workspaces';
+    const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
+    const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
+    const headerContent = headerComponent ?? (
+        <WorkspaceListHeaderContent
+            activeTabKey={activeTabKey}
+            headerButton={headerButton}
+            shouldShowHeaderButton={shouldDisplayButtonsInSeparateLine}
+        />
+    );
+
+    const content = (
         <>
-            {renderHeader(shouldDisplayButtonsInSeparateLine)}
+            {!scrollHeaderWithTable && headerContent}
             {children}
         </>
     );
-
-    if (shouldRenderHeaderInTable) {
-        content = (children as (headerComponent: React.ReactElement) => React.ReactNode)(headerComponent);
-    }
 
     return (
         <ScreenWrapper
@@ -109,7 +118,7 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
                     >
-                        {!shouldRenderHeaderInTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
+                        {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
                     </TopBarWithLoadingBar>
 
                     {content}
@@ -119,3 +128,6 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         </ScreenWrapper>
     );
 }
+
+export {WorkspaceListHeaderContent};
+export default WorkspaceListLayout;

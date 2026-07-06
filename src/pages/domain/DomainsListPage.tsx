@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -90,34 +90,40 @@ function DomainsListPage() {
             icon={icons.Plus}
         />
     );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="domains"
+            headerButton={headerButton}
+        />
+    );
 
     return (
         <WorkspaceListLayout
             activeTabKey="domains"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
-            {(headerComponent) => (
-                <View style={styles.flex1}>
-                    {shouldShowLoadingIndicator && (
-                        <>
-                            {headerComponent}
-                            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    reasonAttributes={activityIndicatorReasonAttributes}
-                                />
-                            </View>
-                        </>
-                    )}
+            <View style={styles.flex1}>
+                {shouldShowLoadingIndicator && (
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={activityIndicatorReasonAttributes}
+                            />
+                        </View>
+                    </>
+                )}
 
-                    {!shouldShowLoadingIndicator && (
-                        <DomainListTable
-                            domains={domainRows}
-                            headerComponent={headerComponent}
-                        />
-                    )}
-                </View>
-            )}
+                {!shouldShowLoadingIndicator && (
+                    <DomainListTable
+                        domains={domainRows}
+                        headerComponent={headerComponent}
+                    />
+                )}
+            </View>
         </WorkspaceListLayout>
     );
 }

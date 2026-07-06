@@ -31,7 +31,10 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps;
+type TableHeaderProps = ViewProps & {
+    /** Whether this header is rendered as a sticky FlashList item. */
+    isStickyListHeader?: boolean;
+};
 
 /**
  * Renders the table header row with sortable column headers.
@@ -56,7 +59,7 @@ type TableHeaderProps = ViewProps;
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -92,7 +95,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         }
     }
 
-    return (
+    const header = (
         <View
             style={[
                 styles.pv2,
@@ -161,6 +164,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             )}
         </View>
     );
+
+    if (!isStickyListHeader) {
+        return header;
+    }
+
+    return <View style={styles.appBG}>{header}</View>;
 }
 
 /**

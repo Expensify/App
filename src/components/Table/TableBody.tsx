@@ -14,13 +14,9 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 
+import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
 import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
-
-const PAGE_HEADER_KEY = '__table_page_header__';
-const TABLE_HEADER_KEY = '__table_header__';
-const EMPTY_RESULT_KEY = '__table_empty_result__';
-const LIST_EMPTY_KEY = '__table_empty__';
 
 /**
  * Props for the TableBody component.
@@ -71,7 +67,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasSearchString,
         headerComponent,
         isEmptyResult,
-        shouldRenderStickyHeader,
+        tableListMetadata,
     } = useTableContext<DataType>();
     const {
         ListEmptyComponent,
@@ -125,33 +121,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             {headerComponent}
         </>
     );
-    const hasPageHeader = !!ListHeaderComponent || !!headerComponent;
-
-    // FlashList data must be DataType[], but these synthetic rows are intercepted before consumer renderItem/keyExtractor.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const pageHeaderItem = {keyForList: PAGE_HEADER_KEY} as DataType;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const tableHeaderItem = {keyForList: TABLE_HEADER_KEY} as DataType;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const emptyResultItem = {keyForList: EMPTY_RESULT_KEY} as DataType;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const listEmptyItem = {keyForList: LIST_EMPTY_KEY} as DataType;
-
-    const syntheticRowsBeforeData = (hasPageHeader ? 1 : 0) + (shouldRenderStickyHeader ? 1 : 0);
-    const stickyTableHeaderIndex = hasPageHeader ? 1 : 0;
-    const shouldRenderSyntheticEmptyRow = filteredAndSortedData.length === 0 && hasPageHeader && (isEmptyResult || !!ListEmptyComponent);
-    const listData = [
-        ...(hasPageHeader ? [pageHeaderItem] : []),
-        ...(shouldRenderStickyHeader ? [tableHeaderItem] : []),
-        ...filteredAndSortedData,
-        ...(shouldRenderSyntheticEmptyRow ? [isEmptyResult ? emptyResultItem : listEmptyItem] : []),
-    ];
-    const getDataIndex = (index: number) => index - syntheticRowsBeforeData;
-    const isPageHeaderItem = (index: number) => hasPageHeader && index === 0;
-    const isTableHeaderItem = (index: number) => shouldRenderStickyHeader && index === stickyTableHeaderIndex;
-    const isSyntheticEmptyResultItem = (index: number) => shouldRenderSyntheticEmptyRow && isEmptyResult && index === syntheticRowsBeforeData;
-    const isSyntheticListEmptyItem = (index: number) => shouldRenderSyntheticEmptyRow && !isEmptyResult && index === syntheticRowsBeforeData;
-    const adjustedStickyHeaderIndices = stickyHeaderIndices?.map((index) => index + (hasPageHeader ? 1 : 0));
+    const listData = buildTableListData<DataType>(filteredAndSortedData, tableListMetadata);
+    const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
@@ -163,69 +134,49 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             </Text>
         </View>
     );
+    let listEmptyComponent = ListEmptyComponent;
+    if (tableListMetadata.shouldRenderSyntheticEmptyRow) {
+        listEmptyComponent = undefined;
+    } else if (isEmptyResult) {
+        listEmptyComponent = EmptyResultComponent;
+    }
 
     const renderListItem = (info: ListRenderItemInfo<DataType>) => {
-        if (isPageHeaderItem(info.index)) {
-            return pageHeaderElement;
-        }
+        const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
 
-        if (isTableHeaderItem(info.index)) {
-            return (
-                <View style={styles.appBG}>
-                    <TableHeader />
-                </View>
-            );
+        switch (rowKind) {
+            case 'pageHeader':
+                return pageHeaderElement;
+            case 'tableHeader':
+                return <TableHeader isStickyListHeader />;
+            case 'emptyResult':
+                return EmptyResultComponent;
+            case 'listEmpty':
+                return renderListComponent(ListEmptyComponent);
+            case 'data':
+            default:
+                return renderItem?.({...info, index: getDataIndex(info.index, tableListMetadata)}) ?? null;
         }
-
-        if (isSyntheticEmptyResultItem(info.index)) {
-            return EmptyResultComponent;
-        }
-
-        if (isSyntheticListEmptyItem(info.index)) {
-            return renderListComponent(ListEmptyComponent);
-        }
-
-        return renderItem?.({...info, index: getDataIndex(info.index)}) ?? null;
     };
 
     const keyExtractorForList = (item: DataType, index: number) => {
-        if (isPageHeaderItem(index)) {
-            return PAGE_HEADER_KEY;
+        const rowKind = getSyntheticRowKind(index, tableListMetadata);
+
+        if (rowKind !== 'data') {
+            return item.keyForList;
         }
 
-        if (isTableHeaderItem(index)) {
-            return TABLE_HEADER_KEY;
-        }
-
-        if (isSyntheticEmptyResultItem(index)) {
-            return EMPTY_RESULT_KEY;
-        }
-
-        if (isSyntheticListEmptyItem(index)) {
-            return LIST_EMPTY_KEY;
-        }
-
-        return keyExtractor?.(item, getDataIndex(index)) ?? item.keyForList;
+        return keyExtractor?.(item, getDataIndex(index, tableListMetadata)) ?? item.keyForList;
     };
 
     const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
-        if (isPageHeaderItem(index)) {
-            return PAGE_HEADER_KEY;
+        const rowKind = getSyntheticRowKind(index, tableListMetadata);
+
+        if (rowKind !== 'data') {
+            return item.keyForList;
         }
 
-        if (isTableHeaderItem(index)) {
-            return TABLE_HEADER_KEY;
-        }
-
-        if (isSyntheticEmptyResultItem(index)) {
-            return EMPTY_RESULT_KEY;
-        }
-
-        if (isSyntheticListEmptyItem(index)) {
-            return LIST_EMPTY_KEY;
-        }
-
-        return getItemType?.(item, getDataIndex(index), extraData);
+        return getItemType?.(item, getDataIndex(index, tableListMetadata), extraData);
     };
 
     return (
@@ -239,8 +190,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
-                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                stickyHeaderIndices={shouldRenderStickyHeader ? [stickyTableHeaderIndex] : adjustedStickyHeaderIndices}
+                ListEmptyComponent={listEmptyComponent}
+                stickyHeaderIndices={adjustedStickyHeaderIndices}
                 contentContainerStyle={[
                     filteredAndSortedData.length === 0 && styles.flexGrow1,
                     listContentContainerStyle,

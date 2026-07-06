@@ -2,6 +2,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 
 import React, {createContext, useContext} from 'react';
 
+import type {TableListMetadata} from './buildTableListData';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
@@ -62,6 +63,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether the table header is rendered as a sticky FlashList item. */
     shouldRenderStickyHeader: boolean;
 
+    /** Synthetic row metadata shared by the FlashList data and table ref methods. */
+    tableListMetadata: TableListMetadata;
+
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
@@ -89,6 +93,15 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasActiveFilters: false,
     hasSearchString: false,
     shouldRenderStickyHeader: false,
+    tableListMetadata: {
+        hasPageHeader: false,
+        shouldRenderStickyHeader: false,
+        shouldRenderSyntheticEmptyRow: false,
+        isEmptyResult: false,
+        syntheticRowsBeforeData: 0,
+        stickyTableHeaderIndex: 0,
+        listDataRowOffset: 0,
+    },
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
