@@ -100,7 +100,7 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
 type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends string = string> = {
     data: DataType[];
     filters?: FilterConfig<FilterKey>;
-    currentFilters: Record<FilterKey, string[]>;
+    currentFilters: Partial<Record<FilterKey, string[]>>;
     isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
 
@@ -118,7 +118,7 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
             const filterValue = currentFilters[filterKey];
 
             // When no filter value is set, we keep the item.
-            if (!filterValue.length) {
+            if (!filterValue?.length) {
                 return true;
             }
 
