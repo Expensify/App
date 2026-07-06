@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
+import {getRequireFieldsFormFromCategory} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -47,13 +47,22 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const backToRoute = isEditing ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
-        const selectedCategory = value ? policyCategories?.[value] : undefined;
-        const draftForm = {
-            ...form,
-            [INPUT_IDS.CATEGORY]: value,
-        };
+        if (!value) {
+            updateDraftRequireFieldsRule({
+                [INPUT_IDS.CATEGORY]: '',
+                [INPUT_IDS.REQUIRE_DESCRIPTION]: false,
+                [INPUT_IDS.REQUIRE_ATTENDEES]: false,
+                [INPUT_IDS.REQUIRE_RECEIPT]: false,
+                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: false,
+            });
+            return;
+        }
 
-        updateDraftRequireFieldsRule(selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm);
+        const selectedCategory = policyCategories?.[value];
+        updateDraftRequireFieldsRule({
+            [INPUT_IDS.CATEGORY]: value,
+            ...getRequireFieldsFormFromCategory(selectedCategory),
+        });
     };
 
     return (
@@ -72,6 +81,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
                 onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute)}
                 backToRoute={backToRoute}
+                allowNoneOption={false}
             />
         </AccessOrNotFoundWrapper>
     );
