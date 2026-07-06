@@ -175,7 +175,7 @@ function KYCWall({
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
-                                if (adminPolicy?.achAccount) {
+                                if (adminPolicy?.achAccount?.bankAccountID) {
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
@@ -187,7 +187,7 @@ function KYCWall({
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
                                 setNavigationActionToMicrotaskQueue(() => {
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
-                                    if (adminPolicy?.achAccount) {
+                                    if (adminPolicy?.achAccount?.bankAccountID) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
