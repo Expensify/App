@@ -1,5 +1,6 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
+import scheduleMacrotask from '@libs/scheduleMacrotask';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -167,7 +168,7 @@ function init() {
                     return;
                 }
                 flushScheduled = true;
-                setTimeout(flushRecompute, 0);
+                scheduleMacrotask(flushRecompute);
             };
 
             for (let i = 0; i < dependencies.length; i++) {
