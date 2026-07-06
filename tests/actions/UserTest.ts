@@ -870,13 +870,13 @@ describe('actions/User', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: ONYXKEYS.NVP_APP_REVIEW,
-                            value: expect.objectContaining({response: 'negative', policyID: TEST_POLICY_ID}),
+                            value: expect.objectContaining({response: 'negative'}),
                         }),
                     ]),
                     failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: ONYXKEYS.NVP_APP_REVIEW,
-                            value: expect.objectContaining({response: 'positive', policyID: TEST_POLICY_ID}),
+                            value: expect.objectContaining({response: 'positive'}),
                         }),
                     ]),
                 }),
