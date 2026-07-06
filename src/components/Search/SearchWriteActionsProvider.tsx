@@ -42,8 +42,8 @@ type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
     filteredData: SearchData;
 
-    /** The same rows in rendered (sorted) order — the shift-range source, so a range spans the on-screen order under a custom sort. */
-    sortedData: SearchListItem[];
+    /** The exact rows the list renders — the shift-range source, so a range spans the on-screen order (custom sort, retained optimistic rows) rather than the pre-sort filteredData. */
+    renderedData: SearchListItem[];
 
     /** Keeps "select all matching" in lock-step: select-all unchecks once the selection no longer covers every item. */
     totalSelectableItemsCount: number;
@@ -345,7 +345,7 @@ function useSyncMobileSelectionModeWithScreenSize({
 // `selectedTransactions`, so dispatching one re-renders neither this provider's stable children nor the rows.
 function SearchWriteActionsProvider({
     filteredData,
-    sortedData,
+    renderedData,
     totalSelectableItemsCount,
     searchResults,
     transactions,
@@ -406,7 +406,7 @@ function SearchWriteActionsProvider({
 
     // Expense-report rows are the selectable unit (never headers); only real group-by rows are separators whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const flattenedShiftRangeItems = buildShiftRangeItems(sortedData, groupChildrenByKey, hasValidGroupBy);
+    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, hasValidGroupBy);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {

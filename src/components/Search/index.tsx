@@ -1110,7 +1110,7 @@ function Search({
         <SearchScopeProvider>
             <SearchWriteActionsProvider
                 filteredData={filteredData}
-                sortedData={sortedData}
+                renderedData={stableSortedData}
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={searchResults}
                 transactions={transactions}
