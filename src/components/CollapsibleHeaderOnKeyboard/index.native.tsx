@@ -17,7 +17,7 @@ const RESTORE_DURATION = 300;
 // Assumed vertical space for the focused input field — used to reserve space above the keyboard.
 const VERTICAL_SPACE_FOR_FOCUSED_INPUT = 120;
 const KEYBOARD_OPENING_PROGRESS_THRESHOLDS = [0.5, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99];
-const MIN_HEADER_HEIGHT_ON_COLLAPSE = 16;
+const MIN_HEADER_HEIGHT_ON_COLLAPSE = 8;
 
 function isKeyboardOpeningAtGivenProgress(keyboardProgress: number, prevKeyboardProgress: number, requiredProgress: number[]): boolean {
     'worklet';
