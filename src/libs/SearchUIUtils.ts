@@ -2792,6 +2792,49 @@ function getReportActionsSections(
 }
 
 /**
+ * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions.
+ * Live actions can hold an approval the snapshot lacks: snapshot merges only keep fields already present in the
+ * snapshot shape, so a new optimistic action (e.g. approving a report offline) never reaches it.
+ */
+function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
+    let firstApprovedAction = snapshotApprovedAction;
+    for (const action of actions) {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.APPROVED && action.actionName !== CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            continue;
+        }
+        if (!firstApprovedAction || new Date(action.created).getTime() < new Date(firstApprovedAction.created).getTime()) {
+            firstApprovedAction = action;
+        }
+    }
+    return firstApprovedAction;
+}
+
+/**
+ * Returns the report's approved date, falling back to the latest live APPROVED action's created time when the
+ * report is optimistically fully approved (statusNum) but the snapshot's `approved` field hasn't caught up yet —
+ * same snapshot-merge gap as `getFirstApprovedAction`. Gated on statusNum so an offline intermediate approval step
+ * in a multi-level workflow (report still Processing) doesn't get a premature approved date.
+ */
+function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.approved) {
+        return reportItem.approved;
+    }
+    if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+        return '';
+    }
+    let latestApprovedAction: OnyxTypes.ReportAction | undefined;
+    for (const action of actions) {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+            continue;
+        }
+        if (!latestApprovedAction || new Date(action.created).getTime() > new Date(latestApprovedAction.created).getTime()) {
+            latestApprovedAction = action;
+        }
+    }
+    return latestApprovedAction?.created ?? '';
+}
+
+/**
  * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -2886,7 +2929,7 @@ function getReportSections({
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
-                const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
+                const firstApprovedAction = getFirstApprovedAction(firstApprovedActionByReportID.get(reportItem.reportID), actions);
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
                 const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
@@ -2932,6 +2975,7 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    approved: getApprovedDate(reportItem, actions),
                     firstApproved,
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
