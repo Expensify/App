@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {FeatureListItem} from './FeatureList';
@@ -38,6 +38,7 @@ function MigratedUserWelcomeModal() {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
+    const hasClosedRef = useRef(false);
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
@@ -58,14 +59,24 @@ function MigratedUserWelcomeModal() {
     );
 
     const handleDismiss = () => {
+        if (hasClosedRef.current) {
+            return;
+        }
+
+        hasClosedRef.current = true;
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     };
 
-    useBeforeRemove(handleDismiss);
+    useBeforeRemove((event) => {
+        if (hasClosedRef.current) {
+            return;
+        }
 
-    const handleClose = () => Navigation.goBack();
+        event.preventDefault();
+        handleDismiss();
+    });
 
     const illustrationProps = isReduceMotionEnabled
         ? {image: illustrations.PlanetWithMobileApp}
@@ -86,7 +97,7 @@ function MigratedUserWelcomeModal() {
 
     return (
         <CenteredModalLayout
-            onBackdropPress={handleClose}
+            onBackdropPress={handleDismiss}
             contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
@@ -96,7 +107,8 @@ function MigratedUserWelcomeModal() {
                 confirmText={translate('migratedUserWelcomeModal.confirmText')}
                 helpText={translate('migratedUserWelcomeModal.helpText')}
                 onHelp={onHelp}
-                onClose={handleClose}
+                onConfirm={handleDismiss}
+                shouldCloseOnConfirm={false}
                 illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
                 illustrationOuterContainerStyle={styles.p0}
                 contentInnerContainerStyles={[styles.mb5, styles.gap2]}
