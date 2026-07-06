@@ -1,10 +1,14 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {downloadReportPDF} from '@libs/actions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import PDFDownloadModal from './PDFDownloadModal';
 
 type ReportPDFDownloadModalProps = {

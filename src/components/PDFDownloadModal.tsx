@@ -1,12 +1,16 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';

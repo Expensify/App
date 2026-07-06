@@ -1,4 +1,5 @@
 import type {SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 

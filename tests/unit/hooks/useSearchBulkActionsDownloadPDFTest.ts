@@ -6,18 +6,22 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
-import Onyx from 'react-native-onyx';
 
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {exportReportToPDF} from '@libs/actions/Report';
 import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
-import {makeSearchData, makeSelectedTransaction, makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
+
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import {makeSearchData, makeSelectedTransaction, makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
 
 jest.mock('@libs/actions/Export', () => ({
     exportReportsToPDF: jest.fn(() => 'mock-export-id'),
