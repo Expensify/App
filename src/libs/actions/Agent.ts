@@ -265,7 +265,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -324,7 +324,10 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+
+    if (shouldNavigateBack) {
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+    }
 }
 
 export {
