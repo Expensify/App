@@ -34,6 +34,7 @@ type RateFieldProps = {
     customUnitRateID: string | undefined;
     didConfirm: boolean;
     isReadOnly: boolean;
+    isDisabled?: boolean;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transactionID: string | undefined;
@@ -57,6 +58,7 @@ function RateField({
     customUnitRateID,
     didConfirm,
     isReadOnly,
+    isDisabled = false,
     isPolicyExpenseChat,
     policy,
     transactionID,
@@ -94,7 +96,7 @@ function RateField({
         : '';
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
+    const isRateInteractive = !!rate && !isReadOnly && !isDisabled && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const {isSearchRouterDisplayed} = useSearchRouterState();
 
@@ -114,7 +116,7 @@ function RateField({
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
             onPress={() => {
-                if (!transactionID) {
+                if (!transactionID || !isRateInteractive) {
                     return;
                 }
 
@@ -142,7 +144,7 @@ function RateField({
             }}
             brickRoadIndicator={shouldDisplayDistanceRateError || isRateOutOfDateRange ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={shouldDisplayDistanceRateError ? translate('iou.error.invalidRate') : rateOutOfDateRangeErrorText}
-            disabled={didConfirm}
+            disabled={didConfirm || isDisabled}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
             shouldRenderTooltip={shouldMountMileageRateTooltip}

@@ -9,6 +9,7 @@ import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@comp
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -80,6 +81,7 @@ function TransactionDetailsFields({
         isGPSDistanceRequest,
     } = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
+    const isRateDisabled = fieldVisibility.distance && iouType === CONST.IOU.TYPE.TRACK && !isPolicyExpenseChat && policy?.autoReporting === false;
 
     return (
         <>
@@ -168,6 +170,7 @@ function TransactionDetailsFields({
                     customUnitRateID={distanceData.customUnitRateID}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
+                    isDisabled={isRateDisabled}
                     isPolicyExpenseChat={isPolicyExpenseChat}
                     policy={policy}
                     transactionID={transactionID}
