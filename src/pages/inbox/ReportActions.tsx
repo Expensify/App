@@ -1,19 +1,25 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
+import type ReportScreenNavigationProps from './types';
+
 import ReportActionsList from './report/ReportActionsList';
 import UserTypingEventListener from './report/UserTypingEventListener';
-import type ReportScreenNavigationProps from './types';
 
 const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,

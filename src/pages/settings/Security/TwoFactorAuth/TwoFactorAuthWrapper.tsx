@@ -1,19 +1,24 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
+
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
 
 type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Name of the step */

@@ -1,11 +1,15 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import type {SharedValue} from 'react-native-reanimated';
-import {useSharedValue} from 'react-native-reanimated';
-import type {Scale} from 'victory-native';
 import type {LabelRotation} from '@components/Charts/types';
 import {getAdditionalOffset, getFontLineMetrics, isCursorOverChartLabel, rotatedLabelYOffset} from '@components/Charts/utils';
 import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/VictoryTheme';
+
 import variables from '@styles/variables';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SharedValue} from 'react-native-reanimated';
+import type {Scale} from 'victory-native';
+
+import {useSharedValue} from 'react-native-reanimated';
+
 import type {HitTestArgs} from './useChartInteractions';
 
 type LabelHitGeometry = {

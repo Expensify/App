@@ -1,4 +1,5 @@
 import {manipulateAsync} from 'expo-image-manipulator';
+
 import type ImageManipulatorConfig from './type';
 
 export default function getImageManipulator({fileUri, width, height, fileName}: ImageManipulatorConfig): Promise<File> {

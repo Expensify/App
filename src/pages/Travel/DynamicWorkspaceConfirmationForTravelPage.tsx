@@ -1,71 +1,94 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import ScreenWrapper from '@components/ScreenWrapper';
-import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
-import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
-import useActivePolicy from '@hooks/useActivePolicy';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
-import useOnyx from '@hooks/useOnyx';
-import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ScreenWrapper from "@components/ScreenWrapper";
+import WorkspaceConfirmationForm from "@components/WorkspaceConfirmationForm";
+import type { WorkspaceConfirmationSubmitFunctionParams } from "@components/WorkspaceConfirmationForm";
 
-function DynamicWorkspaceConfirmationForTravelPage() {
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+import useActivePolicy from "@hooks/useActivePolicy";
+import useCurrentUserPersonalDetails from "@hooks/useCurrentUserPersonalDetails";
+import useDynamicBackPath from "@hooks/useDynamicBackPath";
+import useHasActiveAdminPolicies from "@hooks/useHasActiveAdminPolicies";
+import useOnyx from "@hooks/useOnyx";
 
-    const activePolicy = useActivePolicy();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+import {
+  createDraftWorkspace,
+  createWorkspace,
+} from "@libs/actions/Policy/Policy";
+import Navigation from "@libs/Navigation/Navigation";
+import type { TravelNavigatorParamList } from "@libs/Navigation/types";
 
-    const goBack = () => {
-        Navigation.goBack(backPath);
-    };
+import CONST from "@src/CONST";
+import ONYXKEYS from "@src/ONYXKEYS";
+import { DYNAMIC_ROUTES } from "@src/ROUTES";
 
-    const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        createDraftWorkspace({
-            introSelected,
-            workspaceName: params.name,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            currentUserEmail: currentUserPersonalDetails.email ?? '',
-            policyID: params.policyID,
-            currency: params.currency || (currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD),
-            file: params.avatarFile as File,
-        });
-        createWorkspace({
-            policyName: params.name,
-            policyID: params.policyID,
-            engagementChoice: undefined,
-            currency: params.currency,
-            file: params.avatarFile as File,
-            introSelected,
-            activePolicy,
-            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-            betas,
-            isSelfTourViewed,
-            hasActiveAdminPolicies,
-        });
-        goBack();
-    };
+import type { StackScreenProps } from "@react-navigation/stack";
 
-    return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            testID="DynamicWorkspaceConfirmationForTravelPage"
-        >
-            <WorkspaceConfirmationForm
-                onBackButtonPress={goBack}
-                onSubmit={onSubmit}
-            />
-        </ScreenWrapper>
-    );
+import { hasSeenTourSelector } from "@selectors/Onboarding";
+import React from "react";
+
+type DynamicWorkspaceConfirmationForTravelPageProps = StackScreenProps<
+  TravelNavigatorParamList,
+  typeof SCREENS.TRAVEL.WORKSPACE_CONFIRMATION
+>;
+
+function DynamicWorkspaceConfirmationForTravelPage({
+  route,
+}: DynamicWorkspaceConfirmationForTravelPageProps) {
+  const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+  const [betas] = useOnyx(ONYXKEYS.BETAS);
+  const backPath = useDynamicBackPath(
+    DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path,
+  );
+  const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    selector: hasSeenTourSelector,
+  });
+
+  const activePolicy = useActivePolicy();
+  const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+  const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+
+  const goBack = () => {
+    Navigation.goBack(backPath);
+  };
+
+  const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
+    createDraftWorkspace({
+      introSelected,
+      workspaceName: params.name,
+      currentUserAccountID: currentUserPersonalDetails.accountID,
+      currentUserEmail: currentUserPersonalDetails.email ?? "",
+      policyID: params.policyID,
+      currency:
+        params.currency ||
+        (currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD),
+      file: params.avatarFile as File,
+    });
+    createWorkspace({
+      policyName: params.name,
+      policyID: params.policyID,
+      engagementChoice: undefined,
+      currency: params.currency,
+      file: params.avatarFile as File,
+      introSelected,
+      activePolicy,
+      currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+      currentUserEmailParam: currentUserPersonalDetails.email ?? "",
+      betas,
+      isSelfTourViewed,
+      hasActiveAdminPolicies,
+    });
+    goBack();
+  };
+
+  return (
+    <ScreenWrapper
+      enableEdgeToEdgeBottomSafeAreaPadding
+      testID="DynamicWorkspaceConfirmationForTravelPage"
+    >
+      <WorkspaceConfirmationForm
+        onBackButtonPress={goBack}
+        onSubmit={onSubmit}
+      />
+    </ScreenWrapper>
+  );
 }
 
 export default DynamicWorkspaceConfirmationForTravelPage;
