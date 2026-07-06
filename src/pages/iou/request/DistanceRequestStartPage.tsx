@@ -18,13 +18,15 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import {setNativeShortcutFlag} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -50,8 +52,14 @@ function DistanceRequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+    const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
+    const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: report?.policyID,
+        action,
+        iouType,
+    });
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
@@ -91,6 +99,28 @@ function DistanceRequestStartPage({
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
+
+    const hasEvaluatedNativeShortcutRef = useRef(false);
+    useEffect(() => {
+        // Native home-screen shortcuts (e.g. "Track distance") open this page directly via deeplink
+        // without calling startMoneyRequest first, so the draft is missing or stale (reportID mismatch).
+        // In-app flows always call startMoneyRequest, which creates a fresh draft with a matching reportID.
+        // The evaluation waits for the draft to finish loading and only happens once - after
+        // initMoneyRequest rebuilds the draft, the inputs would no longer look like a shortcut.
+        if (hasEvaluatedNativeShortcutRef.current || isLoadingTransaction) {
+            return;
+        }
+        hasEvaluatedNativeShortcutRef.current = true;
+        const isFromGlobalCreate = !report?.reportID;
+        const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
+        if (!isFromGlobalCreate) {
+            return;
+        }
+        if (transaction && !isStaleTransactionDraft) {
+            return;
+        }
+        setNativeShortcutFlag(route.params.transactionID);
+    }, [isLoadingTransaction, report?.reportID, transaction, reportID, route.params.transactionID]);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();

@@ -92,6 +92,7 @@ function IOURequestStartPage({
     });
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
+    const hasEvaluatedNativeShortcutRef = useRef(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -209,6 +210,13 @@ function IOURequestStartPage({
         //   2. Draft is missing or stale (reportID mismatch) — startMoneyRequest wasn't called
         // We intentionally ignore flags on stale drafts (e.g. isFromFloatingActionButton from an
         // abandoned FAB flow) since they belong to a previous, unrelated flow.
+        // The evaluation must wait for the draft to finish loading (a fresh in-app draft could
+        // otherwise be mistaken for a missing one) and must only happen once: after initMoneyRequest
+        // rebuilds the draft with a matching reportID, the inputs would no longer look like a shortcut.
+        if (hasEvaluatedNativeShortcutRef.current || isLoadingTransaction) {
+            return;
+        }
+        hasEvaluatedNativeShortcutRef.current = true;
         if (!isFromGlobalCreate) {
             return;
         }
@@ -217,9 +225,7 @@ function IOURequestStartPage({
             return;
         }
         setNativeShortcutFlag(route.params.transactionID);
-        // Only run once on mount to capture the original creation source; later transaction/route changes must not re-mark the flag.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isLoadingTransaction, isFromGlobalCreate, transaction, isStaleTransactionDraft, route.params.transactionID]);
 
     const navigateBack = () => {
         // In the new manual expense beta the confirmation is embedded with its header hidden,
@@ -269,7 +275,13 @@ function IOURequestStartPage({
         // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
         // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
         // is immediately discarded once the reset lands. Wait for the reset so the manual confirmation mounts once.
-        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+        manualTabContent = (
+            <FullScreenLoadingIndicator
+                reasonAttributes={{
+                    context: 'IOURequestStartPage.manualTabPendingReset',
+                }}
+            />
+        );
     } else {
         manualTabContent = (
             <IOURequestStepConfirmation

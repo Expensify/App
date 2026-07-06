@@ -78,10 +78,14 @@ function useResetIOUType({
     isNewManualExpenseFlowEnabled = false,
 }: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
+    const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: hasOnlyPersonalPoliciesSelector,
+    });
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
 
     const personalPolicy = usePersonalPolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -129,6 +133,8 @@ function useResetIOUType({
             isFromGlobalCreate,
             isTrackDistanceExpense,
             isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
+            // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would otherwise wipe it).
+            isFromNativeShortcut: transaction?.isFromNativeShortcut,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,
