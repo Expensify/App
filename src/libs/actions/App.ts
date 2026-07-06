@@ -2,7 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
@@ -40,7 +40,6 @@ import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
-import {searchForTodos} from './Search';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -532,7 +531,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
  */
 function loadPostDataForOpenOrReconnect() {
-    searchForTodos();
+    API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
 }
 
 /**
