@@ -4568,7 +4568,7 @@ function setIsComposerFullSize(reportID: string, isComposerFullSize: boolean) {
  */
 function shouldShowReportActionNotification(
     reportID: string,
-    reportActions: OnyxCollection<ReportActions>,
+    topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     action: ReportAction | null = null,
     isRemote = false,
@@ -4608,14 +4608,8 @@ function shouldShowReportActionNotification(
     }
 
     // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notification.
-    const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
-    const topmostReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${topmostReport?.reportID}`];
-    const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
-    if (
-        reportID === ReportActionsUtils.getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions, isOfflineNetwork()) &&
-        Visibility.isVisible() &&
-        Visibility.hasFocus()
-    ) {
+    console.log('should show notification', reportID, topmostOneTransactionThreadReportID, Visibility.isVisible(), Visibility.hasFocus());
+    if (reportID === topmostOneTransactionThreadReportID && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because the report is a transaction thread associated with the current one-transaction report`);
         return false;
     }
@@ -4644,12 +4638,12 @@ function shouldShowReportActionNotification(
 function showReportActionNotification(
     reportID: string,
     reportAction: ReportAction,
-    reportActions: OnyxCollection<ReportActions>,
+    topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    if (!shouldShowReportActionNotification(reportID, reportActions, currentUserAccountID, reportAction)) {
+    if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
         return;
     }
 

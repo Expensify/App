@@ -5,9 +5,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
+import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 import useOnyx from '@hooks/useOnyx';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -33,9 +35,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
@@ -43,7 +43,7 @@ import {useEffect, useRef} from 'react';
 function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
-    getReportActions: () => OnyxCollection<ReportActions>,
+    getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     return Pusher.init({
@@ -51,7 +51,7 @@ function initializePusher(
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportActions, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
     });
 }
 
@@ -87,15 +87,16 @@ function AuthScreensInitHandler() {
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
 
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
-    const reportActionsRef = useRef(reportActions);
-
     useReconcileHighContrastIntent();
 
+    const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
+    const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
+    // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
+    const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
+
     useEffect(() => {
-        reportActionsRef.current = reportActions;
-    }, [reportActions]);
+        topmostOneTransactionThreadReportIDRef.current = topmostOneTransactionThreadReportID;
+    }, [topmostOneTransactionThreadReportID]);
 
     useEffect(() => {
         registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
@@ -109,7 +110,7 @@ function AuthScreensInitHandler() {
             return initializePusher(
                 currentAccountID,
                 currentEmail,
-                () => reportActionsRef.current,
+                () => topmostOneTransactionThreadReportIDRef.current,
                 () => reportAttributesRef.current,
             );
         });
@@ -124,7 +125,7 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => reportActionsRef.current, () => reportAttributesRef.current);
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -147,7 +148,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => reportActionsRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
