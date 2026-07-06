@@ -1,7 +1,12 @@
-name: Resolve Mobile-Expensify ref
+name: Resolve build refs
 
-# Reusable workflow that resolves which Expensify/Mobile-Expensify commit a build should check out.
-# Resolution order:
+# Reusable workflow that resolves which Expensify/App and Expensify/Mobile-Expensify commits a build should check out.
+#
+# App head ref (APP_REF):
+#   - The head SHA of the App PR (APP_PULL_REQUEST_URL), if provided.
+#   - Otherwise, empty — callers fall back to the triggering ref (push commit / dispatch branch).
+#
+# Mobile-Expensify head ref (MOBILE_EXPENSIFY_REF), resolution order:
 #   1. An explicit Mobile-Expensify PR URL (MOBILE_EXPENSIFY_PULL_REQUEST_URL), if provided.
 #   2. Otherwise, a `MOBILE-EXPENSIFY: <pr-url>` entry in the body of the App PR (APP_PULL_REQUEST_URL).
 #   3. Otherwise, empty — callers fall back to the pinned submodule commit.
@@ -22,6 +27,9 @@ on:
       APP_PR_NUMBER:
         description: PR number extracted from the App PR URL (empty if none).
         value: ${{ jobs.resolve.outputs.APP_PR_NUMBER }}
+      APP_REF:
+        description: Resolved Expensify/App head SHA (empty to use the triggering ref).
+        value: ${{ jobs.resolve.outputs.APP_REF }}
       MOBILE_EXPENSIFY_PR:
         description: Resolved Mobile-Expensify PR number (empty if none).
         value: ${{ jobs.resolve.outputs.MOBILE_EXPENSIFY_PR }}
@@ -35,10 +43,11 @@ on:
 
 jobs:
   resolve:
-    name: Resolve Mobile-Expensify ref
+    name: Resolve build refs
     runs-on: 'blacksmith-4vcpu-ubuntu-2404'
     outputs:
       APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
+      APP_REF: ${{ steps.getAppHeadRef.outputs.REF }}
       MOBILE_EXPENSIFY_PR: ${{ steps.mobileExpensifyPR.outputs.result }}
       MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
@@ -52,6 +61,15 @@ jobs:
             exit 1
           fi
           echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve App head ref from PR number
+        id: getAppHeadRef
+        if: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER != '' }}
+        run: |
+          set -e
+          echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} -R Expensify/App --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Extract Mobile-Expensify PR number from URL
         id: extractMobilePRNumber
