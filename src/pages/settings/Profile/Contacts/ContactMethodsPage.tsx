@@ -100,10 +100,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                         variant="success"
                         onPress={addNewContactMethod}
                     >
-                        <Button.KeyboardShortcut
-                            pressOnEnter
-                            onPress={addNewContactMethod}
-                        />
+                        <Button.KeyboardShortcut />
                         <Button.Text>{translate('contacts.newContactMethod')}</Button.Text>
                     </Button>
                 </FixedFooter>

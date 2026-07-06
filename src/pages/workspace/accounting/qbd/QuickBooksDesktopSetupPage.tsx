@@ -132,10 +132,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                             onPress={navigateToFirstSync}
                             size={CONST.BUTTON_SIZE.LARGE}
                         >
-                            <Button.KeyboardShortcut
-                                pressOnEnter
-                                onPress={navigateToFirstSync}
-                            />
+                            <Button.KeyboardShortcut />
                             <Button.Text>{translate('common.done')}</Button.Text>
                         </Button>
                     </FixedFooter>

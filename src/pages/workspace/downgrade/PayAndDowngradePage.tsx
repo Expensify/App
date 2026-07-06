@@ -121,11 +121,7 @@ function PayAndDowngradePage() {
                             onPress={payAndDowngrade}
                             isLoading={billingDetails?.isLoading}
                         >
-                            <Button.KeyboardShortcut
-                                pressOnEnter
-                                onPress={payAndDowngrade}
-                                isLoading={billingDetails?.isLoading}
-                            />
+                            <Button.KeyboardShortcut />
                             <Button.Text>{translate('workspace.payAndDowngrade.title')}</Button.Text>
                         </Button>
                     </FixedFooter>

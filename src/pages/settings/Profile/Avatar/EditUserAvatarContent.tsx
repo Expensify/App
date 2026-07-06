@@ -194,11 +194,7 @@ function EditUserAvatarContent() {
                     isDisabled={!isDirty}
                     onPress={saveAvatar}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={saveAvatar}
-                        isDisabled={!isDirty}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('common.save')}</Button.Text>
                 </Button>
             </FixedFooter>

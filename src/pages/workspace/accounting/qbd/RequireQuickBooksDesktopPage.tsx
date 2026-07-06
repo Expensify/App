@@ -52,10 +52,7 @@ function RequireQuickBooksDesktopModal() {
                         onPress={confirm}
                         size={CONST.BUTTON_SIZE.LARGE}
                     >
-                        <Button.KeyboardShortcut
-                            pressOnEnter
-                            onPress={confirm}
-                        />
+                        <Button.KeyboardShortcut />
                         <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
                     </Button>
                 </FixedFooter>

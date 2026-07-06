@@ -140,10 +140,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={submit}
                                     >
-                                        <Button.KeyboardShortcut
-                                            pressOnEnter
-                                            onPress={submit}
-                                        />
+                                        <Button.KeyboardShortcut />
                                         <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
                                     </Button>
                                 }

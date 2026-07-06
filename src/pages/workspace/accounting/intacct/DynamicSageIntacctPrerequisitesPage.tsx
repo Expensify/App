@@ -119,10 +119,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
                     onPress={navigateToEnterCredentials}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={navigateToEnterCredentials}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('common.next')}</Button.Text>
                 </Button>
             </FixedFooter>

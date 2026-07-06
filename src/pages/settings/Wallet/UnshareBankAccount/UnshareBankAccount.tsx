@@ -135,12 +135,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 variant="danger"
                 onPress={promptUnshare}
             >
-                <Button.KeyboardShortcut
-                    pressOnEnter
-                    onPress={promptUnshare}
-                    isDisabled={isLoading}
-                    isLoading={isUnshareButtonLoading}
-                />
+                <Button.KeyboardShortcut />
                 <Button.Text>{translate('common.unshare')}</Button.Text>
             </Button>
         );

@@ -127,10 +127,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={submit}
                         >
-                            <Button.KeyboardShortcut
-                                pressOnEnter
-                                onPress={submit}
-                            />
+                            <Button.KeyboardShortcut />
                             <Button.Text>{translate('common.save')}</Button.Text>
                         </Button>
                     }

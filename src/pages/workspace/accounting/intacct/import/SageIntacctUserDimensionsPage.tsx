@@ -125,10 +125,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     onPress={addUserDefinedDimension}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={addUserDefinedDimension}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('workspace.intacct.addUserDefinedDimension')}</Button.Text>
                 </Button>
             </FixedFooter>

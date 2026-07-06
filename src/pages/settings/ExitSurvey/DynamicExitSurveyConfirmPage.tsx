@@ -101,11 +101,7 @@ function DynamicExitSurveyConfirmPage() {
                     onPress={goToExpensifyClassic}
                     isDisabled={isOffline}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={goToExpensifyClassic}
-                        isDisabled={isOffline}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
                 </Button>
             </FixedFooter>
