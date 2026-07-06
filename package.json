@@ -381,7 +381,7 @@
     "braces": "3.0.3",
     "yargs": "17.7.2",
     "yargs-parser": "21.1.1",
-    "ws": "8.17.1",
+    "ws": "8.21.0",
     "micromatch": "4.0.8",
     "json5": "2.2.2",
     "loader-utils": "2.0.4",
