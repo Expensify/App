@@ -3,8 +3,8 @@ import type {Beta, IntroSelected, Report, ReportAction, Transaction} from '@src/
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {createTransactionThreadReport} from './actions/Report';
-import {getIOUActionForReportID, getThreadReportIDForTransaction} from './ReportActionsUtils';
-import {getReportOrDraftReport} from './ReportUtils';
+import {getIOUActionForReportID} from './ReportActionsUtils';
+import {findSelfDMReportID, getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
 /**
@@ -48,7 +48,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // since report "0" does not exist. Prefer the snapshot-resolved thread, but fall back to local report actions
     // so an optimistic (offline) expense — absent from the snapshot — still resolves to its real thread.
     if (isUnreported) {
-        return expense.reportAction?.childReportID ?? getThreadReportIDForTransaction(transaction.transactionID) ?? reportID;
+        return expense.reportAction?.childReportID ?? getIOUActionForReportID(findSelfDMReportID(), transaction.transactionID)?.childReportID ?? reportID;
     }
 
     // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection

@@ -656,48 +656,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getThreadReportIDForTransaction', () => {
-        const buildIOUAction = (transactionID: string, childReportID: string | undefined): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ({
-            ...mockIOUAction,
-            originalMessage: {...mockOriginalMessage, IOUTransactionID: transactionID},
-            childReportID,
-        });
-
-        it('returns undefined when transactionID is undefined', () => {
-            expect(ReportActionsUtils.getThreadReportIDForTransaction(undefined)).toBeUndefined();
-        });
-
-        it('returns the childReportID of the IOU action matching the transaction', async () => {
-            const action = buildIOUAction('transaction1', 'thread1');
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}selfDM`, {[action.reportActionID]: action});
-
-            expect(ReportActionsUtils.getThreadReportIDForTransaction('transaction1')).toBe('thread1');
-        });
-
-        it('scans across all reports to find the matching transaction thread', async () => {
-            const otherAction = buildIOUAction('otherTransaction', 'otherThread');
-            const targetAction = buildIOUAction('targetTransaction', 'targetThread');
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report1`, {[otherAction.reportActionID]: otherAction});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report2`, {[targetAction.reportActionID]: targetAction});
-
-            expect(ReportActionsUtils.getThreadReportIDForTransaction('targetTransaction')).toBe('targetThread');
-        });
-
-        it('returns undefined when no action matches the transaction', async () => {
-            const action = buildIOUAction('transaction1', 'thread1');
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report1`, {[action.reportActionID]: action});
-
-            expect(ReportActionsUtils.getThreadReportIDForTransaction('unknownTransaction')).toBeUndefined();
-        });
-
-        it('returns undefined when the matching IOU action has no childReportID', async () => {
-            const action = buildIOUAction('transaction1', undefined);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report1`, {[action.reportActionID]: action});
-
-            expect(ReportActionsUtils.getThreadReportIDForTransaction('transaction1')).toBeUndefined();
-        });
-    });
-
     describe('getSortedReportActionsForDisplay', () => {
         it('should filter out non-whitelisted actions', () => {
             const input: ReportAction[] = [

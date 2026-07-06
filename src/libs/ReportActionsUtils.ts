@@ -2651,24 +2651,6 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
 }
 
 /**
- * Finds the transaction thread (the IOU action's `childReportID`) for a transaction by scanning all locally stored
- * report actions. Useful for optimistic, not-yet-synced expenses (e.g. an offline personal tracked expense) whose IOU
- * action lives in the self-DM but isn't yet present in the Search snapshot.
- */
-function getThreadReportIDForTransaction(transactionID: string | undefined): string | undefined {
-    if (!transactionID) {
-        return undefined;
-    }
-    for (const reportActions of Object.values(allReportActions ?? {})) {
-        const childReportID = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID;
-        if (childReportID) {
-            return childReportID;
-        }
-    }
-    return undefined;
-}
-
-/**
  * Get the track expense actionable whisper of the corresponding track expense
  */
 function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined) {
@@ -4809,7 +4791,6 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
-    getThreadReportIDForTransaction,
     getOriginalMessage,
     getAddedApprovalRuleMessage,
     getDeletedApprovalRuleMessage,
