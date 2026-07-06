@@ -89,7 +89,7 @@ const testConfig = {
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
             expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(1);
-            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).not.toHaveLength(0);
+            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(1);
             // Every outcome screen renders the same `OutcomeScreenBase`, so the route name identifies which one is on top.
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
         },

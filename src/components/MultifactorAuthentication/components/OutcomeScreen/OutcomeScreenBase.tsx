@@ -95,7 +95,6 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                         titleStyles={[styles.mb2, titleStyle]}
                         CustomSubtitle={CustomSubtitle}
                         containerStyle={[styles.ph5, padding]}
-                        testID="MultifactorAuthenticationOutcomeScreen"
                     />
                 </ScrollView>
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
