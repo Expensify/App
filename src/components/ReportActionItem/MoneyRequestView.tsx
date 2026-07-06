@@ -578,17 +578,8 @@ function MoneyRequestView({
 
     const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance, distanceUnitValue);
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, true, isManualDistanceRequest, commuterExclusionBreakdown);
-    let distanceToDisplayDescription = translate('common.distance');
-    let distanceToDisplayHintText;
-
-    if (commuterExclusionData) {
-        const {commuterExclusion, reimbursableDistance} = commuterExclusionData;
-        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(reimbursableDistance + commuterExclusion, distanceUnitValue, translate, false);
-        distanceToDisplayDescription += ` ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
-        const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(commuterExclusion, distanceUnitValue, translate, false, true);
-        distanceToDisplayHintText = translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance});
-    }
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, true, isManualDistanceRequest, commuterExclusionData);
+    const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, distanceUnitValue, translate);
 
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';

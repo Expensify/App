@@ -53,24 +53,15 @@ function DistanceField({
     const {translate} = useLocalize();
 
     // When commuter exclusion applies, the title shows the reimbursable distance and the description shows the original
+    const displayUnit = unit ?? commuterExclusionData?.distanceUnit;
     const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, true, isManualDistanceRequest, commuterExclusionData);
-    let descriptionLabel = translate('common.distance');
-    let distanceToDisplayHintText;
-
-    if (commuterExclusionData) {
-        const displayUnit = unit ?? commuterExclusionData.distanceUnit;
-        const originalDistance = commuterExclusionData.reimbursableDistance + commuterExclusionData.commuterExclusion;
-        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(originalDistance, displayUnit, translate, true);
-        descriptionLabel += ` ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
-        const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(commuterExclusionData.commuterExclusion, commuterExclusionData.distanceUnit, translate, false, true);
-        distanceToDisplayHintText = translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance});
-    }
+    const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, displayUnit, translate);
 
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
             title={displayTitle}
-            description={descriptionLabel}
+            description={distanceToDisplayDescription}
             hintText={distanceToDisplayHintText}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

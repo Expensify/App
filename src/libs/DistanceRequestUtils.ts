@@ -387,6 +387,39 @@ function getCommuterExclusionData(
 }
 
 /**
+ * Returns the description label and hint text for a distance field, incorporating commuter exclusion details when present.
+ *
+ * @param commuterExclusionData - The commuter exclusion breakdown, or null/undefined when not applicable
+ * @param distanceUnit - The unit to use for display formatting (falls back to data's unit or miles)
+ * @param translate - Translate function
+ */
+function getDistanceDisplayDetailsWithCommuter(
+    commuterExclusionData: CommuterExclusionData | null | undefined,
+    distanceUnit: Unit | undefined,
+    translate: LocaleContextProps['translate'],
+): {distanceToDisplayDescription: string; distanceToDisplayHintText: string | undefined} {
+    const baseLabel = translate('common.distance');
+
+    if (!commuterExclusionData) {
+        return {
+            distanceToDisplayDescription: baseLabel,
+            distanceToDisplayHintText: undefined,
+        };
+    }
+
+    const unitToUse = distanceUnit ?? commuterExclusionData.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const {commuterExclusion, reimbursableDistance} = commuterExclusionData;
+    const originalDistance = reimbursableDistance + commuterExclusion;
+    const originalDistanceFormatted = getFormattedDistanceInUnits(originalDistance, unitToUse, translate, true);
+    const formattedDistance = getFormattedDistanceInUnits(commuterExclusion, unitToUse, translate, false, true);
+
+    return {
+        distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,
+        distanceToDisplayHintText: translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance}),
+    };
+}
+
+/**
  * Converts the distance from kilometers or miles to meters.
  *
  * @param distance - The distance to be converted.
@@ -763,6 +796,7 @@ export default {
     getDistanceMerchant,
     getDistanceRequestAmount,
     getCommuterExclusionData,
+    getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
