@@ -62,9 +62,9 @@ describe('AttendeeUtils', () => {
             });
 
             it('preserves all attendee fields when converting from an object', () => {
-                const attendee = makeAttendee({email: 'user@test.com', displayName: 'Alice'});
+                const attendee = makeAttendee({email: 'user@test.com', displayName: 'Alice', login: 'alice', accountID: 42, selected: true});
                 const result = convertAttendeesToArray({first: attendee});
-                expect(result.at(0)).toMatchObject({email: 'user@test.com', displayName: 'Alice'});
+                expect(result.at(0)).toMatchObject({email: 'user@test.com', displayName: 'Alice', login: 'alice', accountID: 42, selected: true});
             });
         });
 
@@ -89,6 +89,7 @@ describe('AttendeeUtils', () => {
                 email: '   ',
                 displayName: '  John Smith  ',
                 avatarUrl: '',
+                login: '  john@example.com  ',
             };
 
             const result = normalizeAttendee(attendee);
@@ -96,20 +97,23 @@ describe('AttendeeUtils', () => {
             expect(result).toEqual({
                 displayName: 'John Smith',
                 avatarUrl: '',
+                login: 'john@example.com',
             });
         });
 
-        it('should fall back to an empty display name when displayName and email are missing', () => {
+        it('should fall back to login when displayName and email are missing', () => {
             const attendee: Attendee = {
                 displayName: '   ',
                 avatarUrl: '',
+                login: '  login-only@example.com  ',
             };
 
             const result = normalizeAttendee(attendee);
 
             expect(result).toEqual({
-                displayName: '',
+                displayName: 'login-only@example.com',
                 avatarUrl: '',
+                login: 'login-only@example.com',
             });
         });
 
@@ -126,6 +130,7 @@ describe('AttendeeUtils', () => {
                 email: 'attendee@example.com',
                 displayName: 'attendee@example.com',
                 avatarUrl: '',
+                login: undefined,
             });
         });
     });
@@ -137,13 +142,13 @@ describe('AttendeeUtils', () => {
 
         it('should normalize each attendee in the list', () => {
             const attendees: Attendee[] = [
-                {email: '  one@example.com  ', displayName: ' One ', avatarUrl: ''},
-                {displayName: '   ', avatarUrl: ''},
+                {email: '  one@example.com  ', displayName: ' One ', avatarUrl: '', login: ' one@example.com '},
+                {displayName: '   ', avatarUrl: '', login: ' two@example.com '},
             ];
 
             expect(normalizeAttendees(attendees)).toEqual([
-                {email: 'one@example.com', displayName: 'One', avatarUrl: ''},
-                {displayName: '', avatarUrl: ''},
+                {email: 'one@example.com', displayName: 'One', avatarUrl: '', login: 'one@example.com'},
+                {displayName: 'two@example.com', avatarUrl: '', login: 'two@example.com'},
             ]);
         });
     });
@@ -152,56 +157,49 @@ describe('AttendeeUtils', () => {
         const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
         it('returns input as-is when it is not an array', () => {
-            expect(enrichAndSortAttendees(undefined, undefined, undefined, localeCompare)).toBeUndefined();
+            expect(enrichAndSortAttendees(undefined, undefined, localeCompare)).toBeUndefined();
         });
 
         it('sorts alphabetically by stored displayName when no personalDetails are available', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
 
-            expect((enrichAndSortAttendees(attendees, undefined, undefined, localeCompare) ?? []).map((a) => a.displayName)).toEqual(['apple', 'banana']);
+            expect(enrichAndSortAttendees(attendees, undefined, localeCompare).map((a) => a.displayName)).toEqual(['apple', 'banana']);
         });
 
-        it('enriches displayName and avatar from personalDetails when the login maps to an accountID', () => {
+        it('enriches displayName and avatar from personalDetails when accountID matches', () => {
             const accountID = 1;
-            const email = 'user@x.com';
-            const attendees: Attendee[] = [{email, displayName: 'Old', avatarUrl: 'old.png'}];
-            const loginToAccountIDMap = {[email]: accountID};
+            const attendees: Attendee[] = [{accountID, displayName: 'Old', avatarUrl: 'old.png'}];
             const personalDetailsList: PersonalDetailsList = {[accountID]: {accountID, displayName: 'New', avatar: 'new.png'}};
 
-            const result = enrichAndSortAttendees(attendees, loginToAccountIDMap, personalDetailsList, localeCompare);
+            const result = enrichAndSortAttendees(attendees, personalDetailsList, localeCompare);
 
-            expect(result?.at(0)?.displayName).toBe('New');
-            expect(result?.at(0)?.avatarUrl).toBe('new.png');
+            expect(result.at(0)?.displayName).toBe('New');
+            expect(result.at(0)?.avatarUrl).toBe('new.png');
         });
 
         it('falls back to stored value when personalDetails has empty strings', () => {
             const accountID = 1;
-            const email = 'user@x.com';
-            const attendees: Attendee[] = [{email, displayName: 'Stored', avatarUrl: 'stored.png'}];
-            const loginToAccountIDMap = {[email]: accountID};
+            const attendees: Attendee[] = [{accountID, displayName: 'Stored', avatarUrl: 'stored.png'}];
             const personalDetailsList: PersonalDetailsList = {[accountID]: {accountID, displayName: '', avatar: ''}};
 
-            const result = enrichAndSortAttendees(attendees, loginToAccountIDMap, personalDetailsList, localeCompare);
+            const result = enrichAndSortAttendees(attendees, personalDetailsList, localeCompare);
 
-            expect(result?.at(0)?.displayName).toBe('Stored');
-            expect(result?.at(0)?.avatarUrl).toBe('stored.png');
+            expect(result.at(0)?.displayName).toBe('Stored');
+            expect(result.at(0)?.avatarUrl).toBe('stored.png');
         });
 
         it('sorts using enriched displayName so a profile rename moves the pill', () => {
             const renamedAccountID = 1;
-            const aliceEmail = 'alice@x.com';
-            const bobEmail = 'bob@x.com';
             const attendees: Attendee[] = [
-                {email: aliceEmail, displayName: 'alice', avatarUrl: ''},
-                {email: bobEmail, displayName: 'bob', avatarUrl: ''},
+                {accountID: renamedAccountID, displayName: 'alice', avatarUrl: ''},
+                {accountID: 2, displayName: 'bob', avatarUrl: ''},
             ];
-            const loginToAccountIDMap = {[aliceEmail]: renamedAccountID, [bobEmail]: 2};
             const personalDetailsList: PersonalDetailsList = {[renamedAccountID]: {accountID: renamedAccountID, displayName: 'zoe'}};
 
-            expect((enrichAndSortAttendees(attendees, loginToAccountIDMap, personalDetailsList, localeCompare) ?? []).map((a) => a.displayName)).toEqual(['bob', 'zoe']);
+            expect(enrichAndSortAttendees(attendees, personalDetailsList, localeCompare).map((a) => a.displayName)).toEqual(['bob', 'zoe']);
         });
 
         it('does not mutate the input array', () => {
@@ -211,7 +209,7 @@ describe('AttendeeUtils', () => {
             ];
             const snapshot = [...attendees];
 
-            enrichAndSortAttendees(attendees, undefined, undefined, localeCompare);
+            enrichAndSortAttendees(attendees, undefined, localeCompare);
 
             expect(attendees).toEqual(snapshot);
         });
