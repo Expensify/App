@@ -117,7 +117,6 @@
 "../../src/components/Button/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Button/validateSubmitShortcut/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ButtonComposed/Button.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ButtonWithDropdownMenu/index.tsx"	"no-restricted-imports"	1
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/refs"	3
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -260,7 +259,6 @@
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.clearInteractionHandle"	1
 "../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.createInteractionHandle"	1
-"../../src/components/MoneyReportHeaderActions/MoneyReportHeaderSecondaryActions.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyReportHeaderActions/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyReportHeaderPrimaryAction/ApprovePrimaryAction.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyReportHeaderPrimaryAction/ExportPrimaryAction.tsx"	"no-restricted-imports"	1
@@ -353,7 +351,6 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"no-restricted-imports"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1203,7 +1200,6 @@
 "../../src/pages/home/FreeTrialSection/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
-"../../src/pages/home/SpendOverTimeSection/SpendOverTimeSectionContent.tsx"	"no-restricted-imports"	1
 "../../src/pages/home/SpendOverTimeSection/useSpendOverTimeData.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
