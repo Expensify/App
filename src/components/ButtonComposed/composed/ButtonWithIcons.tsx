@@ -46,6 +46,8 @@ function ButtonWithIcons({
     onPressIn = () => {},
     onPressOut = () => {},
     onMouseDown = undefined,
+    onFocus = undefined,
+    onBlur = undefined,
     pressOnEnter = false,
     enterKeyEventListenerPriority = 0,
     style = [],
@@ -91,6 +93,8 @@ function ButtonWithIcons({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onMouseDown={onMouseDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
             style={style}
             disabledStyle={disabledStyle}
             innerStyles={innerStyles}

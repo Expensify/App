@@ -34,6 +34,8 @@ function Button({
     onPressIn = () => {},
     onPressOut = () => {},
     onMouseDown = undefined,
+    onFocus = undefined,
+    onBlur = undefined,
     style = [],
     disabledStyle,
     innerStyles = [],
@@ -170,6 +172,8 @@ function Button({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onMouseDown={onMouseDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {

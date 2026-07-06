@@ -1,7 +1,10 @@
-import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import SingleSelectPopup from './SingleSelectPopup';
 
 type CurrencyPopupProps = {
