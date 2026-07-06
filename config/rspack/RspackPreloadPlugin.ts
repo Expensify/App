@@ -1,4 +1,3 @@
-import type {JsHtmlPluginTag} from '@rspack/binding';
 import type {Compiler} from '@rspack/core';
 
 type Options = {
@@ -38,7 +37,10 @@ class RspackPreloadPlugin {
                 const publicPath = compilation.outputOptions.publicPath;
                 const resolvedPublicPath = typeof publicPath === 'string' && publicPath !== 'auto' ? publicPath : '';
 
-                const links: JsHtmlPluginTag[] = [...compilation.getAssets()]
+                // Typed off `htmlPluginData.assetTags.styles` (rather than importing `JsHtmlPluginTag` from
+                // `@rspack/binding` directly) since `@rspack/binding` is only a transitive dependency of
+                // `@rspack/core`, not one we depend on directly.
+                const links: typeof htmlPluginData.assetTags.styles = [...compilation.getAssets()]
                     .map((asset) => asset.name)
                     .filter((name) => !name.endsWith('.map'))
                     .filter((name) => fileWhitelist.some((regex) => regex.test(name)))
