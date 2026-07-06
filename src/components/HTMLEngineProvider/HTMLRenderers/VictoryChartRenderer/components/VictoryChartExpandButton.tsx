@@ -1,9 +1,8 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -18,7 +17,6 @@ type VictoryChartExpandButtonProps = {
 
 function VictoryChartExpandButton({onPress}: VictoryChartExpandButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
@@ -29,13 +27,13 @@ function VictoryChartExpandButton({onPress}: VictoryChartExpandButtonProps) {
                 gesture layer — acceptable since charts render nothing interactive there. */}
             <View style={[styles.pAbsolute, styles.t0, styles.r0, styles.m3]}>
                 <Button
-                    small
-                    icon={icons.Expand}
-                    iconFill={theme.icon}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
                     accessibilityLabel={translate('common.expand')}
                     sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.VICTORY_CHART_EXPAND_BUTTON}
-                />
+                >
+                    <Button.Icon src={icons.Expand} />
+                </Button>
             </View>
         </Tooltip>
     );
