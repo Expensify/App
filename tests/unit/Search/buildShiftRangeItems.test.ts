@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 import createRandomTransaction from '../../utils/collections/transaction';
 
-/** A fully-typed transaction row. The Transaction half comes from the shared factory; the rest are the list-item fields. */
+/** A fully-typed transaction row (Transaction fields from the shared factory + list-item fields). */
 function makeChild(index: number, key: string): TransactionListItemType {
     return {
         ...createRandomTransaction(index),
@@ -108,7 +108,7 @@ describe('buildShiftRangeItems', () => {
         expect(result).toEqual([groupA, regChild1, regChild2, groupB, ownChild]);
     });
 
-    it('respects the areItemsGrouped guard: grouped-looking data with areItemsGrouped=false passes through unchanged', () => {
+    it('does not flatten when groups are the selectable unit (groupsAreHeaders=false, e.g. expense-report views): rows pass through unchanged', () => {
         const groupA = makeGroup('groupA');
         const filteredData: SearchData = [groupA];
         const groupChildrenByKey = {groupA: [makeChild(1, 'a1')]};

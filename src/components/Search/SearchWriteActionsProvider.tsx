@@ -360,7 +360,7 @@ function SearchWriteActionsProvider({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection, getSelectedTransactions} = useSearchSelectionActions();
 
-    // Group-by children load lazily inside `GroupChildrenContent` (their `group.transactions` is empty), so it publishes them here for the shift-range source.
+    // Group-by children load lazily in `GroupChildrenContent`, which publishes them here for the shift-range source.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
     const registerGroupChildren = (groupKey: string, groupChildren: TransactionListItemType[]) => {
@@ -398,11 +398,10 @@ function SearchWriteActionsProvider({
             parentReport,
         });
 
-    // Flattened groups + children in visual order for shift-range selection.
+    // Expense-report rows are the selectable unit (never headers); only real group-by rows are separators whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const flattenedShiftRangeItems = buildShiftRangeItems(filteredData, groupChildrenByKey, areItemsGrouped);
-    const isShiftRangeHeaderItem = (item: SearchData[number]) =>
-        isTransactionGroupListItemType(item) && (hasValidGroupBy || (Array.isArray(item.transactions) && item.transactions.length > 0));
+    const flattenedShiftRangeItems = buildShiftRangeItems(filteredData, groupChildrenByKey, hasValidGroupBy);
+    const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
         applySelection(
@@ -497,8 +496,41 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        // Headers don't move the anchor, so a later shift+click continues from the last row clicked.
-        if (!isShiftRangeHeaderItem(item)) {
+        if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
+            // A group-header click selects/deselects a whole block; seed a range over the resulting selection so a later shift+click narrows it (like Select-All).
+            const groupChildren = groupChildrenByKey[item.keyForList] ?? item.transactions ?? [];
+            const selected = getSelectedTransactions();
+            const groupWasSelected = groupChildren.some((child) => !!selected[child.keyForList]?.isSelected);
+            // The toggle hasn't committed yet, so fold this group's children into the selected set to get the post-click extent.
+            const selectedKeys = new Set(Object.keys(selected).filter((key) => selected[key]?.isSelected));
+            for (const child of groupChildren) {
+                if (!child.keyForList) {
+                    continue;
+                }
+                if (groupWasSelected) {
+                    selectedKeys.delete(child.keyForList);
+                } else {
+                    selectedKeys.add(child.keyForList);
+                }
+            }
+            let firstSelected: SearchData[number] | undefined;
+            let lastSelected: SearchData[number] | undefined;
+            for (const row of flattenedShiftRangeItems) {
+                if (isShiftRangeHeaderItem(row) || !row.keyForList || !selectedKeys.has(row.keyForList)) {
+                    continue;
+                }
+                if (!firstSelected) {
+                    firstSelected = row;
+                }
+                lastSelected = row;
+            }
+            if (firstSelected && lastSelected) {
+                rangeApi.seedRange(firstSelected, lastSelected, false);
+            } else {
+                rangeApi.clearAnchor();
+            }
+        } else if (!isShiftRangeHeaderItem(item)) {
+            // Non-header rows seed the anchor so a later shift+click continues from here.
             rangeApi.notifyAnchor(item);
         }
 
@@ -592,7 +624,7 @@ function SearchWriteActionsProvider({
     };
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
-        // Decide select-all vs clear before the updater so the range seed/clear (only a ref write) stays out of the reducer — mirrors BaseSelectionList.
+        // Decide select-all vs clear before the updater so the range seed/clear (a ref write) stays out of the reducer.
         if (Object.keys(getSelectedTransactions()).length > 0) {
             rangeApi.clearAnchor();
         } else {

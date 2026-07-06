@@ -31,7 +31,6 @@ function SelectableListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const ButtonComponent = canSelectMultiple ? ListCheckbox : ListRadioButton;
 
-    // Carry shiftKey to onSelectionButtonPress (range selection); plain onSelectRow otherwise.
     const handleButtonSelect = (selectedItem: TItem, shiftKey?: boolean) => {
         if (onSelectionButtonPress) {
             onSelectionButtonPress(selectedItem, undefined, shiftKey);

@@ -45,7 +45,7 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Whether the checkbox should be disabled (e.g., all transactions are pending delete) */
     isDisabled?: boolean;
 
-    /** Group-checkbox toggle (receives groupKey); ignores Shift. */
+    /** Group-checkbox toggle; ignores Shift. */
     onToggleSelection?: (groupKey: string) => void;
 
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */

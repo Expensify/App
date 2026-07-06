@@ -265,7 +265,7 @@ type SearchRowSelectionActionsValue = {
     toggleAll: () => void;
 };
 
-/** Lets lazily-loaded group-by children publish themselves to the shift-range source (rationale in `SearchWriteActionsProvider`). */
+/** Lets lazily-loaded group-by children publish themselves to the shift-range source. */
 type SearchShiftRangeChildrenActions = {
     /** Publish a group's currently rendered children (in visual order) to the shift-range source. */
     registerGroupChildren: (groupKey: string, children: TransactionListItemType[]) => void;

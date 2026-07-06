@@ -16,6 +16,7 @@ type Params<TItem> = {
 type Api<TItem> = {
     applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
     notifyAnchor: (item: TItem) => void;
+    seedRange: (anchorItem: TItem, endItem: TItem, deselect: boolean) => void;
     seedFullRange: () => void;
     clearAnchor: () => void;
 };
@@ -77,9 +78,20 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             if (!key) {
                 return;
             }
-            // A click on an already-selected row removes it → seed a deselecting anchor so the next shift+click extends the deselection. Selecting clicks seed a normal anchor.
+            // Clicking an already-selected row removes it → seed a deselecting anchor so the next shift+click extends the deselection.
             const deselect = isSelected(currentParams, key);
             sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key, deselect});
+        },
+        seedRange: (anchorItem, endItem, deselect) => {
+            // A block gesture (e.g. a group-header checkbox that selects all its children at once) seeds a range over that block, so the next shift+click narrows or extends it.
+            const currentParams = paramsRef.current;
+            const anchorKey = keyOf(currentParams, anchorItem);
+            const endKey = keyOf(currentParams, endItem);
+            if (anchorKey && endKey) {
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey, deselect});
+            } else {
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
+            }
         },
         seedFullRange: () => {
             // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.

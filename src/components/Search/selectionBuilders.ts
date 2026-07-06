@@ -310,16 +310,13 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
 }
 
 /**
- * Builds the flattened source list (each group header followed by its children, in visual order) that shift-range
- * selection ranges over.
- *
- * In group-by views a group's own `transactions` array is empty because children load lazily, so they are published
- * into `groupChildrenByKey` by `GroupChildrenContent`. For each group we prefer that registry and fall back to the
- * group's `transactions` when the registry has no entry yet. Non-grouped data (or a non-grouped guard) passes through
- * unchanged.
+ * Flattened source list (each group header followed by its children, in visual order) that shift-range selection ranges over.
+ * Only flattens when group rows are headers (group-by views): children come from `groupChildrenByKey` (populated by
+ * `GroupChildrenContent`), falling back to `group.transactions`. Expense-report views (the group is the unit) and non-grouped
+ * data pass through unchanged.
  */
-function buildShiftRangeItems(filteredData: SearchData, groupChildrenByKey: Record<string, TransactionListItemType[]>, areItemsGrouped: boolean): Array<SearchData[number]> {
-    if (!areItemsGrouped || !isGroupedItemArray(filteredData)) {
+function buildShiftRangeItems(filteredData: SearchData, groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): Array<SearchData[number]> {
+    if (!groupsAreHeaders || !isGroupedItemArray(filteredData)) {
         return filteredData;
     }
     return filteredData.flatMap((group) => [group, ...(groupChildrenByKey[group.keyForList] ?? group.transactions ?? [])]);
