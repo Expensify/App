@@ -3150,6 +3150,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
 
             expect(result.length).toBeGreaterThan(0);
@@ -5124,6 +5125,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
 
             expect(result).toHaveLength(1);
