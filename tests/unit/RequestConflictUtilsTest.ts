@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     enablePolicyFeatureCommand,
     resolveCommentDeletionConflicts,
@@ -11,7 +10,10 @@ import {
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+
 import type {AnyRequest} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
 
 describe('RequestConflictUtils', () => {
     it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {

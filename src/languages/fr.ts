@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -396,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'ID de retrait',
         internationalReimbursementIDs: 'ID de remboursement international',
         withdrawalStatus: 'Statut de retrait',
+        paidStatus: 'Statut payé',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
         chooseFiles: 'Choisir des fichiers',
@@ -1071,6 +1076,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Connecter à la comptabilité',
             customizeCategories: 'Personnaliser les catégories comptables',
             linkCompanyCards: 'Lier des cartes d’entreprise',
+            issueExpensifyCards: 'Émettre des cartes Expensify',
+            issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
         },
@@ -1232,7 +1239,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Approuvé',
         cash: 'Espèces',
         card: 'Carte',
-        original: 'Original',
+        purchase: 'Achat',
         split: 'Diviser',
         splitExpense: 'Fractionner la dépense',
         splitDates: 'Diviser les dates',
@@ -2373,6 +2380,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
         verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
         verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
+        verifyOldDeviceDescriptionWithRecovery: 'Saisissez un code de récupération valide pour confirmer que vous avez accès à votre compte.',
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
@@ -5530,6 +5538,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans Rillet et synchroniser à nouveau la connexion',
+            accountTypesDescription: 'Vos comptes Rillet seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Rillet seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Rillet sont importées en tant que tags',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Rillet.',
         },
         type: {
             free: 'Gratuit',
@@ -6303,6 +6316,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             importedFromAccountingSoftware: 'Les taxes ci-dessous sont importées depuis votre',
             taxCode: 'Code fiscal',
             updateTaxCodeFailureMessage: 'Une erreur s’est produite lors de la mise à jour du code de taxe, veuillez réessayer',
+            taxRates: 'Taux d’imposition',
         },
         duplicateWorkspace: {
             title: 'Nommez votre nouvel espace de travail',
@@ -8715,6 +8729,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             past: 'Passé',
             submitted: 'Soumis',
             approved: 'Approuvé',
+            firstApprover: 'Premier approbateur',
+            firstApproved: 'Approuvé en premier',
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',
@@ -8876,6 +8892,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Marqué comme payé', withdrawing: 'Retrait en cours', confirmed: 'Confirmé'},
     reportLayout: {
         reportLayout: 'Mise en page de la note de frais',
         groupByLabel: 'Regrouper par :',

@@ -1,12 +1,16 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import startCase from 'lodash/startCase';
+
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
@@ -422,6 +426,7 @@ const translations = {
         withdrawalID: 'Withdrawal ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         withdrawalStatus: 'Withdrawal status',
+        paidStatus: 'Paid status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -1131,6 +1136,8 @@ const translations = {
             customizeCategories: 'Customize accounting categories',
             inviteAccountant: 'Invite your accountant',
             linkCompanyCards: 'Link company cards',
+            issueExpensifyCards: 'Issue Expensify cards',
+            issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             setupRules: 'Set up spend rules',
         },
         upcomingTravel: 'Upcoming travel',
@@ -1291,7 +1298,7 @@ const translations = {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
-        original: 'Original',
+        purchase: 'Purchase',
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
@@ -2455,6 +2462,7 @@ const translations = {
         replaceDeviceTitle: 'Replace two-factor device',
         verifyOldDeviceTitle: 'Verify old device',
         verifyOldDeviceDescription: 'Enter the six-digit code from your current authenticator app to confirm you have access to it.',
+        verifyOldDeviceDescriptionWithRecovery: 'Enter a valid recovery code to confirm you have access to your account.',
         verifyNewDeviceTitle: 'Set up new device',
         verifyNewDeviceDescription: 'Scan the QR code with your new device, then enter the code to complete setup.',
     },
@@ -5578,6 +5586,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+            accountTypesDescription: 'Your Rillet accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
+            dimensionsImport: 'All Rillet dimensions import as tags',
+            importDescription: 'Choose which coding configurations to import from Rillet.',
         },
         type: {
             free: 'Free',
@@ -6303,6 +6316,7 @@ const translations = {
             value: 'Value',
             taxReclaimableOn: 'Tax reclaimable on',
             taxRate: 'Tax rate',
+            taxRates: 'Tax rates',
             findTaxRate: 'Find tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use',
@@ -8776,6 +8790,8 @@ const translations = {
             past: 'Past',
             submitted: 'Submitted',
             approved: 'Approved',
+            firstApprover: 'First approver',
+            firstApproved: 'First approved',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
@@ -8912,6 +8928,11 @@ const translations = {
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
+    },
+    paidStatus: {
+        markedAsPaid: 'Marked as paid',
+        withdrawing: 'Withdrawing',
+        confirmed: 'Confirmed',
     },
     reportLayout: {
         reportLayout: 'Report layout',

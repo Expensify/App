@@ -1,7 +1,3 @@
-import {format} from 'date-fns';
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
@@ -30,9 +26,12 @@ import {
     isExpenseUnreported,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+
 import {getDefaultP2PMileageRate} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+
 import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,9 +55,17 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {format} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
+import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
+
 import {getAllTransactionDrafts} from './index';
 import {requestMoney, trackExpense} from './TrackExpense';
-import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -300,7 +307,7 @@ function initMoneyRequest({
     }
 
     const comment: Comment = {
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails),
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
     };
     let requestCategory: string | null = null;
 

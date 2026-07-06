@@ -1,10 +1,13 @@
-import isEmpty from 'lodash/isEmpty';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TPhrasing, TText} from 'react-native-render-html';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TPhrasing, TText} from 'react-native-render-html';
+
+import isEmpty from 'lodash/isEmpty';
+
 import {isChatRoom} from './ReportUtils';
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').replace('#', '');

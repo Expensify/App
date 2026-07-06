@@ -1,10 +1,13 @@
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
-import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 

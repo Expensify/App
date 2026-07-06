@@ -1,19 +1,27 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';

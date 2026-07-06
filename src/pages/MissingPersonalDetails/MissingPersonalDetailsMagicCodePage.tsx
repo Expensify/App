@@ -1,10 +1,9 @@
-import {areAllExpensifyCardsShipped} from '@selectors/Card';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {
     buildSetPersonalDetailsAndShipExpensifyCardsParams,
@@ -20,6 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +29,12 @@ import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {areAllExpensifyCardsShipped} from '@selectors/Card';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+
 import {getSubPageValues} from './utils';
 
 type MissingPersonalDetailsMagicCodePageProps = PlatformStackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE>;

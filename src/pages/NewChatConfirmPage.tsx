@@ -1,6 +1,3 @@
-import type {RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,19 +7,23 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getGroupChatName} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultGroupAvatar} from '@libs/ReportUtils';
+
 import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,6 +31,11 @@ import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {RefObject} from 'react';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 function navigateBack() {
     Navigation.goBack(ROUTES.NEW_CHAT);

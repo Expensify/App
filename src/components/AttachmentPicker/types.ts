@@ -1,7 +1,8 @@
-import type {ReactNode} from 'react';
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ReactNode} from 'react';
+import type {ValueOf} from 'type-fest';
 
 type PickerOptions = {
     /** A callback that will be called with the selected attachments. */

@@ -1,4 +1,5 @@
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -201,6 +202,7 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         SCREENS.WORKSPACE.ACCOUNTING.RILLET_SETUP,
         SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXISTING_CONNECTIONS,
         SCREENS.WORKSPACE.ACCOUNTING.RILLET_SUBSIDIARY_SELECTOR,
+        SCREENS.WORKSPACE.ACCOUNTING.RILLET_IMPORT,
     ],
     [SCREENS.WORKSPACE.TAXES]: [
         SCREENS.WORKSPACE.TAXES_SETTINGS,
