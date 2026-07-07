@@ -10,20 +10,15 @@ import useOnyx from '@hooks/useOnyx';
 
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {StackScreenProps} from '@react-navigation/stack';
-
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-type DynamicWorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_CONFIRMATION>;
-
-function DynamicWorkspaceConfirmationForTravelPage({route}: DynamicWorkspaceConfirmationForTravelPageProps) {
+function DynamicWorkspaceConfirmationForTravelPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path);

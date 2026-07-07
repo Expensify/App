@@ -23,7 +23,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 
 import React from 'react';
 
-type DynamicTripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_SUMMARY>;
+type DynamicTripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY>;
 
 function DynamicTripSummaryPage({route}: DynamicTripSummaryPageProps) {
     const {translate} = useLocalize();

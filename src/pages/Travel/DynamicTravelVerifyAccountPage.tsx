@@ -18,7 +18,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 
 import React, {useCallback, useEffect} from 'react';
 
-type DynamicTravelVerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
+type DynamicTravelVerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT>;
 
 function DynamicTravelVerifyAccountPage({route}: DynamicTravelVerifyAccountPageProps) {
     const {domain, policyID} = route.params;

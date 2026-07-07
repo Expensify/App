@@ -24,7 +24,7 @@ import type SCREENS from '@src/SCREENS';
 import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 
-type DynamicWorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_ADDRESS>;
+type DynamicWorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS>;
 
 function DynamicWorkspaceAddressForTravelPage({route}: DynamicWorkspaceAddressForTravelPageProps) {
     const {translate} = useLocalize();
