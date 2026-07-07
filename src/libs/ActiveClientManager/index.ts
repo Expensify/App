@@ -45,17 +45,16 @@ Onyx.connectWithoutView({
 
         activeClients = val;
 
-        // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
+        // Trim clients past the limit from the front so the list can't grow unbounded
         let changed = false;
         while (activeClients.length >= maxClients) {
             activeClients.shift();
             changed = true;
         }
 
-        // A late disk-hydration event can overwrite the list and drop this live client, handing
-        // leadership to a stale/ghost GUID and stalling the SequentialQueue. Re-append ourselves when a
-        // stale write dropped us (we were never in the incoming list) — but not when the cap trim above
-        // intentionally evicted us, which would otherwise thrash leadership with 20+ open tabs.
+        // If another tab's write dropped us from the list while we're still alive, re-add ourselves so
+        // leadership doesn't get stuck on a dead tab. Skip this when the cap trim above evicted us on
+        // purpose — otherwise leadership thrashes with many open tabs.
         if (hasInitialized && !isLeavingTab && !wasClientInList) {
             activeClients.push(clientID);
             changed = true;
