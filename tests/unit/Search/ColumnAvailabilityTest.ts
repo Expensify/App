@@ -30,6 +30,8 @@ describe('Column availability single source of truth', () => {
         // Expense-report (report list) view.
         TABLE_COLUMNS.REIMBURSABLE_TOTAL,
         TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+        TABLE_COLUMNS.FIRST_APPROVER,
+        TABLE_COLUMNS.FIRST_APPROVED,
         // Grouped search views.
         TABLE_COLUMNS.EXPENSES,
         TABLE_COLUMNS.FEED,
