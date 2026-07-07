@@ -19,20 +19,9 @@ type UseSearchSectionsResult = {
     lastSearchQuery: OnyxEntry<LastSearchParams>;
 };
 
-/**
- * @param contextReports Pre-computed report IDs from the search context. When these are available and no
- * pagination/refresh is in flight, they are returned as-is and the expensive getSections/getSortedSections
- * rebuild is skipped entirely — the fast path after opening a report from search.
- */
-function useSearchSections(contextReports: Array<string | undefined> = []): UseSearchSectionsResult {
+function useSearchSections(): UseSearchSectionsResult {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
-    const isSearchLoading = !!currentSearchResults?.search?.isLoading;
-
-    // Fast path: the pre-computed context IDs are usable and no page is loading, so we never need the
-    // full section rebuild/sort below.
-    const shouldUseContextReports = contextReports.length > 0 && !isSearchLoading;
-
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
@@ -55,7 +44,7 @@ function useSearchSections(contextReports: Array<string | undefined> = []): UseS
     const searchKey = lastSearchQuery?.searchKey;
 
     let results: Array<string | undefined> = [];
-    if (!shouldUseContextReports && !!type && !!searchResultsData && !!searchResultsSearch) {
+    if (!!type && !!searchResultsData && !!searchResultsSearch) {
         const [searchData] = getSections({
             type,
             data: searchResultsData,
@@ -78,8 +67,7 @@ function useSearchSections(contextReports: Array<string | undefined> = []): UseS
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
 
-    const standaloneReports = useFilterPendingDeleteReports(results);
-    return {allReports: shouldUseContextReports ? contextReports : standaloneReports, isSearchLoading, lastSearchQuery};
+    return {allReports: useFilterPendingDeleteReports(results), isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
 }
 
 export default useSearchSections;

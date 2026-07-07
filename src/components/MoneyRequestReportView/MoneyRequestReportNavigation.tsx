@@ -33,6 +33,10 @@ type MoneyRequestReportNavigationContentProps = MoneyRequestReportNavigationProp
     contextReports: Array<string | undefined>;
 };
 
+type MoneyRequestReportNavigationStandaloneProps = {
+    onReportsChange: (updater: (previousReports: Array<string | undefined>) => Array<string | undefined>) => void;
+};
+
 type SnapshotGuard = {
     hasMultiple: boolean;
     includesReport: boolean;
@@ -46,6 +50,8 @@ const EMPTY_GUARD: SnapshotGuard = {
 const selectIsExpenseReportSearch = (lastSearchQuery: OnyxEntry<LastSearchParams>): boolean => lastSearchQuery?.queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
 const selectQueryHash = (lastSearchQuery: OnyxEntry<LastSearchParams>): number | undefined => lastSearchQuery?.queryJSON?.hash;
+
+const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.isLoading;
 
 const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefined> | null): boolean => {
     if (a === b) {
@@ -87,20 +93,40 @@ const buildSnapshotGuardSelector =
         return {hasMultiple: count > 1, includesReport};
     };
 
+// Mounts the heavy useSearchSections subscriptions (card feeds, report NVPs, bank accounts, report
+// attributes) and the getSections/getSortedSections rebuild, then lifts the computed list up. It is
+// rendered by the content component ONLY on the slow path (pagination in flight or no context list), so
+// those subscriptions never run while the fast context path is active — restoring the lightweight fast
+// path from #86238. Keeping the lifted value in the always-mounted content component means it (and the
+// lastValidReports cache) survive the isSearchLoading toggle instead of being wiped by a subtree swap.
+function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestReportNavigationStandaloneProps) {
+    const {allReports} = useSearchSections();
+
+    useEffect(() => {
+        // Guard by content, not reference: useSearchSections rebuilds allReports via filter/map each
+        // render, so an identity check would refire this update every render and loop.
+        onReportsChange((previousReports) => (isSameReportList(allReports, previousReports) ? previousReports : allReports));
+    }, [allReports, onReportsChange]);
+
+    return null;
+}
+
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
 
-    // All Onyx subscriptions for the standalone list live in useSearchSections. This component is kept
-    // mounted by the parent (via shouldKeepMounted) for the whole carousel lifetime, so selecting the
-    // source list here is a value swap rather than a component-subtree swap.
-    //
-    // Fast path: contextReports (the pre-computed IDs from the search context) are passed into the hook so
-    // that, when they are usable and no pagination is in flight, the expensive getSections/getSortedSections
-    // rebuild is skipped and allReports is just contextReports. During pagination/loading the hook falls back
-    // to the full subscription so new pages are reflected immediately. Because this is a plain value swap
-    // inside a single, stable component, toggling isSearchLoading (e.g. the search refresh triggered by
-    // submitting a report) no longer unmounts the component and wipes the lastValidReports cache below.
-    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections(contextReports);
+    // Lightweight subscriptions only: the current search query and its loading flag. These never mount
+    // the heavy useSearchSections subscription set, so the fast context path stays cheap.
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
+
+    // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
+    // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts
+    // the heavy subscriptions only on this slow path. Because this is a value swap inside a single, stable
+    // component, toggling isSearchLoading (e.g. the search refresh triggered by submitting a report) no
+    // longer unmounts the component and wipes the lastValidReports cache below.
+    const shouldUseContextReports = contextReports.length > 0 && !isSearchLoading;
+    const [standaloneReports, setStandaloneReports] = useState<Array<string | undefined>>([]);
+    const allReports = shouldUseContextReports ? contextReports : standaloneReports;
 
     const liveCurrentIndex = allReports.indexOf(reportID);
 
@@ -204,20 +230,23 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         goToReportId(effectiveAllReports.at(prevIndex));
     };
 
-    if (!shouldDisplayNavigationArrows) {
-        return null;
-    }
-
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-            {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
-            <PrevNextButtons
-                isPrevButtonDisabled={hidePrevButton}
-                isNextButtonDisabled={hideNextButton}
-                onNext={goToNextReport}
-                onPrevious={goToPrevReport}
-            />
-        </View>
+        <>
+            {/* Slow path only: mount the heavy subscriptions and lift the computed list up. Rendered even
+                when the arrows are hidden, since standaloneReports is what decides whether to show them. */}
+            {!shouldUseContextReports && <MoneyRequestReportNavigationStandalone onReportsChange={setStandaloneReports} />}
+            {shouldDisplayNavigationArrows && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+                    <PrevNextButtons
+                        isPrevButtonDisabled={hidePrevButton}
+                        isNextButtonDisabled={hideNextButton}
+                        onNext={goToNextReport}
+                        onPrevious={goToPrevReport}
+                    />
+                </View>
+            )}
+        </>
     );
 }
 
@@ -231,8 +260,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [snapshotGuard = EMPTY_GUARD] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {selector: snapshotGuardSelector});
 
     // Fast-path source: pre-computed IDs from the search context. The heavier useSearchSections
-    // subscription is deferred to the inner content component, which only mounts once the guard is
-    // satisfied below.
+    // subscription is deferred to the standalone child rendered by the content component, which mounts
+    // it only on the slow path (pagination/loading or no context list).
     const {sortedReportIDs} = useSearchResultsContext();
     const contextReports = useFilterPendingDeleteReports(sortedReportIDs);
 

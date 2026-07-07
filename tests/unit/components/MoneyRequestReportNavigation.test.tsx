@@ -57,9 +57,10 @@ const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefi
 
 /**
  * Mirrors the source-selection + lastValidReports cache that lives in the single, stable
- * MoneyRequestReportNavigationContent instance. The content component always subscribes via
- * useSearchSections and selects which list to use as a value, so the cache survives an
- * isSearchLoading toggle instead of being reset by a component-subtree swap.
+ * MoneyRequestReportNavigationContent instance. That component selects the context list or the
+ * standalone list (the latter lifted from a child that mounts the heavy useSearchSections
+ * subscriptions only on the slow path) as a value, so the cache survives an isSearchLoading toggle
+ * instead of being reset by a component-subtree swap.
  */
 function useNavigationSource(reportID: string | undefined) {
     const {sortedReportIDs} = useSearchResultsContext();
