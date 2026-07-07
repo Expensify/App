@@ -10,9 +10,9 @@ platform: new
 
 # Learn About Subscriptions
 
-Every Workspace owner has a single subscription that covers all of the Workspaces they own. That subscription determines how those Workspaces are billed, including whether you pay month-to-month or commit to an annual term.
+Every Workspace owner has a single subscription that covers all of the Workspaces they own. That subscription determines how those Workspaces are billed.
 
-Expensify offers two subscription options: **Annual** and **Pay-per-use**. Both subscription models work with either the Collect or Control plan.
+Expensify offers two subscription options: Annual and Pay-per-use. The subscription options available depend on your Workspace's plan.
 
 ---
 
@@ -39,21 +39,19 @@ Your subscription determines how your Workspaces are billed, but it does not det
 
 ## How subscriptions work with your plan
 
-Plans and subscriptions are independent.
-
-Workspaces can use either subscription type with either plan:
+The subscription options available for your Workspace depend on its plan.
 
 | Plan    | Available subscriptions |
 | ------- | ----------------------- |
-| Collect | Annual or Pay-per-use   |
+| Collect | Pay-per-use   |
 | Control | Annual or Pay-per-use   |
 
-Together, each Workspace's plan and its owner's subscription determine how that Workspace is billed.
+A Workspace's plan and its owner's subscription together determine how that Workspace is billed.
 
-For more details, see [Learn About Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Plan-and-Subscription-Management).
+**Note:** If your organization's first Workspace was created before April 1, 2025, your organization may use legacy Collect pricing. For more information, see [Understand legacy Collect pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing#understand-legacy-collect-pricing).
 
 ---
 
 ## Related articles
 
-- [Understand Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Understand-Plan-and-Subscription-Management)
+- [Understand Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Plan-and-Subscription-Management)
