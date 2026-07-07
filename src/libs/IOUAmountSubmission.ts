@@ -6,7 +6,7 @@ import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -46,18 +46,12 @@ import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSel
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
 
-let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicyTags = value),
-});
-
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -152,6 +146,7 @@ function submitAmount({
     transaction,
     splitDraftTransaction,
     policy,
+    policyTags,
     isDraftChatReport,
     selectedCurrency,
     decimals,
@@ -250,12 +245,7 @@ function submitAmount({
                     : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
-            const isIouReport = isMoneyRequestReport(report);
             const participant = participants.at(0);
-            const moneyRequestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${isIouReport ? report?.reportID : undefined}`];
-            const participantReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant?.reportID}`];
-            const iouReportPolicyID = moneyRequestReport?.policyID ?? (!isMovingTransactionFromTrackExpense(action) && report?.policyID) ?? participantReport?.policyID;
-            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`] ?? getEmptyObject<OnyxTypes.PolicyTagLists>();
 
             if (shouldSkipConfirmation) {
                 const defaultReimbursable = calculateDefaultReimbursable({
