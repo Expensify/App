@@ -71,7 +71,7 @@ const isSelectable = !!rateID && !!selectableRates[rateID];
 
 - A derived lookup structure (`new Set`/`new Map`/`Object.fromEntries`, or a hand-built index object) is constructed from a collection/array the code already holds.
 - It is built eagerly - at component scope or on every render (e.g. a hook or `useMemo` over the whole collection) - rather than behind the branch that needs it.
-- Its only purpose is membership/lookup checks (`.has(...)`, `.includes(...)`, `[key]`) answerable O(1) directly against the raw source.
+- Its only purpose is membership/lookup checks answerable O(1) directly against the raw source, i.e. the raw source is already keyed (object / `Map` / Onyx collection).
 
 Increase confidence (not required):
 
@@ -82,10 +82,10 @@ Increase confidence (not required):
 - Genuine repeated querying against the intermediate lookup layer is confirmed (for example, `.has(...)` inside a loop or multiple distinct lookup sites). If that evidence is not visible in the diff, confirm it by searching the callee or changed file.
 - The raw source isn't already available to the callee and would otherwise need its own expensive fetch.
 - The structure meaningfully reshapes data (not just a membership/lookup index) and the callee needs the whole thing.
+- The raw source is an array: a `Set`/`Map` that turns O(n) `.includes`/scan membership into O(1) `.has` is a real precompute win, not a violation.
 
 **Search Patterns** (hints for reviewers):
 - `new Set\(`
 - `new Map\(`
 - `Object\.fromEntries`
 - `\.has\(`
-- `\.includes\(`
