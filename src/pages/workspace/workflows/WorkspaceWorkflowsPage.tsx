@@ -814,6 +814,34 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           />
                                       </OfflineWithFeedback>
                                   )}
+                                  {shouldShowPayer && (
+                                      <OfflineWithFeedback
+                                          pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                                          errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                                          onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                                          errorRowStyles={[styles.ml7]}
+                                      >
+                                          <MenuItemWithTopDescription
+                                              title={
+                                                  policy?.globalReimbursementFXPreferCompany
+                                                      ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                                      : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                              }
+                                              titleStyle={styles.textNormalThemeText}
+                                              descriptionTextStyle={styles.textLabelSupportingNormal}
+                                              description={translate('workflowsCurrencyConversionFeesPage.title')}
+                                              onPress={
+                                                  canWritePayments
+                                                      ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(route.params.policyID))
+                                                      : undefined
+                                              }
+                                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                              shouldShowRightIcon={canWritePayments}
+                                              interactive={canWritePayments}
+                                              wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                          />
+                                      </OfflineWithFeedback>
+                                  )}
                               </>
                           ),
                           isEndOptionRow: true,

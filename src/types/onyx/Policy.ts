@@ -2471,6 +2471,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
+        /** Whether the company (true) or the employee (false) absorbs FX conversion costs on cross-border global reimbursements */
+        globalReimbursementFXPreferCompany?: boolean;
+
         /**
          * The scheduled submit frequency set up on this policy.
          * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.

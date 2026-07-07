@@ -2818,6 +2818,14 @@ const translations = {
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Currency conversion fees',
+        companyPays: 'Company pays',
+        companyPaysSubtitle: 'Your company covers the conversion fee so employees are reimbursed the full amount in their local currency.',
+        employeePays: 'Employee pays',
+        employeePaysSubtitle: 'The conversion fee is deducted from the employee reimbursement.',
+        errorMessage: "Currency conversion fee preference couldn't be changed. Please try again or contact support.",
+    },
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
         header: 'Add more approvers and confirm.',
