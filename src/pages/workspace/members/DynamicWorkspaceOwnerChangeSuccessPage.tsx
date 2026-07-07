@@ -1,78 +1,68 @@
-import ConfirmationPage from "@components/ConfirmationPage";
-import HeaderWithBackButton from "@components/HeaderWithBackButton";
-import LottieAnimations from "@components/LottieAnimations";
-import ScreenWrapper from "@components/ScreenWrapper";
-import useDynamicBackPath from "@hooks/useDynamicBackPath";
-import useLocalize from "@hooks/useLocalize";
-import usePolicy from "@hooks/usePolicy";
-import useThemeStyles from "@hooks/useThemeStyles";
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
+import ScreenWrapper from '@components/ScreenWrapper';
 
-import type { PlatformStackScreenProps } from "@libs/Navigation/PlatformStackNavigation/types";
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from "@navigation/Navigation";
-import type { SettingsNavigatorParamList } from "@navigation/types";
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-import AccessOrNotFoundWrapper from "@pages/workspace/AccessOrNotFoundWrapper";
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 
-import { clearWorkspaceOwnerChangeFlow } from "@userActions/Policy/Member";
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import CONST from "@src/CONST";
-import { DYNAMIC_ROUTES } from "@src/ROUTES";
-import type SCREENS from "@src/SCREENS";
-import React, { useCallback, useRef } from "react";
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 
-type DynamicWorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<
-  SettingsNavigatorParamList,
-  typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS
->;
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-function DynamicWorkspaceOwnerChangeSuccessPage({
-  route,
-}: DynamicWorkspaceOwnerChangeSuccessPageProps) {
-  const styles = useThemeStyles();
-  const { translate } = useLocalize();
+import React, {useCallback, useRef} from 'react';
 
-  const policyID = route.params.policyID;
-  const backPath = useDynamicBackPath(
-    DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
-  );
+type DynamicWorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS>;
 
-  const closePage = useCallback(() => {
-    Navigation.goBack(backPath);
-    clearWorkspaceOwnerChangeFlow(policyID);
-  }, [backPath, policyID]);
+function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerChangeSuccessPageProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
-  const policy = usePolicy(policyID);
-  const shouldShowRef = useRef(
-    !policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful,
-  );
+    const policyID = route.params.policyID;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path);
 
-  return (
-    <AccessOrNotFoundWrapper
-      accessVariants={[
-        CONST.POLICY.ACCESS_VARIANTS.ADMIN,
-        CONST.POLICY.ACCESS_VARIANTS.PAID,
-      ]}
-      policyID={policyID}
-      shouldBeBlocked={!shouldShowRef.current}
-    >
-      <ScreenWrapper testID="DynamicWorkspaceOwnerChangeSuccessPage">
-        <HeaderWithBackButton
-          title={translate("workspace.changeOwner.changeOwnerPageTitle")}
-          onBackButtonPress={closePage}
-        />
-        <ConfirmationPage
-          illustration={LottieAnimations.Fireworks}
-          heading={translate("workspace.changeOwner.successTitle")}
-          description={translate("workspace.changeOwner.successDescription")}
-          descriptionStyle={styles.textSupporting}
-          shouldShowButton
-          buttonText={translate("common.buttonConfirm")}
-          onButtonPress={closePage}
-        />
-      </ScreenWrapper>
-    </AccessOrNotFoundWrapper>
-  );
+    const closePage = useCallback(() => {
+        Navigation.goBack(backPath);
+        clearWorkspaceOwnerChangeFlow(policyID);
+    }, [backPath, policyID]);
+
+    const policy = usePolicy(policyID);
+    const shouldShowRef = useRef(!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful);
+
+    return (
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            shouldBeBlocked={!shouldShowRef.current}
+        >
+            <ScreenWrapper testID="DynamicWorkspaceOwnerChangeSuccessPage">
+                <HeaderWithBackButton
+                    title={translate('workspace.changeOwner.changeOwnerPageTitle')}
+                    onBackButtonPress={closePage}
+                />
+                <ConfirmationPage
+                    illustration={LottieAnimations.Fireworks}
+                    heading={translate('workspace.changeOwner.successTitle')}
+                    description={translate('workspace.changeOwner.successDescription')}
+                    descriptionStyle={styles.textSupporting}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={closePage}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
 }
 
 export default DynamicWorkspaceOwnerChangeSuccessPage;

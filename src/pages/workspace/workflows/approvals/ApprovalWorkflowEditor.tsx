@@ -1,370 +1,271 @@
-import MenuItem from "@components/MenuItem";
-import MenuItemWithTopDescription from "@components/MenuItemWithTopDescription";
-import OfflineWithFeedback from "@components/OfflineWithFeedback";
-import ScrollView from "@components/ScrollView";
-import Text from "@components/Text";
-import UserPill from "@components/UserPill";
-import UserPills from "@components/UserPills";
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import UserPill from '@components/UserPill';
+import UserPills from '@components/UserPills';
 
-import { useCurrencyListActions } from "@hooks/useCurrencyList";
-import { useMemoizedLazyExpensifyIcons } from "@hooks/useLazyAsset";
-import useLocalize from "@hooks/useLocalize";
-import useThemeStyles from "@hooks/useThemeStyles";
-import createDynamicRoute from "@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute";
-import Navigation from "@libs/Navigation/Navigation";
-import { sortAlphabetically } from "@libs/OptionsListUtils";
-import { isControlPolicy } from "@libs/PolicyUtils";
-import { getDefaultAvatarURL } from "@libs/UserAvatarUtils";
-import { getApprovalLimitDescription } from "@libs/WorkflowUtils";
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from "@src/CONST";
-import ROUTES, { DYNAMIC_ROUTES } from "@src/ROUTES";
-import type { ApprovalWorkflowOnyx, Policy } from "@src/types/onyx";
-import type { Approver } from "@src/types/onyx/ApprovalWorkflow";
-import type { PendingAction } from "@src/types/onyx/OnyxCommon";
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 
-import type { ForwardedRef } from "react";
+import CONST from '@src/CONST';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type { ScrollView as ScrollViewRN } from "react-native";
-import type { OnyxEntry } from "react-native-onyx";
+import type {ScrollView as ScrollViewRN} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
-import { Str } from "expensify-common";
-import React, { useCallback, useMemo } from "react";
-import { View } from "react-native";
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ApprovalWorkflowEditorProps = {
-  /** The approval workflow to display */
-  approvalWorkflow: ApprovalWorkflowOnyx;
+    /** The approval workflow to display */
+    approvalWorkflow: ApprovalWorkflowOnyx;
 
-  /** Function to remove the approval workflow */
-  removeApprovalWorkflow?: () => void | Promise<void>;
+    /** Function to remove the approval workflow */
+    removeApprovalWorkflow?: () => void | Promise<void>;
 
-  /** The policy for the current route */
-  policy: OnyxEntry<Policy>;
+    /** The policy for the current route */
+    policy: OnyxEntry<Policy>;
 
-  /** The policy ID */
-  policyID: string;
+    /** The policy ID */
+    policyID: string;
 
-  /** Forwarded ref to pass to the ScrollView */
-  ref: ForwardedRef<ScrollViewRN>;
+    /** Forwarded ref to pass to the ScrollView */
+    ref: ForwardedRef<ScrollViewRN>;
 };
 
-function ApprovalWorkflowEditor({
-  approvalWorkflow,
-  removeApprovalWorkflow,
-  policy,
-  policyID,
-  ref,
-}: ApprovalWorkflowEditorProps) {
-  const icons = useMemoizedLazyExpensifyIcons(["Trashcan"]);
-  const styles = useThemeStyles();
-  const { translate, toLocaleOrdinal, localeCompare } = useLocalize();
-  const { convertToDisplayString } = useCurrencyListActions();
-  const approverCount = approvalWorkflow.approvers.length;
-  const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const styles = useThemeStyles();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const approverCount = approvalWorkflow.approvers.length;
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-  const approverDescription = useCallback(
-    (index: number) =>
-      approverCount > 1
-        ? `${toLocaleOrdinal(index + 1, true)} ${translate("workflowsPage.approver").toLowerCase()}`
-        : `${translate("workflowsPage.approver")}`,
-    [approverCount, toLocaleOrdinal, translate],
-  );
-
-  const getApprovalPendingAction = useCallback(
-    (index: number) => {
-      // The approver's own `pendingAction` takes precedence — it's set when an approver was
-      // seeded from an optimistic agent creation (Workflows > Add agent) and the
-      // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
-      // signals to the admin that the agent is still being confirmed by the server.
-      const approverPendingAction =
-        approvalWorkflow?.approvers.at(index)?.pendingAction;
-      if (approverPendingAction) {
-        return approverPendingAction;
-      }
-      let pendingAction: PendingAction | undefined;
-      if (index === 0) {
-        if (approvalWorkflow?.members) {
-          for (const member of approvalWorkflow.members) {
-            pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
-          }
-        }
-        return pendingAction;
-      }
-      const previousApprover = approvalWorkflow?.approvers.at(index - 1);
-      const previousMember = approvalWorkflow?.members?.find(
-        (member) => member?.email === previousApprover?.email,
-      );
-      return previousMember?.pendingFields?.forwardsTo;
-    },
-    [approvalWorkflow],
-  );
-
-  const sortedMembers = useMemo(
-    () =>
-      approvalWorkflow.isDefault
-        ? []
-        : sortAlphabetically(
-            approvalWorkflow.members,
-            "displayName",
-            localeCompare,
-          ),
-    [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
-  );
-
-  const members = approvalWorkflow.isDefault
-    ? translate("workspace.common.everyone")
-    : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(", ");
-
-  const memberPills = useMemo(
-    () =>
-      sortedMembers.map((m) => ({
-        // A just-invited member is stored without an avatar, so fall back to the email-based default
-        // avatar instead of the generic fallback icon.
-        avatar: m.avatar ?? getDefaultAvatarURL({ accountEmail: m.email }),
-        displayName: m.displayName,
-        email: m.email,
-      })),
-    [sortedMembers],
-  );
-
-  const approverErrorMessage = useCallback(
-    (approver: Approver | undefined, approverIndex: number) => {
-      const previousApprover = approvalWorkflow.approvers
-        .slice(0, approverIndex)
-        .findLast(Boolean);
-      const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
-
-      if (!error) {
-        return;
-      }
-
-      if (error === "workflowsPage.approverCircularReference") {
-        if (!previousApprover || !approver) {
-          return;
-        }
-        return translate(
-          "workflowsPage.approverCircularReference",
-          Str.removeSMSDomain(approver.displayName),
-          Str.removeSMSDomain(previousApprover.displayName),
-        );
-      }
-
-      return translate(error);
-    },
-    [approvalWorkflow.approvers, approvalWorkflow.errors, translate],
-  );
-
-  const editApprover = useCallback(
-    (approverIndex: number) => {
-      if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
-        Navigation.navigate(
-          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(
-            policyID,
-            approverIndex,
-          ),
-        );
-      } else {
-        Navigation.navigate(
-          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(
-            policyID,
-            approverIndex,
-          ),
-        );
-      }
-    },
-    [approvalWorkflow.action, policyID],
-  );
-
-  const handleExpensesFromPress = useCallback(() => {
-    // Key the EDIT backTo off the persisted first approver, not the mutated draft. The edit page
-    // resolves its workflow from policy.employeeList by first-approver email, so an unsaved approver
-    // change would point backTo at a non-existent workflow and render the not-found ("Not here") view.
-    const firstApproverEmail =
-      approvalWorkflow.originalApprovers?.at(0)?.email ?? "";
-    // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
-    // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
-    // confirm (new) page, so return there instead of falling through to the Approver step.
-    const backTo =
-      approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-        ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(
-            policyID,
-            firstApproverEmail,
-          )
-        : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
-
-    Navigation.navigate(
-      createDynamicRoute(
-        DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path,
-        backTo,
-      ),
+    const approverDescription = useCallback(
+        (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
+        [approverCount, toLocaleOrdinal, translate],
     );
-  }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
 
-  // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
-  const addAdditionalApprover = useCallback(() => {
-    if (!isControlPolicy(policy) && approverCount > 0) {
-      Navigation.navigate(
-        ROUTES.WORKSPACE_UPGRADE.getRoute(
-          policyID,
-          CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
-          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(
-            policyID,
-            approverCount,
-          ),
-        ),
-      );
-      return;
-    }
-    Navigation.navigate(
-      ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(
-        policyID,
-        approverCount,
-      ),
+    const getApprovalPendingAction = useCallback(
+        (index: number) => {
+            // The approver's own `pendingAction` takes precedence — it's set when an approver was
+            // seeded from an optimistic agent creation (Workflows > Add agent) and the
+            // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
+            // signals to the admin that the agent is still being confirmed by the server.
+            const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
+            if (approverPendingAction) {
+                return approverPendingAction;
+            }
+            let pendingAction: PendingAction | undefined;
+            if (index === 0) {
+                if (approvalWorkflow?.members) {
+                    for (const member of approvalWorkflow.members) {
+                        pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
+                    }
+                }
+                return pendingAction;
+            }
+            const previousApprover = approvalWorkflow?.approvers.at(index - 1);
+            const previousMember = approvalWorkflow?.members?.find((member) => member?.email === previousApprover?.email);
+            return previousMember?.pendingFields?.forwardsTo;
+        },
+        [approvalWorkflow],
     );
-  }, [approverCount, policy, policyID]);
 
-  return (
-    <ScrollView style={[styles.flex1]} ref={ref} addBottomSafeAreaPadding>
-      <View style={[styles.mh5]}>
-        {approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
-          <Text style={[styles.textHeadlineH1, styles.mv3]}>
-            {translate("workflowsCreateApprovalsPage.header")}
-          </Text>
-        )}
+    const sortedMembers = useMemo(
+        () => (approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)),
+        [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
+    );
 
-        <MenuItemWithTopDescription
-          title={approvalWorkflow.isDefault ? members : undefined}
-          accessibilityLabel={members}
-          titleStyle={styles.textNormalThemeText}
-          numberOfLinesTitle={4}
-          description={translate("workflowsExpensesFromPage.title")}
-          descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
-          onPress={handleExpensesFromPress}
-          wrapperStyle={[styles.sectionMenuItemTopDescription]}
-          titleComponent={
-            !approvalWorkflow.isDefault ? (
-              <UserPills users={memberPills} />
-            ) : undefined
-          }
-          errorText={
-            approvalWorkflow?.errors?.members
-              ? translate(approvalWorkflow.errors.members)
-              : undefined
-          }
-          brickRoadIndicator={
-            approvalWorkflow?.errors?.members
-              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-              : undefined
-          }
-          shouldShowRightIcon={!approvalWorkflow.isDefault}
-          interactive={!approvalWorkflow.isDefault}
-          sentryLabel={
-            CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS
-          }
-        />
+    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
 
-        {approvalWorkflow.approvers.map((approver, approverIndex) => {
-          const errorText = approverErrorMessage(approver, approverIndex);
-          const isApproverInMultipleWorkflows =
-            !errorText &&
-            approvalWorkflow.usedApproverEmails.some(
-              (approverEmail) => approverEmail === approver?.email,
+    const memberPills = useMemo(
+        () =>
+            sortedMembers.map((m) => ({
+                // A just-invited member is stored without an avatar, so fall back to the email-based default
+                // avatar instead of the generic fallback icon.
+                avatar: m.avatar ?? getDefaultAvatarURL({accountEmail: m.email}),
+                displayName: m.displayName,
+                email: m.email,
+            })),
+        [sortedMembers],
+    );
+
+    const approverErrorMessage = useCallback(
+        (approver: Approver | undefined, approverIndex: number) => {
+            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
+            const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
+
+            if (!error) {
+                return;
+            }
+
+            if (error === 'workflowsPage.approverCircularReference') {
+                if (!previousApprover || !approver) {
+                    return;
+                }
+                return translate('workflowsPage.approverCircularReference', Str.removeSMSDomain(approver.displayName), Str.removeSMSDomain(previousApprover.displayName));
+            }
+
+            return translate(error);
+        },
+        [approvalWorkflow.approvers, approvalWorkflow.errors, translate],
+    );
+
+    const editApprover = useCallback(
+        (approverIndex: number) => {
+            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
+            }
+        },
+        [approvalWorkflow.action, policyID],
+    );
+
+    const handleExpensesFromPress = useCallback(() => {
+        // Key the EDIT backTo off the persisted first approver, not the mutated draft. The edit page
+        // resolves its workflow from policy.employeeList by first-approver email, so an unsaved approver
+        // change would point backTo at a non-existent workflow and render the not-found ("Not here") view.
+        const firstApproverEmail = approvalWorkflow.originalApprovers?.at(0)?.email ?? '';
+        // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
+        // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
+        // confirm (new) page, so return there instead of falling through to the Approver step.
+        const backTo =
+            approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
+
+    // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
+    const addAdditionalApprover = useCallback(() => {
+        if (!isControlPolicy(policy) && approverCount > 0) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    policyID,
+                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                    ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount),
+                ),
             );
-          const limitDescription = getApprovalLimitDescription({
-            approver,
-            currency,
-            translate,
-            convertToDisplayString,
-          });
-          const hintText = [
-            isApproverInMultipleWorkflows
-              ? translate("workflowsPage.approverInMultipleWorkflows")
-              : undefined,
-            limitDescription,
-          ]
-            .filter(Boolean)
-            .join("\n");
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount));
+    }, [approverCount, policy, policyID]);
 
-          return (
-            <OfflineWithFeedback
-              // eslint-disable-next-line react/no-array-index-key
-              key={`approver-${approver?.email}-${approverIndex}`}
-              pendingAction={getApprovalPendingAction(approverIndex)}
-            >
-              <MenuItemWithTopDescription
-                accessibilityLabel={Str.removeSMSDomain(
-                  approver?.displayName ?? "",
+    return (
+        <ScrollView
+            style={[styles.flex1]}
+            ref={ref}
+            addBottomSafeAreaPadding
+        >
+            <View style={[styles.mh5]}>
+                {approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                    <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
                 )}
-                titleStyle={styles.textNormalThemeText}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                description={approverDescription(approverIndex)}
-                descriptionTextStyle={
-                  !!approver?.displayName && styles.textLabelSupportingNormal
-                }
-                titleComponent={
-                  approver ? (
-                    <View style={styles.pr3}>
-                      <UserPill
-                        avatar={approver.avatar}
-                        displayName={approver.displayName}
-                        email={approver.email}
-                        style={styles.userPillStandalone}
-                      />
-                    </View>
-                  ) : undefined
-                }
-                onPress={() => editApprover(approverIndex)}
-                shouldShowRightIcon
-                hintText={hintText}
-                brickRoadIndicator={
-                  errorText
-                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                    : undefined
-                }
-                errorText={errorText}
-                shouldRenderErrorAsHTML
-                sentryLabel={
-                  CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS
-                    .APPROVAL_EDITOR_APPROVER
-                }
-              />
-            </OfflineWithFeedback>
-          );
-        })}
 
-        <MenuItemWithTopDescription
-          description={
-            approverCount > 0
-              ? translate("workflowsCreateApprovalsPage.additionalApprover")
-              : translate("workflowsPage.approver")
-          }
-          onPress={addAdditionalApprover}
-          shouldShowRightIcon
-          wrapperStyle={styles.sectionMenuItemTopDescription}
-          errorText={
-            approvalWorkflow?.errors?.additionalApprover
-              ? translate(approvalWorkflow.errors.additionalApprover)
-              : undefined
-          }
-          brickRoadIndicator={
-            approvalWorkflow?.errors?.additionalApprover
-              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-              : undefined
-          }
-        />
+                <MenuItemWithTopDescription
+                    title={approvalWorkflow.isDefault ? members : undefined}
+                    accessibilityLabel={members}
+                    titleStyle={styles.textNormalThemeText}
+                    numberOfLinesTitle={4}
+                    description={translate('workflowsExpensesFromPage.title')}
+                    descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
+                    onPress={handleExpensesFromPress}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    titleComponent={!approvalWorkflow.isDefault ? <UserPills users={memberPills} /> : undefined}
+                    errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
+                    brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    shouldShowRightIcon={!approvalWorkflow.isDefault}
+                    interactive={!approvalWorkflow.isDefault}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
+                />
 
-        {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
-          <MenuItem
-            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-            icon={icons.Trashcan}
-            title={translate("common.delete")}
-            onPress={removeApprovalWorkflow}
-          />
-        )}
-      </View>
-    </ScrollView>
-  );
+                {approvalWorkflow.approvers.map((approver, approverIndex) => {
+                    const errorText = approverErrorMessage(approver, approverIndex);
+                    const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
+                    const limitDescription = getApprovalLimitDescription({
+                        approver,
+                        currency,
+                        translate,
+                        convertToDisplayString,
+                    });
+                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
+
+                    return (
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`approver-${approver?.email}-${approverIndex}`}
+                            pendingAction={getApprovalPendingAction(approverIndex)}
+                        >
+                            <MenuItemWithTopDescription
+                                accessibilityLabel={Str.removeSMSDomain(approver?.displayName ?? '')}
+                                titleStyle={styles.textNormalThemeText}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                description={approverDescription(approverIndex)}
+                                descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
+                                titleComponent={
+                                    approver ? (
+                                        <View style={styles.pr3}>
+                                            <UserPill
+                                                avatar={approver.avatar}
+                                                displayName={approver.displayName}
+                                                email={approver.email}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </View>
+                                    ) : undefined
+                                }
+                                onPress={() => editApprover(approverIndex)}
+                                shouldShowRightIcon
+                                hintText={hintText}
+                                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={errorText}
+                                shouldRenderErrorAsHTML
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
+                            />
+                        </OfflineWithFeedback>
+                    );
+                })}
+
+                <MenuItemWithTopDescription
+                    description={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
+                    onPress={addAdditionalApprover}
+                    shouldShowRightIcon
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    errorText={approvalWorkflow?.errors?.additionalApprover ? translate(approvalWorkflow.errors.additionalApprover) : undefined}
+                    brickRoadIndicator={approvalWorkflow?.errors?.additionalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+
+                {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
+                    <MenuItem
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                        icon={icons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={removeApprovalWorkflow}
+                    />
+                )}
+            </View>
+        </ScrollView>
+    );
 }
 
 export default ApprovalWorkflowEditor;
