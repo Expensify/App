@@ -6,8 +6,8 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {getReportLastVisibleActionCreated, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -125,8 +125,13 @@ type UseReportActionsScrollResult = {
     /** The initial scroll target key for the list */
     initialScrollKey: string | undefined;
 
-    /** Whether FlashList should autoscroll to the bottom while mounting at top */
-    shouldAutoscrollToBottom: boolean;
+    /** maintainVisibleContentPosition config for the inverted list */
+    maintainVisibleContentPosition:
+        | {
+              autoscrollToBottomThreshold?: number;
+              animateAutoScrollToBottom?: boolean;
+          }
+        | undefined;
 
     /** The index the list should scroll to on mount (undefined to keep default position) */
     initialScrollIndex: number | undefined;
@@ -183,18 +188,34 @@ function useReportActionsScroll({
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
-    const initialScrollActionID = linkedReportActionID ?? unreadMarkerReportActionID;
-    // The CREATED-action case is intentionally excluded here; its scroll behavior is handled by shouldFocusToTopOnMount logic instead.
-    const initialScrollKey =
-        initialScrollActionID && !(shouldBeAlignedToTop && sortedVisibleReportActionsObjects[initialScrollActionID]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            ? initialScrollActionID
-            : undefined;
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+
+    // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
+    // Otherwise, prefer the linked action and fall back to the unread marker.
+    let initialScrollKey = linkedReportActionID;
+    if (!shouldBeAlignedToTop && linkedReportActionID === undefined && unreadMarkerReportActionID) {
+        initialScrollKey = unreadMarkerReportActionID;
+    }
+
+    // The CREATED action is the top anchor of an aligned-to-top report; scrolling to it is handled by shouldFocusToTopOnMount instead.
+    if (shouldBeAlignedToTop && initialScrollKey && sortedVisibleReportActionsObjects[initialScrollKey]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        initialScrollKey = undefined;
+    }
+
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
+
+    // Once the initial pin to the visual top is released, the threshold must drop to 0 instead of removing the config:
+    // FlashList only clears its internal pending-autoscroll flag while `autoscrollToBottomThreshold >= 0`. Removing the
+    // config leaves a flag planted during the pin phase stale forever, and the next content change (e.g. marking a
+    // message as unread) would scroll the list back to the top.
+    const maintainVisibleContentPosition = shouldFocusToTopOnMount
+        ? {
+              autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0,
+              animateAutoScrollToBottom: false,
+          }
+        : undefined;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
         useReportUnreadMessageScrollTracking({
@@ -209,6 +230,7 @@ function useReportActionsScroll({
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
             actionBadgeTargetIndex,
+            shouldBeAlignedToTop,
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
@@ -429,10 +451,9 @@ function useReportActionsScroll({
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
         initialScrollKey,
-        shouldAutoscrollToBottom,
+        maintainVisibleContentPosition,
         initialScrollIndex,
         initialScrollIndexParams,
-        maintainVisibleContentPosition,
         onLoad,
     };
 }

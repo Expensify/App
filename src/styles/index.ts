@@ -712,6 +712,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderRadiusCircle: {
+            borderRadius: 999,
+        },
+
         bottomTabBarSpacer: {
             height: variables.bottomTabHeight,
         },
@@ -1212,8 +1216,32 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
+        editableCellEditButtonContainer: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        editableCellEditButtonContainerLeft: {
+            left: 4,
+        },
+
+        editableCellEditButtonContainerRight: {
+            right: 4,
+        },
+
+        editableCellEditButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.componentBorderRadiusCircle,
+            backgroundColor: theme.buttonDefaultBG,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellEditButtonActive: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         editableCellFocus: {
@@ -1373,6 +1401,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         componentHeightLarge: {
             height: variables.inputHeight,
+        },
+
+        componentSizeNormal: {
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
         },
 
         calendarHeader: {
@@ -3922,6 +3955,27 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: 68,
         },
 
+        widgetHeaderMenuButton: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        widgetHeaderMenuButtonHovered: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        widgetHeaderMenuButtonWrapper: {
+            // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
+            // vertical footprint to the title line-height so every card header keeps the same height. The matching
+            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
+            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+        },
+
         widgetItemSubtitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -5955,9 +6009,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptPreview: {
             position: 'absolute',
+            // Fallback corner; ReceiptPreview overrides left/top to sit beside the hovered thumbnail.
             left: 60,
             top: 60,
-            width: 380,
+            width: variables.receiptPreviewWidth,
             maxHeight: 'calc(100vh - 120px)',
             borderRadius: variables.componentBorderRadiusLarge,
             borderWidth: 1,
@@ -6866,7 +6921,7 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 fontSize: 17,
-                lineHeight: 20,
+                lineHeight: variables.widgetHeaderTitleLineHeight,
                 color,
             }) satisfies TextStyle,
 

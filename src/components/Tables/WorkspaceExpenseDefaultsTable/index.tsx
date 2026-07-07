@@ -9,8 +9,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -43,9 +41,22 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'condition', label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'), sortable: true},
-        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
+        {
+            key: 'condition',
+            label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'),
+            sortable: true,
+        },
+        {
+            key: 'rule',
+            label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'),
+            sortable: true,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<ExpenseDefaultTableItem, ExpenseDefaultsTableColumnKey> = (a, b, activeSorting) => {
@@ -90,7 +101,6 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const isEmpty = rulesData.length === 0;
 
     return (
@@ -111,7 +121,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             {isEmpty && emptyStateContent}
             {(!isEmpty || !emptyStateContent) && (
                 <>
-                    {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
+                    <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
                     <Table.Header />
                     <Table.Body />
                 </>
