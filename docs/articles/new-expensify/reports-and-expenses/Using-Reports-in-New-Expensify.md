@@ -69,6 +69,7 @@ You can choose from a wide range of columns, including:
 - **Submitted** – The date the report was submitted for approval
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
+- **Paid status** – The payment stage of a paid report: Marked as paid, Withdrawing, or Confirmed
 - **Action** – Shows available actions like approve or reject
 - **MCC** – The Merchant Category Code from the transaction
 - **Tax code** – The tax code applied to the expense
