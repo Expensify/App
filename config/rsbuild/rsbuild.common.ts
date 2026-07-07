@@ -4,6 +4,7 @@ import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPlug
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginBabel} from '@rsbuild/plugin-babel';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
+import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {execSync} from 'child_process';
@@ -12,7 +13,6 @@ import fs from 'fs';
 import {createRequire} from 'module';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 
 import type Environment from './types.ts';
 
@@ -488,8 +488,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                                   telemetry: false,
                               }),
                           ] as RspackPluginInstance[])),
-                    // This allows us to interactively inspect JS bundle contents
-                    ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
+                    // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
+                    ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
                 );
 
                 return afterShared;

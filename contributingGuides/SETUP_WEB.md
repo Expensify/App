@@ -98,7 +98,7 @@ This generates a `.rspack-profile-<timestamp>-<pid>/rspack.log` file (JSON Lines
 RSPACK_TRACE_LAYER=perfetto RSPACK_PROFILE=OVERVIEW npm run build
 ```
 
-Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `npm run analyze-packages`, which still runs `webpack-bundle-analyzer` against the Rspack output.
+Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `npm run analyze-packages`, which runs [Rsdoctor](https://rsdoctor.rs/) against the build output and opens an interactive report covering bundle composition, duplicate packages, and per-loader/per-plugin timing.
 
 ### Release Profiling for Web
 1. Install the necessary packages: `npm i`

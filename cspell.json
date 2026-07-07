@@ -872,6 +872,7 @@
         "rock",
         "rpartition",
         "rsbuild",
+        "rsdoctor",
         "rspack",
         "runbook",
         "rstrip",
