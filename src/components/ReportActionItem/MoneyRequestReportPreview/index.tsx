@@ -17,6 +17,7 @@ import {createTransactionThreadReport, openReport, setOptimisticTransactionThrea
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -222,11 +223,12 @@ function MoneyRequestReportPreview({
                     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
                     markReportIDAsExpense(childReportID);
                     setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
-                    // Open the report (top of the split) and the expense RHP in the same tick, so the RHP covers the
-                    // report immediately with no report-then-expense cascade/delay. Back closes the RHP to the
-                    // fully-loaded, unfrozen report, then to the chat.
+                    // Open the report first, then defer the expense's RHP by one frame so the report lands as its own
+                    // browser-history entry — hard/browser back and the header back both stop on the report, then the
+                    // chat. One frame keeps the report barely visible before the full-screen RHP covers it. (Opening
+                    // both in the same tick removes the flash but drops the report from history, so back would skip it.)
                     Navigation.navigate(reportRoute);
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute})));
                     return;
                 }
 
