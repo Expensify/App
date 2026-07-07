@@ -120,22 +120,34 @@ function waitForCreatedAgentAccountID(optimisticAccountID: number): Promise<numb
             key: ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
             waitForCollectionCallback: true,
             callback: (agentPrompts) => {
-                const currentAgentAccountIDs = Object.keys(agentPrompts ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length)));
+                const entries = Object.entries(agentPrompts ?? {});
 
                 // The first callback runs before CREATE_AGENT can respond, so it establishes the baseline
                 // (agents that already existed plus the optimistic placeholder). The real agent is whatever shows up after.
                 if (!knownAgentAccountIDs) {
-                    knownAgentAccountIDs = new Set(currentAgentAccountIDs);
+                    knownAgentAccountIDs = new Set(entries.map(([key]) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length))));
                     return;
                 }
 
-                const createdAgentAccountID = currentAgentAccountIDs.find((accountID) => accountID !== optimisticAccountID && !knownAgentAccountIDs?.has(accountID));
-                if (createdAgentAccountID === undefined) {
+                const createdAgentEntry = entries.find(([key, agentPrompt]) => {
+                    const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+
+                    // Skip agents that already existed at baseline and this request's own optimistic placeholder.
+                    if (accountID === optimisticAccountID || knownAgentAccountIDs?.has(accountID)) {
+                        return false;
+                    }
+
+                    // Skip any *other* agent still pending creation — e.g. a second agent the user created before this
+                    // one's CREATE_AGENT responded (its optimistic accountID is also new and not our optimistic ID).
+                    // Only a real, server-created agent has no ADD pending action, and that's the accountID we can open a DM with.
+                    return agentPrompt?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+                });
+                if (createdAgentEntry === undefined) {
                     return;
                 }
 
                 Onyx.disconnect(connection);
-                resolve(createdAgentAccountID);
+                resolve(Number(createdAgentEntry[0].slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length)));
             },
         });
     });
