@@ -4,7 +4,6 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getPlatform from '@libs/getPlatform';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
@@ -1239,20 +1238,10 @@ function openExpenseOverParentReport(parentReportID: string, childReportID: stri
     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
     const expenseRoute = ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute);
 
-    // On web, react-navigation mirrors the split stack into window.history and decides push-vs-replace from the stack
-    // length, not the URL. Push the report and then the expense as two distinct history entries (different URLs) so the
-    // browser/OS back and the header back both step expense -> report -> chat consistently, with no dead entry. (The
-    // native single-slide splice below keeps the expense on top; on web that would push a second, same-URL entry — a
-    // dead first back — and leave the report out of history, so a browser back would skip to the chat and disagree with
-    // the header back.)
-    if (getPlatform() === CONST.PLATFORM.WEB) {
-        navigate(reportRoute);
-        setNavigationActionToMicrotaskQueue(() => navigate(expenseRoute));
-        return;
-    }
-
-    // Native (react-native-screens): push the expense, then splice the parent report beneath it so it opens as a single
-    // forward slide with the report as a real stack entry underneath for OS/swipe back.
+    // Push the expense, then splice the parent report beneath it so it opens as a single forward slide with the report
+    // as a real stack entry underneath for OS/swipe back. Native only — the caller (navigateToExpense) routes web to an
+    // RHP over the report instead, because a frozen report screen under the expense drops the first tap on hard-back
+    // and web has no swipe-back gesture that needs a live report entry underneath.
     navigate(expenseRoute);
     setNavigationActionToMicrotaskQueue(() => {
         const rootState = navigationRef.getRootState();

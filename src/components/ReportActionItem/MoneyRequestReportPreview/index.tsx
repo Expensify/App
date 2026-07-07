@@ -16,6 +16,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -204,16 +205,33 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // On narrow layouts the wide RHP is unavailable. Open the expense with the parent report as a real
-            // stack entry underneath (so OS/hardware back and the iOS swipe-back return to the report, matching the
-            // header back button) as a single forward slide — see openExpenseOverParentReport for the mechanics.
             if (isSmallScreenWidth) {
                 const backTo = Navigation.getActiveRoute();
-                if (iouReportID) {
-                    Navigation.openExpenseOverParentReport(iouReportID, childReportID, backTo);
-                } else {
+                if (!iouReportID) {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, backTo));
+                    return;
                 }
+
+                // On mobile web, open the parent report as the top of the split (so it stays interactive and is never
+                // frozen under the expense), then open the pressed expense in the RHP over it — the same way the report
+                // view and the wide layout open an expense. Browser/OS back and the header back both close the RHP to
+                // the fully-loaded report, then to the chat. Pushing the expense as a second split report screen
+                // instead leaves the parent report frozen beneath it (freezeNonTopScreens), so hard-backing to that
+                // just-thawed, still-loading report drops the first transaction-row tap.
+                if (getPlatform() === CONST.PLATFORM.WEB) {
+                    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+                    Navigation.navigate(reportRoute);
+                    setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
+                        markReportIDAsExpense(childReportID);
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    });
+                    return;
+                }
+
+                // On native the wide RHP is unavailable and there is a swipe-back gesture, so open the expense with the
+                // parent report as a real stack entry underneath as a single forward slide (see
+                // openExpenseOverParentReport for the mechanics).
+                Navigation.openExpenseOverParentReport(iouReportID, childReportID, backTo);
                 return;
             }
 
