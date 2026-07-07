@@ -361,7 +361,6 @@ type OpenReportActionParams = {
     hasCompletedGuidedSetupFlow?: boolean;
 
     /** Whether the report has report actions or not */
-    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/73651
     isReportActionsExist?: boolean;
 
     /** Beta features list */
