@@ -115,6 +115,7 @@ function BaseDomainMembersPage({
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <DomainMembersTable
+                    domainAccountID={domainAccountID}
                     members={members}
                     selectionEnabled
                     selectedKeys={selectedMembers}

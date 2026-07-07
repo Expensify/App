@@ -13,3 +13,4 @@ type DomainHighlightItems = {
 };
 
 export default DomainHighlightItems;
+export type {DomainHighlightItemType};

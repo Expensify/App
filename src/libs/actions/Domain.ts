@@ -23,10 +23,11 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarName} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -559,7 +560,13 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -589,6 +596,11 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'admins', id: String(accountID)},
         },
     ];
 
@@ -639,7 +651,14 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -660,6 +679,11 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
+        },
     ];
 
     if (isOptimisticAccount) {
@@ -679,7 +703,6 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         targetEmail,
     };
 
-    setDomainHighlightItems(domainAccountID, 'admins', String(accountID));
     API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
 }
 
@@ -858,7 +881,13 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
     const optimisticAccountID = generateAccountID(email);
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.DOMAIN>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -878,7 +907,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     login: email,
-                    avatar: getDefaultAvatarURL({accountID: optimisticAccountID, accountEmail: email}),
+                    avatar: USER_AVATARS.getURL(getDefaultAvatarName({accountID: optimisticAccountID, accountEmail: email})) ?? '',
                     isOptimisticPersonalDetail: true,
                 },
             },
@@ -904,6 +933,11 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'members', id: String(optimisticAccountID)},
         },
     ];
 
@@ -952,7 +986,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -975,6 +1009,11 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
+        },
     ];
 
     const params: AddMemberToDomainParams = {
@@ -982,7 +1021,6 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         domainAccountID,
     };
 
-    setDomainHighlightItems(domainAccountID, 'members', String(optimisticAccountID));
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 
@@ -2189,7 +2227,10 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2219,10 +2260,18 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'groups', id: groupID},
+        },
     ];
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2251,6 +2300,11 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
                     errors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.createGroupError'),
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
         },
     ];
 
@@ -2282,7 +2336,6 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
         shouldSetAsDefaultGroup,
     };
 
-    setDomainHighlightItems(domainAccountID, 'groups', groupID);
     API.write(WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
@@ -2299,10 +2352,6 @@ function clearGroupCreateError(domainAccountID: number, groupID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
     });
-}
-
-function setDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups', id: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {type, id});
 }
 
 function clearDomainHighlightItems(domainAccountID: number) {
