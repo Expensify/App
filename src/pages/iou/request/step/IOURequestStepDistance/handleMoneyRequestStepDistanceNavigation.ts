@@ -1,4 +1,3 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getMoneyRequestPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
@@ -22,7 +21,9 @@ import {getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport as is
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+
 import {setTransactionReport} from '@userActions/Transaction';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -47,6 +48,8 @@ import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type MoneyRequestStepDistanceNavigationParams = {
     iouType: IOUType;
@@ -355,7 +358,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
-                    createDistanceRequest({
+                    const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
                         report,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
@@ -388,9 +391,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },
-                        shouldHandleNavigation: overrides.shouldHandleNavigation,
-                        shouldDeferForSearch: false,
-                        backToReport,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
@@ -407,8 +407,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         report,
                         action,
                         draftTransactionIDs,
-                        // createDistanceRequest writes under the existing draft transaction, so the cleanup target must mirror that id, not a fresh optimistic one.
-                        transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? transaction?.transactionID,
+                        transactionID: writtenDistanceTransactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
                         backToReport,
                         optimisticChatReportID,

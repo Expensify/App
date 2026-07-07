@@ -1,9 +1,12 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
-import {View} from 'react-native';
 import type {UserInitialsAvatarProps} from '@components/UserInitialsAvatar';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
+
 import {DEFAULT_LETTER_AVATAR_SCHEME, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const SAMPLE_COLORS = [LETTER_AVATAR_SCHEMES.blue100, LETTER_AVATAR_SCHEMES.green400, LETTER_AVATAR_SCHEMES.pink700];
 

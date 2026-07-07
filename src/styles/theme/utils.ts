@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 type Theme = ValueOf<typeof CONST.THEME>;
 type BaseTheme = typeof CONST.THEME.LIGHT | typeof CONST.THEME.DARK | typeof CONST.THEME.SYSTEM;

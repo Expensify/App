@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
-import {deepEqual} from 'fast-equals';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -15,6 +13,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isAddCommentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
+
 import {completeSplitBill, createDistanceRequest, setDraftSplitTransaction, splitBill, startSplitBill} from '@userActions/IOU/Split';
 import {
     addSplitExpenseField,
@@ -27,6 +26,7 @@ import {
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
 import {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
@@ -41,6 +41,14 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../../utils/TestHelper';
+
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
@@ -48,7 +56,6 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
@@ -7503,6 +7510,63 @@ describe('createDistanceRequest', () => {
         });
 
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the iou report and the written chatReportID for a non-split distance request', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+
+        expect(result.iouReport).toBeTruthy();
+        expect(result.chatReportID).toBeTruthy();
+        expect(result.iouReport?.chatReportID).toBe(result.chatReportID);
+        expect(result.transactionID).toBeTruthy();
+    });
+
+    it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(undefined, {amount: 1000}, recentWaypoints),
+            iouType: CONST.IOU.TYPE.SPLIT,
+        });
+
+        expect(result.iouReport).toBeFalsy();
+        expect(result.chatReportID).toBeTruthy();
+        expect(result.transactionID).toBeTruthy();
+    });
+
+    it('flags the created transaction for Search highlight on a global-create distance request', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1, isFromGlobalCreate: true}, recentWaypoints),
+            participants: [],
+        });
+
+        await waitForBatchedUpdates();
+
+        const highlight = await getOnyxValue(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE);
+        expect(Object.keys(highlight?.[CONST.SEARCH.DATA_TYPES.EXPENSE] ?? {})).toContain(result.transactionID);
+    });
+
+    it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingTransactionID = 'existing-txn-one-to-two';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '123'});
+        await waitForBatchedUpdates();
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+        await waitForBatchedUpdates();
+
+        const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`);
+        expect(Object.keys(reportMetadata?.pendingNewTransactionIDs ?? {})).toContain(result.transactionID);
     });
 
     it('correctly sets quickAction', async () => {

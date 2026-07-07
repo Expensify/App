@@ -1,14 +1,18 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CategoryRulesTableColumnKey = 'type' | 'condition' | 'rule' | 'actions';
 
@@ -90,7 +94,6 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 
     const renderItem = ({item, index}: ListRenderItemInfo<TItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const isEmpty = rulesData.length === 0;
 
     return (
@@ -111,7 +114,7 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View>}
             {(!isEmpty || !emptyStateContent) && (
                 <>
-                    {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={findRuleLabel} />}
+                    <Table.FilterBar label={findRuleLabel} />
                     <Table.Header />
                     <Table.Body />
                 </>

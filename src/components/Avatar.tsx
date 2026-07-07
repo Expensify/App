@@ -1,18 +1,24 @@
-import React, {useState} from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getAvatar, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Image from './Image';
 import UserInitialsAvatar from './UserInitialsAvatar';

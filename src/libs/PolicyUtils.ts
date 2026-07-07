@@ -1,8 +1,6 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +38,14 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
+import type {MemberForList} from './OptionsListUtils';
+
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -51,7 +57,6 @@ import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionEr
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
-import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
@@ -668,17 +673,22 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isReimburser = policy.reimburser === currentUserLogin;
+    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
-    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-        return policy.reimburser ? isReimburser : isAdmin;
+    // Reimbursement is disabled for this workspace.
+    if (!isAutoReimbursement && !isManualReimbursement) {
+        return false;
     }
 
-    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+    const reimburserEmail = policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+
+    // No designated reimburser means any workspace admin can pay.
+    if (!reimburserEmail) {
         return isAdmin;
     }
 
-    return false;
+    return isAdmin && currentUserLogin === reimburserEmail;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */

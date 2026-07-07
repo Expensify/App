@@ -1,13 +1,19 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import PersonalExpenseRulesTableRow from './PersonalExpenseRulesTableRow';
 
 type PersonalExpenseRulesTableColumnKey = 'merchant' | 'changes' | 'actions';
@@ -99,7 +105,7 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, personal
 
             {hasRules && (
                 <>
-                    {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}
+                    <Table.FilterBar label={translate('expenseRulesPage.findRule')} />
                     <Table.Header />
                     <Table.Body />
                 </>

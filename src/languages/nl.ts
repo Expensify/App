@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -396,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'Opname-ID',
         internationalReimbursementIDs: 'Internationale terugbetalings-ID’s',
         withdrawalStatus: 'Opnamestatus',
+        paidStatus: 'Betaald-status',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
         chooseFiles: 'Bestanden kiezen',
@@ -1067,6 +1072,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Verbind met boekhouding',
             customizeCategories: 'Boekhoudcategorieën aanpassen',
             linkCompanyCards: 'Bedrijfspassen koppelen',
+            issueExpensifyCards: 'Expensify-kaarten uitgeven',
+            issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
         },
@@ -1226,7 +1233,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Goedgekeurd',
         cash: 'Contant',
         card: 'Kaart',
-        original: 'Origineel',
+        purchase: 'Aankoop',
         split: 'Splitsen',
         splitExpense: 'Uitgave splitsen',
         splitDates: 'Datums splitsen',
@@ -2361,6 +2368,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Tweefactorauthenticatie-apparaat vervangen',
         verifyOldDeviceTitle: 'Oud apparaat verifiëren',
         verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
+        verifyOldDeviceDescriptionWithRecovery: 'Voer een geldige herstelcode in om te bevestigen dat je toegang tot je account hebt.',
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
@@ -2884,6 +2892,7 @@ ${amount} voor ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agent van ${displayName}`,
         defaultPrompt:
             'Wijs declaraties af die zijn voor gokken, films of andere duidelijk niet-zakelijke redenen.\n\nHerinner de gebruiker eraan altijd een bonafbeelding toe te voegen waarop de fooi duidelijk is.\n\nKeur het verslag goed als het sterk lijkt op eerdere verslagen van dezelfde gebruiker.\n\nWijs verslagen af met meer dan $500 aan reiskosten.',
+        copilotNote: 'Deze agent wordt toegevoegd als Copilot met volledige toegang tot je account, zodat hij namens jou kan handelen.',
     },
     editAgentPage: {
         title: 'Agent bewerken',
@@ -5491,6 +5500,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subsidiarySelectDescription: 'Kies het dochterbedrijf in Rillet waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
             noSubsidiariesFoundDescription: 'Voeg alsjeblieft een dochteronderneming toe in Rillet en synchroniseer de verbinding opnieuw',
+            accountTypesDescription: 'Je Rillet-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde accounts inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Rillet-rekeningen zijn beschikbaar als categorieën.',
+            dimensionsImport: 'Alle Rillet-dimensies worden als tags geïmporteerd',
+            importDescription: 'Kies welke codeerconfiguraties je uit Rillet wilt importeren.',
         },
         type: {
             free: 'Gratis',
@@ -6248,6 +6262,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             importedFromAccountingSoftware: 'De onderstaande belastingen zijn geïmporteerd uit je',
             taxCode: 'Belastingcode',
             updateTaxCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de belastingcode, probeer het opnieuw.',
+            taxRates: 'Belastingtarieven',
         },
         duplicateWorkspace: {
             title: 'Geef je nieuwe workspace een naam',
@@ -8639,6 +8654,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             past: 'Verleden',
             submitted: 'Ingediend',
             approved: 'Goedgekeurd',
+            firstApprover: 'Eerste gemachtigde',
+            firstApproved: 'Eerst goedgekeurd',
             paid: 'Betaald',
             exported: 'Geëxporteerd',
             posted: 'Gepost',
@@ -8800,6 +8817,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         failedError: ({link}: {link: string}) => `We proberen deze afrekening opnieuw zodra je <a href="${link}">je account ontgrendelt</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Gemarkeerd als betaald', withdrawing: 'Opnemen', confirmed: 'Bevestigd'},
     reportLayout: {
         reportLayout: 'Rapportindeling',
         groupByLabel: 'Groeperen op:',

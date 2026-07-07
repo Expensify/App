@@ -1,8 +1,12 @@
-import React from 'react';
 import type {TableRenderRowProps} from '@components/Table';
 import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
+
 import useLocalize from '@hooks/useLocalize';
+
 import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
+
+import React from 'react';
+
 import WorkspaceRequireFieldsTableRow from './WorkspaceRequireFieldsTableRow';
 
 type WorkspaceRequireFieldsTableProps = {
