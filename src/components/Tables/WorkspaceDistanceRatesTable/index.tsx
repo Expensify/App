@@ -1,16 +1,24 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useMemo} from 'react';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useMemo} from 'react';
+
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
+
+import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
 type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
@@ -120,7 +128,6 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
     );
 
     const isEmpty = ratesData.length === 0;
-    const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <Table
@@ -140,7 +147,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
+                    <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
                     <Table.Header />
                     <Table.Body />
                 </>

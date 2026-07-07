@@ -1,15 +1,22 @@
-import React, {useEffect} from 'react';
-import type {RefObject} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
+
 import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
+
 import BaseReactionList from './BaseReactionList';
 
 type PopoverReactionListProps = {
