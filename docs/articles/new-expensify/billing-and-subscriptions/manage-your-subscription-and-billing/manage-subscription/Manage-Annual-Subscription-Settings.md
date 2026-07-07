@@ -14,7 +14,7 @@ Annual subscriptions include settings that let you manage your subscription, inc
 
 These settings apply only to Annual subscriptions. A Pay-per-use subscription has no commitment. 
 
-To check your current plan and subscription settings, see [how to view your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription).
+To check your current plan and subscription settings, see [how to view your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/View-Your-Plan-and-Subscription).
 
 ---
 
