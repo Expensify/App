@@ -2282,8 +2282,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             formatPhoneNumber,
             personalDetailsList,
             {accountID: currentUserAccountID},
-            undefined,
-            undefined,
             reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
@@ -2621,6 +2619,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                reportActionsList: reportActionsList ?? {},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);

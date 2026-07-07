@@ -10,6 +10,7 @@ import useAncestors from '@hooks/useAncestors';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8684,6 +8685,272 @@ describe('actions/Report', () => {
                 role: CONST.REPORT.ROLE.ADMIN,
             });
         });
+
+        it('should forward reportID and inviteeEmails to the API when resolution is INVITE', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '900';
+            const WHISPER_ACTION_ID = '9001';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(900, undefined),
+                reportID: REPORT_ID,
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @user1 and @user2', text: 'Mentioned @user1 and @user2', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [200, 300],
+                    inviteeEmails: ['user1@example.com', 'user2@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            // The resolve request must carry the same (reportID, inviteeEmails) pair InviteToRoom sends, so the backend can email the new logins
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER,
+                expect.objectContaining({
+                    reportActionID: WHISPER_ACTION_ID,
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    reportID: REPORT_ID,
+                    inviteeEmails: ['user1@example.com', 'user2@example.com'],
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+        });
+
+        it('should NOT forward reportID and inviteeEmails when resolution is NOTHING', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '901';
+            const WHISPER_ACTION_ID = '9011';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(901, undefined),
+                reportID: REPORT_ID,
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @user1', text: 'Mentioned @user1', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [200],
+                    inviteeEmails: ['user1@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false);
+            await waitForBatchedUpdates();
+
+            const resolveCall = writeSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER);
+            const params = resolveCall?.at(1);
+            expect(params).toBeDefined();
+            expect(params).not.toHaveProperty('reportID');
+            expect(params).not.toHaveProperty('inviteeEmails');
+
+            writeSpy.mockRestore();
+        });
+
+        it('should NOT forward reportID and inviteeEmails when the whisper has no invitee emails', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '902';
+            const WHISPER_ACTION_ID = '9021';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(902, undefined),
+                reportID: REPORT_ID,
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned invitee', text: 'Mentioned invitee', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [],
+                    inviteeEmails: [],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            const resolveCall = writeSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER);
+            const params = resolveCall?.at(1);
+            expect(params).toBeDefined();
+            expect(params).not.toHaveProperty('reportID');
+            expect(params).not.toHaveProperty('inviteeEmails');
+
+            writeSpy.mockRestore();
+        });
+
+        it('should only forward emails for invitees not already in the room (stale whisper)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '903';
+            const WHISPER_ACTION_ID = '9031';
+            const ALREADY_MEMBER_ID = 200;
+            const NEW_INVITEE_ID = 300;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(903, undefined),
+                reportID: REPORT_ID,
+                participants: {
+                    [ALREADY_MEMBER_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                    },
+                },
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @already and @new', text: 'Mentioned @already and @new', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [ALREADY_MEMBER_ID, NEW_INVITEE_ID],
+                    inviteeEmails: ['already@example.com', 'new@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            // The already-member's email must be dropped so they don't receive a duplicate room invitation
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER,
+                expect.objectContaining({
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    reportID: REPORT_ID,
+                    inviteeEmails: ['new@example.com'],
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+        });
+
+        it('should still forward a brand-new-user email that has no matching accountID (shorter inviteeAccountIDs)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '904';
+            const WHISPER_ACTION_ID = '9041';
+            const ALREADY_MEMBER_ID = 200;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(904, undefined),
+                reportID: REPORT_ID,
+                participants: {
+                    [ALREADY_MEMBER_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                    },
+                },
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @already and @new', text: 'Mentioned @already and @new', type: 'COMMENT'}],
+                originalMessage: {
+                    // The brand-new user has no accountID yet, so inviteeAccountIDs is shorter than inviteeEmails.
+                    inviteeAccountIDs: [ALREADY_MEMBER_ID],
+                    inviteeEmails: ['already@example.com', 'new@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            // already@example.com (index 0, accountID 200) is an existing member and is dropped; new@example.com
+            // (index 1, no matching accountID) is still forwarded so the new user gets invited.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER,
+                expect.objectContaining({
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    reportID: REPORT_ID,
+                    inviteeEmails: ['new@example.com'],
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+        });
+
+        it('should optimistically add only the new invitee to participants for a stale whisper (offline path)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+
+            const REPORT_ID = '905';
+            const WHISPER_ACTION_ID = '9051';
+            const ALREADY_MEMBER_ID = 200;
+            const NEW_INVITEE_ID = 300;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(905, undefined),
+                reportID: REPORT_ID,
+                participants: {
+                    [ALREADY_MEMBER_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        role: CONST.REPORT.ROLE.ADMIN,
+                    },
+                },
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @already and @new', text: 'Mentioned @already and @new', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [ALREADY_MEMBER_ID, NEW_INVITEE_ID],
+                    inviteeEmails: ['already@example.com', 'new@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
+                    [WHISPER_ACTION_ID]: whisperAction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Let API.write run against the mock fetch so the optimistic Onyx update is actually applied.
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
+            // The brand-new invitee is added optimistically as a member...
+            expect(updatedReport?.participants?.[NEW_INVITEE_ID]).toMatchObject({
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            });
+            // ...while the already-existing member keeps their original ADMIN role (not overwritten).
+            expect(updatedReport?.participants?.[ALREADY_MEMBER_ID]).toMatchObject({
+                role: CONST.REPORT.ROLE.ADMIN,
+            });
+        });
     });
 
     describe('buildOptimisticAddCommentReportAction delegateAccountID forwarding', () => {
@@ -8759,67 +9026,6 @@ describe('actions/Report', () => {
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
             const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
-        });
-    });
-
-    describe('prepareOnyxDataForCleanUpOptimisticParticipants', () => {
-        const REPORT_ID = '1';
-        const OPTIMISTIC_ACCOUNT_ID = 100;
-        const SETTLED_ACCOUNT_ID = 200;
-
-        it('marks only participants with optimistic personal details for clean up', async () => {
-            // Given a report with one optimistic and one settled participant
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                participants: {
-                    [OPTIMISTIC_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            });
-            await waitForBatchedUpdates();
-
-            // When preparing the clean up data using the provided personal details
-            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {
-                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
-                [SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID},
-            });
-
-            // Then only the optimistic participant is marked for clean up
-            expect(result).toEqual({
-                settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
-                redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
-            });
-        });
-
-        it('returns empty clean up data when no participant has optimistic personal details', async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                participants: {[SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
-            });
-            await waitForBatchedUpdates();
-
-            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {[SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID}});
-
-            expect(result).toEqual({settledPersonalDetails: {}, redundantParticipants: {}});
-        });
-
-        it('returns undefined when the report has no participants', async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
-            await waitForBatchedUpdates();
-
-            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {
-                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
-            });
-
-            expect(result).toBeUndefined();
-        });
-
-        it('returns undefined when the report does not exist', () => {
-            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants('non-existent-report', {
-                [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
-            });
-
-            expect(result).toBeUndefined();
         });
     });
 });

@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -33,6 +34,7 @@ import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdometerImage, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -76,6 +78,11 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
+
+/** `BaseTextInputRef` also covers masked-input refs (`HTMLFormElement`), which don't have `isFocused`. */
+function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInputRef {
+    return 'isFocused' in ref;
+}
 
 function IOURequestStepDistanceOdometer({
     report,
@@ -523,9 +530,16 @@ function IOURequestStepDistanceOdometer({
         setFormError('');
     };
 
-    const restoreLastInputFocus = useCallback(() => {
-        lastFocusedInputRef.current?.focus();
-    }, []);
+    // The inputs are `editable={!isDiscardModalVisible}`, so a bare focus() call here would still be a no-op:
+    // this fires before React commits the `isDiscardModalVisible: false` update, and on Android, before the
+    // native window even regains focus. focusComposerWithDelay waits on both (see its Android-specific gates)
+    // before focusing, so no extra effect/state is needed to defer past the commit.
+    const restoreLastInputFocus = () => {
+        const input = lastFocusedInputRef.current;
+        if (input && isFocusableTextInputRef(input)) {
+            focusComposerWithDelay(input)(true);
+        }
+    };
 
     useDiscardChangesConfirmation({
         getHasUnsavedChanges,

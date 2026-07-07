@@ -716,12 +716,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function createDistanceRequest(trimmedComment: string, shouldHandleNavigation = true, shouldDeferForSearch = false) {
+    function createDistanceRequest(trimmedComment: string, shouldHandleNavigation = true) {
         if (!transaction) {
             return;
         }
+        const participant = selectedParticipantsForRequest.at(0);
+        if (!participant) {
+            return;
+        }
 
-        createDistanceRequestIOUActions({
+        const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
             report,
             participants: selectedParticipantsForRequest,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -760,7 +764,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType,
             },
-            backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations: transactionViolationsRef.current,
             quickAction,
@@ -768,10 +771,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             personalDetails,
             recentWaypoints,
             betas,
-            shouldHandleNavigation,
-            shouldDeferForSearch,
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
+        });
+
+        const isExpenseReport = isMoneyRequestReportReportUtils(report);
+        performPostBatchCleanup({
+            participant,
+            shouldHandleNavigation,
+            allTransactionsCreated: true,
+            fallbackOptimisticChatReportID: distanceChatReportID,
+            navigateBackToReport: backToReport,
+            lastOptimisticTransactionID: distanceTransactionID,
+            preResolvedChatTarget: {
+                report: isExpenseReport ? report : undefined,
+                chatReportID: isExpenseReport ? '' : distanceChatReportID,
+            },
         });
     }
 
@@ -791,8 +806,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
-            const shouldDeferDistanceForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
-            createDistanceRequest(trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
+            createDistanceRequest(trimmedComment, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }
