@@ -20,42 +20,37 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import type {Transaction} from '@src/types/onyx';
+import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
+
+import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-type SubmitActionButtonProps = {
-    iouReportID: string | undefined;
-    isSubmittingAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startSubmittingAnimation: () => void;
-};
-
-function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
+function SubmitActionButton() {
+    const {iouReportID} = useReportPreviewData();
+    const {startSubmittingAnimation} = useReportPreviewActions();
     return (
         <ReportSubmitToPopoverAnchor
             reportID={iouReportID}
             onSubmitSuccess={startSubmittingAnimation}
             anchorAlignment={ANCHOR_ALIGNMENT}
         >
-            <SubmitActionButtonContent
-                iouReportID={iouReportID}
-                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                stopAnimation={stopAnimation}
-                startSubmittingAnimation={startSubmittingAnimation}
-            />
+            <SubmitActionButtonContent />
         </ReportSubmitToPopoverAnchor>
     );
 }
 
-function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
+function SubmitActionButtonContent() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -64,6 +59,10 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
     const {isBetaEnabled} = usePermissions();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
+    const {iouReportID} = useReportPreviewData();
+    const {isSubmittingAnimationRunning} = useReportPreviewAnimationState();
+    const {stopAnimation, startSubmittingAnimation} = useReportPreviewActions();
+
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
@@ -71,7 +70,6 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -80,6 +78,15 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
+
+    // Subscribe only to the violations of this report's transactions instead of the whole collection,
+    // so a violation change in an unrelated report does not re-render this button.
+    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const selectTransactionViolations = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
+        [transactionIDs],
+    );
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);

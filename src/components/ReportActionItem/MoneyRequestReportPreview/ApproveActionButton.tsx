@@ -13,19 +13,17 @@ import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
+import type {TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 
-type ApproveActionButtonProps = {
-    iouReportID: string | undefined;
-    startApprovedAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
-    shouldShowPayButton: boolean;
-};
+import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
 
-function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpen, shouldShowPayButton}: ApproveActionButtonProps) {
+function ApproveActionButton() {
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -34,23 +32,34 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
+    const {iouReportID} = useReportPreviewData();
+    const {shouldShowPayButton} = useReportPreviewActionState();
+    const {startApprovedAnimation, onHoldMenuOpen} = useReportPreviewActions();
+
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
-
     const allTransactionValues = Object.values(reportTransactions);
     const transactions = allTransactionValues;
+
+    // Subscribe only to the violations of this report's transactions instead of the whole collection,
+    // so a violation change in an unrelated report does not re-render this button.
+    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const selectTransactionViolations = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
+        [transactionIDs],
+    );
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const confirmApproval = () => {
         if (isDelegateAccessRestricted) {

@@ -26,52 +26,23 @@ import {
 } from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, Transaction} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 
-type PayActionButtonProps = {
-    iouReportID: string | undefined;
-    chatReportID: string | undefined;
-    chatReport: OnyxEntry<Report>;
-    isPaidAnimationRunning: boolean;
-    isApprovedAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startAnimation: () => void;
-    startApprovedAnimation: () => void;
-    onPaymentOptionsShow?: () => void;
-    onPaymentOptionsHide?: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
-    buttonMaxWidth: {maxWidth?: number};
-    reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>;
-};
+import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 
-function PayActionButton({
-    iouReportID,
-    chatReportID,
-    chatReport,
-    isPaidAnimationRunning,
-    isApprovedAnimationRunning,
-    stopAnimation,
-    startAnimation,
-    startApprovedAnimation,
-    onPaymentOptionsShow,
-    onPaymentOptionsHide,
-    onHoldMenuOpen,
-    buttonMaxWidth,
-    reportPreviewAction,
-}: PayActionButtonProps) {
+function PayActionButton() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -83,20 +54,22 @@ function PayActionButton({
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
 
+    const {iouReportID, chatReportID, chatReport} = useReportPreviewData();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
+    const {stopAnimation, startAnimation, startApprovedAnimation, onPaymentOptionsShow, onPaymentOptionsHide, onHoldMenuOpen} = useReportPreviewActions();
+    const {buttonMaxWidth} = useReportPreviewUIState();
+    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
+
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-    );
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -106,7 +79,14 @@ function PayActionButton({
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    // Subscribe only to the violations of this report's transactions instead of the whole collection,
+    // so a violation change in an unrelated report does not re-render this button.
+    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const selectTransactionViolations = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
+        [transactionIDs],
+    );
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -114,33 +94,6 @@ function PayActionButton({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
-    const canIOUBePaid = canIOUBePaidIOUActions(
-        iouReport,
-        chatReport,
-        policy,
-        bankAccountList,
-        currentUserDetails.login ?? '',
-        currentUserDetails.accountID,
-        transactions,
-        false,
-        undefined,
-        invoiceReceiverPolicy,
-    );
-    const onlyShowPayElsewhere =
-        !canIOUBePaid &&
-        canIOUBePaidIOUActions(
-            iouReport,
-            chatReport,
-            policy,
-            bankAccountList,
-            currentUserDetails.login ?? '',
-            currentUserDetails.accountID,
-            transactions,
-            true,
-            undefined,
-            invoiceReceiverPolicy,
-        );
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
 

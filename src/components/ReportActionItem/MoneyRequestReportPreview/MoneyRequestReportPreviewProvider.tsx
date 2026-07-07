@@ -40,6 +40,7 @@ import type {MoneyRequestReportPreviewStyleType} from './types';
 
 import {
     ReportPreviewActionsContext,
+    ReportPreviewActionStateContext,
     ReportPreviewAnimationStateContext,
     ReportPreviewCarouselListContext,
     ReportPreviewCarouselStateContext,
@@ -49,6 +50,7 @@ import {
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
+import useReportPreviewActionDecision from './useReportPreviewActionDecision';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
 
 type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
@@ -258,6 +260,24 @@ function MoneyRequestReportPreviewProvider({
     const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
+    const buttonMaxWidth =
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
+            ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
+            : {};
+
+    const actionStateValue = useReportPreviewActionDecision({
+        iouReportID,
+        chatReportID,
+        iouReport,
+        chatReport,
+        policy,
+        invoiceReceiverPolicy,
+        transactions,
+        transactionViolations,
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+    });
 
     const dataValue = {iouReportID, chatReportID, action, iouReport, chatReport, transactions, policy, invoiceReceiverPolicy, invoiceReceiverPersonalDetail};
     const uiStateValue = {
@@ -274,6 +294,7 @@ function MoneyRequestReportPreviewProvider({
         carouselReasonAttributes,
         previewMessageStyle,
         reportPreviewStyles,
+        buttonMaxWidth,
     };
     const animationStateValue = {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning};
     const carouselStateValue = {isPreviousDisabled, isNextDisabled};
@@ -298,11 +319,13 @@ function MoneyRequestReportPreviewProvider({
                 <ReportPreviewCarouselStateContext.Provider value={carouselStateValue}>
                     <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
                         <ReportPreviewCarouselListContext.Provider value={carouselList}>
-                            <ReportPreviewActionsContext.Provider value={actionsValue}>
-                                <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
-                                    <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
-                                </ReportPreviewHoldMenuContext.Provider>
-                            </ReportPreviewActionsContext.Provider>
+                            <ReportPreviewActionStateContext.Provider value={actionStateValue}>
+                                <ReportPreviewActionsContext.Provider value={actionsValue}>
+                                    <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
+                                        <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
+                                    </ReportPreviewHoldMenuContext.Provider>
+                                </ReportPreviewActionsContext.Provider>
+                            </ReportPreviewActionStateContext.Provider>
                         </ReportPreviewCarouselListContext.Provider>
                     </ReportPreviewAnimationStateContext.Provider>
                 </ReportPreviewCarouselStateContext.Provider>

@@ -5,6 +5,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
+import type * as MoneyRequestReportPreviewContext from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -94,11 +95,14 @@ const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
     const actualReact = jest.requireActual<typeof React>('react');
     const actualModule = jest.requireActual<{default: typeof ReportPreviewActionButton}>('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton');
+    const {useReportPreviewActions} = jest.requireActual<typeof MoneyRequestReportPreviewContext>('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext');
     return {
         __esModule: true,
-        default: (props: Parameters<typeof actualModule.default>[0]) => {
-            mockOnHoldMenuOpenHolder.current = props.onHoldMenuOpen;
-            return actualReact.createElement(actualModule.default, props);
+        default: function MockReportPreviewActionButton() {
+            // ReportPreviewActionButton is now a propless context consumer; capture onHoldMenuOpen from the context instead of props.
+            const {onHoldMenuOpen} = useReportPreviewActions();
+            mockOnHoldMenuOpenHolder.current = onHoldMenuOpen;
+            return actualReact.createElement(actualModule.default);
         },
     };
 });
