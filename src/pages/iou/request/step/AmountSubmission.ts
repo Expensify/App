@@ -207,8 +207,7 @@ function getIsP2PForAmount({chatReportForP2P, currentUserAccountID}: GetIsP2PFor
 
 /**
  * Determines whether a transaction's current tax code is still the auto-applied default for the given currency
- * (i.e. the user has not manually picked a different rate). Used by both the create and edit submit paths to
- * decide whether a currency change should re-apply the new currency's default tax rate.
+ * (i.e. the user has not manually picked a different rate).
  */
 function isTaxCodeAutoDefaultForCurrency(
     policy: OnyxEntry<OnyxTypes.Policy>,
