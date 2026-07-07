@@ -112,14 +112,19 @@ function init() {
                 // Reconstruct the source values at flush time by diffing each dependency that fired since the
                 // last flush against its last-flushed snapshot. On the very first flush we have no baselines, so
                 // we compute from scratch (undefined sourceValues) and capture snapshots for future diffs.
+                //
+                // We only STAGE the baseline advances / pending-set clear here and commit them after a
+                // successful compute. If the compute throws, we keep the baselines and pending set intact so the
+                // next dependency change re-diffs the accumulated delta and self-heals.
                 let sourceValues: Record<string, unknown> | undefined;
+                const stagedBaselines: Array<[number, OnyxCollection<unknown>]> = [];
                 if (hasFlushedOnce) {
                     for (const index of pendingDependencyIndexes) {
                         const dependencyOnyxKey = dependencies[index];
                         if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                             const currentValue = readCollectionDependency(index);
                             const delta = getCollectionDelta<unknown>(currentValue, lastFlushedCollectionValues.at(index));
-                            lastFlushedCollectionValues[index] = currentValue;
+                            stagedBaselines.push([index, currentValue]);
                             if (delta !== undefined) {
                                 sourceValues ??= {};
                                 sourceValues[dependencyOnyxKey] = delta;
@@ -138,14 +143,26 @@ function init() {
                     // Capture baselines for every collection dependency so the next flush can diff against them.
                     for (let index = 0; index < totalConnections; index++) {
                         if (OnyxKeys.isCollectionKey(dependencies[index])) {
-                            lastFlushedCollectionValues[index] = readCollectionDependency(index);
+                            stagedBaselines.push([index, readCollectionDependency(index)]);
                         }
                     }
-                    hasFlushedOnce = true;
                 }
 
+                try {
+                    runCompute(sourceValues);
+                } catch (error) {
+                    // Leave the baselines and pending set intact so the next dependency change re-diffs the
+                    // accumulated delta and recomputes. flushScheduled is already false, so it will reschedule.
+                    Log.alert(`[OnyxDerived] compute for ${key} threw; keeping pending deltas so the next dependency change recomputes them`, {error});
+                    return;
+                }
+
+                // Commit only after a successful compute.
+                for (const [index, value] of stagedBaselines) {
+                    lastFlushedCollectionValues[index] = value;
+                }
+                hasFlushedOnce = true;
                 pendingDependencyIndexes.clear();
-                runCompute(sourceValues);
             };
 
             const recomputeDerivedValue = (triggeredByIndex: number) => {
