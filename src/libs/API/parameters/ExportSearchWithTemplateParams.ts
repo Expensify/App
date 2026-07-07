@@ -6,6 +6,8 @@ type ExportSearchWithTemplateParams = {
     jsonQuery: SearchQueryString;
     reportIDList: string[];
     transactionIDList: string[];
+    /** When "select all matching" is active, the IDs the user explicitly excluded so the backend skips them. */
+    excludedTransactionIDList?: string[];
     policyID: string | undefined;
     exportName: string;
 };

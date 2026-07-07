@@ -212,6 +212,13 @@ type SearchResultsActionsValue = {
 type SearchSelectionContextValue = {
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
+    /**
+     * Rows the user explicitly unchecked while "select all matching" was active. Represents the "all matching
+     * EXCEPT these" state that the single `areAllMatchingItemsSelected` flag can't express on its own. Only ever
+     * populated while `areAllMatchingItemsSelected` is true; cleared whenever select-all is toggled or the
+     * selection is cleared.
+     */
+    excludedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     shouldTurnOffSelectionMode: boolean;
@@ -236,7 +243,10 @@ type SearchSelectionActionsValue = {
      * thus re-rendering on — selection state. Passing `data` derives `selectedReports` in the same commit; passing
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
      */
-    applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
+    applySelection: (
+        updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
+        options?: {data?: SearchData; totalSelectableItemsCount?: number; shouldUpdateMatchingExclusions?: boolean},
+    ) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */

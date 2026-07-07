@@ -20,7 +20,7 @@ type SearchSelectionFooterProps = {
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
@@ -36,6 +36,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
     const selectedTransactionItems = Object.values(selectedTransactions);
     const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
+
+    // In "select all matching" mode the footer reflects the server-wide metadata; subtract the rows the user excluded.
+    const excludedTransactionItems = Object.values(excludedTransactions);
+    const excludedTransactionsCount = excludedTransactionItems.length;
+    const excludedTotal = excludedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0);
+
     const count = shouldUseClientTotal
         ? selectedTransactionsKeys.reduce((acc, key) => {
               if (isGroupEntry(key)) {
@@ -48,8 +54,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
               }
               return acc + 1;
           }, 0)
-        : metadata?.count;
-    const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
+        : (metadata?.count ?? 0) - excludedTransactionsCount;
+    const total = shouldUseClientTotal
+        ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0)
+        : (metadata?.total ?? 0) - excludedTotal;
 
     return (
         <SearchPageFooter

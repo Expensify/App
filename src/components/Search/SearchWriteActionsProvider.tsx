@@ -127,7 +127,7 @@ function useReconcileSelectionWithData({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
 }: ReconcileSelectionParams) {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
 
     useEffect(() => {
@@ -150,7 +150,7 @@ function useReconcileSelectionWithData({
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         continue;
                     }
-                    if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
+                    if (reportKey && !excludedTransactions[reportKey] && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
@@ -173,9 +173,11 @@ function useReconcileSelectionWithData({
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
+                    // A row the user unchecked while select-all is on must not be re-added by a later data reconcile.
+                    const isExcluded = !!excludedTransactions[listKey] || !!excludedTransactions[transactionItem.transactionID];
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
-                    const shouldInclude = isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows;
+                    const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);
                     if (!shouldInclude) {
                         continue;
                     }
@@ -218,7 +220,8 @@ function useReconcileSelectionWithData({
                     continue;
                 }
                 const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
-                if (!(listKey in selectedTransactions) && !(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
+                const isExcluded = !!excludedTransactions[listKey] || !!excludedTransactions[transactionItem.transactionID];
+                if (isExcluded || (!(listKey in selectedTransactions) && !(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected)) {
                     continue;
                 }
 
@@ -392,7 +395,7 @@ function SearchWriteActionsProvider({
 
                     return updatedTransactions;
                 },
-                {totalSelectableItemsCount},
+                {totalSelectableItemsCount, shouldUpdateMatchingExclusions: true},
             );
             return;
         }
@@ -456,7 +459,7 @@ function SearchWriteActionsProvider({
                     ),
                 };
             },
-            {totalSelectableItemsCount},
+            {totalSelectableItemsCount, shouldUpdateMatchingExclusions: true},
         );
     };
 
