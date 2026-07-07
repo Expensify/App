@@ -31,9 +31,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import React from 'react';
 import {View} from 'react-native';
 
-type NewTaskTitlePageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
-
-function DynamicNewTaskTitlePage({route}: NewTaskTitlePageProps) {
+function DynamicNewTaskTitlePage() {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
