@@ -298,7 +298,7 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
 
-        it('does not show action buttons in readonly mode', async () => {
+        it('does not show add receipt button in readonly mode but shows expand button', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
             });
@@ -314,7 +314,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
     });
