@@ -1,8 +1,8 @@
 ---
 title: Learn About Plan and Subscription Management
-description: Learn who can change a workspace's plan or subscription in New Expensify and the conditions that apply, including when you can and can't downgrade.
+description: Learn who can change a Workspace's plan or subscription in New Expensify and the conditions that apply, including when you can and can't downgrade.
 keywords: [New Expensify, plan management, subscription management, change plan, change subscription, downgrade plan, workspace Owner, Collect, Control, Annual, Pay-per-use]
-internalScope: Audience is workspace Owners. Covers who can change a workspace's plan or subscription and the conditions that apply. Does not cover plan features or how to change a subscription.
+internalScope: Audience is Workspace owners. Covers who can change a Workspace's plan or subscription and the conditions that apply. Does not cover plan features or how to change a subscription.
 retrievalIntent: Overview of who can change plan/subscription and the rules on when.
 contentType: topic
 platform: new
@@ -28,7 +28,7 @@ To learn more, see [Learn About Billing Permissions](/articles/new-expensify/bil
 
 ## When you can change your plan
 
-The workspace Owner can switch between the **Collect** and **Control** plans. 
+The Workspace owner can switch between the **Collect** and **Control** plans. 
 
 - **On a Pay-per-use subscription**, you can upgrade from Collect to Control or downgrade from Control to Collect at any time.
 - **On an Annual subscription**, you can upgrade from Collect to Control at any time, but you can't downgrade from Control to Collect until the annual term ends.
