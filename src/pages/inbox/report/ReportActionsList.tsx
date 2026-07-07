@@ -330,11 +330,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
 
-    // Same-screen report switches reuse this instance; per-report one-shot flags must not leak across reports.
-    useEffect(() => {
-        hasHeaderRendered.current = false;
-    }, [report.reportID]);
-
     // Once the current action-badge target is resolved (e.g. the user approves/pays an older report preview),
     // the badge target advances to the next report preview that requires action. Follow it by scrolling down to it.
     const actionTargetReportActionID = reportAttributes?.actionTargetReportActionID;
