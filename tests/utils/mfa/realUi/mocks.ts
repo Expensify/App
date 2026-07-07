@@ -1,9 +1,11 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
+import type Navigation from '@libs/Navigation/Navigation';
 
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on
 // mock registrations and assertions.
 
 type CapturedCallback = () => void;
+type NavigationTransitionOverrides = Pick<typeof Navigation, 'runAfterTransition' | 'runAfterUpcomingTransition'>;
 
 let pendingCloseCallback: CapturedCallback | undefined;
 
@@ -56,6 +58,17 @@ function syncHistoryMock() {
     };
 }
 
+const navigationTransitionOverrides = {
+    runAfterTransition: (callback) => {
+        callback();
+        return {cancel: () => {}};
+    },
+    runAfterUpcomingTransition: (callback) => {
+        pendingModalClose.capture(callback);
+        return {cancel: () => pendingModalClose.clear()};
+    },
+} satisfies NavigationTransitionOverrides;
+
 /**
  * Reuses the shared Navigation stubs and overrides the transition methods the flow needs to observe.
  * `runAfterTransition` runs its callback immediately because jsdom has no real transition, while
@@ -68,14 +81,7 @@ function navigationMock() {
         __esModule: true,
         default: {
             ...sharedNavigationMock,
-            runAfterTransition: (callback: () => void) => {
-                callback();
-                return {cancel: () => {}};
-            },
-            runAfterUpcomingTransition: (callback: () => void) => {
-                pendingModalClose.capture(callback);
-                return {cancel: () => pendingModalClose.clear()};
-            },
+            ...navigationTransitionOverrides,
         },
     };
 }
