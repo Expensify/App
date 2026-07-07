@@ -373,14 +373,23 @@ type GetYourSpendSnapshotTransactionRemovalUpdatesParams = {
     currentUserAccountID: number;
 };
 
-/** Optimistically patches Your spend snapshot aggregates when a single transaction leaves a report (e.g. delete or reject). */
-function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, currentUserAccountID}: GetYourSpendSnapshotTransactionRemovalUpdatesParams): YourSpendSnapshotOnyxData {
+/**
+ * Optimistically patches Your spend snapshot aggregates when a single transaction enters or leaves the reimbursable-only sections.
+ * `enters` adds the transaction's amount/count (and its `data` row); otherwise it subtracts them.
+ */
+function getYourSpendSnapshotTransactionMembershipUpdates(
+    transaction: OnyxEntry<Transaction>,
+    iouReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
+    enters: boolean,
+): YourSpendSnapshotOnyxData {
     const result: YourSpendSnapshotOnyxData = {optimisticData: [], successData: [], failureData: []};
     if (!transaction || !iouReport) {
         return result;
     }
 
     const paidGroupPolicyIDs = getPaidGroupPolicyIDs();
+    const sign = enters ? 1 : -1;
 
     if (transactionMatchesAwaitingApprovalQuery(iouReport, transaction, currentUserAccountID, paidGroupPolicyIDs)) {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
@@ -388,8 +397,8 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
         if (approvalSnapshotCurrency) {
             const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, approvalSnapshotCurrency);
             if (amount !== null) {
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, -amount, approvalSnapshotCurrency, -1));
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotDataUpdatesForHash(approvalQueryJSON?.hash, [transaction], false, true));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, sign * amount, approvalSnapshotCurrency, sign));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotDataUpdatesForHash(approvalQueryJSON?.hash, [transaction], enters, !enters));
             }
         }
     }
@@ -400,13 +409,51 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
         if (paymentSnapshotCurrency) {
             const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, paymentSnapshotCurrency);
             if (amount !== null) {
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, -amount, paymentSnapshotCurrency, -1));
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotDataUpdatesForHash(paymentQueryJSON?.hash, [transaction], false, true));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, sign * amount, paymentSnapshotCurrency, sign));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotDataUpdatesForHash(paymentQueryJSON?.hash, [transaction], enters, !enters));
             }
         }
     }
 
     return result;
+}
+
+/** Optimistically patches Your spend snapshot aggregates when a single transaction leaves a report (e.g. delete or reject). */
+function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, currentUserAccountID}: GetYourSpendSnapshotTransactionRemovalUpdatesParams): YourSpendSnapshotOnyxData {
+    return getYourSpendSnapshotTransactionMembershipUpdates(transaction, iouReport, currentUserAccountID, false);
+}
+
+type GetYourSpendSnapshotReimbursableUpdatesParams = {
+    transaction: OnyxEntry<Transaction>;
+    updatedTransaction: OnyxEntry<Transaction>;
+    iouReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+};
+
+/**
+ * Optimistically patches Your spend snapshot aggregates when an expense's reimbursable flag is toggled.
+ * Your spend counts reimbursable expenses only, so flipping to non-reimbursable removes it from the totals, and flipping back adds it.
+ */
+function getYourSpendSnapshotReimbursableUpdates({
+    transaction,
+    updatedTransaction,
+    iouReport,
+    currentUserAccountID,
+}: GetYourSpendSnapshotReimbursableUpdatesParams): YourSpendSnapshotOnyxData {
+    const result: YourSpendSnapshotOnyxData = {optimisticData: [], successData: [], failureData: []};
+    if (!transaction || !updatedTransaction || !iouReport) {
+        return result;
+    }
+
+    const wasReimbursable = transaction.reimbursable !== false;
+    const willBeReimbursable = updatedTransaction.reimbursable !== false;
+    if (wasReimbursable === willBeReimbursable) {
+        return result;
+    }
+
+    // Match on the transaction that carries the reimbursable state relevant to the section (the reimbursable one), since the scope queries skip non-reimbursable transactions.
+    const membershipTransaction = willBeReimbursable ? updatedTransaction : transaction;
+    return getYourSpendSnapshotTransactionMembershipUpdates(membershipTransaction, iouReport, currentUserAccountID, willBeReimbursable);
 }
 
 /** Optimistically patches Your spend snapshot aggregates when a transaction amount changes. */
@@ -473,6 +520,7 @@ function getYourSpendSnapshotSplitUpdates({
 }
 
 export {
+    getYourSpendSnapshotReimbursableUpdates,
     getYourSpendSnapshotReportMoveUpdates,
     getYourSpendSnapshotSplitUpdates,
     getYourSpendSnapshotTotalUpdates,

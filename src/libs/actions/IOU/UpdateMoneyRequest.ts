@@ -58,7 +58,7 @@ import Onyx from 'react-native-onyx';
 
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {getYourSpendSnapshotTotalUpdates} from './YourSpendSnapshotUpdate';
+import {getYourSpendSnapshotReimbursableUpdates, getYourSpendSnapshotTotalUpdates} from './YourSpendSnapshotUpdate';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
     params: UpdateMoneyRequestParams;
@@ -2069,6 +2069,19 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         optimisticData.push(...yourSpendSnapshotTotalUpdates.optimisticData);
         successData.push(...yourSpendSnapshotTotalUpdates.successData);
         failureData.push(...yourSpendSnapshotTotalUpdates.failureData);
+    }
+
+    // Toggling reimbursable adds/removes the expense from the reimbursable-only Your spend totals.
+    if (hasModifiedReimbursable && transaction && updatedTransaction && iouReport) {
+        const yourSpendSnapshotReimbursableUpdates = getYourSpendSnapshotReimbursableUpdates({
+            transaction,
+            updatedTransaction,
+            iouReport,
+            currentUserAccountID: currentUserAccountIDParam,
+        });
+        optimisticData.push(...yourSpendSnapshotReimbursableUpdates.optimisticData);
+        successData.push(...yourSpendSnapshotReimbursableUpdates.successData);
+        failureData.push(...yourSpendSnapshotReimbursableUpdates.failureData);
     }
 
     return {

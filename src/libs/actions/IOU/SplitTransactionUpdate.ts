@@ -110,6 +110,28 @@ type UpdateSplitTransactionsParams = {
     isOffline: boolean;
 };
 
+type GetReimbursableSplitDiffParams = {
+    splits: SplitTransactionSplitsParam;
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    originalChildTransactions: Array<OnyxEntry<OnyxTypes.Transaction>>;
+    splitExpensesTotal: number;
+    isCreationOfSplits: boolean;
+};
+
+/**
+ * Returns the change to the report's reimbursable total from a split, in report-currency magnitude.
+ * Your spend only counts reimbursable expenses, so non-reimbursable splits are excluded — otherwise splitting a
+ * reimbursable expense into reimbursable + non-reimbursable parts nets to 0 against the whole-report change and leaves Your spend stale.
+ */
+function getReimbursableSplitDiff({splits, originalTransaction, originalChildTransactions, splitExpensesTotal, isCreationOfSplits}: GetReimbursableSplitDiffParams): number {
+    const newReimbursableTotal = splits.reduce((total, split) => total + (split.reimbursable !== false ? split.amount : 0), 0);
+    const creationPreviousTotal = originalTransaction?.reimbursable !== false ? splitExpensesTotal : 0;
+    const previousReimbursableTotal = isCreationOfSplits
+        ? creationPreviousTotal
+        : originalChildTransactions.reduce((total, childTransaction) => total + (childTransaction?.reimbursable !== false ? Math.abs(childTransaction?.amount ?? 0) : 0), 0);
+    return newReimbursableTotal - previousReimbursableTotal;
+}
+
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
@@ -1818,10 +1840,18 @@ function updateSplitTransactions({
         : originalChildTransactions.filter((childTransaction) => childTransaction?.reimbursable !== false).length;
     const reimbursableCountDiff = reimbursableSplitsCount - previousReimbursableCount;
 
+    const reimbursableDiff = getReimbursableSplitDiff({
+        splits,
+        originalTransaction,
+        originalChildTransactions,
+        splitExpensesTotal,
+        isCreationOfSplits,
+    });
+
     const yourSpendSplitUpdates = getYourSpendSnapshotSplitUpdates({
         iouReport: expenseReport,
         originalTransaction,
-        reimbursableDiff: changesInReportTotal,
+        reimbursableDiff,
         reimbursableCountDiff,
         currentUserAccountID: currentUserPersonalDetails.accountID,
     });
@@ -2001,4 +2031,4 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     });
 }
 
-export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
+export {getReimbursableSplitDiff, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
