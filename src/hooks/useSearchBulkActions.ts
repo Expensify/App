@@ -1102,18 +1102,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
+                    const reportPreviewAction = itemReport?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemReport?.chatReportID}`]?.[itemReport?.parentReportActionID]
+                        : undefined;
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(
                         itemReport,
                         adminPolicy,
                         formatPhoneNumber,
                         policyExpenseChatReportActions,
+                        reportPreviewAction,
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                         doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, false, reportTransactions);
                     }
                 }
             }
