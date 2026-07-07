@@ -328,13 +328,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
         () => [
             {
+                icon: expensifyIcons.Plus,
+                text: translate('workflowsPage.addApprovalButton'),
+                onSelected: addApprovalAction,
+                value: CONST.POLICY.SECONDARY_ACTIONS.ADD_APPROVAL_WORKFLOW,
+            },
+            {
                 icon: expensifyIcons.Table,
                 text: translate('spreadsheet.importWorkflows'),
                 onSelected: importWorkflowsAction,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             },
         ],
-        [expensifyIcons.Table, translate, importWorkflowsAction],
+        [expensifyIcons.Plus, expensifyIcons.Table, translate, addApprovalAction, importWorkflowsAction],
     );
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
@@ -622,18 +628,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 onPress={() => setIsWorkflowListExpanded(true)}
                             />
                         )}
-                        {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                            <MenuItem
-                                title={translate('workflowsPage.addApprovalButton')}
-                                titleStyle={styles.textStrong}
-                                icon={expensifyIcons.Plus}
-                                iconHeight={20}
-                                iconWidth={20}
-                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                onPress={addApprovalAction}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
-                            />
-                        )}
                     </>
                 ),
                 disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected,
@@ -865,7 +859,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         searchFilteredWorkflows.length,
         displayedWorkflows,
         hiddenWorkflowsCount,
-        addApprovalAction,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,

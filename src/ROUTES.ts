@@ -150,7 +150,7 @@ const DYNAMIC_ROUTES = {
     },
     IMPORTED_MEMBERS_ROLE: {
         path: 'imported-members-role',
-        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
+        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION, SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION],
     },
     REPORT_SETTINGS: {
         path: 'report-settings',
