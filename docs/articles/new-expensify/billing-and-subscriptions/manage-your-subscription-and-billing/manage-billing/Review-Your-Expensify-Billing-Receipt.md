@@ -66,7 +66,7 @@ Each line helps explain how your overall subscription cost was calculated.
 
 ## What Workspace activity appears on your receipt
 
-If you pay for multiple Wworkspaces, your receipt includes a breakdown for each one.
+If you pay for multiple Workspaces, your receipt includes a breakdown for each one.
 
 For every Workspace, you'll see information such as:
 
