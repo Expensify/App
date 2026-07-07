@@ -79,7 +79,9 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
+    });
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
@@ -133,7 +135,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             });
         }
 
-        const hasCreatedExpense = Object.values(allTransactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction));
         items.push({
             key: 'createExpense',
             label: translate('homePage.gettingStartedSection.createExpense'),
