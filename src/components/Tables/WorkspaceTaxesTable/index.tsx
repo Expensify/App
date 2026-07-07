@@ -9,11 +9,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-
-import React from 'react';
 
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
 
@@ -97,7 +93,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} />}
+            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
             <Table.Header />
             <Table.Body />
         </Table>

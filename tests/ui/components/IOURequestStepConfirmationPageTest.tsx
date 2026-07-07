@@ -75,7 +75,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
 });
@@ -256,9 +256,14 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
+                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
+                login: ACCOUNT_LOGIN,
+                reportID: REPORT_ID,
+                selected: true,
+                text: ACCOUNT_LOGIN,
             },
         ],
     },
