@@ -5,8 +5,8 @@ import CONST from '@src/CONST';
 import type {TelemetryBeforeSend} from './index';
 
 // Tab-navigation spans are canceled when the user abandons the navigation (switching tabs mid-flight,
-// backgrounding the app). Their duration reflects the arbitrary moment of the abort rather than a finished
-// navigation, so sending them would skew the tab-navigation percentiles in both directions. Drop them.
+// sending the app to the background). Their duration reflects the arbitrary moment of the abort rather than
+// a finished navigation, so sending them would skew the tab-navigation percentiles in both directions. Drop them.
 const TAB_NAVIGATION_OPS: ReadonlySet<string> = new Set(TAB_NAVIGATION_SPAN_IDS);
 
 // The attribute is set as a boolean, but attribute values can arrive stringified depending on the SDK layer.
