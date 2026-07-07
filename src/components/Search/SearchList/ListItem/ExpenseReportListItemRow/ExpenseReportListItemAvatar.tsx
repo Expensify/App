@@ -1,12 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ExpenseReportListItemAvatarProps = {
     item: ExpenseReportListItemType;

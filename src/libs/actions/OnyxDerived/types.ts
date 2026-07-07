@@ -1,7 +1,8 @@
-import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
-import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
+import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 type OnyxCollectionSourceValue<K extends OnyxKey> = K extends OnyxCollectionKey
     ? K extends keyof OnyxCollectionValuesMapping
