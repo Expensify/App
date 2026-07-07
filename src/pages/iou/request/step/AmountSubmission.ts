@@ -286,10 +286,6 @@ function submitAmount({
 
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput, hasReceipt(transaction));
 
-        // When the currency changes, re-apply the default tax rate for the new currency so the confirmation page and the
-        // created expense reflect the currency-appropriate default (e.g. the foreign default for a foreign currency).
-        // Only do this when the current tax code is still the auto-applied default for the previous currency, so a tax
-        // rate the user manually selected is preserved across the currency change.
         const previousCurrency = getCurrency(transaction);
         const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, previousCurrency, transaction?.taxCode);
         const isPolicyExpenseChatParticipant = transaction?.participants?.some((participant) => participant.isPolicyExpenseChat) ?? false;
