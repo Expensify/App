@@ -32,7 +32,6 @@ import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
-import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
