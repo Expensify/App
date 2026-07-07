@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 
@@ -43,11 +43,12 @@ function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, style}: Sa
     return (
         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, style]}>
             <Button
-                large
-                text={translate('common.cancel')}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={onCancel}
                 style={styles.flex1}
-            />
+            >
+                <Button.Text>{translate('common.cancel')}</Button.Text>
+            </Button>
             <ButtonWithDropdownMenu<SaveViewAction>
                 success
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}

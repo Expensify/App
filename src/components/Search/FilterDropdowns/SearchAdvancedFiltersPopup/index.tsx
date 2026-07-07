@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
@@ -129,26 +129,27 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay, 
             {shouldShowEditFooter && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap2, styles.ph3, styles.pv3, styles.borderTop]}>
                     <Button
-                        text={translate('common.cancel')}
                         onPress={onCancel}
                         innerStyles={styles.bgTransparent}
-                        textStyles={styles.textSupporting}
-                        shouldUseDefaultHover={false}
                         hoverStyles={styles.hoveredComponentBG}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EDIT_FILTERS_CANCEL_BUTTON}
-                    />
+                    >
+                        <Button.Text style={styles.textSupporting}>{translate('common.cancel')}</Button.Text>
+                    </Button>
                     <View style={[styles.flexRow, styles.gap2]}>
                         <Button
-                            text={translate('search.saveAsNewView')}
                             onPress={onSaveAsNewView}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_AS_NEW_VIEW_BUTTON}
-                        />
+                        >
+                            <Button.Text>{translate('search.saveAsNewView')}</Button.Text>
+                        </Button>
                         <Button
-                            success
-                            text={translate('search.saveEdits')}
+                            variant="success"
                             onPress={onSaveEdits}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_EDITS_BUTTON}
-                        />
+                        >
+                            <Button.Text>{translate('search.saveEdits')}</Button.Text>
+                        </Button>
                     </View>
                 </View>
             )}
