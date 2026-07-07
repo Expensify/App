@@ -11,7 +11,7 @@ order: 1
 
 # Learn About Plan and Subscription Management
 
-Every paid workspace has a plan and a subscription, and together they determine how your Workspace is billed. While every Workspace has these settings, only the Workspace owner can manage them, and some changes are subject to additional restrictions.
+Every paid Workspace has a plan and a subscription, and together they determine how your Workspace is billed. While every Workspace has these settings, only the Workspace owner can manage them, and some changes are subject to additional restrictions.
 
 If you're new to Expensify billing, start with [Learn How Billing and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work).
 
@@ -19,9 +19,9 @@ If you're new to Expensify billing, start with [Learn How Billing and Subscripti
 
 ## Who can change a plan or subscription
 
-Only the Workspace owner can change a workspace's plan and subscription under **Account > Subscription**. Each Workspace has exactly one owner, whose payment card is charged for the subscription.
+Only the Workspace owner can change a Workspace's plan and subscription under **Account > Subscription**. Each Workspace has exactly one owner, whose payment card is charged for the subscription.
 
-Being a Workspace Admin doesn't include plan and subscription management permissions. Admins can manage members and workspace settings, but they can't change the workspace's plan or subscription unless they first take over workspace ownership.
+Being a Workspace Admin doesn't include plan and subscription management permissions. Admins can manage members and Workspace settings, but they can't change the Workspace's plan or subscription unless they first take over Workspace ownership.
 
 To learn more, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
 
@@ -29,10 +29,8 @@ To learn more, see [Learn About Billing Permissions](/articles/new-expensify/bil
 
 ## When you can change your plan
 
-The Workspace owner can switch between the **Collect** and **Control** plans. 
-
 - **On a Pay-per-use subscription**, you can upgrade from Collect to Control or downgrade from Control to Collect at any time.
-- **On an Annual subscription**, you can upgrade from Collect to Control at any time, but you can't downgrade from Control to Collect until the annual term ends.
+- **On an Annual subscription**, you can upgrade from Collect to Control at any time, but you can't downgrade from Control to Collect.
 
 ---
 
