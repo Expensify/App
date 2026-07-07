@@ -31,7 +31,7 @@
     "start": "npx rock start",
     "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "ts-node web/proxy.ts",
-    "web-server": "tsx --expose-gc ./node_modules/.bin/rsbuild dev --open --config config/rsbuild/rsbuild.config.ts",
+    "web-server": "tsx ./node_modules/.bin/rsbuild dev --open --config config/rsbuild/rsbuild.config.ts",
     "build": "ENV=production tsx ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && tsx ./scripts/combine-web-sourcemaps.ts",
     "build-staging": "ENV=staging tsx ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && tsx ./scripts/combine-web-sourcemaps.ts",
     "build-adhoc": "ENV=adhoc tsx ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && tsx ./scripts/combine-web-sourcemaps.ts",

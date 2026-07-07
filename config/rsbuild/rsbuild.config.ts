@@ -10,8 +10,6 @@ import {fileURLToPath} from 'url';
 import type Environment from './types.ts';
 
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-import ForceGarbageCollectionPlugin from './ForceGarbageCollectionPlugin.ts';
-// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getCommonConfiguration from './rsbuild.common.ts';
 
 const filename = fileURLToPath(import.meta.url);
@@ -91,7 +89,7 @@ export default defineConfig(async ({command}) => {
                 }
 
                 afterCommon.plugins ??= [];
-                afterCommon.plugins.push(new ReactRefreshRspackPlugin(), new ForceGarbageCollectionPlugin());
+                afterCommon.plugins.push(new ReactRefreshRspackPlugin());
 
                 return afterCommon;
             },
