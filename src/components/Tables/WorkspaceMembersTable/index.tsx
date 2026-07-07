@@ -1,18 +1,23 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
@@ -39,7 +44,7 @@ type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
     policy: OnyxEntry<Policy>;
-    isPolicyAdmin: boolean;
+    canSelectMembers: boolean;
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
@@ -53,11 +58,12 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
 export default function WorkspaceMembersTable({
     ref,
-    isPolicyAdmin,
+    canSelectMembers,
     policy,
     selectedKeys,
     shouldShowCustomField1Column,
@@ -65,7 +71,6 @@ export default function WorkspaceMembersTable({
     members,
     onRowSelectionChange,
 }: WorkspaceMembersTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -111,43 +116,82 @@ export default function WorkspaceMembersTable({
 
     const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+        const memberNameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
 
         if (activeSorting.columnKey === 'member') {
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'role') {
+            if (!item1.role && !item2.role) {
+                return memberNameComparison;
+            }
+
             if (!item1.role) {
                 return 1;
             }
+
             if (!item2.role) {
                 return -1;
             }
-            return localeCompare(item1.role, item2.role) * orderMultiplier;
+
+            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
+
+            if (roleComparison !== 0) {
+                return roleComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'customField1') {
             const item1CustomField1Value = item1.employeeUserID;
             const item2CustomField1Value = item2.employeeUserID;
+
+            if (!item1CustomField1Value && !item2CustomField1Value) {
+                return memberNameComparison;
+            }
+
             if (!item1CustomField1Value) {
                 return 1;
             }
+
             if (!item2CustomField1Value) {
                 return -1;
             }
-            return localeCompare(item1CustomField1Value, item2CustomField1Value) * orderMultiplier;
+
+            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
+
+            if (employeeIdComparison !== 0) {
+                return employeeIdComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'customField2') {
             const item1CustomField2Value = item1.employeePayrollID;
             const item2CustomField2Value = item2.employeePayrollID;
+
+            if (!item1CustomField2Value && !item2CustomField2Value) {
+                return memberNameComparison;
+            }
+
             if (!item1CustomField2Value) {
                 return 1;
             }
+
             if (!item2CustomField2Value) {
                 return -1;
             }
-            return localeCompare(item1CustomField2Value, item2CustomField2Value) * orderMultiplier;
+
+            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
+
+            if (payrollIdComparison !== 0) {
+                return payrollIdComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
         }
 
         return 1;
@@ -183,6 +227,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isPeopleAdmin = item.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS) && isPeopleAdmin) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -199,10 +248,16 @@ export default function WorkspaceMembersTable({
     const filterConfig: FilterConfig = {
         role: {
             label: translate('common.role'),
-            filterType: 'multi-select',
+            filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
             options: [
-                {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-                {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+                {
+                    label: translate('workspace.people.admins'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+                },
+                {
+                    label: translate('workspace.people.approvers'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS,
+                },
             ],
         },
     };
@@ -211,6 +266,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.cardAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.peopleAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
         });
 
         filterConfig.role.options.push({
@@ -249,7 +309,7 @@ export default function WorkspaceMembersTable({
             data={members}
             filters={filterConfig}
             selectedKeys={selectedKeys}
-            selectionEnabled={isPolicyAdmin}
+            selectionEnabled={canSelectMembers}
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}
@@ -260,14 +320,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                <Table.SearchBar
-                    label={translate('workspace.people.findMember')}
-                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                />
-                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
-            </View>
-
+            <Table.FilterBar label={translate('workspace.people.findMember')} />
             <Table.Header />
             <Table.Body />
         </Table>

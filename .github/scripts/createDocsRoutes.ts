@@ -1,6 +1,7 @@
+import type {ValueOf} from 'type-fest';
+
 import fs from 'fs';
 import yaml from 'js-yaml';
-import type {ValueOf} from 'type-fest';
 
 type Article = {
     href: string;

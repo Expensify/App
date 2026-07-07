@@ -1,6 +1,7 @@
-import {useContext} from 'react';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import {KeyboardStateContext} from '@components/withKeyboardState';
+
+import {useContext} from 'react';
 
 /**
  * Hook for getting current state of keyboard

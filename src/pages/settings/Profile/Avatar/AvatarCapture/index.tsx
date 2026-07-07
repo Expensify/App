@@ -1,6 +1,9 @@
-import React, {useImperativeHandle, useRef} from 'react';
-import type {View as RNView} from 'react-native';
 import variables from '@styles/variables';
+
+import type {View as RNView} from 'react-native';
+
+import React, {useImperativeHandle, useRef} from 'react';
+
 import type {AvatarCaptureProps} from './types';
 
 /**

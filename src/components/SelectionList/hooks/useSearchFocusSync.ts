@@ -1,6 +1,8 @@
-import {useEffect} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import usePrevious from '@hooks/usePrevious';
+
+import {useEffect} from 'react';
 
 type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** The current search value from text input */
