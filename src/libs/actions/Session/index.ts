@@ -848,7 +848,9 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
 function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod}, {optimisticData, failureData, finallyData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
+    });
     NetworkStore.setLastShortAuthToken(authToken);
 }
 
