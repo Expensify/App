@@ -40,7 +40,6 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
-    EmptyStateComponent: React.ReactElement;
 };
 
 /**
@@ -69,16 +68,7 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     return null;
 }
 
-export default function DomainMembersTable({
-    members,
-    selectionEnabled,
-    selectedKeys,
-    onRowSelectionChange,
-    shouldShowGroupColumn,
-    filterConfig,
-    isItemInFilter,
-    EmptyStateComponent,
-}: DomainMembersTableProps) {
+export default function DomainMembersTable({members, selectionEnabled, selectedKeys, onRowSelectionChange, shouldShowGroupColumn, filterConfig, isItemInFilter}: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -150,18 +140,20 @@ export default function DomainMembersTable({
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
-            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
-                <>
-                    <DomainMembersGroupFilterSync
-                        shouldShowGroupFilter={shouldShowGroupFilter}
-                        groupOptionValuesKey={groupOptionValuesKey}
-                    />
-                    <Table.FilterBar label={translate('domain.members.findMember')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
+                <DomainMembersGroupFilterSync
+                    shouldShowGroupFilter={shouldShowGroupFilter}
+                    groupOptionValuesKey={groupOptionValuesKey}
+                />
             )}
+
+            <Table.FilterBar label={translate('domain.members.findMember')} />
+            <Table.NoResultsState
+                title={translate('domain.members.emptyMembers.title')}
+                subtitle={translate('domain.members.emptyMembers.subtitle')}
+            />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
