@@ -1,11 +1,9 @@
-import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
 import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -16,19 +14,28 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasDomainAdminsSettingsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {clearAdminError} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -87,7 +94,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             return {
                 keyForList: String(accountID),
                 accountID,
-                name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
                 email: formatPhoneNumber(login),
                 isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
                 errors: getLatestError(errors),

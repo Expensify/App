@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+import colors from '@styles/theme/colors';
+
 /**
  * Seatbelt baseline dashboard — parses eslint.seatbelt.tsv and emits an HTML report
  * with aggregated tables and optional git history charts (Chart.js pinned beside the HTML).
@@ -14,7 +16,7 @@ import CLI from 'expensify-common/CLI';
 import {execSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import colors from '@styles/theme/colors';
+
 import Git from './utils/Git';
 
 const SEATBELT_REL = 'config/eslint/eslint.seatbelt.tsv';

@@ -1,14 +1,14 @@
-import type {CommonActions, NavigationContainerRefWithCurrent, NavigationState, NavigatorScreenParams, ParamListBase, PartialRoute, PartialState, Route} from '@react-navigation/native';
-import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
+
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
+
 import type {Country, EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -19,6 +19,11 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {CommonActions, NavigationContainerRefWithCurrent, NavigationState, NavigatorScreenParams, ParamListBase, PartialRoute, PartialState, Route} from '@react-navigation/native';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -63,15 +68,6 @@ type SplitNavigatorBySidebar<T extends SplitNavigatorSidebarScreen> = (typeof SI
 type BackToParams = {
     // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
     backTo?: Routes;
-};
-
-type ReportVerifyAccountNavigatorParamList = {
-    [SCREENS.REPORT_VERIFY_ACCOUNT]: {
-        reportID: string;
-    };
-    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: {
-        reportID: string;
-    };
 };
 
 type SettingsNavigatorParamList = {
@@ -508,15 +504,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: {
         policyID: string;
     };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
+    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT]: {
         policyID: string;
@@ -533,10 +525,8 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORTED]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED]: {
         policyID: string;
@@ -548,12 +538,10 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         parentTagsFilter?: string;
     };
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS]: {
@@ -562,32 +550,26 @@ type SettingsNavigatorParamList = {
         tagName: string;
         parentTagsFilter?: string;
     };
-    [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW]: {
         policyID: string;
-        orderWeight: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+        orderWeight: number | string;
     };
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW]: {
         policyID: string;
         orderWeight: number | string;
     };
-    [SCREENS.WORKSPACE.TAGS_EDIT]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT]: {
         policyID: string;
         orderWeight: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: {
         policyID: string;
         orderWeight: number;
     };
-    [SCREENS.WORKSPACE.TAG_EDIT]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAG_EDIT]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT]: {
         policyID: string;
@@ -599,24 +581,20 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
-    [SCREENS.WORKSPACE.TAG_APPROVER]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAG_APPROVER]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
     };
-    [SCREENS.WORKSPACE.TAG_GL_CODE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_TAG_GL_CODE]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
@@ -1208,6 +1186,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_SUBSIDIARY_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_IMPORT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
@@ -1296,12 +1277,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
         cardID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: {
         policyID: string;
@@ -1313,12 +1292,10 @@ type SettingsNavigatorParamList = {
         feed: string;
         cardID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
+    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: {
         policyID: string;
         cardID: string;
         feed: CompanyCardFeedWithDomainID;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
@@ -1411,13 +1388,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
         cardID: string;
-
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: {
         policyID: string;
@@ -1434,13 +1408,10 @@ type SettingsNavigatorParamList = {
         feed: CompanyCardFeedWithDomainID;
         cardID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
+    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
         cardID: string;
-
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: {
         policyID: string;
@@ -2625,7 +2596,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
-    [SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT]: NavigatorScreenParams<ReportVerifyAccountNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: NavigatorScreenParams<ReportCardActivateNavigatorParamList>;
@@ -3189,12 +3159,6 @@ type AuthScreensParamList = SharedScreensParamList &
     };
 
 type SearchReportActionsParamList = {
-    [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: {
-        reportID: string;
-    };
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: {
-        reportID: string;
-    };
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         /** ID of the transaction the page was opened for */
         transactionID: string;
@@ -3419,7 +3383,6 @@ export type {
     ProfileNavigatorParamList,
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
-    ReportVerifyAccountNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
     ConnectExistingBankAccountNavigatorParamList,

@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {addMinutes} from 'date-fns';
-import React, {useEffect} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -11,10 +8,12 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {confirmBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
@@ -22,11 +21,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import {useRoute} from '@react-navigation/native';
+import {addMinutes} from 'date-fns';
+import React, {useEffect} from 'react';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();

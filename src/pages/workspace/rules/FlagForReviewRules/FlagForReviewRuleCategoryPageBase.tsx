@@ -1,19 +1,24 @@
-import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getEffectiveFlagForReviewRuleForm} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
+
+import React from 'react';
 
 type FlagForReviewRuleCategoryPageBaseProps = {
     policyID: string;

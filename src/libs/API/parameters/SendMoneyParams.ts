@@ -1,7 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {ValueOf} from 'type-fest';
 
 type SendMoneyParams = {
     iouReportID: string;

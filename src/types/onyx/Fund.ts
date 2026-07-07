@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {BankName} from './Bank';
 import type {BankAccountAdditionalData} from './BankAccount';
 import type * as OnyxCommon from './OnyxCommon';
