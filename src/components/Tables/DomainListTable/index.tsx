@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -90,7 +90,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             ListEmptyComponent={DomainListEmptyState}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            {domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
+            <Table.FilterBar label={translate('workspace.common.findDomain')} />
             <Table.Header />
             <Table.Body />
         </Table>

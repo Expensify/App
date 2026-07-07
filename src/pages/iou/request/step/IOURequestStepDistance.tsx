@@ -299,6 +299,7 @@ function IOURequestStepDistance({
             return;
         }
         setShouldShowAtLeastTwoDifferentWaypointsError(false);
+        setManualFormError('');
     }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
 
     const transactionWasSaved = useRef(false);
