@@ -6,6 +6,7 @@ internalScope: Audience is Workspace owners. Covers who can change a Workspace's
 retrievalIntent: Overview of who can change plan/subscription and the rules on when.
 contentType: topic
 platform: new
+order: 1
 ---
 
 # Learn About Plan and Subscription Management
