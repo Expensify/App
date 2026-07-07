@@ -5,6 +5,7 @@ keywords: [request tax-exempt status, tax exemption, sales tax exemption, nonpro
 internalScope: Audience is Workspace Admins and Workspace owners. Covers requesting tax-exempt status for an Expensify subscription. Does not cover transferring Workspace ownership or troubleshooting. 
 retrievalIntent: Request tax exemption for an Expensify subscription.
 contentType: task
+order: 2
 ---
 
 # Request Tax Exemption
