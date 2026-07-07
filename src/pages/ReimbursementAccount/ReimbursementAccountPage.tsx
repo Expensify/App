@@ -23,7 +23,7 @@ import {isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {hasInProgressUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -493,7 +493,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
-    const canManageWorkspaceBankAccount = isPolicyAdmin(policy) || canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+    const canManageWorkspaceBankAccount = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
     if (!!policyIDParam && ((!isLoading && (isEmptyObject(policy) || !canManageWorkspaceBankAccount)) || isPendingDeletePolicy(policy))) {
         return (
