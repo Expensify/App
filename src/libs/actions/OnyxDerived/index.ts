@@ -5,6 +5,7 @@ import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -78,9 +79,10 @@ function init() {
             const lastFlushedCollectionValues = new Array<OnyxCollection<unknown>>(totalConnections);
             let hasFlushedOnce = false;
 
-            const runCompute = (sourceValues: Record<string, unknown> | undefined) => {
+            const runCompute = (sourceValues: Record<string, unknown> | undefined, triggeredKeys: Set<OnyxKey>) => {
                 context.currentValue = derivedValue;
                 context.sourceValues = sourceValues as typeof context.sourceValues;
+                context.triggeredKeys = triggeredKeys;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 startSpan(spanId, {
@@ -118,6 +120,14 @@ function init() {
                 // next dependency change re-diffs the accumulated delta and self-heals.
                 let sourceValues: Record<string, unknown> | undefined;
                 const stagedBaselines: Array<[number, OnyxCollection<unknown>]> = [];
+
+                // Every dependency that fired this flush, regardless of whether it produced a delta. Configs use
+                // this (not sourceValues) to detect which dependencies triggered — see hasKeyTriggeredCompute.
+                const triggeredKeys = new Set<OnyxKey>();
+                for (const index of pendingDependencyIndexes) {
+                    triggeredKeys.add(dependencies[index]);
+                }
+
                 if (hasFlushedOnce) {
                     for (const index of pendingDependencyIndexes) {
                         const dependencyOnyxKey = dependencies[index];
@@ -149,7 +159,7 @@ function init() {
                 }
 
                 try {
-                    runCompute(sourceValues);
+                    runCompute(sourceValues, triggeredKeys);
                 } catch (error) {
                     // Leave the baselines and pending set intact so the next dependency change re-diffs the
                     // accumulated delta and recomputes. flushScheduled is already false, so it will reschedule.
