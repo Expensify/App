@@ -91,8 +91,18 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {
+        selector: willAlertModalBecomeVisibleSelector,
+    });
+    // Mirror willAlertModalBecomeVisible in a ref so the openReportSubmitToPopover callback can read the latest value
+    // at press time without taking it as a dependency. Keeping it out of the deps keeps the callback (and, for the
+    // shared Search host, the context value built from it) referentially stable across MODAL changes so opening an
+    // unrelated popover/modal does not re-render every Search row.
+    const willAlertModalBecomeVisibleRef = useRef(willAlertModalBecomeVisible);
+    useEffect(() => {
+        willAlertModalBecomeVisibleRef.current = willAlertModalBecomeVisible;
+    }, [willAlertModalBecomeVisible]);
 
     const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin)}`;
 
@@ -194,14 +204,14 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 return;
             }
 
-            if (willAlertModalBecomeVisible) {
+            if (willAlertModalBecomeVisibleRef.current) {
                 pendingSearchSubmitOpenOptionsRef.current = options;
                 return;
             }
 
             showReportSubmitToPopover(options);
         },
-        [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover],
+        [reportID, showReportSubmitToPopover],
     );
 
     const popoverContainerStyle = useMemo(() => (isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}), [isSmallScreenWidth, styles.w100]);
