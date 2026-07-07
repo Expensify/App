@@ -870,6 +870,7 @@ function duplicateExpenseTransaction({
             betas,
             isSelfTourViewed,
             currentUserLocalCurrency,
+            reportActionsList: undefined,
         };
         return trackExpense(trackExpenseParams);
     }
