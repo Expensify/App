@@ -1504,27 +1504,25 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
         },
     ];
 
-    if (category === '' && customUnit) {
-        const updatedCustomUnit = removePendingFieldsFromCustomUnit({
-            ...customUnit,
-            defaultCategory: category,
-        });
-        const params = {
-            policyID,
-            customUnit: JSON.stringify(updatedCustomUnit),
-        };
+    const shouldUpdateCustomUnit = category === '' && customUnit !== undefined;
+    const command = shouldUpdateCustomUnit ? WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT : WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY;
+    const params = shouldUpdateCustomUnit
+        ? {
+              policyID,
+              customUnit: JSON.stringify(
+                  removePendingFieldsFromCustomUnit({
+                      ...customUnit,
+                      defaultCategory: category,
+                  }),
+              ),
+          }
+        : {
+              policyID,
+              customUnitID,
+              category,
+          };
 
-        API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, params, {optimisticData, successData, failureData});
-        return;
-    }
-
-    const params = {
-        policyID,
-        customUnitID,
-        category,
-    };
-
-    API.write(WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY, params, {
+    API.write(command, params, {
         optimisticData,
         successData,
         failureData,
