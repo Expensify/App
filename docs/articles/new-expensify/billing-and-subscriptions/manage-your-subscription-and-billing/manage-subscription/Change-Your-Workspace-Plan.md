@@ -58,5 +58,5 @@ This happens when you're on the Control plan with an Annual subscription. You've
 
 ## Why can't I downgrade my invoiced subscription?
 
-You can't downgrade the plan on an invoiced subscription from the app. Reach out to your Account Aanager or Concierge to discuss or make changes to your subscription.
+You can't downgrade the plan on an invoiced subscription from the app. Reach out to your Account Manager or Concierge to discuss or make changes to your subscription.
 
