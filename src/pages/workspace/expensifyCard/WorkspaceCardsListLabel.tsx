@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import Text from '@components/Text';
-import WorkspaceCardLabel from '@components/WorkspaceCardLabel';
+import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/WorkspaceCardLabel';
 
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -43,6 +43,32 @@ type WorkspaceCardsListLabelProps = {
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
+
+type RequestLimitIncreaseButtonProps = {
+    /** Localized button text */
+    text: string;
+
+    /** Optional style applied to the button */
+    buttonStyle?: StyleProp<ViewStyle>;
+
+    /** Invoked with a callback to close the popover when the button is pressed */
+    onRequest: (closePopover: () => void) => void;
+};
+
+function RequestLimitIncreaseButton({text, buttonStyle, onRequest}: RequestLimitIncreaseButtonProps) {
+    const styles = useThemeStyles();
+    const {closePopover} = useWorkspaceCardLabelPopover();
+
+    return (
+        <View style={[styles.flexRow, styles.mt3]}>
+            <Button
+                onPress={() => onRequest(closePopover)}
+                text={text}
+                style={buttonStyle}
+            />
+        </View>
+    );
+}
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
@@ -92,6 +118,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     return (
         <WorkspaceCardLabel
             style={style}
+            containerStyle={styles.flex1}
             title={translate(`workspace.expensifyCard.${type}`)}
             description={translate(`workspace.expensifyCard.${type}Description`)}
             displayValue={convertToDisplayString(value, settlementCurrency)}
@@ -109,24 +136,19 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 )
             }
             footer={isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>}
-            renderPopoverContent={
-                isLimitIncreaseDisplayed
-                    ? (closePopover) => (
-                          <View style={[styles.flexRow, styles.mt3]}>
-                              <Button
-                                  onPress={() => {
-                                      requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID);
-                                      closePopover();
-                                      navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
-                                  }}
-                                  text={translate('workspace.expensifyCard.requestLimitIncrease')}
-                                  style={shouldUseNarrowLayout && styles.flex1}
-                              />
-                          </View>
-                      )
-                    : undefined
-            }
-        />
+        >
+            {isLimitIncreaseDisplayed && (
+                <RequestLimitIncreaseButton
+                    text={translate('workspace.expensifyCard.requestLimitIncrease')}
+                    buttonStyle={shouldUseNarrowLayout && styles.flex1}
+                    onRequest={(closePopover) => {
+                        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID);
+                        closePopover();
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                    }}
+                />
+            )}
+        </WorkspaceCardLabel>
     );
 }
 

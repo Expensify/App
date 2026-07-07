@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -40,21 +40,33 @@ type WorkspaceCardLabelProps = {
     /** Optional content rendered below the header and value block (e.g. a settle date hint) */
     footer?: ReactNode;
 
-    /** Optional content rendered inside the popover below the description, given a callback to close the popover */
-    renderPopoverContent?: (closePopover: () => void) => ReactNode;
+    /** Optional content rendered inside the popover below the description. Consume `useWorkspaceCardLabelPopover` to close the popover from here. */
+    children?: ReactNode;
 
     /** Additional style props applied to the header row */
     style?: StyleProp<ViewStyle>;
 
-    /** When true the label stretches to fill its share of the row (used to evenly distribute multiple labels). When false it shrinks to its content width. */
-    shouldFillContainer?: boolean;
+    /** Style applied to the outer container (e.g. `styles.flex1` to evenly distribute multiple labels across a row) */
+    containerStyle?: StyleProp<ViewStyle>;
 };
+
+type WorkspaceCardLabelPopoverContextValue = {
+    /** Closes the label's info popover */
+    closePopover: () => void;
+};
+
+const WorkspaceCardLabelPopoverContext = createContext<WorkspaceCardLabelPopoverContextValue>({closePopover: () => {}});
+
+/** Gives popover children (passed to `WorkspaceCardLabel`) access to close the popover. */
+function useWorkspaceCardLabelPopover() {
+    return useContext(WorkspaceCardLabelPopoverContext);
+}
 
 /**
  * Header + value + info tooltip used to surface a single card statistic (e.g. current balance, remaining limit).
  * Shared between the Expensify Card and company card balance sections so the tooltip/anchor logic lives in one place.
  */
-function WorkspaceCardLabel({title, description, displayValue, valueStyle, valueAccessory, footer, renderPopoverContent, style, shouldFillContainer = true}: WorkspaceCardLabelProps) {
+function WorkspaceCardLabel({title, description, displayValue, valueStyle, valueAccessory, footer, children, style, containerStyle}: WorkspaceCardLabelProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
@@ -79,8 +91,10 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
         });
     }, [isVisible, windowWidth]);
 
+    const popoverContextValue = useMemo<WorkspaceCardLabelPopoverContextValue>(() => ({closePopover: () => setVisible(false)}), []);
+
     return (
-        <View style={shouldFillContainer ? styles.flex1 : undefined}>
+        <View style={containerStyle}>
             <View style={styles.flex1}>
                 <View
                     ref={anchorRef}
@@ -123,7 +137,7 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
                         {title}
                     </Text>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{description}</Text>
-                    {renderPopoverContent?.(() => setVisible(false))}
+                    <WorkspaceCardLabelPopoverContext.Provider value={popoverContextValue}>{children}</WorkspaceCardLabelPopoverContext.Provider>
                 </View>
             </Popover>
         </View>
@@ -133,3 +147,4 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
 WorkspaceCardLabel.displayName = 'WorkspaceCardLabel';
 
 export default WorkspaceCardLabel;
+export {useWorkspaceCardLabelPopover};

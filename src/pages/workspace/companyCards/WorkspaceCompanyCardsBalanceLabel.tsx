@@ -37,7 +37,6 @@ function WorkspaceCompanyCardsBalanceLabel({type, value, lastUpdated, currency}:
             title={translate(`workspace.companyCards.balance.${type}`)}
             description={description}
             displayValue={displayValue}
-            shouldFillContainer={false}
         />
     );
 }

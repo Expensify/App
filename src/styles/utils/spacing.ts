@@ -863,7 +863,7 @@ export default {
         gap: 32,
     },
 
-    gap24: {
+    gap96: {
         gap: 96,
     },
 
