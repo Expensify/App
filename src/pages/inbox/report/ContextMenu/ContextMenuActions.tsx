@@ -927,7 +927,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = isReportActionAttachment(reportAction);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (isReportPreviewAction) {
+                if (selection) {
+                    // When the user has highlighted part of a message, always copy exactly what's selected,
+                    // regardless of the report action type (including system messages like "marked as paid").
+                    setClipboardMessage(
+                        selection.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+                            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
+                            return openTag + modifiedContent + closeTag || '';
+                        }),
+                    );
+                } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
                     const displayMessage = getReportPreviewMessage({
                         reportOrID: iouReportID,
