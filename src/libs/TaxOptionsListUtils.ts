@@ -76,14 +76,25 @@ function getTaxRatesSection({
     // Keep rates that are pending deletion (e.g. deleted while offline) so they still render struck-through and non-selectable,
     // instead of dropping them via the isDisabled filter. getTaxRatesOptions forces isDisabled for pending-DELETE rows.
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled || taxRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
+    // A rate pending deletion is kept above only so it renders struck-through and non-selectable, so it must NOT count as "enabled"
+    // when deciding whether a selected option is selectable. Otherwise a selected rate that is pending deletion would be treated as
+    // enabled and rendered as a selectable row (submittable with an undefined code) instead of the struck-through non-selectable row.
+    const enabledTaxRatesNames = new Set(enabledTaxRates.filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((tax) => tax.modifiedName));
     const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
-    const selectedTaxRateWithDisabledState: Tax[] = [];
+    const taxRatesByModifiedName = new Map(sortedTaxRates.map((taxRate) => [taxRate.modifiedName, taxRate]));
+    const selectedTaxRateWithDisabledState: Array<Partial<TaxRate>> = [];
     const numberOfTaxRates = enabledTaxRates.length;
 
     for (const tax of selectedOptions) {
         if (enabledTaxRatesNames.has(tax.modifiedName)) {
             selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
+            continue;
+        }
+        // A selected rate that is pending deletion must render struck-through and non-selectable. selectedOptions only carry
+        // modifiedName, so forward the underlying rate's pendingAction/code so getTaxRatesOptions can render it correctly.
+        const matchingTaxRate = taxRatesByModifiedName.get(tax.modifiedName);
+        if (matchingTaxRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            selectedTaxRateWithDisabledState.push({...tax, code: matchingTaxRate.code, pendingAction: matchingTaxRate.pendingAction, isDisabled: true, isSelected: true});
             continue;
         }
         selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
