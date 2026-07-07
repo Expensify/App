@@ -1,5 +1,3 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
@@ -33,6 +31,8 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

@@ -1,12 +1,16 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
 import {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useOnyx from './useOnyx';

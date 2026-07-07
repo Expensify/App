@@ -1,18 +1,23 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
@@ -66,7 +71,6 @@ export default function WorkspaceMembersTable({
     members,
     onRowSelectionChange,
 }: WorkspaceMembersTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -244,10 +248,16 @@ export default function WorkspaceMembersTable({
     const filterConfig: FilterConfig = {
         role: {
             label: translate('common.role'),
-            filterType: 'multi-select',
+            filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
             options: [
-                {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-                {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+                {
+                    label: translate('workspace.people.admins'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+                },
+                {
+                    label: translate('workspace.people.approvers'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS,
+                },
             ],
         },
     };
@@ -310,14 +320,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                <Table.SearchBar
-                    label={translate('workspace.people.findMember')}
-                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                />
-                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
-            </View>
-
+            <Table.FilterBar label={translate('workspace.people.findMember')} />
             <Table.Header />
             <Table.Body />
         </Table>

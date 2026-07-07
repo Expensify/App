@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -150,6 +154,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'スキャン中',
         analyzing: '分析中…',
         thinking: 'Concierge が考えています...',
+        agentThinking: '考えています…',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話',
@@ -395,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: '出金ID',
         internationalReimbursementIDs: '国際払い戻しID',
         withdrawalStatus: '出金ステータス',
+        paidStatus: '支払済みステータス',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
         chooseFiles: 'ファイルを選択',
@@ -515,6 +521,8 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '制限',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
+        unableToDisplayChart: 'グラフを表示できません',
+        webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
         apiKey: 'API キー',
     },
     socials: {
@@ -835,7 +843,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドを退出',
         copyOnyxData: 'Onyx データをコピー',
-        copyAgentZeroRequestID: 'AgentZero リクエスト ID をコピー',
+        viewAgentZeroTrace: 'AgentZero トレースを表示',
         flagAsOffensive: '不適切として報告',
         menu: 'メニュー',
     },
@@ -969,6 +977,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'ウォレット',
             },
+            addVirtualCardPersonalDetails: {title: '個人情報を追加してください', subtitle: 'Expensify カードを表示して使い始めるには、詳細情報を入力してください。', cta: '詳細を追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
         announcements: 'お知らせ',
@@ -1048,6 +1057,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: '会計ソフトに接続',
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
+            issueExpensifyCards: 'Expensifyカードを発行',
+            issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
         },
@@ -1207,7 +1218,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: '承認済み',
         cash: '現金',
         card: 'カード',
-        original: '元の値',
+        purchase: '購入',
         split: '分割',
         splitExpense: '経費を分割',
         splitDates: '日付を分割',
@@ -2339,6 +2350,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '2 要素認証デバイスを変更',
         verifyOldDeviceTitle: '古い端末を確認',
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
+        verifyOldDeviceDescriptionWithRecovery: 'アカウントにアクセスできることを確認するために、有効な復旧コードを入力してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
@@ -2492,6 +2504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: '非アクティブ',
         assignedCards: 'カード',
         assignedCardsDescription: '割り当てられたカードの取引は自動的に同期されます。',
+        addVirtualCardPersonalDetails: {subtitle: 'カードのご利用を開始するには、個人情報を入力してください', cta: '詳細を追加'},
         expensifyCard: 'Expensify カード',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '申し訳ありませんが、現在はウォレットを有効にできません。詳しいサポートについてはConciergeにチャットでお問い合わせください。',
@@ -2775,8 +2788,6 @@ ${date} の ${merchant} への ${amount}`,
         activatePhysicalCard: '物理カードを有効化',
         error: {
             thatDidNotMatch: 'カードの下4桁が一致しませんでした。もう一度お試しください。',
-            throttled:
-                'Expensify カードの下4桁の入力に複数回連続で失敗しました。番号が正しいと確信される場合は、問題解決のために Concierge へご連絡ください。それ以外の場合は、時間をおいてからもう一度お試しください。',
         },
     },
     getPhysicalCard: {
@@ -2853,6 +2864,7 @@ ${date} の ${merchant} への ${amount}`,
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
             'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
+        copilotNote: 'このエージェントは、アカウントへのフルアクセス権を持つCopilotとして追加され、あなたの代わりに操作できるようになります。',
     },
     editAgentPage: {
         title: 'エージェントを編集',
@@ -5442,6 +5454,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subsidiarySelectDescription: 'データをインポートしたい Rillet 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',
             noSubsidiariesFoundDescription: 'Rillet に子会社を追加して、もう一度接続を同期してください',
+            accountTypesDescription: 'Rillet の口座はカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Rillet アカウントは、カテゴリとして利用できるようになります。',
+            dimensionsImport: 'すべての Rillet ディメンションがタグとしてインポートされます',
+            importDescription: 'Rillet からインポートするコーディング構成を選択してください。',
         },
         type: {
             free: '無料',
@@ -5680,6 +5697,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `このカードの限度額タイプを「月次」に変更すると、すでに月間限度額 ${limit} に達しているため、新しい取引は拒否されます。`,
             addShippingDetails: '配送先の詳細を追加',
+            addPersonalDetails: '個人情報を追加',
             issuedCard: (assignee: string) => `${assignee} に Expensify カードを発行しました。カードは 2〜3 営業日以内に到着します。`,
             issuedCardNoShippingDetails: (assignee: string) => `${assignee} に Expensify カードを発行しました。配送先の詳細が確認され次第、カードを発送します。`,
             issuedCardVirtual: (assignee: string, link: string) => `${assignee} にバーチャル Expensify カードを発行しました！${link} はすぐにご利用いただけます。`,
@@ -6185,6 +6203,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             importedFromAccountingSoftware: '以下の税金は、あなたの…からインポートされています',
             taxCode: '税コード',
             updateTaxCodeFailureMessage: '税コードの更新中にエラーが発生しました。もう一度お試しください',
+            taxRates: '税率',
         },
         duplicateWorkspace: {
             title: '新しいワークスペースに名前を付ける',
@@ -7705,6 +7724,10 @@ ${reportName}`,
                     `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
                 groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
             },
+            notSync: '未同期',
+            authenticationError: (providerName: string) => `有効期限が切れた接続のため、${providerName} に接続できません。`,
+            reconnect: '再接続',
+            reconnectLink: '再接続する',
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
@@ -8309,6 +8332,46 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `${date} から`,
         customUnitRateDateRangeUntilEnd: (date: string) => `${date}まで`,
         customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から概要をコピーしました`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からメンバーをコピーしました`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からレポート項目を 1 件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からレポート項目を ${count} 件コピーしました`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から会計設定をコピーしました`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から領収書パートナー設定をコピーしました`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から人事設定をコピーしました`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からカテゴリを 1 件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から ${count} 件のカテゴリをコピーしました`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からタグを 1 件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から ${count} 個のタグをコピーしました`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から税率を 1 件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から税率を ${count} 件コピーしました`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からタイムトラッキング設定をコピーしました`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からワークフローをコピーしました`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からルールをコピーしました`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から取引先ルールを 1 件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から ${count} 件の取引先ルールをコピーしました`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から距離レートを1件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から距離レートを ${count} 件コピーしました`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から日当レートを1件コピーしました`,
+                other: (count: number) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から日当レートを ${count} 件コピーしました`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から請求書の設定をコピーしました`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から出張設定をコピーしました`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -8508,6 +8571,8 @@ ${reportName}`,
             past: '過去',
             submitted: '送信済み',
             approved: '承認済み',
+            firstApprover: '最初の承認者',
+            firstApproved: '最初に承認済み',
             paid: '支払い済み',
             exported: 'エクスポート済み',
             posted: '投稿日',
@@ -8659,6 +8724,7 @@ ${reportName}`,
         failedError: ({link}: {link: string}) => `<a href="${link}">アカウントのロックを解除</a>すると、この精算を再試行します。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date}・出金 ID：${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: '支払い済みにマークしました', withdrawing: '出金中', confirmed: '確認済み'},
     reportLayout: {
         reportLayout: 'レポートレイアウト',
         groupByLabel: 'グループ化基準:',
@@ -9549,6 +9615,7 @@ ${reportName}`,
             changesBasedOn: 'これは、お客様の Expensify カードの利用状況と、以下のサブスクリプションオプションによって変わります。',
             collectBillingDescription: 'Collect ワークスペースは、年間契約なしで、メンバーごとに毎月課金されます。',
             pricing: '料金',
+            editSubscription: 'サブスクリプションを編集',
         },
         cancelSubscription: {
             title: 'サブスクリプションをキャンセル',
@@ -9716,6 +9783,7 @@ ${reportName}`,
             theresAProblemWithYourWalletTerms: 'ウォレットの利用規約に問題があります',
             aBankAccountIsLocked: '銀行口座がロックされています',
             completeHrSetup: '人事設定を完了する',
+            theresAProblemWithAnHRConnection: '人事連携に問題が発生しています',
         },
     },
     emptySearchView: {

@@ -1,6 +1,6 @@
-import React from 'react';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -10,11 +10,17 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import RulesTabEmptyState from './RulesTabEmptyState';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
