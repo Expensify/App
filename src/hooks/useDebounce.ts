@@ -7,6 +7,14 @@ import {useEffect, useRef} from 'react';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GenericFunction = (...args: any[]) => void;
 
+type UseDebounceOptions = DebounceSettings & {
+    /**
+     * When true, any pending trailing invocation is flushed on component unmount instead of cancelled.
+     * Opt-in only; default behavior remains cancel-on-unmount.
+     */
+    shouldExecuteOnUnmount?: boolean;
+};
+
 /**
  * Create and return a debounced function.
  *
@@ -17,13 +25,23 @@ type GenericFunction = (...args: any[]) => void;
  * @param wait The number of milliseconds to delay.
  * @param options The options object.
  * @param options.leading Specify invoking on the leading edge of the timeout.
- * @param options.maxWait The maximum time func is allowed to be delayed before it’s invoked.
+ * @param options.maxWait The maximum time func is allowed to be delayed before it's invoked.
  * @param options.trailing Specify invoking on the trailing edge of the timeout.
+ * @param options.shouldExecuteOnUnmount When true, flush pending invocations on unmount instead of cancelling them.
  * @returns Returns a function to call the debounced function.
  */
-export default function useDebounce<T extends GenericFunction>(func: T, wait: number, options?: DebounceSettings): T {
+export default function useDebounce<T extends GenericFunction>(func: T, wait: number, options?: UseDebounceOptions): T {
     const debouncedFnRef = useRef<DebouncedFunc<T> | undefined>(undefined);
-    const {leading, maxWait, trailing = true} = options ?? {};
+    const {leading, maxWait, trailing = true, shouldExecuteOnUnmount = false} = options ?? {};
+    const isUnmounted = useRef(false);
+
+    // Registered after the debounce effect so this cleanup runs first on unmount and the debounce
+    // cleanup can distinguish unmount from a dependency change.
+    useEffect(() => {
+        return () => {
+            isUnmounted.current = true;
+        };
+    }, []);
 
     useEffect(() => {
         const debouncedFn = lodashDebounce(func, wait, {leading, maxWait, trailing});
@@ -31,9 +49,12 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
         debouncedFnRef.current = debouncedFn;
 
         return () => {
+            if (shouldExecuteOnUnmount && isUnmounted.current) {
+                return;
+            }
             debouncedFn.cancel();
         };
-    }, [func, wait, leading, maxWait, trailing]);
+    }, [func, wait, leading, maxWait, trailing, shouldExecuteOnUnmount]);
 
     const debounceCallback = (...args: Parameters<T>) => {
         const debouncedFn = debouncedFnRef.current;
@@ -45,3 +66,5 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
 
     return debounceCallback as T;
 }
+
+export type {UseDebounceOptions};
