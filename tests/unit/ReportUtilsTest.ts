@@ -29,6 +29,7 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    areAllRequestsBeingSmartScanned,
     buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -64,6 +65,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canMergeReports,
     canModifyHoldStatus,
     canRejectReportAction,
     canSeeDefaultRoom,
@@ -123,6 +125,7 @@ import {
     getTransactionDetails,
     getTransactionReportName,
     getTransactionSortValue,
+    getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
@@ -131,6 +134,7 @@ import {
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasExportError,
+    hasNonReimbursableTransactions,
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
@@ -145,7 +149,6 @@ import {
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
-    isReportIneligibleForMoveExpenses,
     isReportOutstanding,
     isReportPendingDelete,
     isRootGroupChat,
@@ -8520,8 +8523,17 @@ describe('ReportUtils', () => {
             expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, undefined, undefined, false)).toBe(false);
         });
 
-        it('should return true for a reimburser of a group policy on a closed report', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, achAccount: {reimburser: currentUserEmail}});
+        it('should return true for an admin reimburser of a group policy on a closed report', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {reimburser: currentUserEmail},
+            });
 
             const closedReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -8641,7 +8653,151 @@ describe('ReportUtils', () => {
             // IOU receiver (payer/manager) should still be able to pay even without access to the policy
             expect(isPayer(currentUserAccountID, currentUserEmail, iouReportWithPolicyID, undefined, undefined, false)).toBe(true);
         });
+
+        it('should return true for designated reimburser in manual reimbursement mode', () => {
+            const reimburserEmail = 'reimburser@manual-test.com';
+            const reimburserAccountID = 700;
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in manual reimbursement mode with designated payer', () => {
+            const otherAdminEmail = 'other-admin@manual-test.com';
+            const otherAdminAccountID = 701;
+            const reimburserEmail = 'reimburser@manual-test.com';
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(false);
+        });
+
+        it('should return true for policy owner in manual reimbursement mode without explicit reimburser', () => {
+            const ownerEmail = 'owner@manual-fallback.com';
+            const ownerAccountID = 702;
+            const otherAdminEmail = 'other-admin@manual-fallback.com';
+            const otherAdminAccountID = 703;
+
+            const manualPolicyNoReimburser: Policy = {
+                ...policyTest,
+                owner: ownerEmail,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [ownerEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+            };
+
+            expect(isPayer(ownerAccountID, ownerEmail, approvedReport, undefined, manualPolicyNoReimburser, false)).toBe(true);
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyNoReimburser, false)).toBe(false);
+        });
+
+        it('should return true for any admin when onlyShowPayElsewhere is true even if reimbursement is disabled and a reimburser is set', () => {
+            const adminEmail = 'admin@pay-elsewhere.com';
+            const adminAccountID = 703;
+            const reimburserEmail = 'reimburser@pay-elsewhere.com';
+
+            const policyWithReimbursementDisabled: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, approvedReport, undefined, policyWithReimbursementDisabled, true)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in manual mode with designated payer when onlyShowPayElsewhere is true', () => {
+            const otherAdminEmail = 'other-admin@manual-pay-elsewhere.com';
+            const otherAdminAccountID = 704;
+            const reimburserEmail = 'reimburser@manual-pay-elsewhere.com';
+            const reimburserAccountID = 705;
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyWithReimburser, true)).toBe(false);
+            expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, true)).toBe(true);
+        });
     });
+
     describe('buildReportNameFromParticipantNames', () => {
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -9034,191 +9190,6 @@ describe('ReportUtils', () => {
             const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('isReportIneligibleForMoveExpenses', () => {
-        it('should return false when policy is undefined', () => {
-            const report: Report = {
-                ...createRandomReport(30000, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const result = isReportIneligibleForMoveExpenses(report, undefined);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when instant submit is not enabled', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3000),
-                autoReporting: false,
-            };
-            const report: Report = {
-                ...createRandomReport(30001, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when submit and close is not enabled', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3001),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-            };
-            const report: Report = {
-                ...createRandomReport(30002, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3002),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30003, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction = {
-                transactionID: '30003',
-                reportID: report.reportID,
-                reimbursable: true,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has no transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3003),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30004, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return true when instant submit, submit and close, and only non-reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3004),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30005, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction = {
-                transactionID: '30005',
-                reportID: report.reportID,
-                reimbursable: false,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(true);
-        });
-
-        it('should return false for draft reports even when instant submit, submit and close, and only non-reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3006),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30007, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction = {
-                transactionID: '30007',
-                reportID: report.reportID,
-                reimbursable: false,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has mixed reimbursable and non-reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3005),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30006, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction1 = {
-                transactionID: '30006a',
-                reportID: report.reportID,
-                reimbursable: false,
-            };
-            const transaction2 = {
-                transactionID: '30006b',
-                reportID: report.reportID,
-                reimbursable: true,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
             expect(result).toBe(false);
         });
     });
@@ -19585,7 +19556,225 @@ describe('ReportUtils', () => {
             expect(canBeAutoReimbursed(report, undefined)).toBe(false);
         });
     });
+
+    describe('canMergeReports', () => {
+        const OWNER_ID = 10;
+        const ownerEmail = 'owner@example.com';
+        const MANAGER_ID = 20;
+        const POLICY_ID = 'p1';
+        const USER_ID = OWNER_ID;
+
+        let reportCounter = 1;
+
+        /** Minimal valid expense report in the Open (draft) state. */
+        function makeOpenReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: undefined,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        /** Minimal valid expense report in the Processing (submitted) state. */
+        function makeProcessingReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: MANAGER_ID,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        const mockPolicy = createMock<Policy>({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ownerEmail, accountID: USER_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            return waitForBatchedUpdates();
+        });
+
+        it('returns false for an empty selection', () => {
+            expect(canMergeReports([], USER_ID)).toBe(false);
+        });
+
+        it('returns false when only 1 report is selected', () => {
+            expect(canMergeReports([makeOpenReport()], USER_ID)).toBe(false);
+        });
+
+        it('returns false when currentUserAccountID is 0 (falsy)', () => {
+            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0)).toBe(false);
+        });
+
+        // Same ownerAccountID (cross-account not supported)
+        it('returns false when reports have different ownerAccountIDs', () => {
+            const r1 = makeOpenReport({ownerAccountID: OWNER_ID});
+            const r2 = makeOpenReport({ownerAccountID: OWNER_ID + 1});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when the first report has no ownerAccountID', () => {
+            const r1 = makeOpenReport({ownerAccountID: undefined});
+            const r2 = makeOpenReport({ownerAccountID: OWNER_ID});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same policyID (cross-workspace not supported)
+        it('returns false when reports belong to different workspaces', () => {
+            const r1 = makeOpenReport({policyID: 'p1'});
+            const r2 = makeOpenReport({policyID: 'p2'});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when the first report has no policyID', () => {
+            const r1 = makeOpenReport({policyID: undefined});
+            const r2 = makeOpenReport({policyID: POLICY_ID});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same workflow state
+        it('returns false when mixing Open and Processing reports', () => {
+            const open = makeOpenReport();
+            const processing = makeProcessingReport();
+            expect(canMergeReports([open, processing], USER_ID)).toBe(false);
+        });
+
+        it('returns false when stateNum matches but statusNum differs', () => {
+            const r1 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+            const r2 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same managerID for Processing reports
+        it('returns false when Processing reports have different managerIDs', () => {
+            const r1 = makeProcessingReport({managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({managerID: MANAGER_ID + 99});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a Processing report has no managerID', () => {
+            const r1 = makeProcessingReport({managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({managerID: undefined});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        /**
+         * Rule above is intentionally skipped for Open reports.
+         * Open drafts may legitimately have no managerID, and same-account +
+         * same-workspace guarantees they share the same manager once submitted.
+         */
+        it('does NOT require matching managerID for Open reports', () => {
+            const r1 = makeOpenReport({managerID: undefined});
+            const r2 = makeOpenReport({managerID: 999});
+
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+        });
+
+        // Terminal states (settled / approved / closed)
+        it('returns false when a report is settled (REIMBURSED)', () => {
+            const settled: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                isWaitingOnBankAccount: false,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), settled], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a report is approved', () => {
+            const approved: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), approved], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a report is closed', () => {
+            const closed: Report = {
+                ...makeOpenReport(),
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), closed], USER_ID)).toBe(false);
+        });
+
+        // The user must be able to write to each report
+        it('returns false when the current user is not able to write to each report', async () => {
+            const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // The user must be the report owner, a workspace admin, or the current approver.
+        it('returns false when the current user is not owner/admin/approver of a report', async () => {
+            const STRANGER_ID = 77;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+
+            // Reports are owned by OWNER_ID=10; managerID is unset (Open reports).
+            // STRANGER_ID is neither admin, owner, nor manager.
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], STRANGER_ID)).toBe(false);
+        });
+
+        // Happy paths
+        it('returns true for two valid Open reports when user is the report owner', async () => {
+            // When the current user is the policy admin
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+        });
+
+        it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
+            // When the current user is the policy admin
+            const r1 = makeProcessingReport();
+            const r2 = makeProcessingReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns true when the current user is the approver on Processing reports', async () => {
+            const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
+            expect(canMergeReports([r1, r2], MANAGER_ID)).toBe(true);
+        });
+
+        it('returns true for three or more valid Open reports', () => {
+            const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
+            expect(canMergeReports(reports, USER_ID)).toBe(true);
+        });
+    });
 });
+
 describe('shouldShowMarkAsDone', () => {
     const policyID = '1';
     const otherAccountID = 42;
@@ -19783,5 +19972,78 @@ describe('getAllPolicyExpenseChatReportActions', () => {
 
     it('returns an empty object for undefined collections', () => {
         expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
+    });
+});
+
+describe('hasNonReimbursableTransactions', () => {
+    it('returns false when all transactions are reimbursable', () => {
+        const transactions: Transaction[] = [
+            {...createRandomTransaction(1), reimbursable: true},
+            {...createRandomTransaction(2), reimbursable: true},
+        ];
+        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(false);
+    });
+
+    it('returns true when at least one transaction is non-reimbursable', () => {
+        const transactions: Transaction[] = [
+            {...createRandomTransaction(1), reimbursable: true},
+            {...createRandomTransaction(2), reimbursable: false},
+        ];
+        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(true);
+    });
+
+    it('returns false for an empty transaction list', () => {
+        expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
+    });
+});
+
+describe('getTransactionsWithReceipts', () => {
+    it('returns only transactions that have a receipt (scan receipt or eReceipt)', () => {
+        const withScanReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}};
+        const withEReceipt: Transaction = {...createRandomTransaction(2), hasEReceipt: true, receipt: {}};
+        const withoutReceipt: Transaction = {...createRandomTransaction(3), hasEReceipt: false, receipt: {}};
+
+        expect(getTransactionsWithReceipts(undefined, [withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
+    });
+
+    it('returns an empty array when no transactions have receipts', () => {
+        const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
+        expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+    });
+});
+
+describe('areAllRequestsBeingSmartScanned', () => {
+    /** Builds a transaction whose receipt is actively being SmartScanned. */
+    function buildScanningTransaction(transactionID: number): Transaction {
+        return {
+            ...createRandomTransaction(transactionID),
+            hasEReceipt: false,
+            merchant: '',
+            modifiedMerchant: '',
+            modifiedAmount: '',
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+        };
+    }
+
+    it('returns true when every request is a receipt still being scanned', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const transactions = [buildScanningTransaction(1), buildScanningTransaction(2)];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(true);
+    });
+
+    it('returns false when there are more requests than receipts (manual requests exist)', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const transactions = [buildScanningTransaction(1)];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+
+    it('returns false when at least one receipt has finished scanning', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const scannedReceipt: Transaction = {...buildScanningTransaction(2), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        const transactions = [buildScanningTransaction(1), scannedReceipt];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
     });
 });
