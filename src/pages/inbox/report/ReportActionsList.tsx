@@ -497,6 +497,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     data={renderedVisibleReportActions}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
+                    drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={loadOlderChatsOnEndReached}
