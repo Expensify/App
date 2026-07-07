@@ -35,8 +35,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
@@ -66,19 +67,11 @@ function AgentsPage() {
         openAgentsPage();
     }, [isCustomAgentEnabled]);
 
-    useEffect(() => {
-        if (selectedAgents.length === 0) {
-            return;
-        }
-
-        setSelectedAgents((prevSelectedAgents) =>
-            prevSelectedAgents.filter((accountIDString) => {
-                const accountID = Number(accountIDString);
-                const agentPrompt = agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`];
-                return agentPrompt?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            }),
-        );
-    }, [agentPrompts, selectedAgents.length]);
+    const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
+        const accountID = Number(accountIDString);
+        const agentPrompt = agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`];
+        return agentPrompt?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
 
     const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -131,31 +124,28 @@ function AgentsPage() {
         ];
     });
 
-    const clearSelectedAgents = useCallback(() => {
+    const clearSelectedAgents = () => {
         setSelectedAgents((prevSelectedAgents) => (prevSelectedAgents.length > 0 ? [] : prevSelectedAgents));
-    }, []);
+    };
 
     useSearchBackPress({
         onClearSelection: clearSelectedAgents,
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
-    const removeSelectedAgents = useCallback(() => {
-        for (const accountIDString of selectedAgents) {
+    const removeSelectedAgents = () => {
+        for (const accountIDString of selectedAgentKeys) {
             const accountID = Number(accountIDString);
-            const agentLogin = personalDetailsList?.[accountID]?.login ?? '';
-            if (!agentLogin) {
-                continue;
-            }
+            const agentLogin = personalDetailsList?.[accountID]?.login;
             deleteAgent(accountID, agentLogin, allPolicies, false);
         }
         clearSelectedAgents();
-    }, [allPolicies, clearSelectedAgents, personalDetailsList, selectedAgents]);
+    };
 
-    const askForConfirmationToDelete = useCallback(async () => {
+    const askForConfirmationToDelete = async () => {
         const result = await showConfirmModal({
-            title: translate('agentsPage.deleteAgentsTitle', {count: selectedAgents.length}),
-            prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgents.length}),
+            title: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
+            prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgentKeys.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -167,21 +157,19 @@ function AgentsPage() {
         }
 
         removeSelectedAgents();
-    }, [removeSelectedAgents, selectedAgents.length, showConfirmModal, translate]);
+    };
 
-    const getBulkActionsButtonOptions = useCallback((): Array<DropdownOption<AgentsBulkActionType>> => {
-        return [
-            {
-                text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgents.length}),
-                value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
-                icon: icons.Trashcan,
-                onSelected: askForConfirmationToDelete,
-            },
-        ];
-    }, [askForConfirmationToDelete, icons.Trashcan, selectedAgents.length, translate]);
+    const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
+        {
+            text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
+            value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
+            icon: icons.Trashcan,
+            onSelected: askForConfirmationToDelete,
+        },
+    ];
 
     const hasAgents = agents.length > 0;
-    const shouldShowBulkActionsButton = canSelectMultiple && selectedAgents.length > 0;
+    const shouldShowBulkActionsButton = canSelectMultiple && selectedAgentKeys.length > 0;
 
     const newAgentButton = (
         <Button
@@ -193,14 +181,14 @@ function AgentsPage() {
     );
 
     const headerButtons = shouldShowBulkActionsButton ? (
-        <ButtonWithDropdownMenu<AgentsBulkActionType>
+        <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
             shouldAlwaysShowDropdownMenu
-            customText={translate('workspace.common.selected', {count: selectedAgents.length})}
+            customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
             buttonSize={CONST.BUTTON_SIZE.MEDIUM}
             onPress={() => null}
-            options={getBulkActionsButtonOptions()}
+            options={bulkActionsButtonOptions}
             isSplitButton={false}
-            isDisabled={!selectedAgents.length}
+            isDisabled={!selectedAgentKeys.length}
             testID="AgentsPage-header-dropdown-menu-button"
         />
     ) : (
@@ -240,7 +228,7 @@ function AgentsPage() {
                     <AgentsTable
                         agents={agents}
                         canSelectAgents={canSelectMultiple}
-                        selectedKeys={selectedAgents}
+                        selectedKeys={selectedAgentKeys}
                         onRowSelectionChange={setSelectedAgents}
                     />
                 </>
