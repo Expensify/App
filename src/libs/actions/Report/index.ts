@@ -2637,6 +2637,7 @@ function explain(
             currentUserAccountID,
             shouldPlaySound: true,
             delegateAccountID,
+            // Safe: the explanation posts to a thread, never the Concierge chat. Thread it if #66411 removes the fallback.
             conciergeReportID: undefined,
         });
     });
@@ -5106,6 +5107,7 @@ function inviteToRoomAction(
         currentUserAccountID,
         shouldPlaySound: false,
         delegateAccountID,
+        // Safe: this posts to the room, never the Concierge chat. Thread it if #66411 removes the fallback.
         conciergeReportID: undefined,
     });
 }
@@ -7862,6 +7864,7 @@ function resolveConciergeOptions(
     }
 
     const reportID = report.reportID;
+    // Must thread before #66411 removes the fallback: this report CAN be the Concierge chat, so undefined would drop Concierge params.
     addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedValue, timezoneParam, currentUserAccountID, delegateAccountID, conciergeReportID: undefined});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
