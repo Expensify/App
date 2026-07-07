@@ -7,6 +7,7 @@
     },
     "words": [
         "--longpress",
+        "ACCOUNTCODE",
         "ADDCOMMENT",
         "ADFS",
         "AMRO",
@@ -401,6 +402,7 @@
         "Unsharing",
         "Unvalidated",
         "VBBA",
+        "VENDORID",
         "VMPD",
         "Valuska",
         "Venmo",
