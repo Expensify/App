@@ -48,7 +48,7 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actualSplit,
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: 'distance-chat-id', transactionID: 'distance-written-id'})),
         startSplitBill: jest.fn(),
         resetSplitShares: jest.fn(),
     };
@@ -894,7 +894,6 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
@@ -933,7 +932,6 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,

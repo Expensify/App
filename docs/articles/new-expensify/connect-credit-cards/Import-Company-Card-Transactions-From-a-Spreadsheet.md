@@ -15,7 +15,9 @@ If your bank does support a direct connection, you can connect your account to a
 
 ## Who can import company card transactions from a spreadsheet 
 
-Only **Workspace Admins** can import transactions for company cards. 
+Only **Workspace Admins** can import transactions for company cards.
+
+**Company Cards** must be enabled in the workspace before you can import transactions. If you don't see **Company Cards**, enable it under **More features > Company Cards**.
 
 ---
 
@@ -32,7 +34,7 @@ Only **Workspace Admins** can import transactions for company cards.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
 
-**Note:** To import a file, **Company Cards** must be enabled on the workspace.  If you don't see **Company Cards**, enable the feature under **More features > Company Cards**.
+**Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
 
 ---
 
@@ -71,6 +73,10 @@ Only **Workspace Admins** can import transactions for company cards.
 ---
 
 # FAQ
+
+## What should I do if my file upload fails or results in an error?
+
+Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
 
 ## What file formats are supported for company card imports?
 

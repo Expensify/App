@@ -2243,7 +2243,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         notifyNewAction(activeReportID, undefined, true);
     }
 
-    return {iouReport: distanceIouReport};
+    return {iouReport: distanceIouReport, chatReportID: parameters.chatReportID, transactionID: parameters.transactionID};
 }
 
 export {

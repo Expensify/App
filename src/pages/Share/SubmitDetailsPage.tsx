@@ -254,6 +254,7 @@ function SubmitDetailsPage({
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
+                isDraftChatReport: !!reportDraft,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories},
                 action: CONST.IOU.TYPE.CREATE,
@@ -291,6 +292,7 @@ function SubmitDetailsPage({
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 // Navigation is owned by cleanupAndNavigateAfterExpenseCreate below; don't let the action navigate too.
                 shouldHandleNavigation: false,
+                reportActionsList: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;

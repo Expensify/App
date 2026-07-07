@@ -328,6 +328,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticChatReportID,
                             currentUserLocalCurrency,
                             shouldHandleNavigation: overrides.shouldHandleNavigation,
+                            reportActionsList: undefined,
                         });
                         cleanupAfterExpenseCreate({
                             draftTransactionIDs,

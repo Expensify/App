@@ -74,6 +74,7 @@ function GroupChildrenContent({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,

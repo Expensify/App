@@ -177,6 +177,7 @@ function createTransaction({
                 shouldHandleNavigation,
                 // Navigation/growl must fire once per multi-receipt batch, on its final transaction.
                 isLastTransactionOfBatch: index === files.length - 1,
+                reportActionsList: undefined,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
