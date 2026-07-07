@@ -217,7 +217,6 @@ function IOURequestStepDistanceOdometer({
 
     const navigateToNextStep = useOdometerNavigation({
         iouType,
-        action,
         report,
         policy,
         transaction,

@@ -7,7 +7,7 @@ import {generateReportID, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Beta, IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
@@ -23,9 +23,6 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 type UseDistanceNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
-
-    /** Route param: the IOU action (create / edit). */
-    action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
     report: OnyxEntry<Report>;
@@ -105,7 +102,6 @@ type UseDistanceNavigationParams = {
 
 function useDistanceNavigation({
     iouType,
-    action,
     report,
     policy,
     transaction,
