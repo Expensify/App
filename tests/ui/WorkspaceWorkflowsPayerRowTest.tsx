@@ -13,9 +13,10 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +69,9 @@ TestHelper.setupGlobalFetchMock();
 
 const POLICY_ID = 'workflows-payer-test';
 
-const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
+type TestNavigatorParamList = WorkspaceSplitNavigatorParamList & Pick<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
+
+const Stack = createPlatformStackNavigator<TestNavigatorParamList>();
 
 const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
     ({
@@ -80,16 +83,21 @@ const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
         ...overrides,
     }) as Policy;
 
-const renderPage = () =>
+const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
-                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.WORKFLOWS}>
+                        <Stack.Navigator initialRouteName={initialRouteName}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
                                 component={WorkspaceWorkflowsPage}
+                                initialParams={{policyID: POLICY_ID}}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.WORKFLOWS_PAYER}
+                                component={WorkspaceWorkflowsPayerPage}
                                 initialParams={{policyID: POLICY_ID}}
                             />
                         </Stack.Navigator>
@@ -269,6 +277,44 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
             fireEvent.press(payerRow);
 
             expect(navigateSpy).not.toHaveBeenCalled();
+        },
+    );
+
+    it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.PENDING])(
+        'blocks the direct Payer route when bank account is %s',
+        async (state) => {
+            await TestHelper.signInWithTestUser();
+
+            const bankAccountID = 123456;
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    }),
+                );
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    [bankAccountID]: {
+                        methodID: bankAccountID,
+                        bankCurrency: 'USD',
+                        bankCountry: 'US',
+                        accountData: {
+                            additionalData: {
+                                policyID: POLICY_ID,
+                                bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                            },
+                            addressName: 'Test Address',
+                            state,
+                        },
+                    },
+                });
+            });
+
+            renderPage(SCREENS.WORKSPACE.WORKFLOWS_PAYER);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('FullPageNotFoundView')).toBeOnTheScreen();
+            expect(screen.queryByTestId('WorkspaceWorkflowsPayerPage')).not.toBeOnTheScreen();
         },
     );
 
