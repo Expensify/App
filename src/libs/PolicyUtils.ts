@@ -675,20 +675,21 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
     const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
         return false;
     }
 
-    const reimburserEmail = policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+    const reimburserEmail = policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
 
     // No designated reimburser means any workspace admin can pay.
     if (!reimburserEmail) {
         return isAdmin;
     }
 
-    return isAdmin && currentUserLogin === reimburserEmail;
+    return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */

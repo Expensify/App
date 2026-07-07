@@ -160,6 +160,7 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
+    canMemberWrite as canMemberWritePolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
@@ -2850,14 +2851,15 @@ function isPayer(
             return false;
         }
 
-        const reimburserEmail = policy?.achAccount?.reimburser ?? (isManualReimbursement ? policy?.owner : '');
+        const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser ?? (isManualReimbursement ? policy?.owner : '');
 
         // No designated reimburser means any workspace admin can pay.
         if (!reimburserEmail) {
             return isAdmin;
         }
 
-        const isReimburser = currentUserEmailParam === reimburserEmail && isAdmin;
+        const canPayOnPolicy = isAdmin || (!!currentUserEmailParam && canMemberWritePolicyUtils(policy, currentUserEmailParam, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+        const isReimburser = currentUserEmailParam === reimburserEmail && canPayOnPolicy;
 
         // If using auto reimbursement, then the reimburser can pay, or an admin with access to the business bank account.
         if (isAutoReimbursement) {
