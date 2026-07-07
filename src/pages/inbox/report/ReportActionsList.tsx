@@ -65,6 +65,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
+import getActionBadgeScrollDelay from './getActionBadgeScrollDelay';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
@@ -335,21 +336,27 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const actionTargetReportActionID = reportAttributes?.actionTargetReportActionID;
     const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
     const prevActionBadge = usePrevious(reportAttributes?.actionBadge);
+    // Keep the latest scroll callback in a ref so a scroll scheduled after an animation still targets the current badge index.
+    // The effect below only re-runs when the target id changes, so without this the delayed callback would close over a stale
+    // target index if the list shifts (new message, pagination, resolved preview collapsing) during the wait.
+    const scrollToActionBadgeTargetRef = useRef(scrollToActionBadgeTarget);
+    useEffect(() => {
+        scrollToActionBadgeTargetRef.current = scrollToActionBadgeTarget;
+    });
     useEffect(() => {
         const prevActionBadgeTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
         if (!shouldFollowActionBadgeTarget({isProduction, actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
             return;
         }
-        // Only the submit/approve/pay buttons play a success animation (hide delay -> button exit -> height collapse) on the
-        // resolved preview, so wait for it to finish before scrolling there so the list doesn't move mid-animation. Other badges
-        // (e.g. task) don't animate, so scroll on the next frame instead of forcing an unnecessary delay.
-        const isAnimatedBadge =
-            prevActionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT || prevActionBadge === CONST.REPORT.ACTION_BADGE.APPROVE || prevActionBadge === CONST.REPORT.ACTION_BADGE.PAY;
-        if (!isAnimatedBadge) {
-            const animationFrameID = requestAnimationFrame(scrollToActionBadgeTarget);
+        // Animated (submit/approve/pay) badges play a success animation on the resolved preview, so wait for it to finish before
+        // scrolling there so the list doesn't move mid-animation. Non-animated badges (e.g. task) return a null delay, so scroll on
+        // the next frame instead of forcing an unnecessary wait.
+        const scrollDelay = getActionBadgeScrollDelay(prevActionBadge);
+        if (scrollDelay === null) {
+            const animationFrameID = requestAnimationFrame(() => scrollToActionBadgeTargetRef.current());
             return () => cancelAnimationFrame(animationFrameID);
         }
-        const scrollTimeoutID = setTimeout(scrollToActionBadgeTarget, CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY + CONST.ANIMATION_THUMBS_UP_DURATION * 2);
+        const scrollTimeoutID = setTimeout(() => scrollToActionBadgeTargetRef.current(), scrollDelay);
         return () => clearTimeout(scrollTimeoutID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [actionTargetReportActionID]);
