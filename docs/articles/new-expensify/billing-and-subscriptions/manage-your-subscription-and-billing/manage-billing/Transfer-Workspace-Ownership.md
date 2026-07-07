@@ -52,8 +52,8 @@ Depending on the Workspace's status and subscription, you may also see one of th
 
 ## Related articles
 
-* [Understand workspace ownership](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership)
-* [View your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription)
+ - [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions)
+ - [View your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/View-Your-Plan-and-Subscription)
 
 ---
 
