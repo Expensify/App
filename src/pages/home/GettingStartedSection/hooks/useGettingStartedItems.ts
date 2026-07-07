@@ -1,3 +1,4 @@
+import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -5,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +20,8 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
@@ -29,6 +33,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
@@ -37,9 +42,10 @@ type GettingStartedItem = {
     label: string;
     subtitle?: string;
     isComplete: boolean;
-    route: Route;
+    route?: Route;
     isFeatureEnabled?: boolean;
     enableFeature?: () => void;
+    onPress?: () => void;
 };
 
 type UseGettingStartedItemsResult = {
@@ -73,6 +79,9 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
@@ -86,7 +95,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return {shouldShowSection: true, items: builtItems};
     };
 
-    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && intent !== CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
         return emptyResult;
     }
 
@@ -110,6 +119,37 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         isComplete: true,
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
+
+    if (intent === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+        // Only surface the categories step while the Categories feature is enabled. Disabling it from the
+        // More features menu hides this step, and re-enabling it brings the step back.
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeSpendCategories',
+                label: translate('homePage.gettingStartedSection.customizeSpendCategories'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+                isFeatureEnabled: true,
+            });
+        }
+
+        const hasCreatedExpense = Object.values(allTransactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction));
+        items.push({
+            key: 'createExpense',
+            label: translate('homePage.gettingStartedSection.createExpense'),
+            isComplete: hasCreatedExpense,
+            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
+        });
+
+        items.push({
+            key: 'linkPersonalCard',
+            label: translate('homePage.gettingStartedSection.linkPersonalCard'),
+            isComplete: Object.keys(personalCards).length > 0,
+            route: ROUTES.SETTINGS_WALLET,
+        });
+
+        return buildResult(items);
+    }
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
         items.push({

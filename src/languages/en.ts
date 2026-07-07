@@ -1139,6 +1139,9 @@ const translations = {
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             setupRules: 'Set up spend rules',
+            customizeSpendCategories: 'Customize spend categories',
+            createExpense: 'Create an expense',
+            linkPersonalCard: 'Link personal card',
         },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
