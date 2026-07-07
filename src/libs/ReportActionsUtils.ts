@@ -50,6 +50,7 @@ import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
+import type EnvironmentType from './Environment/getEnvironment/types';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {getReportName} from './ReportNameUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
@@ -59,6 +60,7 @@ import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
+import getEnvironment from './Environment/getEnvironment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
@@ -154,6 +156,8 @@ Onyx.connectWithoutView({
 
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
+let environment: EnvironmentType;
+getEnvironment().then((env) => (environment = env));
 
 let oldDotEnvironmentURL: string;
 getOldDotEnvironmentURL().then((url: string) => (oldDotEnvironmentURL = url));
@@ -178,6 +182,12 @@ const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
  * Url to the QBO expenses list
  */
 const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
+
+/*
+ * Url to the Rillet non reimbursable expenses list
+ */
+const RILLET_SANDBOX_NON_REIMBURSABLE_EXPENSES_URL = 'https://sandbox.rillet.io/accounts-payable/charges';
+const RILLET_NON_REIMBURSABLE_EXPENSES_URL = 'https://app.rillet.io/accounts-payable/charges';
 
 const POLICY_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 
@@ -2804,8 +2814,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.RILLET:
-                    // s77rt TODO Test in R3 https://github.com/Expensify/App/issues/94848
-                    url = '';
+                    url = environment === CONST.ENVIRONMENT.PRODUCTION ? RILLET_NON_REIMBURSABLE_EXPENSES_URL : RILLET_SANDBOX_NON_REIMBURSABLE_EXPENSES_URL;
                     break;
                 default:
                     url = QBO_EXPENSES_URL;
