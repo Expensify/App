@@ -38,7 +38,7 @@ jest.mock('@components/OptionsListSkeletonView', () => {
 });
 jest.mock('@pages/inbox/sidebar/SidebarLinksData', () => jest.fn(() => null));
 
-const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
+const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockSidebarLinksData = SidebarLinksData as jest.MockedFunction<typeof SidebarLinksData>;
 
