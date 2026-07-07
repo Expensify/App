@@ -3,7 +3,7 @@ import {cancelSpan, endSpanWithAttributes, getSpan} from '@libs/telemetry/active
 import CONST from '@src/CONST';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 /**
  * Manages the ManualNavigateToInboxTab span lifecycle for the inbox sidebar.
@@ -22,22 +22,20 @@ function useInboxTabSpanLifecycle(): () => void {
     const hasHadFirstLayout = useRef(false);
     const spanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
 
-    const onLayout = useCallback(() => {
+    const onLayout = () => {
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
         spanOnMount.current = undefined;
-    }, []);
+    };
 
     // Focus: ends span on re-visits (react-freeze cached layout, onLayout won't fire again).
     // Blur cleanup: cancels orphaned span when user navigates away before onLayout fires.
-    useFocusEffect(
-        useCallback(() => {
-            if (hasHadFirstLayout.current) {
-                endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-            }
-            return () => cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-        }, []),
-    );
+    useFocusEffect(() => {
+        if (hasHadFirstLayout.current) {
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        }
+        return () => cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+    });
 
     // Unmount: cancel only if layout never completed AND the active span is
     // the same one that existed when this instance mounted (avoids canceling

@@ -75,6 +75,8 @@ const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSide
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
 
+// This file does not compile with React Compiler (render-time ref cache below keeps referential
+// stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
     children,
     /**
