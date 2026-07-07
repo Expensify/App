@@ -1,14 +1,9 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,6 +11,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding, Session} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -28,7 +33,12 @@ type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 let onboarding: OnyxEntry<Onboarding>;
 let account: OnyxEntry<Account>;
 let session: OnyxEntry<Session>;
-let tryNewDot: {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} | undefined;
+let tryNewDot:
+    | {
+          isHybridAppOnboardingCompleted: boolean | undefined;
+          hasBeenAddedToNudgeMigration: boolean;
+      }
+    | undefined;
 let hybridApp: {isSingleNewDotEntry?: boolean} | undefined;
 let onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
@@ -67,7 +77,9 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
-        hybridApp = {isSingleNewDotEntry: value ? isSingleNewDotEntrySelector(value) : undefined};
+        hybridApp = {
+            isSingleNewDotEntry: value ? isSingleNewDotEntrySelector(value) : undefined,
+        };
     },
 });
 
@@ -170,7 +182,10 @@ const OnboardingGuard: NavigationGuard = {
 
     evaluate: (state, action, context): GuardResult => {
         if (shouldPreventReset(state, action)) {
-            return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
+            return {
+                type: 'BLOCK',
+                reason: 'Cannot reset to non-onboarding screen while on onboarding',
+            };
         }
 
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);

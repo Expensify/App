@@ -1,9 +1,13 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {clear, flushQueue, isEmpty, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const queuedOnyxUpdates: Array<
@@ -43,8 +47,16 @@ const queuedOnyxUpdates: Array<
         },
         onyxMethod: 'merge',
     },
-    {key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, value: true, onyxMethod: 'merge'},
-    {key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`, value: {reportID: 'reportID'}, onyxMethod: 'merge'},
+    {
+        key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+        value: true,
+        onyxMethod: 'merge',
+    },
+    {
+        key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
+        value: {reportID: 'reportID'},
+        onyxMethod: 'merge',
+    },
     {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
         value: {
@@ -198,7 +210,11 @@ describe('actions/QueuedOnyxUpdates', () => {
                     },
                     onyxMethod: 'merge',
                 },
-                {key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`, value: {reportID: 'reportID'}, onyxMethod: 'merge'},
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
+                    value: {reportID: 'reportID'},
+                    onyxMethod: 'merge',
+                },
                 {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
                     value: {[reportActionID]: {reportActionID}},
@@ -233,7 +249,9 @@ describe('actions/QueuedOnyxUpdates', () => {
                     waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
-                        expect(reportActions).toEqual({[reportActionID]: {reportActionID}});
+                        expect(reportActions).toEqual({
+                            [reportActionID]: {reportActionID},
+                        });
 
                         resolve();
                     },
@@ -246,7 +264,11 @@ describe('actions/QueuedOnyxUpdates', () => {
         it('empties the queue so buffered old-account updates are dropped on sign-out (#82013)', async () => {
             // Given old-account updates buffered before sign-out
             const oldUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
-                {key: `${ONYXKEYS.COLLECTION.REPORT}9999999999999999`, value: {reportID: 'oldReport'}, onyxMethod: 'merge'},
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT}9999999999999999`,
+                    value: {reportID: 'oldReport'},
+                    onyxMethod: 'merge',
+                },
             ];
             await queueOnyxUpdates(oldUpdates);
             expect(isEmpty()).toBe(false);

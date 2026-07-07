@@ -1,7 +1,10 @@
+import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
+
+import CONST from '@src/CONST';
+
 import {differenceInMilliseconds} from 'date-fns/differenceInMilliseconds';
 import {useErrorBoundary} from 'react-error-boundary';
-import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
-import CONST from '@src/CONST';
+
 import type UsePageRefresh from './type';
 
 const usePageRefresh: UsePageRefresh = () => {

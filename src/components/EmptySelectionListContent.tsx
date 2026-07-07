@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingViews/BlockingView';
 import ScrollView from './ScrollView';
 import Text from './Text';

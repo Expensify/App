@@ -1,6 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {OnboardingPurpose} from '@src/types/onyx';
+import type {OnboardingInvite} from '@src/CONST';
+import type {IntroSelected, OnboardingPurpose} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+type SupportedInviteOnboardingChoice = typeof CONST.ONBOARDING_CHOICES.ADMIN | typeof CONST.ONBOARDING_CHOICES.SUBMIT | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+type SupportedPendingInviteIntroSelected = IntroSelected & {
+    choice: SupportedInviteOnboardingChoice;
+    inviteType: Exclude<OnboardingInvite, typeof CONST.ONBOARDING_INVITE_TYPES.IOU | typeof CONST.ONBOARDING_INVITE_TYPES.INVOICE>;
+};
 
 /**
  * Returns true when the onboarding choice is one of the "track" variants
@@ -13,4 +21,23 @@ function isTrackOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>): choice i
     return choice === CONST.ONBOARDING_CHOICES.TRACK_BUSINESS || choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL || choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
 }
 
+function isSupportedInviteOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>): choice is SupportedInviteOnboardingChoice {
+    return choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+}
+
+function isSupportedPendingInviteOnboarding(introSelected: OnyxEntry<IntroSelected>): introSelected is SupportedPendingInviteIntroSelected {
+    if (!introSelected) {
+        return false;
+    }
+
+    if (!introSelected.inviteType || introSelected.isInviteOnboardingComplete) {
+        return false;
+    }
+
+    const isInviteIOUorInvoice = introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+
+    return isSupportedInviteOnboardingChoice(introSelected.choice) && !isInviteIOUorInvoice;
+}
+
 export default isTrackOnboardingChoice;
+export {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding};
