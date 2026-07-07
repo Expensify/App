@@ -45,7 +45,7 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
                 <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
                 <Text style={valueTextStyle}>{count}</Text>
             </View>
-            {total !== undefined && (
+            {typeof total === 'number' && (
                 <View style={[styles.flexRow, styles.gap1]}>
                     <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
                     <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>

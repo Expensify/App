@@ -11,14 +11,16 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const shouldCalculateTotals = useMemo(() => {
-        if (!enabled) {
-            return false;
-        }
-
         // When the user selects all matching items we always want the server-computed count/total,
-        // even for an ad-hoc query that isn't a suggested or saved search.
+        // even for an ad-hoc query that isn't a suggested or saved search. This must bypass the
+        // `enabled` (offset === 0) gate so totals are still requested when more results were loaded
+        // before select-all was triggered.
         if (areAllMatchingItemsSelected) {
             return true;
+        }
+
+        if (!enabled) {
+            return false;
         }
 
         if (!Object.keys(savedSearches ?? {}).length && !searchKey) {

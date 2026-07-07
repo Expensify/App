@@ -10,6 +10,7 @@ import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -44,6 +45,7 @@ type SearchBulkActionsButtonProps = {
 function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -125,12 +127,19 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
     // Once the server returns the full-result count for select-all, show "<count> selected" instead of the
-    // generic label. Fall back to the generic label only while that count is still loading.
+    // generic label. Fall back to the generic label while that count is still loading - the count is
+    // `undefined` before the recount and cleared to `null` while the snapshot reloads (see getOnyxLoadingData
+    // in src/libs/actions/Search.ts), so only render the number once it's an actual numeric value.
     const allMatchingItemsCount = currentSearchResults?.search?.count;
+    // While the select-all recount is in flight the count is momentarily unavailable (undefined before the
+    // request, cleared to null while the snapshot reloads). Show a spinner on the button during that window
+    // so we don't flicker the generic label and then the number. Offline the recount can't arrive, so fall
+    // back to the generic label instead of spinning forever.
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
         selectionButtonText =
-            allMatchingItemsCount === undefined ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
+            typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
     } else {
         selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
     }
@@ -174,6 +183,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 buttonRef={buttonRef}
                                 options={headerButtonsOptions}
                                 customText={selectionButtonText}
+                                isLoading={isAllMatchingItemsCountLoading}
                                 shouldAlwaysShowDropdownMenu
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
@@ -217,6 +227,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
                                 customText={selectionButtonText}
+                                isLoading={isAllMatchingItemsCountLoading}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
