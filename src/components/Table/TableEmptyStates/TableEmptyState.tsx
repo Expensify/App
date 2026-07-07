@@ -12,9 +12,10 @@ import React from 'react';
 
 type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'> & {
     headerMedia?: IconAsset | undefined;
+    children?: React.ReactNode;
 };
 
-export default function TableEmptyState(emptyStateProps: TableEmptyStateProps) {
+export default function TableEmptyState({children, ...emptyStateProps}: TableEmptyStateProps) {
     const styles = useThemeStyles();
     const {originalDataLength} = useTableContext();
     // We default the empty state to the default folders illustration, but passed props override it
@@ -30,6 +31,7 @@ export default function TableEmptyState(emptyStateProps: TableEmptyStateProps) {
                 {...genericIllustration}
                 {...emptyStateProps}
             />
+            {children}
         </ScrollView>
     );
 }
