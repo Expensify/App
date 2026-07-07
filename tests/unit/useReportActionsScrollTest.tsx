@@ -1,13 +1,20 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
+
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -138,6 +145,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isMoneyRequestReport: () => mockIsMoneyRequestReport,
     isInvoiceReport: () => mockIsInvoiceReport,
     getReportLastVisibleActionCreated: () => mockLastVisibleActionCreated,
+    shouldReportAlignToTop: () => (mockIsTransactionThread && !mockIsSentMoneyReportAction) || mockIsMoneyRequestReport || mockIsInvoiceReport,
 }));
 
 // --- Browser ---
@@ -241,7 +249,7 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.shouldBeAlignedToTop).toBe(false);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
         });
 
         it('is aligned to top and focuses to top on mount for a transaction thread report', async () => {
@@ -251,7 +259,7 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.shouldBeAlignedToTop).toBe(true);
             expect(result.current.shouldFocusToTopOnMount).toBe(true);
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
         });
 
         it('is aligned to top for a money request report', async () => {
@@ -400,8 +408,8 @@ describe('useReportActionsScroll', () => {
                 result.current.onLoad();
             });
 
-            // Stays false for a regular chat.
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            // Stays undefined for a regular chat.
+            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
         });
 
         it('waits for the report actions to have loaded before disabling autoscroll-to-top', async () => {
@@ -409,13 +417,13 @@ describe('useReportActionsScroll', () => {
             // No loading state → onLoad bails.
 
             const {result} = await renderScroll();
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             act(() => {
                 result.current.onLoad();
             });
 
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
         });
 
         it('disables autoscroll-to-top after a frame once report actions have loaded', async () => {
@@ -423,20 +431,21 @@ describe('useReportActionsScroll', () => {
             await setReportLoadingState({isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
 
             const {result} = await renderScroll();
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             act(() => {
                 result.current.onLoad();
             });
 
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            // The threshold must drop to 0 (not undefined) so FlashList keeps clearing its internal pending-autoscroll flag.
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(0);
         });
 
         it('disables autoscroll-to-top when report actions finish loading after the list has mounted', async () => {
             mockIsTransactionThread = true;
 
             const {result} = await renderScroll();
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             // Load completes after mount → companion effect turns autoscroll off.
             await act(async () => {
@@ -444,7 +453,8 @@ describe('useReportActionsScroll', () => {
                 await waitForBatchedUpdates();
             });
 
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            // The threshold must drop to 0 (not undefined) so FlashList keeps clearing its internal pending-autoscroll flag.
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(0);
         });
     });
 
@@ -536,6 +546,39 @@ describe('useReportActionsScroll', () => {
             mockScrollToBottom.mockClear();
 
             rerender(buildParams({sortedVisibleReportActions: [erroredAction]}));
+            flushTransitions();
+
+            expect(mockScrollToBottom).toHaveBeenCalled();
+        });
+
+        it('does not scroll to bottom when an IOU error clears (retry succeeds)', async () => {
+            // Error appears → scrolls (covered above), then the retry succeeds and the error clears.
+            const erroredAction = makeAction('1', {errors: {error1: 'Something went wrong'}});
+            const {rerender} = await renderScroll({sortedVisibleReportActions: [makeAction('2')]});
+            rerender(buildParams({sortedVisibleReportActions: [erroredAction]}));
+            flushTransitions();
+
+            mockTransitionCallbacks.length = 0;
+            mockScrollToBottom.mockClear();
+
+            // Same action, error resolved → no current error → must not yank the list to the bottom.
+            rerender(buildParams({sortedVisibleReportActions: [makeAction('1')]}));
+            flushTransitions();
+
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
+        });
+
+        it('scrolls to bottom when a new error appears alongside an existing unresolved error', async () => {
+            const existing = makeAction('1', {errors: {error1: 'Something went wrong'}});
+            const {rerender} = await renderScroll({sortedVisibleReportActions: [existing]});
+            flushTransitions();
+
+            mockTransitionCallbacks.length = 0;
+            mockScrollToBottom.mockClear();
+
+            // A second, newer action fails while '1' is still errored → genuinely new error → scroll.
+            const newer = makeAction('2', {errors: {error1: 'Something went wrong'}});
+            rerender(buildParams({sortedVisibleReportActions: [newer, existing]}));
             flushTransitions();
 
             expect(mockScrollToBottom).toHaveBeenCalled();

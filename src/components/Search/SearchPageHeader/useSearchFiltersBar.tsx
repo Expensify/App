@@ -1,29 +1,44 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
+import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, getSuggestedSearchMandatoryFilterKeys, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {
+    FILTER_VIEW_MAP,
+    getSuggestedSearchMandatoryFilterKeys,
+    isTextFilterKey,
+    isAmountFilterKey,
+    isDateFilterKey,
+    mapFiltersFormToLabelValueList,
+    SKIPPED_SEARCH_FILTERS,
+} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 
 type FilterItem = WithSentryLabel & {
@@ -106,6 +121,19 @@ function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOver
         return (
             <ReportFieldPopup
                 values={searchAdvancedFiltersForm}
+                closeOverlay={closeOverlay}
+                updateFilterForm={closeModalAndUpdateFilterForm}
+            />
+        );
+    }
+
+    if (isTextFilterKey(filterKey)) {
+        return (
+            <TextFilterPopup
+                key={filterKey}
+                filterKey={filterKey}
+                value={searchAdvancedFiltersForm[filterKey]}
+                label={label}
                 closeOverlay={closeOverlay}
                 updateFilterForm={closeModalAndUpdateFilterForm}
             />
