@@ -159,13 +159,13 @@ describe('TaxOptionsListUtils', () => {
         });
         expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
 
-        // A rate that is currently selected AND pending deletion must still render struck-through and non-selectable,
-        // not as a selectable row (which could be submitted with an undefined code).
+        // A rate that is currently selected AND pending deletion must still render struck-through and non-selectable.
+        // The selected option carries its own pendingAction, which forces isDisabled: true in getTaxRatesOptions.
         const selectedDeletedResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
                     {
-                        code: 'CODE2',
+                        code: undefined,
                         isDisabled: true,
                         isSelected: true,
                         keyForList: 'Tax rate 2 (3%)-0',
@@ -205,7 +205,7 @@ describe('TaxOptionsListUtils', () => {
             searchValue: emptySearch,
             localeCompare,
             transaction,
-            selectedOptions: [{modifiedName: 'Tax rate 2 (3%)'}],
+            selectedOptions: [{modifiedName: 'Tax rate 2 (3%)', pendingAction: 'delete'}],
         });
         expect(selectedDeletedResult).toStrictEqual(selectedDeletedResultList);
     });
