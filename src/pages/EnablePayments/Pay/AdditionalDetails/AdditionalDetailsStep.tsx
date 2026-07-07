@@ -156,8 +156,12 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
         };
         submittedPersonalDetailsRef.current = personalDetails;
 
-        // Changing an existing phone number is protected by a magic code because it is used for card 3DS verification
-        const hasPhoneNumberChanged = !!currentUserPersonalDetails.phoneNumber && personalDetails.phoneNumber !== currentUserPersonalDetails.phoneNumber;
+        // Changing an existing phone number is protected by a magic code because it is used for card 3DS verification.
+        // The stored phone number keeps its country code, so normalize it the same way as the submitted one before
+        // comparing, otherwise an unchanged phone would look like a change and wrongly prompt for a magic code.
+        const storedPhoneNumber = currentUserPersonalDetails.phoneNumber;
+        const normalizedStoredPhoneNumber = (storedPhoneNumber && parsePhoneNumber(storedPhoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '';
+        const hasPhoneNumberChanged = !!normalizedStoredPhoneNumber && personalDetails.phoneNumber !== normalizedStoredPhoneNumber;
         if (hasPhoneNumberChanged) {
             setIsConfirmingMagicCode(true);
             return;
