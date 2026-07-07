@@ -1,6 +1,3 @@
-import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {StackActions} from '@react-navigation/native';
-import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
@@ -8,17 +5,23 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, Router} from '@react-navigation/routers';
+
+import {StackActions} from '@react-navigation/native';
+
 import type {
-    OpenDomainSplitActionType,
-    OpenWorkspaceSplitActionType,
     PushActionType,
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
     ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
@@ -36,7 +39,6 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
-    NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.REPORT_ATTACHMENTS,
@@ -202,28 +204,35 @@ function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialSt
 }
 
 function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined, focusedTargetTab: NavigationPartialRoute): TabRouteForReplacement {
-    // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
-    // it starts with a different screen, so back navigation from the new screen
-    // lands on the sidebar. When the existing tab doesn't have nested
-    // routes (e.g. cold-start through a deep link that opens straight into a modal),
-    // fall back to the split navigator's default sidebar route so there is still
-    // something to pop back to.
+    // Prepend a back-target route beneath the incoming screen when the incoming state starts with a
+    // different screen, so back navigation lands somewhere sensible: the existing sidebar/root route
+    // (e.g. Inbox) for most tabs, or WORKSPACES_LIST for the workspace navigator. When the existing tab
+    // doesn't have nested routes (e.g. cold-start through a deep link that opens straight into a modal),
+    // fall back to the split navigator's default sidebar route so there is still something to pop back to.
     let mergedNestedState = focusedTargetTab.state;
     const existingNestedRoutes = (existingTabRoute?.state as PartialState<NavigationState> | undefined)?.routes;
     const newNestedRoutes = focusedTargetTab.state?.routes;
     const existingFirstRoute = existingNestedRoutes?.at(0);
     const newFirstRoute = newNestedRoutes?.at(0);
     const defaultSidebarRouteName = getSidebarRouteName(existingTabRoute?.name ?? focusedTargetTab.name);
-    const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
-    if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
-        const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
-        mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+    // The route prepended beneath the incoming screen so back navigation has a target. For most tabs this is
+    // the sidebar/root route; for WORKSPACE_NAVIGATOR it is WORKSPACES_LIST (a list screen, not a sidebar).
+    let backTargetRoute: NavigationPartialRoute | undefined;
+    if (focusedTargetTab.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+        // Always seed a FRESH (keyless) WORKSPACES_LIST so it mounts born-non-top, even when the
+        // user backed into the list and it is the mounted, visible top. Reusing the existing list's key
+        // makes react-native-screens reorder it top->non-top during the reveal and flash it (#90985). A
+        // keyless route is never the active top, so there is no reorder to flash; it gets a fresh key on
+        // rehydration. The list's params (e.g. backTo) are carried over so the back target survives.
+        // The prepend below is a no-op when the incoming state already starts with WORKSPACES_LIST.
+        const existingListParams = existingFirstRoute?.name === SCREENS.WORKSPACES_LIST ? existingFirstRoute.params : undefined;
+        backTargetRoute = {name: SCREENS.WORKSPACES_LIST, ...(existingListParams ? {params: existingListParams} : {})};
+    } else {
+        backTargetRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
     }
-
-    if (focusedTargetTab.name === NAVIGATORS.WORKSPACE_NAVIGATOR && mergedNestedState?.routes?.length && !mergedNestedState.routes.some((route) => route.name === SCREENS.WORKSPACES_LIST)) {
-        const workspaceRoutes = [{name: SCREENS.WORKSPACES_LIST}, ...mergedNestedState.routes];
-        const focusedIndex = typeof mergedNestedState.index === 'number' ? mergedNestedState.index + 1 : workspaceRoutes.length - 1;
-        mergedNestedState = {...mergedNestedState, routes: workspaceRoutes, index: focusedIndex};
+    if (backTargetRoute && newFirstRoute && backTargetRoute.name !== newFirstRoute.name) {
+        const prependedRoutes = [backTargetRoute, ...(newNestedRoutes ?? [])];
+        mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
     }
 
     if (!existingTabRoute) {
@@ -290,100 +299,6 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState | undefi
         routeNames: [...TAB_SCREENS],
         routes: updatedTabRoutes,
         index: completeTargetTabIndex,
-    });
-}
-
-/**
- * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
- *
- * Pushes WorkspaceNavigator onto the root stack and explicitly sets its nested state to
- * [WorkspacesList, SplitNavigator]. This mirrors the structure built by getAdaptedStateFromPath
- * and guarantees WorkspacesList is in the back stack so the user can swipe back to it on iOS.
- *
- * Note: passing {screen, params} as route params is not sufficient because React Navigation only
- * processes the screen param after mounting (via useEffect), so the nested state would not be
- * set up at state-computation time.
- */
-function prepareStateUnderWorkspaceOrDomainNavigator(
-    state: StackNavigationState<ParamListBase>,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
-    splitNavigatorParams: Record<string, unknown>,
-) {
-    const actionToPushRootTab = StackActions.push(NAVIGATORS.TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
-    const stateWithRootTab = stackRouter.getStateForAction(state, actionToPushRootTab, configOptions);
-
-    if (!stateWithRootTab) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] TabNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const rehydratedState = stackRouter.getRehydratedState(stateWithRootTab, configOptions);
-    const rootTabRoute = rehydratedState.routes.at(-1);
-
-    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.TAB_NAVIGATOR) {
-        Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
-        return null;
-    }
-
-    // Find the WORKSPACE_NAVIGATOR within the tab state and set its nested state
-    // so WorkspacesList is always present underneath the split navigator.
-    const tabState = rootTabRoute.state;
-    const workspaceNavIndex = tabState?.routes?.findIndex((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) ?? -1;
-
-    if (workspaceNavIndex < 0 || !tabState) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator not found in tab state.');
-        return null;
-    }
-
-    const workspaceNavRoute = tabState.routes[workspaceNavIndex];
-    const nestedWorkspacesState = {
-        routes: [{name: SCREENS.WORKSPACES_LIST}, {name: splitNavigatorName, params: splitNavigatorParams}],
-        index: 1,
-    };
-
-    const updatedTabRoutes = [...tabState.routes];
-    updatedTabRoutes[workspaceNavIndex] = {...workspaceNavRoute, state: nestedWorkspacesState};
-
-    const updatedTabState = {...tabState, routes: updatedTabRoutes, index: workspaceNavIndex};
-    const updatedRootTabRoute = {...rootTabRoute, state: updatedTabState};
-
-    return {
-        ...rehydratedState,
-        routes: [...rehydratedState.routes.slice(0, -1), updatedRootTabRoute],
-    };
-}
-
-/**
- * Handles the OPEN_WORKSPACE_SPLIT action.
- * If the user is on other tab than workspaces and the workspace split is "remembered", this action will be called after pressing the settings tab.
- */
-function handleOpenWorkspaceSplitAction(
-    state: StackNavigationState<ParamListBase>,
-    action: OpenWorkspaceSplitActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
-    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: action.payload.screenName,
-        params: {policyID: action.payload.policyID},
-    });
-}
-
-/**
- * Handles the OPEN_DOMAIN_SPLIT action.
- * If the user is on other tab than workspaces and the domain split is "remembered", this action will be called after pressing the settings tab.
- */
-function handleOpenDomainSplitAction(
-    state: StackNavigationState<ParamListBase>,
-    action: OpenDomainSplitActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
-    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, {
-        screen: action.payload.screenName,
-        params: {domainAccountID: action.payload.domainAccountID},
     });
 }
 
@@ -535,7 +450,13 @@ function handleReplaceFullscreenUnderRHP(
 
         const updatedTabRoute = {...existingTabRoute, state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
-        preInsertedOriginalTabRoute = existingTabRoute;
+        // In the cold-start fallback the tab navigator has no nested state yet, so saving the raw
+        // route would leave it stateless and the dismiss-restore path (removePreInsertedFullscreenIfNeeded)
+        // couldn't derive a tab to jump back to, stranding the user on the pre-inserted tab. Synthesize
+        // the default Home tab state in that case so the restore lands on the tab the user started on.
+        preInsertedOriginalTabRoute = existingTabState?.routes?.length
+            ? existingTabRoute
+            : ({...existingTabRoute, state: buildTabNavigatorNestedState({name: TAB_SCREENS[0]})} as StackNavigationState<ParamListBase>['routes'][number]);
         const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
         return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
     }
@@ -699,11 +620,38 @@ function handleToggleMfaModalNavigatorWithHistoryAction(state: StackNavigationSt
     return state;
 }
 
+function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleModalWithHistoryActionType) {
+    // This shouldn't ever happen as the history should be always defined. It's for type safety.
+    if (!state?.history) {
+        return state;
+    }
+
+    // Each modal instance owns a uniquely-tagged sentinel so nested modals can be added/removed
+    // independently (LIFO), unlike the singleton side-panel sentinel.
+    const entry = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${action.payload.modalId}`;
+
+    // On open, append this modal's back-guard sentinel. useLinking sees history grow by one and
+    // pushes a browser history entry, so browser Back closes the modal.
+    // Skip if already present (e.g. browser Forward restored the saved nav state before our dispatch ran).
+    if (action.payload.isVisible) {
+        if (state.history.includes(entry)) {
+            return state;
+        }
+        return {...state, history: [...state.history, entry]};
+    }
+
+    // On close, remove only this modal's own sentinel (the last matching one). Filtering by exact
+    // tag keeps sibling/nested modal sentinels intact.
+    const indexToRemove = state.history.lastIndexOf(entry);
+    if (indexToRemove === -1) {
+        return state;
+    }
+    return {...state, history: [...state.history.slice(0, indexToRemove), ...state.history.slice(indexToRemove + 1)]};
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
-    handleOpenWorkspaceSplitAction,
-    handleOpenDomainSplitAction,
     handlePushFullscreenAction,
     handleReplaceFullscreenUnderRHP,
     handleRemoveFullscreenUnderRHP,
@@ -711,6 +659,7 @@ export {
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
     handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
     // Exported for unit-test access; not used outside of testing.

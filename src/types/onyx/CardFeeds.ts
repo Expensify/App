@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */
@@ -229,6 +231,9 @@ type CardFeeds = {
     settings: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
+
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
 
         /** Company cards feeds */
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
