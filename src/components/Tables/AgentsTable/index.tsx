@@ -1,13 +1,19 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import AgentsTableRow from './AgentsTableRow';
 
 type AgentsTableColumnKey = 'agent' | 'actions';
@@ -77,7 +83,7 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            {agents.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('agentsPage.findAgent')} />}
+            <Table.FilterBar label={translate('agentsPage.findAgent')} />
             <Table.Header />
             <Table.Body />
         </Table>
