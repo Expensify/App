@@ -1,7 +1,8 @@
 import {resolveEarlyReportID} from '@libs/IOUUtils';
+import {isNativeShortcutFlowActive} from '@libs/NativeShortcutFlow';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
-import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {initMoneyRequest, setNativeShortcutFlag} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -110,6 +111,10 @@ function useResetIOUType({
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (transaction?.iouRequestType === newIOUType) {
+            // The draft won't be rebuilt, so stamp the native-shortcut marker onto it directly.
+            if (isNativeShortcutFlowActive() && !transaction.isFromNativeShortcut) {
+                setNativeShortcutFlag(transaction.transactionID);
+            }
             return;
         }
 
@@ -133,8 +138,10 @@ function useResetIOUType({
             isFromGlobalCreate,
             isTrackDistanceExpense,
             isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
-            // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would otherwise wipe it).
-            isFromNativeShortcut: transaction?.isFromNativeShortcut,
+            // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would otherwise
+            // wipe it). The module-level marker covers the first rebuild, when the deeplink-opened flow has
+            // no draft yet (or a stale one) and the `transaction` closure can't carry the flag.
+            isFromNativeShortcut: transaction?.isFromNativeShortcut ?? isNativeShortcutFlowActive(),
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,

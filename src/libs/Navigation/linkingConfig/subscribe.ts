@@ -1,4 +1,5 @@
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import {markNativeShortcutFlowIfNeeded} from '@libs/NativeShortcutFlow';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
@@ -30,6 +31,9 @@ const skipRules: ReadonlyArray<{urlMatcher: RegExp; focusedScreens: readonly str
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
+        // A native home-screen shortcut deeplink marks the create flow before navigation mounts it.
+        markNativeShortcutFlowIfNeeded(url);
+
         // Skip deep links to screens where the user is already focused.
         const skipRule = skipRules.find(({urlMatcher}) => urlMatcher.test(url));
         if (skipRule) {

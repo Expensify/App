@@ -12,6 +12,7 @@ import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import Log from './libs/Log';
+import {markNativeShortcutFlowIfNeeded} from './libs/NativeShortcutFlow';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import {hasSeenTourSelector} from './selectors/Onboarding';
@@ -81,6 +82,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 initialUrlProcessed.current = true;
                 onInitialUrl(url as Route);
 
+                // Cold start from a native home-screen shortcut delivers the deeplink as the initial URL.
+                markNativeShortcutFlowIfNeeded(url);
+
                 if (url) {
                     if (conciergeReportID === undefined) {
                         Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
@@ -108,6 +112,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
+            // Warm start from a native home-screen shortcut delivers the deeplink as a URL event.
+            markNativeShortcutFlowIfNeeded(state.url);
             if (conciergeReportID === undefined) {
                 Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
             }

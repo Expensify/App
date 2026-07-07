@@ -34,8 +34,6 @@ import {isScanRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {setNativeShortcutFlag} from '@userActions/IOU/MoneyRequest';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -92,7 +90,6 @@ function IOURequestStartPage({
     });
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const hasEvaluatedNativeShortcutRef = useRef(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -200,32 +197,6 @@ function IOURequestStartPage({
         // Tab switches change transactionRequestType but shouldn't re-trigger endSpan.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        // Native home-screen shortcuts open IOURequestStartPage directly via deeplink without
-        // calling startMoneyRequest first. In contrast, in-app flows (FAB, Search empty state, etc.)
-        // always call startMoneyRequest which clears the draft and creates a fresh one with the
-        // matching reportID. We detect a native shortcut by:
-        //   1. isFromGlobalCreate — the route's reportID doesn't map to a real report
-        //   2. Draft is missing or stale (reportID mismatch) — startMoneyRequest wasn't called
-        // We intentionally ignore flags on stale drafts (e.g. isFromFloatingActionButton from an
-        // abandoned FAB flow) since they belong to a previous, unrelated flow.
-        // The evaluation must wait for the draft to finish loading (a fresh in-app draft could
-        // otherwise be mistaken for a missing one) and must only happen once: after initMoneyRequest
-        // rebuilds the draft with a matching reportID, the inputs would no longer look like a shortcut.
-        if (hasEvaluatedNativeShortcutRef.current || isLoadingTransaction) {
-            return;
-        }
-        hasEvaluatedNativeShortcutRef.current = true;
-        if (!isFromGlobalCreate) {
-            return;
-        }
-        // A fresh draft (matching reportID) means startMoneyRequest was called — this is an in-app flow.
-        if (transaction && !isStaleTransactionDraft) {
-            return;
-        }
-        setNativeShortcutFlag(route.params.transactionID);
-    }, [isLoadingTransaction, isFromGlobalCreate, transaction, isStaleTransactionDraft, route.params.transactionID]);
 
     const navigateBack = () => {
         // In the new manual expense beta the confirmation is embedded with its header hidden,

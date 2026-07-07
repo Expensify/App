@@ -3,6 +3,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {formatCurrentUserToAttendee, getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import {endNativeShortcutFlow} from '@libs/NativeShortcutFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
@@ -438,6 +439,8 @@ function startMoneyRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    // In-app entry point — the previous native-shortcut flow (if any) is over.
+    endNativeShortcutFlow();
     const sourceRoute = Navigation.getActiveRoute();
     // Only the split flow exposes a Distance tab from here, so prefetch the default P2P mileage rate solely for splits to avoid an unnecessary read on other flows.
     if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -484,6 +487,8 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    // In-app entry point — the previous native-shortcut flow (if any) is over.
+    endNativeShortcutFlow();
     getDefaultP2PMileageRate();
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
