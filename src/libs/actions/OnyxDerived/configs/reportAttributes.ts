@@ -24,7 +24,7 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -91,6 +91,45 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
     previousPersonalDetails = personalDetails;
 
     return displayNamesChanged;
+};
+
+// Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
+// (oldest by preview-action creation time), or undefined when none match.
+const getOldestPreviewActionID = (chatReportID: string, reportIDs: string[] | undefined, reports: OnyxCollection<Report>, predicate?: (childReport: OnyxEntry<Report>) => boolean) => {
+    let oldestCreated: string | undefined;
+    let targetReportActionID: string | undefined;
+    for (const childReportID of reportIDs ?? []) {
+        if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
+            continue;
+        }
+        const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID);
+        if (!reportPreviewAction) {
+            continue;
+        }
+        if (oldestCreated === undefined || reportPreviewAction.created < oldestCreated) {
+            oldestCreated = reportPreviewAction.created;
+            targetReportActionID = reportPreviewAction.reportActionID;
+        }
+    }
+    return targetReportActionID;
+};
+
+const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childReport) || isProcessingReport(childReport);
+
+// Open/processing and the user still needs to fix a violation on it. Violations are read directly from
+// transactionViolations so this works even when owner data is absent (e.g. masked Onyx exports).
+const needsViolationFix = (
+    childReport: OnyxEntry<Report>,
+    policies: OnyxCollection<Policy>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+) => {
+    if (!childReport || !isActionable(childReport)) {
+        return false;
+    }
+    const childPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${childReport.policyID}`];
+    return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childPolicy);
 };
 
 /**
@@ -438,38 +477,6 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
-        // (oldest by preview-action creation time), or undefined when none match.
-        const getOldestPreviewActionID = (chatReportID: string, reportIDs: string[] | undefined, predicate?: (childReport: OnyxEntry<Report>) => boolean) => {
-            let oldestCreated: string | undefined;
-            let targetReportActionID: string | undefined;
-            for (const childReportID of reportIDs ?? []) {
-                if (predicate && !predicate(reports[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
-                    continue;
-                }
-                const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID);
-                if (!reportPreviewAction) {
-                    continue;
-                }
-                if (oldestCreated === undefined || reportPreviewAction.created < oldestCreated) {
-                    oldestCreated = reportPreviewAction.created;
-                    targetReportActionID = reportPreviewAction.reportActionID;
-                }
-            }
-            return targetReportActionID;
-        };
-
-        const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childReport) || isProcessingReport(childReport);
-        // Open/processing and the user still needs to fix a violation on it. Violations are read directly from
-        // transactionViolations so this works even when owner data is absent (e.g. masked Onyx exports).
-        const needsViolationFix = (childReport: OnyxEntry<Report>) => {
-            if (!childReport || !isActionable(childReport)) {
-                return false;
-            }
-            const childPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${childReport.policyID}`];
-            return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childPolicy);
-        };
-
         // Apply the error status to the parent chat reports.
         for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
             if (!reportAttributes[chatReportID]) {
@@ -480,9 +487,11 @@ export default createOnyxDerivedValueConfig({
             let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
 
             actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), needsViolationFix) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs) ??
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
+                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                    needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
+                ) ??
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
                 actionTargetReportActionID;
 
             // Clone the entry before mutating — it may be a reference carried over from
