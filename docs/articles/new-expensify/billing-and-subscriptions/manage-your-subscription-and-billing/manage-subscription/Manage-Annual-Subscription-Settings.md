@@ -6,6 +6,7 @@ internalScope: Audience is Workspace owners on an Annual subscription. Covers ch
 retrievalIntent: How to change subscription size, auto-renew, and auto-increase seats.
 contentType: task
 platform: new
+order: 3
 ---
 
 # Manage Annual subscription settings
