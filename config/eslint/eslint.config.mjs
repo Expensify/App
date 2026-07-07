@@ -527,7 +527,7 @@ const config = defineConfig([
     // entry points load .ts files directly and require explicit .ts extensions on
     // relative imports — the opposite of bundled src/ code.
     {
-        files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rspack/**/*.ts'],
+        files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rsbuild/**/*.ts'],
         rules: {
             'import/extensions': 'off',
         },
