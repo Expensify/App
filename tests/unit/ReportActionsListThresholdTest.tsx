@@ -88,7 +88,7 @@ const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, lastVisibl
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag.
 function buildActionListContextValue(initialOffset: number) {
     const scrollOffsetRef: RefObject<number> = {current: initialOffset};
-    return {scrollPositionRef: {current: {}}, scrollOffsetRef, getScrollOffset: () => scrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {scrollOffsetRef, getScrollOffset: () => scrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
 }
 
 async function renderList(initialOffset: number) {

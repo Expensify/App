@@ -43,18 +43,15 @@ describe('ActionListContextProvider', () => {
         expect(result.current.getListRef()).toBeNull();
     });
 
-    it('keeps scrollPositionRef / scrollOffsetRef stable across re-renders with their initial values', () => {
+    it('keeps scrollOffsetRef stable across re-renders with its initial value', () => {
         const {result, rerender} = renderHook(() => useActionListContext(), {wrapper: ActionListContextProvider});
 
-        const firstScrollPositionRef = result.current.scrollPositionRef;
         const firstScrollOffsetRef = result.current.scrollOffsetRef;
 
-        expect(firstScrollPositionRef.current).toEqual({});
         expect(firstScrollOffsetRef.current).toBe(0);
 
         rerender({});
 
-        expect(result.current.scrollPositionRef).toBe(firstScrollPositionRef);
         expect(result.current.scrollOffsetRef).toBe(firstScrollOffsetRef);
     });
 });

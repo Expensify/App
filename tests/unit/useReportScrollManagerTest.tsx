@@ -32,7 +32,6 @@ function buildMockListRef() {
 function buildContextValue() {
     let held: FlatListRefType = null;
     return {
-        scrollPositionRef: {current: {}},
         scrollOffsetRef: {current: 0},
         getScrollOffset: () => 0,
         registerListRef: (ref: FlatListRefType) => {

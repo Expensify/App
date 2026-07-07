@@ -191,7 +191,7 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
-    return {scrollPositionRef: {current: {}}, scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
 }
 
 function wrapper({children}: {children: ReactNode}) {

@@ -5,10 +5,7 @@ import type {FlatList} from 'react-native';
 
 import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
 
-type ScrollPosition = {offset?: number};
-
 type ActionListContextType = {
-    scrollPositionRef: RefObject<ScrollPosition>;
     scrollOffsetRef: RefObject<number>;
 
     /** Snapshot of the persisted scroll offset. Safe to call during render (e.g. a useState initializer) to restore mount-time scroll state. */
@@ -22,7 +19,6 @@ type ActionListContextType = {
 };
 
 const ActionListContext = createContext<ActionListContextType>({
-    scrollPositionRef: {current: {}},
     scrollOffsetRef: {current: 0},
     getScrollOffset: () => 0,
     registerListRef: () => {},
@@ -54,11 +50,9 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     // Each list owns its own ref locally and publishes it here on mount; only the register/get
     // callbacks live in context, so attaching `ref={}` stays local to each list.
     const listRefHolder = useRef<FlatListRefType>(null);
-    const scrollPositionRef = useRef<ScrollPosition>({});
     const scrollOffsetRef = useRef(0);
 
     const value: ActionListContextType = {
-        scrollPositionRef,
         scrollOffsetRef,
         getScrollOffset: () => scrollOffsetRef.current,
         registerListRef: (ref) => {
