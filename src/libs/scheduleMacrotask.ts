@@ -1,6 +1,20 @@
+import Log from './Log';
+
 type Task = () => void;
 
 type ScheduleMacrotask = (callback: Task) => void;
+
+/**
+ * Run a scheduled task, isolating a throw so it neither aborts sibling tasks queued in the same tick
+ * nor escapes uncaught.
+ */
+function runTask(task: Task) {
+    try {
+        task();
+    } catch (error) {
+        Log.alert('[scheduleMacrotask] scheduled task threw', {error});
+    }
+}
 
 /**
  * Runs `callback` on the next macrotask — after the current task's microtasks drain (so it still
@@ -15,7 +29,7 @@ const scheduleMacrotask: ScheduleMacrotask = (() => {
     const useTimeoutFallback = typeof MessageChannel === 'undefined' || process.env.NODE_ENV === 'test';
     if (useTimeoutFallback) {
         return (callback) => {
-            setTimeout(callback, 0);
+            setTimeout(() => runTask(callback), 0);
         };
     }
 
@@ -25,7 +39,7 @@ const scheduleMacrotask: ScheduleMacrotask = (() => {
         // Drain everything queued for this tick; a task that schedules another lands in the next tick.
         const tasks = queue.splice(0);
         for (const task of tasks) {
-            task();
+            runTask(task);
         }
     };
 

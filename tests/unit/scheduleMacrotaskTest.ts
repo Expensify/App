@@ -7,6 +7,12 @@
 
 import type {ScheduleMacrotask} from '@libs/scheduleMacrotask';
 
+const mockLogAlert = jest.fn();
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {alert: mockLogAlert},
+}));
+
 // A fake MessageChannel we fully control: `postMessage` records a pending delivery instead of hopping the
 // event loop, and `deliver()` fires the registered handler — so the macrotask boundary is deterministic.
 let deliveries: Array<() => void> = [];
@@ -68,6 +74,7 @@ describe('scheduleMacrotask', () => {
     beforeEach(() => {
         deliveries = [];
         postCount = 0;
+        mockLogAlert.mockClear();
     });
 
     describe('setTimeout fallback', () => {
@@ -139,6 +146,23 @@ describe('scheduleMacrotask', () => {
             expect(postCount).toBe(2); // posted again because the queue went empty -> non-empty
             deliver();
             expect(callback).toHaveBeenCalledTimes(2);
+        });
+
+        it('isolates a throwing task so sibling tasks queued in the same tick still run, and logs it', () => {
+            const scheduleMacrotask = loadScheduler('development');
+            const order: string[] = [];
+
+            scheduleMacrotask(() => order.push('before'));
+            scheduleMacrotask(() => {
+                throw new Error('boom');
+            });
+            scheduleMacrotask(() => order.push('after'));
+
+            deliver();
+
+            // The throw did not abort the drain — sibling tasks still ran — and it was logged.
+            expect(order).toEqual(['before', 'after']);
+            expect(mockLogAlert).toHaveBeenCalledTimes(1);
         });
 
         it('defers a callback scheduled during a drain to the next tick', () => {
