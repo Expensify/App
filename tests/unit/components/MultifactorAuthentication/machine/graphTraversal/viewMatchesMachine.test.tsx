@@ -5,6 +5,7 @@ import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
+import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
@@ -92,7 +93,7 @@ const testConfig = {
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
             expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(1);
             expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(1);
-            expect(screen.getByText('Authentication successful')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.authenticationSuccessful'))).toBeOnTheScreen();
             // Every outcome screen renders the same `OutcomeScreenBase`, so the route name identifies which one is on top.
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
         },
