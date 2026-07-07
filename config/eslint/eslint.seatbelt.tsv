@@ -913,7 +913,7 @@
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-imports"	2
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
-"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	2
+"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
