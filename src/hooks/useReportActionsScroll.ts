@@ -126,21 +126,13 @@ type UseReportActionsScrollResult = {
     initialScrollKey: string | undefined;
 
     /** maintainVisibleContentPosition config for the inverted list */
-    maintainVisibleContentPosition:
-        | {
-              autoscrollToBottomThreshold?: number;
-              animateAutoScrollToBottom?: boolean;
-          }
-        | undefined;
+    maintainVisibleContentPosition: {disabled: boolean; autoscrollToBottomThreshold?: number; animateAutoScrollToBottom?: boolean};
 
     /** The index the list should scroll to on mount (undefined to keep default position) */
     initialScrollIndex: number | undefined;
 
     /** Positioning params (viewPosition/viewOffset) paired with initialScrollIndex */
     initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
-
-    /** maintainVisibleContentPosition config for the inverted list */
-    maintainVisibleContentPosition: {disabled: boolean; autoscrollToBottomThreshold?: number; animateAutoScrollToBottom?: boolean};
 
     /** onLoad handler that disables autoscroll-to-top once the initial render settles */
     onLoad: () => void;
@@ -203,19 +195,17 @@ function useReportActionsScroll({
     }
 
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
+    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
 
-    // Once the initial pin to the visual top is released, the threshold must drop to 0 instead of removing the config:
-    // FlashList only clears its internal pending-autoscroll flag while `autoscrollToBottomThreshold >= 0`. Removing the
-    // config leaves a flag planted during the pin phase stale forever, and the next content change (e.g. marking a
-    // message as unread) would scroll the list back to the top.
-    const maintainVisibleContentPosition = shouldFocusToTopOnMount
-        ? {
-              autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0,
-              animateAutoScrollToBottom: false,
-          }
-        : undefined;
+    const maintainVisibleContentPosition = {
+        disabled: !shouldMaintainVisibleContentPosition,
+        // Focus-to-top mode: once autoscroll is released, keep the threshold at 0 rather than
+        // removing it — FlashList only clears its pending-autoscroll flag while threshold >= 0,
+        // otherwise the next content change (e.g. mark-as-unread) scrolls back to top.
+        ...(shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0, animateAutoScrollToBottom: false} : {}),
+    };
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
         useReportUnreadMessageScrollTracking({
@@ -416,8 +406,6 @@ function useReportActionsScroll({
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
-
     // Decide where the list should be positioned on mount.
     // 1. If we're opening a linked message (initialScrollKey), find that action in the list and scroll it to the top
     //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
@@ -433,11 +421,6 @@ function useReportActionsScroll({
         initialScrollIndex = renderedVisibleReportActions.length - 1;
         initialScrollIndexParams = {viewOffset: windowHeight};
     }
-
-    const maintainVisibleContentPosition = {
-        disabled: !shouldMaintainVisibleContentPosition,
-        ...(shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : {}),
-    };
 
     return {
         listRef: reportScrollManager.ref,
