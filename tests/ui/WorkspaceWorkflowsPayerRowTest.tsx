@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -81,7 +82,7 @@ const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
 
 const renderPage = () =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
@@ -270,4 +271,76 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
             expect(navigateSpy).not.toHaveBeenCalled();
         },
     );
+
+    it('allows a payments admin to change the Payer only after bank setup is complete', async () => {
+        const currentUserLogin = 'test@user.com';
+        const reimburser = 'owner@test.com';
+        const bankAccountID = 123456;
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        await TestHelper.signInWithTestUser(undefined, currentUserLogin);
+        await act(async () => {
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    owner: reimburser,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    employeeList: {
+                        [currentUserLogin]: {
+                            email: currentUserLogin,
+                            role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                        },
+                    },
+                }),
+            );
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                    },
+                },
+            });
+        });
+
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const payerRow = screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'));
+        expect(payerRow).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
+        expect(navigateSpy).not.toHaveBeenCalled();
+        unmount();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                },
+            });
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
+        expect(navigateSpy).toHaveBeenCalledWith('workspaces/workflows-payer-test/workflows/payer');
+    });
 });
