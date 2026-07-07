@@ -10,13 +10,14 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type IOURequestRedirectToStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.START>;
 
 function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPageProps) {
+    const didRedirectRef = useRef(false);
     const {iouType, iouRequestType} = route.params ?? {};
     const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
@@ -24,9 +25,10 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
     const shouldShowNotFound = !isIouTypeValid || !isIouRequestTypeValid || isSplitDistanceSubtype;
 
     useEffect(() => {
-        if (shouldShowNotFound) {
+        if (shouldShowNotFound || didRedirectRef.current) {
             return;
         }
+        didRedirectRef.current = true;
 
         // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
         Navigation.dismissModal();
