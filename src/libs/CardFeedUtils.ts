@@ -741,7 +741,6 @@ function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
     return {
         errors: feed?.errors,
         isLoading: feed?.isLoading,
-        hasOnceLoaded: feed?.hasOnceLoaded,
     };
 }
 

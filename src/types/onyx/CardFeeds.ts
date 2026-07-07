@@ -208,9 +208,6 @@ type CardFeedsStatus = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
-    /** Whether the data has been loaded at least once */
-    hasOnceLoaded?: boolean;
-
     /** Collection of errors coming from BE */
     errors?: OnyxCommon.Errors;
 };
