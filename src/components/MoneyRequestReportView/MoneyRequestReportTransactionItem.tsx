@@ -322,6 +322,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
         <MoneyRequestReportTransactionItemWithInlineEdit
             {...props}
             animatedHighlightStyle={animatedHighlightStyle}
+            shouldSkipDeferRBR
         />
     );
 }
