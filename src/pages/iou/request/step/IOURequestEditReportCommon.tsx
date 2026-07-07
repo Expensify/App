@@ -172,10 +172,21 @@ function IOURequestEditReportCommon({
                     isSelected: report.reportID === selectedReportID,
                     policyID: report.policyID,
                     reportID: report.reportID,
-                    icons: getIconsForExpenseReport(report, personalDetails, policy),
+                    icons: getIconsForExpenseReport(report, personalDetails, policy, translate),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID, isPerDiemRequest, isTimeRequest]);
+    }, [
+        debouncedSearchValue,
+        outstandingReports,
+        selectedReportID,
+        personalDetails,
+        localeCompare,
+        allPolicies,
+        currentUserPersonalDetails.accountID,
+        isPerDiemRequest,
+        isTimeRequest,
+        translate,
+    ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

@@ -2899,6 +2899,7 @@ ${amount} für ${merchant} – ${date}`,
         defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
         defaultPrompt:
             'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
+        copilotNote: 'Dieser Agent wird als Copilot mit vollem Zugriff auf dein Konto hinzugefügt, sodass er in deinem Namen handeln kann.',
     },
     editAgentPage: {
         title: 'Agent bearbeiten',
@@ -6402,6 +6403,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 one: 'Zum Personaladministrator machen',
                 other: 'Personaladministratoren festlegen',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Zum Zahlungsadmin machen',
+                other: 'Zahlungsadmins festlegen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Beim Hinzufügen dieses Workspace-Mitglieds ist ein Problem aufgetreten',
@@ -6435,6 +6440,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             makeCardAdmin: () => ({one: 'Zum Karten-Admin machen', other: 'Karten-Admins festlegen'}),
             cardAdmins: 'Karten-Admins',
             peopleAdmins: 'Personaladministratoren',
+            paymentsAdmins: 'Zahlungsadmins',
             members: 'Mitglieder',
         },
         card: {
@@ -9762,6 +9768,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Nutzung der Expensify Karte und den untenstehenden Abooptionen.',
             collectBillingDescription: 'Collect-Arbeitsbereiche werden monatlich pro Mitglied ohne jährliche Verpflichtung abgerechnet.',
             pricing: 'Preise',
+            editSubscription: 'Abonnement bearbeiten',
         },
         cancelSubscription: {
             title: 'Abonnement kündigen',
