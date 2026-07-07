@@ -401,6 +401,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'Auszahlungs-ID',
         internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
         withdrawalStatus: 'Auszahlungsstatus',
+        paidStatus: 'Status: Bezahlt',
         bankAccounts: 'Bankkonten',
         chooseFile: 'Datei auswählen',
         chooseFiles: 'Dateien auswählen',
@@ -2373,6 +2374,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Zwei-Faktor-Gerät ersetzen',
         verifyOldDeviceTitle: 'Altes Gerät verifizieren',
         verifyOldDeviceDescription: 'Geben Sie den sechsstelligen Code aus Ihrer aktuellen Authentifizierungs-App ein, um zu bestätigen, dass Sie Zugriff darauf haben.',
+        verifyOldDeviceDescriptionWithRecovery: 'Geben Sie einen gültigen Wiederherstellungscode ein, um zu bestätigen, dass Sie Zugriff auf Ihr Konto haben.',
         verifyNewDeviceTitle: 'Neues Gerät einrichten',
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
@@ -2897,6 +2899,7 @@ ${amount} für ${merchant} – ${date}`,
         defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
         defaultPrompt:
             'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
+        copilotNote: 'Dieser Agent wird als Copilot mit vollem Zugriff auf dein Konto hinzugefügt, sodass er in deinem Namen handeln kann.',
     },
     editAgentPage: {
         title: 'Agent bearbeiten',
@@ -8855,6 +8858,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         failedError: ({link}: {link: string}) => `Wir versuchen diese Abrechnung erneut, sobald du <a href="${link}">dein Konto entsperrst</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Als bezahlt markiert', withdrawing: 'Wird abgehoben', confirmed: 'Bestätigt'},
     reportLayout: {
         reportLayout: 'Berichts-Layout',
         groupByLabel: 'Gruppieren nach:',
@@ -9759,6 +9763,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Nutzung der Expensify Karte und den untenstehenden Abooptionen.',
             collectBillingDescription: 'Collect-Arbeitsbereiche werden monatlich pro Mitglied ohne jährliche Verpflichtung abgerechnet.',
             pricing: 'Preise',
+            editSubscription: 'Abonnement bearbeiten',
         },
         cancelSubscription: {
             title: 'Abonnement kündigen',

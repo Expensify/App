@@ -34,6 +34,11 @@ function ThreeDotsMenu({
     icon,
     iconFill,
     iconStyles,
+    iconHoverStyle,
+    iconWidth,
+    iconHeight,
+    shouldChangeFillOnOpen = true,
+    testID,
     onIconPress = () => {},
     menuItems,
     anchorPosition,
@@ -140,6 +145,13 @@ function ThreeDotsMenu({
         });
     }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
+    const getIconFill = () => {
+        if (!shouldChangeFillOnOpen) {
+            return iconFill ?? theme.icon;
+        }
+        return (iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon;
+    };
+
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
@@ -172,14 +184,18 @@ function ThreeDotsMenu({
                         }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
+                        hoverStyle={iconHoverStyle}
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
                         sentryLabel={sentryLabel}
+                        testID={testID}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
-                            fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
+                            fill={getIconFill()}
+                            width={iconWidth}
+                            height={iconHeight}
                         />
                     </PressableWithoutFeedback>
                 </TooltipToRender>

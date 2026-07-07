@@ -2652,20 +2652,6 @@ function isPolicyAdmin(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
- */
-function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
-    const transactions = getReportTransactions(iouReportID);
-
-    // Early return false in case not having any transaction
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    return transactions.every((transaction) => isFetchingWaypointsFromServer(transaction));
-}
-
-/**
  * If the report is a thread and has a chat type set, it is a expense chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
@@ -2737,6 +2723,14 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
+ * Checks if a report aligns its action list to the top (transaction threads, money request / invoice reports).
+ */
+function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
+    return isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**
@@ -2851,26 +2845,42 @@ function isPayer(
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
-        if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            if (!policy?.achAccount?.reimburser) {
-                return isAdmin;
-            }
+        // Pay-elsewhere / mark-paid flows for disabled reimbursement still allow any admin to act.
+        if (onlyShowPayElsewhere && reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+            return isAdmin;
+        }
 
-            // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
-            const isReimburser = currentUserEmailParam === policy?.achAccount?.reimburser;
+        const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
-            // Check if the current user has access to the bank account via sharees
+        // Reimbursement is disabled for this workspace.
+        if (!isAutoReimbursement && !isManualReimbursement) {
+            return false;
+        }
+
+        const reimburserEmail = policy?.achAccount?.reimburser ?? (isManualReimbursement ? policy?.owner : '');
+
+        // No designated reimburser means any workspace admin can pay.
+        if (!reimburserEmail) {
+            return isAdmin;
+        }
+
+        const isReimburser = currentUserEmailParam === reimburserEmail && isAdmin;
+
+        // If using auto reimbursement, then the reimburser can pay, or an admin with access to the business bank account.
+        if (isAutoReimbursement) {
             const bankAccountID = policy?.achAccount?.bankAccountID;
             const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
             const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
 
             return isReimburser || (isAdmin && hasAccessToBankAccount);
         }
-        if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
-            return isAdmin;
-        }
-        return false;
+
+        // If using manual reimbursement, only the designated reimburser can pay.
+        return isReimburser;
     }
+
+    // Personal workspaces and IOU reports fall back to admin or report manager.
     return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
 }
 
@@ -2897,13 +2907,6 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     }
 
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-}
-
-function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (isDraftReport(moneyRequestReport?.reportID)) {
-        return false;
-    }
-    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
@@ -3061,7 +3064,8 @@ function hasOutstandingChildRequest(
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         const invoiceReceiverPolicy = getPolicy(invoiceReceiverPolicyID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserEmailParam, currentUserAccountIDParam, transactions, undefined, undefined, invoiceReceiverPolicy) ||
+            ((isInvoiceReport(iouReport) || isPayer(currentUserAccountIDParam, currentUserEmailParam, iouReport, bankAccountList, policy, false)) &&
+                canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserEmailParam, currentUserAccountIDParam, transactions, undefined, undefined, invoiceReceiverPolicy)) ||
             canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountIDParam, transactions) ||
             canSubmitAndIsAwaitingForCurrentUser(
                 iouReport,
@@ -4555,9 +4559,8 @@ function getUnheldReimbursableTotal(report: OnyxInputOrEntry<Report> | Pick<Repo
 /**
  * Checks if the report contains at least one Non-Reimbursable transaction
  */
-function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions): boolean {
-    const transactions = getReportTransactions(iouReportID, reportsTransactionsParam);
-    return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
+function hasNonReimbursableTransactions(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): boolean {
+    return reportTransactions.some((transaction) => transaction.reimbursable === false);
 }
 
 function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchReports?: Report[]): SpendBreakdown {
@@ -5440,9 +5443,8 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
-    const transactions = getReportTransactions(iouReportID);
-    return transactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
+function getTransactionsWithReceipts(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): Transaction[] {
+    return reportTransactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
 }
 
 /**
@@ -5452,8 +5454,12 @@ function getTransactionsWithReceipts(iouReportID: string | undefined): Transacti
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" expense, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, reportPreviewAction: OnyxEntry<ReportAction>): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
+function areAllRequestsBeingSmartScanned(
+    iouReportID: string | undefined,
+    reportPreviewAction: OnyxEntry<ReportAction>,
+    reportTransactions: Transaction[] = getReportTransactions(iouReportID),
+): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, reportTransactions);
     // If we have more requests than requests with receipts, we have some manual requests
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -6005,8 +6011,8 @@ function getParentNavigationSubtitle(
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
+    parentReportName: string | undefined,
     isParentReportArchived = false,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
@@ -6051,7 +6057,7 @@ function getParentNavigationSubtitle(
     }
 
     return {
-        reportName: getReportName(parentReport, reportAttributes ?? reportAttributesDerivedValue),
+        reportName: parentReportName ?? parentReport.reportName ?? '',
         workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
@@ -13434,7 +13440,6 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
-    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
@@ -13555,7 +13560,6 @@ export {
     hasIOUWaitingOnCurrentUserBankAccount,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
-    hasOnlyTransactionsWithPendingRoutes,
     hasReceiptError,
     hasReportNameError,
     getReportActionWithSmartscanError,
@@ -13603,6 +13607,7 @@ export {
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    shouldReportAlignToTop,
     isReportPendingDelete,
     isOneOnOneChat,
     isOneTransactionThread,
