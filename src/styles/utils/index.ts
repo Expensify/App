@@ -1,22 +1,44 @@
-import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
+import type ImageSVGProps from '@components/ImageSVG/types';
+
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
+import {isMobile, isMobileChrome} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
+import {hashText} from '@libs/UserUtils';
+
+import colors from '@styles/theme/colors';
+import type {ThemeColors} from '@styles/theme/types';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
+import type {Dimensions} from '@src/types/utils/Layout';
+import type Nullable from '@src/types/utils/Nullable';
+
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
-import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
-import {isMobile, isMobileChrome} from '@libs/Browser';
-import getPlatform from '@libs/getPlatform';
-import {hashText} from '@libs/UserUtils';
-import colors from '@styles/theme/colors';
-import type {ThemeColors} from '@styles/theme/types';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
-import type {Dimensions} from '@src/types/utils/Layout';
-import type Nullable from '@src/types/utils/Nullable';
+
+import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
+
 import type {ThemeStyles} from '..';
+import type {
+    AllStyles,
+    AvatarSize,
+    AvatarSizeName,
+    AvatarSizeValue,
+    AvatarStyle,
+    ButtonSizeValue,
+    ButtonStateName,
+    ButtonVariantStyles,
+    EReceiptColorName,
+    EreceiptColorStyle,
+    ParsableStyle,
+    SVGAvatarColorStyle,
+    TextColorStyle,
+} from './types';
+
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
@@ -36,21 +58,6 @@ import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import splitPercentageInputStyles from './splitPercentageInputStyles';
-import type {
-    AllStyles,
-    AvatarSize,
-    AvatarSizeName,
-    AvatarSizeValue,
-    AvatarStyle,
-    ButtonSizeValue,
-    ButtonStateName,
-    ButtonVariantStyles,
-    EReceiptColorName,
-    EreceiptColorStyle,
-    ParsableStyle,
-    SVGAvatarColorStyle,
-    TextColorStyle,
-} from './types';
 
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
@@ -1896,20 +1903,27 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
                 columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
-                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
-                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+                // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
+                columnWidth = {...getWidthStyle(variables.w102)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
-                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
-                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62)};
@@ -1989,6 +2003,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
