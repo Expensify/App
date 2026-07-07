@@ -220,11 +220,13 @@ function MoneyRequestReportPreview({
                 // just-thawed, still-loading report drops the first transaction-row tap.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
                     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+                    markReportIDAsExpense(childReportID);
+                    setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
+                    // Open the report (top of the split) and the expense RHP in the same tick, so the RHP covers the
+                    // report immediately with no report-then-expense cascade/delay. Back closes the RHP to the
+                    // fully-loaded, unfrozen report, then to the chat.
                     Navigation.navigate(reportRoute);
-                    setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
-                        markReportIDAsExpense(childReportID);
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                    });
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                     return;
                 }
 
