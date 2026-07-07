@@ -237,7 +237,7 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
                 isSplitButton={false}
                 shouldAlwaysShowDropdownMenu
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
-                wrapperStyle={shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0}
+                wrapperStyle={[shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0, styles.tableBulkActionsButton(shouldUseNarrowTableLayout)]}
             />
         </View>
     );
