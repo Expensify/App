@@ -362,6 +362,21 @@ function SubmitExpenseOrchestrator({
 
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+
+        // On narrow layout, a global-create flow that falls through to DEFAULT (e.g. distance expense to a
+        // new domain user whose optimistic report is not yet in Onyx) must dismiss the modal before running
+        // createTransaction. Without the dismiss, the SEARCH deferred-write channel is reserved while the
+        // RHP stack is still open, and the Search screen's onLayout never fires to flush the channel —
+        // leaving the API write permanently deferred and the UI frozen.
+        if (isFromGlobalCreateForNavigation && !isReportTopmostSplitNavigator() && getIsNarrowLayout()) {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            dismissOnly(() => {
+                createTransaction(locationPermissionGranted, false);
+                setIsConfirming(false);
+            });
+            return;
+        }
+
         reserveSearchChannelIfGlobalCreate();
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
