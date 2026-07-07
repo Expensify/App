@@ -606,7 +606,9 @@ function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<P
         return true;
     }
     const currentAddress = getCurrentAddress(privatePersonalDetails);
-    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+    // `state` is only required for US addresses; countries without states (e.g. the UK) can have a complete address without it.
+    const isStateMissing = currentAddress?.country === CONST.COUNTRY.US && !currentAddress?.state;
+    return !currentAddress?.street || !currentAddress?.city || isStateMissing || !currentAddress?.zip || !currentAddress?.country;
 }
 
 /**
