@@ -85,10 +85,12 @@ describe('useVerifyAccountAndResume', () => {
             mockPendingTransitionCallbacks.push(callback);
             return {cancel: mockCancelTransition};
         });
-        mockedNavigationRef.addListener.mockImplementation((_eventName: string, listener: () => void) => {
-            mockNavigationStateListeners.add(listener);
+        mockedNavigationRef.addListener.mockImplementation((_eventName, listener) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const stateListener = listener as () => void;
+            mockNavigationStateListeners.add(stateListener);
             return () => {
-                mockNavigationStateListeners.delete(listener);
+                mockNavigationStateListeners.delete(stateListener);
             };
         });
 
