@@ -109,19 +109,12 @@ function TaxPicker({
               isSelected: true,
           };
 
-    // Forward the selected rate's pendingAction so a rate that is pending deletion (e.g. deleted while offline) still renders
-    // struck-through and non-selectable in the picker instead of appearing as a selectable row.
-    const selectedTaxRatePendingAction = effectiveSelectedTaxRate
-        ? Object.values(transformedTaxRates(policy, currentTransaction)).find((taxRate) => taxRate.modifiedName === effectiveSelectedTaxRate)?.pendingAction
-        : undefined;
-
     const selectedOptions = effectiveSelectedTaxRate
         ? [
               {
                   modifiedName: effectiveSelectedTaxRate,
                   isDisabled: false,
                   accountID: null,
-                  pendingAction: selectedTaxRatePendingAction,
               },
           ]
         : [];
