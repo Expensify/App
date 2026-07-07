@@ -546,18 +546,9 @@ function submitAmount({
         return;
     }
 
-    // When the currency changes we re-apply the new currency's default tax rate, but only when the current tax rate is
-    // still the auto-applied default for the previous currency. A tax rate the user picked manually is preserved across
-    // the currency change (mirrors the create-flow guard in `navigateToNextPage`).
     const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
     const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, currentTransaction, transactionCurrency, transactionTaxCode);
-    // The edit path has no confirmation-page safety net, so heal a tax code that no longer exists on the policy
-    // (e.g. the rate was deleted or the expense moved workspaces) by falling back to the currency default. We only
-    // check that the code still resolves to a rate — not that its value matches — so a code whose value drifted
-    // (e.g. an admin edited the rate's percentage) keeps the user's selection and self-heals its `taxPercentage`
-    // from the policy on the next line. An empty code (`''`) is an intentionally-cleared tax, a legitimate
-    // persisted selection, so we treat it as valid and never heal it back to the default.
     const isTransactionTaxCodeValid = transactionTaxCode === '' || getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
     const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
