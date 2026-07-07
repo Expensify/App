@@ -1,7 +1,7 @@
 /**
  * Tests for focusFirstInteractiveElement — the pure DOM logic extracted
  * from useDialogContainerFocus (web). Tests run in jsdom without needing
- * React hooks, InteractionManager, or requestAnimationFrame mocks.
+ * React hooks, TransitionTracker, or requestAnimationFrame mocks.
  */
 
 // Import the web implementation directly (Jest resolves index.native.ts by default).

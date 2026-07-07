@@ -45,7 +45,7 @@ type UsePopoverEditStateOptions<T> = {
  *   - measureInWindow-based position calculation
  *   - Overflow detection (inverts when too close to bottom)
  *   - Adaptive height calculation (shrinks popover when space is limited)
- *   - Auto-open after layout via InteractionManager
+ *   - Auto-open after layout via requestAnimationFrame
  *   - isEditing + isPopoverVisible toggling
  *   - Auto-cancel when canEdit becomes false
  *   - Value comparison to prevent no-op saves

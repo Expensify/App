@@ -172,16 +172,6 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     default: () => ({duplicateTransactions: {}, duplicateTransactionViolations: {}}),
 }));
 
-// Make InteractionManager execute callbacks immediately so we don't need fake timers
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void | Promise<void>) => {
-            callback();
-            return {cancel: jest.fn()};
-        },
-    },
-}));
-
 // Make TransitionTracker execute callbacks immediately too (it can't wait for a real
 // modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
 // stall until MAX_TRANSITION_START_WAIT_MS).
