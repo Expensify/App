@@ -1536,8 +1536,9 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is the manager of the supplied report
  */
-function isReportManager(report: OnyxEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
-    return !!(report && report.managerID === currentUserAccountID);
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isReportManager(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+    return !!(report && report.managerID === (currentUserAccountID ?? deprecatedCurrentUserAccountID));
 }
 
 /**
@@ -1611,8 +1612,9 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | string | undefined, re
 /**
  * Whether the current user is the submitter of the report
  */
-function isCurrentUserSubmitter(report: OnyxEntry<Report>): boolean {
-    return !!report && report.ownerAccountID === deprecatedCurrentUserAccountID;
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isCurrentUserSubmitter(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+    return !!report && report.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
 /**
@@ -1699,9 +1701,10 @@ function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefin
     return report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report.invoiceReceiver.policyID : undefined;
 }
 
-function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        return deprecatedCurrentUserAccountID === report.invoiceReceiver.accountID;
+        return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === report.invoiceReceiver.accountID;
     }
 
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
@@ -2887,8 +2890,9 @@ function isPayer(
 /**
  * Checks if the current user is the action's author
  */
-function isActionCreator(reportAction: OnyxInputOrEntry<ReportAction> | Partial<ReportAction>): boolean {
-    return reportAction?.actorAccountID === deprecatedCurrentUserAccountID;
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isActionCreator(reportAction: OnyxInputOrEntry<ReportAction> | Partial<ReportAction>, currentUserAccountID?: number): boolean {
+    return reportAction?.actorAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
 /**
@@ -4428,15 +4432,16 @@ function getReasonAndReportActionThatRequiresAttention(
         reportActions,
         reports,
     );
-    const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
+    // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
+    const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
-    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
+    // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
+    // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
-    const hasValidIOUAction =
-        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
-        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions);
+    const hasValidIOUAction = ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) && !hasOnlyPendingTransactions;
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
@@ -4969,9 +4974,11 @@ function canEditMoneyRequest(
     return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport) && !isClosedReport(moneyRequestReport) && isRequestor;
 }
 
-function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = false) {
+// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = false, currentUserEmail?: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(report?.policyID);
+    const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
 
     // If the current user took control, then they are the final approver and we don't have a next approver
     // If someone else took control or rerouted, they are the next approver
@@ -4985,7 +4992,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
 
     if (isUnapproved) {
-        if (approvalChain.includes(deprecatedCurrentUserEmail ?? '')) {
+        if (approvalChain.includes(currentUserLogin)) {
             return deprecatedCurrentUserAccountID;
         }
 
@@ -4996,7 +5003,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
         return submitToAccountID;
     }
 
-    const currentUserIndex = approvalChain.indexOf(deprecatedCurrentUserEmail ?? '');
+    const currentUserIndex = approvalChain.indexOf(currentUserLogin);
     const nextApproverEmail = currentUserIndex === -1 ? approvalChain.at(0) : approvalChain.at(currentUserIndex + 1);
 
     if (!nextApproverEmail) {
@@ -5921,14 +5928,16 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
     return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 }
 
-function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
+// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function getReportSubtitlePrefix(report: OnyxEntry<Report>, currentUserEmail?: string): string {
     if ((!isChatRoom(report) && !isPolicyExpenseChat(report)) || isThread(report)) {
         return '';
     }
 
+    const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail;
     let policyCount = 0;
     for (const policy of policiesArray) {
-        if (!shouldShowPolicy(policy, false, deprecatedCurrentUserEmail)) {
+        if (!shouldShowPolicy(policy, false, currentUserLogin)) {
             continue;
         }
 
@@ -6181,7 +6190,15 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[], isGroupPolicyReportParam?: boolean): string {
+// TODO: currentUserEmailParam will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function getParsedComment(
+    text: string,
+    parsingDetails?: ParsingDetails,
+    mediaAttributes?: Record<string, string>,
+    disabledRules?: string[],
+    isGroupPolicyReportParam?: boolean,
+    currentUserEmailParam?: string,
+): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
         if (isGroupPolicyReportParam !== undefined) {
@@ -6206,10 +6223,15 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
         return lodashEscape(text);
     }
 
+    let userEmailDomain = deprecatedCurrentUserPrivateDomain;
+    if (currentUserEmailParam !== undefined) {
+        userEmailDomain = isEmailPublicDomain(currentUserEmailParam) ? '' : Str.extractEmailDomain(currentUserEmailParam);
+    }
+
     return getParsedMessageWithShortMentions({
         text,
         availableMentionLogins: allPersonalDetailLogins,
-        userEmailDomain: deprecatedCurrentUserPrivateDomain,
+        userEmailDomain,
         parserOptions: {
             disabledRules: isGroupPolicyReport ? [...rules] : ['reportMentions', ...rules],
             extras: {mediaAttributeCache: mediaAttributes},
@@ -6555,11 +6577,20 @@ function getHumanReadableStatus(statusNum: number): string {
  * If after all replacements the formula is empty, the original formula is returned.
  * See {@link https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates}
  */
-function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport | OptimisticNewReport, policy: OnyxEntry<Policy>, isMoneyRequestConfirmation = false): string {
+// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function populateOptimisticReportFormula(
+    formula: string,
+    report: OptimisticExpenseReport | OptimisticNewReport,
+    policy: OnyxEntry<Policy>,
+    isMoneyRequestConfirmation = false,
+    currentUserEmail?: string,
+): string {
     // If this is a newly created report and it is from money request confirmation, we should use 'New report' as the report title
     if (!report.parentReportActionID && isMoneyRequestConfirmation) {
         return 'New report';
     }
+
+    const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
 
@@ -6587,8 +6618,8 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll(/\{report:created\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
         .replaceAll(/\{report:created:yyyy-MM-dd\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll(/\{report:status\}/gi, report.statusNum !== undefined ? getHumanReadableStatus(report.statusNum) : '')
-        .replaceAll(/\{user:email\}/gi, deprecatedCurrentUserEmail ?? '')
-        .replaceAll(/\{user:email\|frontPart\}/gi, (deprecatedCurrentUserEmail ? deprecatedCurrentUserEmail.split('@').at(0) : '') ?? '')
+        .replaceAll(/\{user:email\}/gi, currentUserLogin)
+        .replaceAll(/\{user:email\|frontPart\}/gi, currentUserLogin.split('@').at(0) ?? '')
         .replaceAll(/\{report:(.+)\}/gi, '');
 
     return result.trim().length ? result : formula;
@@ -8576,8 +8607,9 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[], cur
     };
 }
 
-function shouldPinAdminRoomByDefault() {
-    return !isExpensifyTeam(deprecatedCurrentUserEmail);
+// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function shouldPinAdminRoomByDefault(currentUserEmail?: string) {
+    return !isExpensifyTeam(currentUserEmail ?? deprecatedCurrentUserEmail);
 }
 
 function buildOptimisticWorkspaceChats(
@@ -8994,7 +9026,8 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     return isUnreadFromTimestamp;
 }
 
-function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>, currentUserAccountID?: number): boolean {
     const allAvailableReports = allReportsDict ?? deprecatedAllReports;
     if (!report || !allAvailableReports) {
         return false;
@@ -9008,7 +9041,7 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
         }
     }
 
-    return reportToLook.ownerAccountID === deprecatedCurrentUserAccountID;
+    return reportToLook.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
 /**
@@ -9078,11 +9111,14 @@ function shouldHideReport(
  * Returns the reportID of the first child expense report that has violations under the same policy,
  * or undefined if none found. Used to find the REPORT_PREVIEW action to deep-link to.
  */
-function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): string | null {
+// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, currentUserEmail?: string): string | null {
     // We only show the RBR in the highest level, which is the expense chat
     if (!report || !isPolicyExpenseChat(report)) {
         return null;
     }
+
+    const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
 
     // We only show the RBR to the submitter
     if (!isCurrentUserSubmitter(report)) {
@@ -9116,7 +9152,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                 ViolationsUtils.hasVisibleViolationsForUser(
                     potentialReport,
                     transactionViolations,
-                    deprecatedCurrentUserEmail ?? '',
+                    currentUserLogin,
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     policy,
                     transactions,
@@ -9125,7 +9161,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     potentialReport.reportID,
                     transactionViolations,
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                    deprecatedCurrentUserEmail ?? '',
+                    currentUserLogin,
                     true,
                     transactions,
                     potentialReport,
@@ -9135,7 +9171,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                         potentialReport.reportID,
                         transactionViolations,
                         deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        deprecatedCurrentUserEmail ?? '',
+                        currentUserLogin,
                         true,
                         transactions,
                         potentialReport,
@@ -9144,7 +9180,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     hasNoticeTypeViolationsForRBRInLHN(
                         transactionViolations,
                         deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        deprecatedCurrentUserEmail ?? '',
+                        currentUserLogin,
                         transactions,
                         potentialReport,
                         policy,
@@ -11213,12 +11249,14 @@ function isNonOwnerMangerOfIOUReport(report: OnyxEntry<Report>, currentUserAccou
 /**
  * Whether the user can join a report
  */
+// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function canJoinChat(
     report: OnyxEntry<Report>,
     parentReportAction: OnyxInputOrEntry<ReportAction>,
     policy: OnyxEntry<Policy>,
     parentReport: OnyxEntry<Report>,
     isReportArchived = false,
+    currentUserEmail?: string,
 ): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
@@ -11243,7 +11281,7 @@ function canJoinChat(
     }
 
     // For restricted visibility rooms, the user must be a workspace member to join
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !getPolicyRole(policy, deprecatedCurrentUserEmail)) {
+    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail)) {
         return false;
     }
 
@@ -11635,6 +11673,8 @@ type PrepareOnboardingOnyxDataParams = {
     onboardingPurposeSelected?: OnboardingPurpose;
     // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
+    // TODO: should be required field. Refactor issue: https://github.com/Expensify/App/issues/66412
+    currentUserEmail?: string;
     /** The concierge chat report, looked up by conciergeReportID. Falls back to getChatByParticipants using the deprecated module-level Onyx data while the refactor is in progress. */
     conciergeChat?: OnyxEntry<Report>;
     /** The admins chat report, looked up by adminsChatReportID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
@@ -11655,6 +11695,7 @@ function prepareOnboardingOnyxData({
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,
+    currentUserEmail,
     conciergeChat: conciergeChatParam,
     adminsChatReport: adminsChatReportParam,
     selfDMReport: selfDMReportParam,
@@ -11711,8 +11752,9 @@ function prepareOnboardingOnyxData({
         });
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
-    const firstAdminPolicy = getActivePolicies(allPolicies, deprecatedCurrentUserEmail).find(
-        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, deprecatedCurrentUserEmail) === CONST.POLICY.ROLE.ADMIN,
+    const currentUserEmailToUse = currentUserEmail ?? deprecatedCurrentUserEmail;
+    const firstAdminPolicy = getActivePolicies(allPolicies, currentUserEmailToUse).find(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, currentUserEmailToUse) === CONST.POLICY.ROLE.ADMIN,
     );
 
     const testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
@@ -12185,7 +12227,7 @@ function prepareOnboardingOnyxData({
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
             selfDMReport = buildOptimisticSelfDMReport(currentTime);
-            createdAction = buildOptimisticCreatedReportAction({emailCreatingAction: deprecatedCurrentUserEmail ?? '', created: currentTime});
+            createdAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailToUse ?? '', created: currentTime});
             selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
             optimisticData.push(
                 {
@@ -12328,9 +12370,11 @@ function isChatUsedForOnboarding(
  * Track and budget expenses (TRACK_WORKSPACE) uses Concierge chat. Guides are assigned to users who sign up
  * with emails that do not contain a '+' and who select MANAGE_TEAM.
  */
-function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boolean {
-    const userHasPhonePrimaryEmail = Str.endsWith(deprecatedCurrentUserEmail ?? '', CONST.SMS.DOMAIN);
-    return engagementChoice !== undefined && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (!deprecatedCurrentUserEmail?.includes('+') || userHasPhonePrimaryEmail);
+// TODO: currentUserEmailParam will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose, currentUserEmailParam?: string): boolean {
+    const currentUserEmail = currentUserEmailParam ?? deprecatedCurrentUserEmail ?? '';
+    const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail, CONST.SMS.DOMAIN);
+    return engagementChoice !== undefined && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (!currentUserEmail.includes('+') || userHasPhonePrimaryEmail);
 }
 
 /**

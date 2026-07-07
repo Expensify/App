@@ -4,9 +4,12 @@ import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/re
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, Report, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 type ReportAttributesConfig = typeof reportAttributesModuleDefault;
 
@@ -164,14 +167,14 @@ describe('reportAttributes compute — policy change code flow', () => {
         config = (require('@userActions/OnyxDerived/configs/reportAttributes') as {default: ReportAttributesConfig}).default;
     });
 
-    const buildArgs = (overridePolicies?: OnyxCollection<Policy>) =>
+    const buildArgs = (overridePolicies?: OnyxCollection<Policy>, overrideReports?: OnyxCollection<Report>, transactionsUpdate?: OnyxCollection<Transaction> | null) =>
         [
-            reports, // reports
+            overrideReports ?? reports, // reports
             null, // preferredLocale
             null, // transactionViolations
             null, // reportActions
             null, // reportNameValuePairs
-            null, // transactions
+            transactionsUpdate ?? null, // transactions
             null, // personalDetails
             null, // session
             overridePolicies ?? policies, // policies
@@ -213,8 +216,8 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportName = (jest.requireMock('@libs/ReportNameUtils') as unknown as {computeReportName: jest.Mock}).computeReportName;
-        computeReportName.mockReturnValue('New Name');
+        const computeReportNameMock = (jest.requireMock('@libs/ReportNameUtils') as unknown as {computeReportName: jest.Mock}).computeReportName;
+        computeReportNameMock.mockReturnValue('New Name');
 
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
@@ -258,5 +261,39 @@ describe('reportAttributes compute — policy change code flow', () => {
 
         // No tracked fields changed → return currentValue unchanged
         expect(result).toEqual(existingValue);
+    });
+
+    it('recomputes the parent workspace chat when a transaction on its expense report changes', () => {
+        const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
+        const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
+        const reportsWithChat: OnyxCollection<Report> = {
+            ...reports,
+            [`${ONYXKEYS.COLLECTION.REPORT}expense1`]: expenseReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
+        };
+
+        // Seed both entries with sentinel names; the mocked computeReportName returns 'Test Report' on any recompute.
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                expense1: {reportName: 'Old expense name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                chat1: {reportName: 'Old chat name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        const transactionsUpdate: OnyxCollection<Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'expense1'},
+        };
+
+        const args = buildArgs(undefined, reportsWithChat, transactionsUpdate);
+        const result = config.compute(args, {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
+        });
+
+        // The expense report is recomputed, and its parent workspace chat (where the to-do/GBR render) is too,
+        // so both pick up the recomputed name instead of keeping their stale seeded value.
+        expect(result?.reports.expense1?.reportName).toBe('Test Report');
+        expect(result?.reports.chat1?.reportName).toBe('Test Report');
     });
 });

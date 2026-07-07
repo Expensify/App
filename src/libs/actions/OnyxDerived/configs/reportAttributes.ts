@@ -270,7 +270,16 @@ export default createOnyxDerivedValueConfig({
 
                         transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
                     }
-                    dataToIterate.push(...prepareReportKeys(transactionReportIDs));
+
+                    // A transaction change (e.g. a card expense going from pending to posted) can flip whether its
+                    // expense report requires attention, but the to-do/GBR render on the parent workspace chat.
+                    // Enqueue those parent chats too so their attributes don't stay stale after the transaction updates.
+                    const transactionParentChatReportIDs = transactionReportIDs
+                        .map((reportKey) => reports?.[reportKey]?.chatReportID)
+                        .filter(Boolean)
+                        .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+
+                    dataToIterate.push(...prepareReportKeys([...transactionReportIDs, ...transactionParentChatReportIDs]));
                 }
                 if (policyTagsUpdates) {
                     const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
