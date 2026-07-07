@@ -923,7 +923,7 @@ function MoneyRequestReportTransactionList({
                             customText={translate('iou.addExpense')}
                             options={addExpenseDropdownOptions}
                             isSplitButton={false}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            buttonSize={CONST.BUTTON_SIZE.SMALL}
                             success={false}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
