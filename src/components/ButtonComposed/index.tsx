@@ -18,19 +18,22 @@
  *
  * The old `Button` component is not affected – migration can be gradual.
  */
-import withNavigationFallback from '@components/withNavigationFallback';
+import React from 'react';
 
 import ButtonComponent from './Button';
-import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
 import ButtonIcon from './primitives/ButtonIcon';
 import ButtonKeyboardShortcut from './primitives/ButtonKeyboardShortcut';
 import ButtonText from './primitives/ButtonText';
 
-const Button = Object.assign(withNavigationFallback(ButtonComponent), {
+function ButtonBase(props: React.ComponentProps<typeof ButtonComponent>) {
+    return <ButtonComponent {...props} />;
+}
+
+const Button = Object.assign(ButtonBase, {
     Icon: ButtonIcon,
     Text: ButtonText,
-    DoubleLineText: ButtonDoubleLineText,
     KeyboardShortcut: ButtonKeyboardShortcut,
 });
 
 export default Button;
+export type {ButtonProps} from './types';

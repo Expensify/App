@@ -254,6 +254,7 @@ function SubmitDetailsPage({
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
+                isDraftChatReport: !!reportDraft,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories},
                 action: CONST.IOU.TYPE.CREATE,
@@ -289,6 +290,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                reportActionsList: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;

@@ -354,11 +354,11 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                 onBackButtonPress={onClose}
             />
             <Text style={styles.mh5}>{translate('avatarCropModal.description')}</Text>
-            <View
-                style={[styles.flex1, styles.m5, styles.alignSelfStretch]}
-                onLayout={initializeImageContainer}
-            >
-                <GestureHandlerRootView style={[styles.flex1, styles.alignItemsCenter]}>
+            <GestureHandlerRootView style={[styles.flex1]}>
+                <View
+                    style={[styles.flex1, styles.m5, styles.alignSelfStretch, styles.alignItemsCenter]}
+                    onLayout={initializeImageContainer}
+                >
                     {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
@@ -423,8 +423,8 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                             </View>
                         </>
                     )}
-                </GestureHandlerRootView>
-            </View>
+                </View>
+            </GestureHandlerRootView>
             <Button
                 variant="success"
                 style={styles.m5}

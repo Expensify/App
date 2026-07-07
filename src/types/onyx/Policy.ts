@@ -1732,22 +1732,25 @@ type RilletConnectionData = {
 };
 
 /**
- * Supported mappings for Rillet coding fields.
- */
-type RilletCodingFieldMappingValue = 'NONE' | 'TAG';
-
-/**
  * Coding configuration used when exporting data to Rillet.
  */
 type RilletCoding = {
     /**
      * Mapping of Rillet field IDs to their configured mapping behavior.
      */
-    fieldMappings: Record<string, RilletCodingFieldMappingValue>;
+    fieldMappings: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
 
     /** Whether tax rates should be synchronized from Rillet. */
     syncTaxRates: boolean;
 };
+
+/** Offline feedback key for field mapping */
+type RilletCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `RilletCoding`
+ */
+type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'> | RilletCodingFieldMappingsOfflineFeedbackKey;
 
 /**
  * Available dates that can be used as the export date.
@@ -1864,7 +1867,7 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof RilletCoding | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+    RilletCodingOfflineFeedbackKeys | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
 >;
 
 /** Gusto connection data */
