@@ -190,6 +190,7 @@ type ComputeReportName = {
     conciergeReportID?: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     isTrackIntentUser: boolean | undefined;
+    pendingDeleteMemberAccountIDs?: string[];
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -955,6 +956,7 @@ function computeReportName({
     conciergeReportID,
     reportAttributes,
     isTrackIntentUser,
+    pendingDeleteMemberAccountIDs,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -1001,6 +1003,7 @@ function computeReportName({
             conciergeReportID,
             reportAttributes,
             isTrackIntentUser,
+            pendingDeleteMemberAccountIDs: undefined,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
     }
@@ -1035,7 +1038,7 @@ function computeReportName({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report) ?? '';
+        return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report, pendingDeleteMemberAccountIDs) ?? '';
     }
 
     let formattedName: string | undefined;

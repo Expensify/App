@@ -116,6 +116,7 @@ export default createOnyxDerivedValueConfig({
             policyTags,
             conciergeReportID,
             introSelected,
+            reportMetadata,
         ],
         {currentValue, sourceValues},
     ) => {
@@ -365,6 +366,11 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
+                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
+                const pendingDeleteMemberAccountIDs = reportReportMetadata?.pendingChatMembers
+                    ?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map((member) => member.accountID);
+
                 acc[report.reportID] = {
                     reportName: report
                         ? computeReportName({
@@ -382,6 +388,7 @@ export default createOnyxDerivedValueConfig({
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              pendingDeleteMemberAccountIDs,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
