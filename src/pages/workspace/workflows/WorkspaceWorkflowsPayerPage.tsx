@@ -85,7 +85,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
-    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser ?? policy?.owner);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -98,6 +98,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
     const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
+    const isManualReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const isAutoReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     const isDeletedPolicyEmployee = (policyEmployee: PolicyEmployee) =>
         !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
@@ -186,7 +188,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             setIsAlertVisible(true);
             return;
         }
-        if (policy?.achAccount?.reimburser === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        // When no payer is stored on the policy, the owner is the fallback payer
+        const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+
+        // Skip bank-account sharing when the selection matches the payer, or when manual reimbursement has no bank account to share.
+        if (reimburserEmail === authorizedPayerEmail || !isAutoReimbursement) {
             Navigation.goBack();
             return;
         }
@@ -207,8 +213,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         if (!selectedPayer) {
             return;
         }
+
+        if (isManualReimbursement || !bankAccountID) {
+            onButtonPress();
+            return;
+        }
+
         const isSelectedPayerOwner = policy?.owner === selectedPayer;
-        const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
+        const isSelectedAlreadyAPayer = (policy?.achAccount?.reimburser ?? policy?.owner) === selectedPayer;
         const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
         const isAccountAlreadySharedOnMainBankAccount = policy?.achAccount?.sharees ? policy?.achAccount.sharees.includes(selectedPayer) : false;
 
@@ -257,10 +269,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const setPolicyAuthorizedPayer = (member: MemberOption) => setSelectedPayer(personalDetails?.[member.accountID]?.login);
 
     const shouldShowBlockingPage =
-        (isEmptyObject(policy) && !isLoadingReportData) ||
-        isPendingDeletePolicy(policy) ||
-        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
-        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const totalNumberOfEmployeesEitherOwnerOrAdmin = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
         const isOwner = policy?.owner === email;
