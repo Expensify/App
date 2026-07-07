@@ -11,7 +11,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 
 type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'> & {
-    headerMedia?: IconAsset;
+    headerMedia?: IconAsset | undefined;
 };
 
 export default function TableEmptyState(emptyStateProps: TableEmptyStateProps) {
