@@ -1,7 +1,9 @@
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 const DYNAMIC_TERMS_ROUTE = 'travel/example.com/accept/policy-1';

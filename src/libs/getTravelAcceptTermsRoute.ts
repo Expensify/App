@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isNonUSDPolicy, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
