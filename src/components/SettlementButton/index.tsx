@@ -81,7 +81,7 @@ function SettlementButton({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    buttonSize = CONST.BUTTON_SIZE.MEDIUM,
     extraSmall = false,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,

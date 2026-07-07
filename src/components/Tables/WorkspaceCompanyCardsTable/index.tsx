@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
-import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -34,7 +34,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
@@ -118,7 +118,9 @@ function WorkspaceCompanyCardsTable({
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
-        ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
+        ? {
+              [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+          }
         : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
 
     const selectedFeedStatus = selectedFeed?.status;
@@ -278,14 +280,18 @@ function WorkspaceCompanyCardsTable({
 
     const filterConfig: FilterConfig = {
         status: {
+            filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
             label: translate('common.status'),
-            filterType: 'single-select',
             options: [
-                {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
-                {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
-                {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
+                {
+                    label: translate('workspace.moreFeatures.companyCards.assignedCards'),
+                    value: 'assigned',
+                },
+                {
+                    label: translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                    value: 'unassigned',
+                },
             ],
-            default: 'all',
         },
     };
 
@@ -316,33 +322,6 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-
-    // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
-    // When switching back to wide layout, we want to restore the previous sorting.
-    useEffect(() => {
-        if (shouldUseNarrowTableLayout) {
-            if (isNarrowLayoutRef.current) {
-                return;
-            }
-
-            isNarrowLayoutRef.current = true;
-            const activeSorting = tableRef.current?.getActiveSorting();
-
-            setActiveSortingInWideLayout(activeSorting);
-            tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
-            return;
-        }
-
-        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
-            return;
-        }
-
-        isNarrowLayoutRef.current = false;
-        tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
-
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -354,19 +333,11 @@ function WorkspaceCompanyCardsTable({
                 isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
-                showTableControls={showTableControls}
                 canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
             />
         </View>
     ) : undefined;
-
-    const ListHeader = (
-        <>
-            {headerButtonsComponent}
-            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
-        </>
-    );
 
     const LoadingComponent = (
         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -374,7 +345,11 @@ function WorkspaceCompanyCardsTable({
                 color={theme.spinner}
                 style={[styles.pl3]}
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'WorkspaceCompanyCardsTable', isLoading, isLoadingCards}}
+                reasonAttributes={{
+                    context: 'WorkspaceCompanyCardsTable',
+                    isLoading,
+                    isLoadingCards,
+                }}
             />
         </View>
     );
@@ -392,10 +367,9 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {!shouldUseNarrowTableLayout && ListHeader}
+            {headerButtonsComponent}
 
             {isLoading && !feedErrorKey && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
@@ -403,7 +377,6 @@ function WorkspaceCompanyCardsTable({
                 <ScrollView addBottomSafeAreaPadding>
                     {isFeedPending && (
                         <View style={styles.flex1}>
-                            {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}
@@ -444,7 +417,13 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && <Table.Body />}
+            {showCards && (
+                <>
+                    <Table.FilterBar label={translate('workspace.companyCards.findCard')} />
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }
