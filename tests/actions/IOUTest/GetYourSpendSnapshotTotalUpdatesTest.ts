@@ -1,5 +1,10 @@
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {getYourSpendSnapshotTotalUpdates, getYourSpendSnapshotTransactionRemovalUpdates, transactionMatchesAwaitingApprovalQuery} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
+import {
+    getYourSpendSnapshotReimbursableUpdates,
+    getYourSpendSnapshotTotalUpdates,
+    getYourSpendSnapshotTransactionRemovalUpdates,
+    transactionMatchesAwaitingApprovalQuery,
+} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {buildAwaitingApprovalQuery} from '@libs/YourSpendQueryUtils';
@@ -229,6 +234,82 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
     });
 });
 
+describe('getYourSpendSnapshotReimbursableUpdates', () => {
+    it('subtracts the amount and drops the data row when an expense becomes non-reimbursable', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-30000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        // Flipping a 100 reimbursable spend to non-reimbursable pulls the (negative) section total toward zero: -300 -> -200.
+        const {optimisticData, failureData} = getYourSpendSnapshotReimbursableUpdates({
+            transaction,
+            updatedTransaction: {...transaction, reimbursable: false},
+            iouReport: expenseReport,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
+        expect(optimisticData).toEqual([
+            expect.objectContaining({key: snapshotKey, value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}}}),
+            expect.objectContaining({key: snapshotKey, value: {data: {[transactionKey]: null}}}),
+        ]);
+        expect(failureData).toEqual([
+            expect.objectContaining({key: snapshotKey, value: {search: {total: -30000, count: 1, currency: CONST.CURRENCY.USD}}}),
+            expect.objectContaining({key: snapshotKey, value: {data: {[transactionKey]: transaction}}}),
+        ]);
+    });
+
+    it('adds the amount and inserts the data row when an expense becomes reimbursable', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-10000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const updatedTransaction: Transaction = {...transaction, reimbursable: true};
+
+        // Flipping a 100 non-reimbursable spend to reimbursable makes the (negative) section total more negative: -100 -> -200.
+        const {optimisticData, failureData} = getYourSpendSnapshotReimbursableUpdates({
+            transaction: {...transaction, reimbursable: false},
+            updatedTransaction,
+            iouReport: expenseReport,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
+        expect(optimisticData).toEqual([
+            expect.objectContaining({key: snapshotKey, value: {search: {total: -20000, count: 2, currency: CONST.CURRENCY.USD}}}),
+            expect.objectContaining({key: snapshotKey, value: {data: {[transactionKey]: updatedTransaction}}}),
+        ]);
+        expect(failureData).toEqual([
+            expect.objectContaining({key: snapshotKey, value: {search: {total: -10000, count: 1, currency: CONST.CURRENCY.USD}}}),
+            expect.objectContaining({key: snapshotKey, value: {data: {[transactionKey]: null}}}),
+        ]);
+    });
+
+    it('does not patch snapshots when the reimbursable flag is unchanged', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-10000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const {optimisticData} = getYourSpendSnapshotReimbursableUpdates({
+            transaction,
+            updatedTransaction: {...transaction, merchant: 'Renamed'},
+            iouReport: expenseReport,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        expect(optimisticData).toHaveLength(0);
+    });
+});
+
 describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
     it('includes awaiting-approval snapshot total updates when the amount changes', async () => {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
@@ -265,6 +346,39 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
                         currency: CONST.CURRENCY.USD,
                     },
                 },
+            }),
+        );
+    });
+
+    it('includes snapshot updates that remove the expense when it is toggled non-reimbursable', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-30000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const {onyxData} = getUpdateMoneyRequestParams({
+            transactionID: TRANSACTION_ID,
+            transactionThreadReport,
+            transactionChanges: {reimbursable: false},
+            policy: paidPolicy,
+            policyTagList: {},
+            reportPolicyTags: {},
+            policyCategories: {},
+            iouReport: expenseReport,
+            currentUserAccountIDParam: ACCOUNT_ID,
+            currentUserEmailParam: 'user@test.com',
+            isASAPSubmitBetaEnabled: false,
+            iouReportNextStep: undefined,
+            delegateAccountID: undefined,
+        });
+
+        const snapshotTotalUpdate = onyxData.optimisticData?.find((update) => update.key === snapshotKey && !!update.value && typeof update.value === 'object' && 'search' in update.value);
+        expect(snapshotTotalUpdate).toEqual(
+            expect.objectContaining({
+                value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}},
             }),
         );
     });
