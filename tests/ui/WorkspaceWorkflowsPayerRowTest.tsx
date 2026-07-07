@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -10,6 +10,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Navigation from '@libs/Navigation/Navigation';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -116,7 +117,7 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         await act(async () => {
             await Onyx.clear();
         });
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_YES and a bank account exists', async () => {
@@ -232,4 +233,50 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
 
         expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
+
+    it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.PENDING])(
+        'keeps the Payer row non-clickable when bank account is %s',
+        async (state) => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const bankAccountID = 123456;
+            const bankAccountList: BankAccountList = {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state,
+                    },
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    }),
+                );
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+            });
+
+            renderPage();
+            await waitForBatchedUpdatesWithAct();
+
+            const payerRow = screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'));
+            expect(payerRow).toBeOnTheScreen();
+
+            navigateSpy.mockClear();
+            fireEvent.press(payerRow);
+
+            expect(navigateSpy).not.toHaveBeenCalled();
+        },
+    );
 });

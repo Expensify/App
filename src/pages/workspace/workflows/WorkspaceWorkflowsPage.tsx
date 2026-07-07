@@ -390,6 +390,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+        const canChangePayer = canWritePayments && !isAccountInSetupState;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         const bankAccountPendingAction = bankAccountConnectedToWorkspace?.pendingAction;
@@ -778,10 +779,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               titleStyle={styles.textNormalThemeText}
                                               descriptionTextStyle={styles.textLabelSupportingNormal}
                                               description={translate('workflowsPayerPage.payer')}
-                                              onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                              onPress={canChangePayer ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID)) : undefined}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
-                                              shouldShowRightIcon={canWritePayments}
-                                              interactive={canWritePayments}
+                                              shouldShowRightIcon={canChangePayer}
+                                              interactive={canChangePayer}
                                               wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                               brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                           />
