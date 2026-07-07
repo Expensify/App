@@ -145,6 +145,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isMoneyRequestReport: () => mockIsMoneyRequestReport,
     isInvoiceReport: () => mockIsInvoiceReport,
     getReportLastVisibleActionCreated: () => mockLastVisibleActionCreated,
+    shouldReportAlignToTop: () => (mockIsTransactionThread && !mockIsSentMoneyReportAction) || mockIsMoneyRequestReport || mockIsInvoiceReport,
 }));
 
 // --- Browser ---
@@ -248,7 +249,7 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.shouldBeAlignedToTop).toBe(false);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
         });
 
         it('is aligned to top and focuses to top on mount for a transaction thread report', async () => {
@@ -258,7 +259,7 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.shouldBeAlignedToTop).toBe(true);
             expect(result.current.shouldFocusToTopOnMount).toBe(true);
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
         });
 
         it('is aligned to top for a money request report', async () => {
@@ -407,8 +408,8 @@ describe('useReportActionsScroll', () => {
                 result.current.onLoad();
             });
 
-            // Stays false for a regular chat.
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            // Stays undefined for a regular chat.
+            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
         });
 
         it('waits for the report actions to have loaded before disabling autoscroll-to-top', async () => {
@@ -416,13 +417,13 @@ describe('useReportActionsScroll', () => {
             // No loading state → onLoad bails.
 
             const {result} = await renderScroll();
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             act(() => {
                 result.current.onLoad();
             });
 
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
         });
 
         it('disables autoscroll-to-top after a frame once report actions have loaded', async () => {
@@ -430,20 +431,21 @@ describe('useReportActionsScroll', () => {
             await setReportLoadingState({isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
 
             const {result} = await renderScroll();
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             act(() => {
                 result.current.onLoad();
             });
 
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            // The threshold must drop to 0 (not undefined) so FlashList keeps clearing its internal pending-autoscroll flag.
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(0);
         });
 
         it('disables autoscroll-to-top when report actions finish loading after the list has mounted', async () => {
             mockIsTransactionThread = true;
 
             const {result} = await renderScroll();
-            expect(result.current.shouldAutoscrollToBottom).toBe(true);
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             // Load completes after mount → companion effect turns autoscroll off.
             await act(async () => {
@@ -451,7 +453,8 @@ describe('useReportActionsScroll', () => {
                 await waitForBatchedUpdates();
             });
 
-            expect(result.current.shouldAutoscrollToBottom).toBe(false);
+            // The threshold must drop to 0 (not undefined) so FlashList keeps clearing its internal pending-autoscroll flag.
+            expect(result.current.maintainVisibleContentPosition?.autoscrollToBottomThreshold).toBe(0);
         });
     });
 
