@@ -1,17 +1,22 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {ValidateCodeActionContentProps} from './type';
-import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
+
+import ValidateCodeForm from './ValidateCodeForm';
 
 function ValidateCodeActionContent({
     title,

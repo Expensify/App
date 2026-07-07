@@ -1,12 +1,15 @@
+import run from '@github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges';
+import GitHubUtils from '@github/libs/GithubUtils';
+
+import Git from '@scripts/utils/Git';
+
+import type {Writable} from 'type-fest';
+
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import type {Writable} from 'type-fest';
-import run from '@github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges';
-import GitHubUtils from '@github/libs/GithubUtils';
-import Git from '@scripts/utils/Git';
 
 // Mock all dependencies
 jest.mock('@actions/core');
