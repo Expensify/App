@@ -58,6 +58,7 @@ import {
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
+    isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
@@ -137,7 +138,10 @@ function isSubmitAction(
 
     const reportTransactionsList = reportTransactions ?? [];
     const hasNoSubmittableTransaction =
-        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
+        reportTransactionsList.length > 0 &&
+        reportTransactionsList.every(
+            (transaction) => isScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report),
+        );
 
     if (hasNoSubmittableTransaction) {
         return false;
