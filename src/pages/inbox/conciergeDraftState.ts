@@ -18,6 +18,8 @@ type ConciergeDraft = {
     pusherQueuedTargetEvents?: ConciergeDraftEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
     pusherPendingCompletionEvent?: ConciergeDraftEvent;
+    /** Terminal lifecycle event used to reject stale chunks after a content-free completion. */
+    pusherTerminalEvent?: ConciergeDraftEvent;
     /** Number of UTF-16 source units consumed from the current Pusher target. */
     pusherVisibleSourceOffset?: number;
     /** Source markdown prefix consumed from the current Pusher target, used to detect server-side corrections. */

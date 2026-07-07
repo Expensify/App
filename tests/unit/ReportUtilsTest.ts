@@ -106,6 +106,7 @@ import {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
+    getParsedComment,
     getParticipantsList,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
@@ -138,6 +139,7 @@ import {
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
+    isActionCreator,
     isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -145,10 +147,12 @@ import {
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
+    isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
+    isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
     isRootGroupChat,
@@ -157,6 +161,7 @@ import {
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
@@ -3195,13 +3200,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -3220,7 +3225,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -3248,14 +3253,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3268,7 +3273,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined);
             expect(actual).toEqual({});
         });
 
@@ -3295,13 +3300,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal);
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
             expect(actual).toHaveProperty('reportName');
         });
     });
@@ -3526,6 +3531,44 @@ describe('ReportUtils', () => {
             // The GBR should appear on the policy expense chat but not on the report itself
             expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false when the outstanding child expense only has pending card transactions', async () => {
+            const expenseReportID = '7001';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(100, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const pendingCardTransaction = {
+                ...createRandomTransaction(7001),
+                transactionID: '7001',
+                reportID: expenseReportID,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${pendingCardTransaction.transactionID}`, pendingCardTransaction);
+            await waitForBatchedUpdates();
+
+            // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
@@ -6223,6 +6266,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6247,6 +6291,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6276,6 +6321,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6329,6 +6375,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6352,6 +6399,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6375,6 +6423,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6398,6 +6447,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6434,6 +6484,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6465,6 +6516,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6496,6 +6548,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6521,6 +6574,7 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6548,6 +6602,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6568,6 +6623,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6591,6 +6647,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6634,6 +6691,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6654,6 +6712,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6682,6 +6741,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -6739,6 +6799,36 @@ describe('ReportUtils', () => {
             ).toBeNull();
         });
 
+        it('should include an empty chat in the option list only when the conciergeReportID param marks it as the concierge chat', async () => {
+            // Same empty chat in every respect - only the conciergeReportID param differs between the two assertions,
+            // so this isolates the concierge branch as the sole cause of the report being shown vs hidden.
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'concierge-report-param-321',
+            };
+
+            // Clear the deprecated Onyx.connect fallback so the param is the only source considered
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            const params = {
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: true,
+                draftComment: '',
+                isReportArchived: undefined,
+            };
+
+            // When the param identifies this report as Concierge, the empty chat is kept in the option list...
+            expect(shouldReportBeInOptionList({...params, conciergeReportID: report.reportID})).toBe(true);
+            // ...but with a non-matching conciergeReportID the identical empty chat is excluded.
+            expect(shouldReportBeInOptionList({...params, conciergeReportID: 'a-different-report-id'})).toBe(false);
+        });
+
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
@@ -6757,6 +6847,7 @@ describe('ReportUtils', () => {
                     includeDomainEmail: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6803,6 +6894,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6823,6 +6915,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6857,6 +6950,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     betas: undefined,
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6888,6 +6982,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -6917,6 +7012,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6939,6 +7035,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -6983,6 +7080,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7034,6 +7132,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -7056,6 +7155,7 @@ describe('ReportUtils', () => {
                     includeSelfDM: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeNull();
         });
@@ -7077,6 +7177,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -7098,6 +7199,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7119,6 +7221,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7140,6 +7243,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7156,6 +7260,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7212,6 +7317,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -10075,6 +10181,86 @@ describe('ReportUtils', () => {
             const result = canUserPerformWriteAction(policyAnnounceRoom, false);
 
             expect(result).toBe(true);
+        });
+    });
+
+    describe('getParsedComment', () => {
+        beforeEach(async () => {
+            // Given the current session uses a public-domain email (so the deprecated fallback domain would be empty) and ragnar@vikings.net is a known login
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: 'publicuser@gmail.com', accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            });
+            await waitForBatchedUpdates();
+        });
+        afterEach(async () => {
+            // Restore the session so other tests are unaffected
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+        it('expands a short mention using the explicitly passed currentUserEmail private domain', () => {
+            // When a short mention is parsed with an explicit private-domain currentUserEmail param
+            const result = getParsedComment('@ragnar', undefined, undefined, undefined, undefined, currentUserEmail);
+
+            // Then the short mention is expanded to the full login using the passed email's domain (not the empty session domain)
+            expect(result).toContain('ragnar@vikings.net');
+        });
+        it('does not expand a short mention when the passed currentUserEmail is a public domain', () => {
+            // When a short mention is parsed with an explicit public-domain currentUserEmail param
+            const result = getParsedComment('@ragnar', undefined, undefined, undefined, undefined, 'someone@gmail.com');
+
+            // Then the short mention is not expanded because public domains have no mention domain
+            expect(result).not.toContain('ragnar@vikings.net');
+        });
+    });
+
+    describe('populateOptimisticReportFormula', () => {
+        it('resolves {user:email} from the explicitly passed currentUserEmail param', () => {
+            // Given an optimistic report and an explicit currentUserEmail param
+            const report = {...createRandomReport(70001), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
+
+            // When the {user:email} formula is populated
+            const result = populateOptimisticReportFormula('{user:email}', report, undefined, false, 'passed@example.com');
+
+            // Then it uses the passed email rather than the session email
+            expect(result).toBe('passed@example.com');
+        });
+        it('resolves {user:email|frontPart} from the explicitly passed currentUserEmail param', () => {
+            // Given an optimistic report and an explicit currentUserEmail param
+            const report = {...createRandomReport(70002), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
+
+            // When the {user:email|frontPart} formula is populated
+            const result = populateOptimisticReportFormula('{user:email|frontPart}', report, undefined, false, 'passed@example.com');
+
+            // Then it uses the front part of the passed email
+            expect(result).toBe('passed');
+        });
+    });
+
+    describe('current user account ID predicates', () => {
+        it('isReportManager uses the explicitly passed currentUserAccountID', () => {
+            // Given a report managed by account 999
+            const report: Report = {...createRandomReport(70010), managerID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isReportManager(report, 999)).toBe(true);
+            expect(isReportManager(report, 1000)).toBe(false);
+        });
+        it('isCurrentUserSubmitter uses the explicitly passed currentUserAccountID', () => {
+            // Given a report owned by account 999
+            const report: Report = {...createRandomReport(70011), ownerAccountID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isCurrentUserSubmitter(report, 999)).toBe(true);
+            expect(isCurrentUserSubmitter(report, 1000)).toBe(false);
+        });
+        it('isActionCreator uses the explicitly passed currentUserAccountID', () => {
+            // Given a report action authored by account 999
+            const reportAction = {...createRandomReportAction(70012), actorAccountID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isActionCreator(reportAction, 999)).toBe(true);
+            expect(isActionCreator(reportAction, 1000)).toBe(false);
         });
     });
 
@@ -13618,6 +13804,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13676,6 +13863,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -13783,6 +13971,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13826,6 +14015,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -14352,6 +14542,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14535,6 +14726,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -14720,6 +14912,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14742,6 +14935,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -14843,6 +15037,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedBefore.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14883,6 +15078,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedAfter.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -15537,6 +15733,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15604,6 +15801,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15675,6 +15873,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15745,6 +15944,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -17809,6 +18009,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -17878,6 +18079,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
