@@ -125,14 +125,7 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
             waitForUpcomingTransition: true,
         });
 
-        return () => {
-            transitionCancelHandleRef.current?.cancel();
-            transitionCancelHandleRef.current = undefined;
-            preInsertTaskRef.current?.cancel();
-            preInsertTaskRef.current = undefined;
-            clearTimeout(preInsertTimerRef.current);
-            preInsertTimerRef.current = undefined;
-        };
+        return cancelPreInsert;
     }, [preInsertTiming, route, shouldPreInsert]);
 
     function revealDestination(afterTransition?: AfterTransition) {
