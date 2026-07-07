@@ -55,7 +55,7 @@ type FilterPopupButtonProps = {
     handleRef?: RefObject<FilterPopupButtonHandle | null>;
 
     /** Called whenever the popover closes (click-outside, Cancel, Save or browser back) so the caller can leave any associated edit mode */
-    onOverlayClose?: (reason?: 'browserBack') => void;
+    onOverlayClose?: (isClosedByBrowserNavigation?: boolean) => void;
 
     /** Called after a browser back/forward while the popover is open; return true to close it (in-app pushes/pops never trigger this) */
     shouldCloseOnBrowserNavigation?: () => boolean;
@@ -150,7 +150,7 @@ function FilterPopupButton({
             if (!isOverlayVisibleRef.current) {
                 return;
             }
-            onOverlayCloseRef.current?.('browserBack');
+            onOverlayCloseRef.current?.(true);
         },
         [],
     );
@@ -175,7 +175,7 @@ function FilterPopupButton({
                 return;
             }
             setIsOverlayVisible(false);
-            onOverlayCloseRef.current?.('browserBack');
+            onOverlayCloseRef.current?.(true);
         };
         unsubscribe = subscribeToRootNavigation(evaluate);
         fallbackTimer = setTimeout(evaluate, POPSTATE_SETTLE_TIME_MS);

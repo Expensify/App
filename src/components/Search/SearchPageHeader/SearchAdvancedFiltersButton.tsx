@@ -138,7 +138,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
             shouldCloseOnBrowserNavigation={() => getCurrentSearchQueryJSON()?.hash !== queryJSON.hash}
             onOverlayClose={
                 isEditingSavedView
-                    ? (reason) => {
+                    ? (isClosedByBrowserNavigation) => {
                           if (skipRevertOnCloseRef.current) {
                               skipRevertOnCloseRef.current = false;
                               return;
@@ -147,7 +147,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                               return;
                           }
                           // Browser back means the user is leaving — drop edit mode without navigating back to the view.
-                          if (reason === 'browserBack') {
+                          if (isClosedByBrowserNavigation) {
                               clearSavedViewEditMode();
                               return;
                           }
