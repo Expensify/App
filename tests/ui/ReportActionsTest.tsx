@@ -193,6 +193,20 @@ describe('ReportActions (orchestrator)', () => {
         expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
     });
 
+    it('does not render the app-load skeleton when report actions are already cached during app load', () => {
+        setupUseOnyx({isLoadingApp: true});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [{reportActionID: '1'} as OnyxTypes.ReportAction],
+        });
+
+        render(<ReportActions />);
+
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        expect(mockReportActionsListBody).toHaveBeenCalled();
+        expect(mockMarkOpenReportEnd).not.toHaveBeenCalled();
+    });
+
     it('mounts the body (not the orchestrator app-load skeleton) for a Concierge report during app load', () => {
         mockIsConciergeChatReport.mockReturnValue(true);
         setupUseOnyx({isLoadingApp: true});
