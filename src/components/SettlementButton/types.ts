@@ -1,13 +1,16 @@
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {PaymentMethod} from '@components/KYCWall/types';
+
+import type CONST from '@src/CONST';
 import type ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | ReturnType<typeof ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute>;
 
@@ -69,7 +72,7 @@ type SettlementButtonProps = WithSentryLabel & {
     formattedAmount?: string;
 
     /** The size of button size */
-    buttonSize?: ButtonSizeValue;
+    buttonSize?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Render button in extra-small size */
     extraSmall?: boolean;

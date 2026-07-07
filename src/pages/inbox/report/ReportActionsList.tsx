@@ -1,24 +1,19 @@
-import {useRoute} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+
 import useEnvironment from '@hooks/useEnvironment';
+import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
-import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -36,6 +31,7 @@ import {
 import {
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isCanceledTaskReport,
     isExpenseReport,
     isHarvestCreatedExpenseReport,
@@ -44,78 +40,43 @@ import {
     isTaskReport,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
+import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
+import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 
 type ReportActionsListProps = {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
-
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** The transaction thread report's parentReportAction */
-    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** Sorted actions prepared for display */
-    sortedReportActions: OnyxTypes.ReportAction[];
-
-    /** Sorted actions that should be visible to the user */
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** The ID of the report to display actions for */
+    reportID: string;
 
     /** Callback executed on list layout */
-    onLayout: (event: LayoutChangeEvent) => void;
-
-    /** Callback executed on scroll */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Function to load more chats */
-    loadOlderChats: (force?: boolean) => void;
-
-    /** Function to load newer chats */
-    loadNewerChats: (force?: boolean) => void;
-
-    /** Whether the report has newer actions to load */
-    hasNewerActions: boolean;
-
-    /** The oldest unread report action */
-    oldestUnreadReportAction?: OnyxEntry<OnyxTypes.ReportAction> | undefined;
-
-    /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
-    sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
-
-    /** When true, the paginated hook ignores deep-link / unread anchors */
-    treatAsNoPaginationAnchor: boolean;
-
-    setTreatAsNoPaginationAnchor: (value: boolean) => void;
-
-    /** Stable key to remount the list when the deep-linked action or unread anchor (or report) changes */
-    listID: string;
-
-    /** Whether the chat history is hidden (concierge side panel fresh state) */
-    showHiddenHistory?: boolean;
-
-    /** Whether there are previous messages that can be revealed */
-    hasPreviousMessages?: boolean;
-
-    /** Callback to show previous messages */
-    onShowPreviousMessages?: () => void;
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 /**
@@ -132,49 +93,61 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-function ReportActionsList({
-    report,
-    transactionThreadReport,
-    parentReportAction,
-    sortedReportActions,
-    sortedVisibleReportActions,
-    onScroll,
-    loadNewerChats,
-    loadOlderChats,
-    hasNewerActions,
-    oldestUnreadReportAction,
-    sortedAllReportActionsForPagination,
-    treatAsNoPaginationAnchor,
-    setTreatAsNoPaginationAnchor,
-    onLayout,
-    listID,
-    parentReportActionForTransactionThread,
-    showHiddenHistory,
-    hasPreviousMessages,
-    onShowPreviousMessages,
-}: ReportActionsListProps) {
+/**
+ * Renders the report-actions list. Reads its data from `ReportActionsListStateContext` / `ReportActionsListActionsContext` and holds the
+ * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
+ * mounts it only once content is ready, so those hooks never run while a skeleton shows.
+ */
+function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
 
-    const {isOffline} = useNetworkWithOfflineStatus();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const {scrollOffsetRef} = useContext(ActionListContext);
-    const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
-    const {clearDraft} = useConciergeDraftActions();
-    const {sessionStartTime: conciergeSessionStartTime} = useConciergeSessionState();
+    const {
+        report,
+        hasOnceLoadedReportActions,
+        hasNewerActions,
+        sortedAllReportActions,
+        oldestUnreadReportAction,
+        transactionThreadReport,
+        parentReportActionForTransactionThread,
+        treatAsNoPaginationAnchor,
+        parentReportAction,
+        sortedReportActions,
+        sortedVisibleReportActions,
+        isConciergeHiddenHistory,
+        showFullHistory,
+        hasPreviousMessages,
+    } = useReportActionsListState();
 
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
+
+    const {isOffline} = useNetwork();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const reportActionIDFromRoute = route?.params?.reportActionID;
+    const {sessionStartTime} = useConciergeSessionState();
+
+    const didLayout = useRef(false);
+
+    useEffect(() => {
+        didLayout.current = false;
+    }, [reportID]);
+
+    useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
+
+    // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
+    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
+
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
 
     const reportAttributesSelector = useCallback(
         (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
-            const attrs = value?.reports?.[report.reportID];
+            const attrs = value?.reports?.[reportID];
             if (!attrs) {
                 return undefined;
             }
@@ -184,7 +157,7 @@ function ReportActionsList({
                 brickRoadStatus: attrs.brickRoadStatus,
             };
         },
-        [report.reportID],
+        [reportID],
     );
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: reportAttributesSelector,
@@ -192,26 +165,31 @@ function ReportActionsList({
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
     const stableReportSelector = useCallback((reportEntry: OnyxEntry<OnyxTypes.Report>) => getStableReportSelector(reportEntry), []);
-    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: stableReportSelector});
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: stableReportSelector});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: stableReportSelector});
 
-    const linkedReportActionID = route?.params?.reportActionID;
+    const linkedReportActionID = reportActionIDFromRoute;
 
-    const hasHeaderRendered = useRef(false);
+    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
+    const {clearDraft} = useConciergeDraftActions();
+
+    const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
+    const onShowPreviousMessages = handleShowPreviousMessages;
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
-        reportID: report.reportID,
+        reportID,
         sortedVisibleReportActions,
         sortedReportActions,
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
-        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
+        hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
     });
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
-        reportID: report.reportID,
+        reportID,
         report,
         transactionThreadReport,
         sortedVisibleReportActions,
@@ -224,7 +202,7 @@ function ReportActionsList({
             return sortedVisibleReportActions;
         }
 
-        if (showHiddenHistory && conciergeSessionStartTime && draftReportAction.created < conciergeSessionStartTime) {
+        if (showHiddenHistory && sessionStartTime && draftReportAction.created < sessionStartTime) {
             return sortedVisibleReportActions;
         }
 
@@ -249,7 +227,7 @@ function ReportActionsList({
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [conciergeSessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions]);
+    }, [sessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions]);
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -285,9 +263,10 @@ function ReportActionsList({
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
         initialScrollKey,
-        shouldAutoscrollToBottom,
+        maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
+        reportID,
         report,
         transactionThreadReport,
         parentReportAction,
@@ -299,7 +278,7 @@ function ReportActionsList({
         hasNewerActions,
         draftAutoScrollKey,
         actionBadgeTargetIndex,
-        sortedAllReportActionsForPagination,
+        sortedAllReportActionsForPagination: sortedAllReportActions ?? [],
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     });
@@ -307,7 +286,6 @@ function ReportActionsList({
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         trackVerticalScrolling(event);
         setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-        onScroll?.(event);
     };
 
     const loadOlderChatsOnEndReached = () => {
@@ -331,11 +309,6 @@ function ReportActionsList({
     };
 
     const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
-
-    // Same-screen report switches reuse this instance; per-report one-shot flags must not leak across reports.
-    useEffect(() => {
-        hasHeaderRendered.current = false;
-    }, [report.reportID]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
@@ -366,8 +339,22 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, renderedVisibleReportActions, report]);
 
+    // Precompute a reportActionID -> index map so renderItem can resolve the real index in O(1)
+    // instead of scanning renderedVisibleReportActions with indexOf on every render.
+    const actionIndexMap = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const [i, action] of renderedVisibleReportActions.entries()) {
+            map.set(action.reportActionID, i);
+        }
+        return map;
+    }, [renderedVisibleReportActions]);
+
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
+            // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
+            // FlashList index offset from the full array and causing wrong displayAsGroup computation.
+            const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
             const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
             return (
@@ -381,8 +368,8 @@ function ReportActionsList({
                         chatReport={chatReportStable}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
+                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, safeIndex, isOffline)
                         }
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
@@ -405,6 +392,7 @@ function ReportActionsList({
             );
         },
         [
+            actionIndexMap,
             draftReportActionID,
             firstVisibleReportActionID,
             hasPreviousMessages,
@@ -431,36 +419,26 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const canShowHeader = isOffline || hasHeaderRendered.current;
 
-    const listHeaderComponent = useMemo(() => {
-        // In case of an error we want to display the header no matter what.
-        if (!canShowHeader) {
-            hasHeaderRendered.current = true;
-
-            // Empty spacer so FlashList wraps a header and ListHeaderComponentStyle (flex: 1) applies —
-            // the wrapper sits at the visual bottom of the inverted list and pins items to the visual top.
-            return shouldBeAlignedToTop ? <View /> : null;
-        }
-
-        return (
+    const listHeaderComponent = useMemo(
+        () => (
             <ReportActionsListHeader
-                reportID={report.reportID}
-                onRetry={() => loadNewerChats(true)}
+                reportID={reportID}
                 hasActiveDraft={hasActiveDraft}
             />
-        );
-    }, [canShowHeader, hasActiveDraft, report.reportID, loadNewerChats, shouldBeAlignedToTop]);
+        ),
+        [hasActiveDraft, reportID],
+    );
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = useMemo(() => {
-        if (!shouldShowSkeleton) {
+        if (!shouldShowOfflineSkeleton) {
             return;
         }
 
         return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton]);
+    }, [shouldShowOfflineSkeleton]);
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -468,30 +446,26 @@ function ReportActionsList({
         isTrackIntentUser,
     });
 
-    // Decide where the list should be positioned on mount.
-    // 1. If we're opening a linked message (initialScrollKey), find that action in the list and scroll it to the top
-    //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
-    // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
-    //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
-    let initialScrollIndex: number | undefined;
-    let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
-    if (targetIndex > 0) {
-        initialScrollIndex = targetIndex;
-        initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
-    } else if (shouldFocusToTopOnMount) {
-        initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
-    }
+    /**
+     * Runs when the FlatList finishes laying out
+     */
+    const recordTimeToMeasureItemLayout = (event: LayoutChangeEvent) => {
+        onLayout?.(event);
+        if (didLayout.current) {
+            return;
+        }
 
-    const maintainVisibleContentPosition = {
-        disabled: !shouldMaintainVisibleContentPosition,
-        ...(shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : {}),
+        didLayout.current = true;
+
+        if (report) {
+            markOpenReportEnd(report, {warm: true});
+        }
     };
 
-    // When opening a linked message, wait for the first load before rendering the list: the batch of actions that
-    // arrives right after the initial load shifts the list and breaks the anchor to the linked action.
-    if (initialScrollKey && !isOffline && !reportLoadingState?.hasOnceLoadedReportActions && reportLoadingState?.isLoadingInitialReportActions) {
+    // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
+    // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
+    // is cleared mid-session while the latch keeps the content mounted.
+    if (!report) {
         return <ReportActionsSkeletonView />;
     }
 
@@ -530,7 +504,7 @@ function ReportActionsList({
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
-                        onLayout(event);
+                        recordTimeToMeasureItemLayout(event);
                         flushPendingScrollToBottom();
                     }}
                     onScroll={trackScrollPositionAndThreshold}
@@ -542,10 +516,12 @@ function ReportActionsList({
                         contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
                     }}
                     getItemType={(item) => item.actionName}
-                    initialScrollIndex={initialScrollIndex}
-                    initialScrollIndexParams={initialScrollIndexParams}
+                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
+                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
+                    initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
                     maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
+                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
@@ -555,4 +531,21 @@ function ReportActionsList({
     );
 }
 
-export default memo(ReportActionsList);
+const MemoizedReportActionsListContent = memo(ReportActionsListContent);
+
+/**
+ * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
+ * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
+ */
+function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+    return (
+        <ReportActionsSkeletonGuard reportID={reportID}>
+            <MemoizedReportActionsListContent
+                reportID={reportID}
+                onLayout={onLayout}
+            />
+        </ReportActionsSkeletonGuard>
+    );
+}
+
+export default ReportActionsList;
