@@ -165,7 +165,7 @@ describe('InitialSettingsPage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    it('shows Wallet and Preferences but hides Security for agent account', async () => {
+    it('shows Wallet, Preferences and Security for agent account', async () => {
         await setupUser('agent_123@expensify.ai');
 
         renderPage();
@@ -174,7 +174,7 @@ describe('InitialSettingsPage - agent account', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
             expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
-            expect(screen.queryByTestId('menu-item-Security')).toBeNull();
+            expect(screen.getByTestId('menu-item-Security')).toBeDefined();
         });
     });
 
