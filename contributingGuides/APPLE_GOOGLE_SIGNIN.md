@@ -153,14 +153,7 @@ After you've set ngrok up to be able to run on your machine (requires configurin
 ngrok http 8082 --host-header="dev.new.expensify.com:8082" --subdomain=mysubdomain
 ```
 
-The `--host-header` flag is there to avoid Rspack errors with header validation. In addition, add `allowedHosts: 'all'` to the dev server config in `rspack.dev.ts`:
-
-```js
-devServer: {
-  ...,
-  allowedHosts: 'all',
-}
-```
+The `--host-header` flag is there to avoid Rsbuild dev server errors with header validation.
 
 #### Configure Apple Service ID
 
@@ -188,23 +181,23 @@ Remember that you will need to restart the web server if you make a change to th
 
 Unlike with Apple, to test Google Sign-In we don't need to set up any http/ssh tunnels. We can just use `localhost`. But we need to set up the web environment to use `localhost` instead of `dev.new.expensify.com`
 
-- (web) Update the `rspack.dev.ts` config in `config/rspack/rspack.dev.ts` to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
+- (web) Update the dev server config in `config/rsbuild/rsbuild.config.ts` to change `host` from `dev.new.expensify.com` to `localhost` and drop the `https` block. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
     ```diff
-    diff --git a/config/rspack/rspack.dev.ts b/config/rspack/rspack.dev.ts
+    diff --git a/config/rsbuild/rsbuild.config.ts b/config/rsbuild/rsbuild.config.ts
     index e28383eff5..b14f6f34aa 100644
-    --- a/config/rspack/rspack.dev.ts
-    +++ b/config/rspack/rspack.dev.ts
-    @@ -44,9 +44,9 @@ module.exports = (env = {}) =>
-                    ...proxySettings,
-                    historyApiFallback: true,
+    --- a/config/rsbuild/rsbuild.config.ts
+    +++ b/config/rsbuild/rsbuild.config.ts
+    @@ -44,9 +44,9 @@ export default defineConfig(async ({command}) => {
+                    proxy,
                     port,
     -                host: 'dev.new.expensify.com',
+    -                https: {
+    -                    key: path.join(dirname, 'key.pem'),
+    -                    cert: path.join(dirname, 'certificate.pem'),
+    -                },
     +                host: 'localhost',
-                    server: {
-    -                    type: 'https',
-    +                    type: 'http',
-                        options: {
-                            key: path.join(__dirname, 'key.pem'),
-                            cert: path.join(__dirname, 'certificate.pem'),
+                    headers: {
+                        'Document-Policy': 'js-profiling',
+                    },
     ```
 
