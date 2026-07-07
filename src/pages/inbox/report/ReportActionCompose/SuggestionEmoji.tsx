@@ -139,6 +139,10 @@ function SuggestionEmoji({
                 e.preventDefault();
 
                 if (suggestionsExist) {
+                    // Block the next suggestion calculation so refocusing the composer (e.g. after closing the
+                    // FAB/action-menu popover with ESC) does not reopen the list the user just dismissed. The flag
+                    // is one-shot: calculateEmojiSuggestion clears it on its next run, so typing re-enables suggestions.
+                    shouldBlockCalc.current = true;
                     resetSuggestions();
                 }
 
