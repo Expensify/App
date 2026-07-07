@@ -11,7 +11,7 @@ import useIconCarouselPager from './useIconCarouselPager';
 
 /** Renders an icon inside a multi-gesture canvas for pinch, pan, and swipe interactions. */
 function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered, isPressed, contentFit}: ContentSizedIconProps) {
-    const {canvasSize, isCanvasLoading, updateCanvasSize} = useCanvasSize();
+    const {canvasSize, updateCanvasSize} = useCanvasSize();
     const {pagerRef, isScrollEnabled, onTap, onSwipeDown} = useIconCarouselPager();
 
     return (
@@ -19,7 +19,7 @@ function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth
             style={StyleSheet.absoluteFill}
             onLayout={updateCanvasSize}
         >
-            {!isCanvasLoading && !!canvasSize && (
+            {!!canvasSize && (
                 <MultiGestureCanvas
                     isActive
                     canvasSize={canvasSize}
