@@ -216,6 +216,9 @@ function isTaxCodeAutoDefaultForCurrency(
     currency: string | undefined,
     taxCode: string | undefined,
 ): boolean {
+    if (taxCode === '') {
+        return false;
+    }
     const defaultTaxCodeForCurrency = getDefaultTaxCode(policy, transaction, currency);
     return !taxCode || taxCode === defaultTaxCodeForCurrency;
 }
