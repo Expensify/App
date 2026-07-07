@@ -1,7 +1,7 @@
 ---
 title: Expensify Plan Types and Pricing
-description: A breakdown of Expensify's free Submit plan and paid Collect and Control plans, with pricing, features, and subscription discounts.
-keywords: [New Expensify, plan types, pricing, Submit plan, Collect plan, Control plan, free plan, subscription discounts, member pricing, Expensify Card, free for individuals]
+description: A breakdown of Expensify's Collect and Control plans, with pricing, features, and subscription discounts.
+keywords: [New Expensify, plan types, pricing, Collect plan, Control plan, subscription discounts, member pricing, Expensify Card, free for individuals]
 ---
 
 
@@ -34,29 +34,4 @@ Expensify offers two main subscription plans:
 The Collect Plan is always $5/member, regardless of subscription type or card use.
 
 **Note:** Expensify Cards generate 1% cash back on all U.S. purchases, or 2% if you spend $250K+/month across cards.
-
----
-
-# What the free Submit plan includes
-
-The Submit plan is a free plan for employees who want to submit expenses to an approver to get reimbursed by their employer. It includes a limited set of features focused on coding and submitting expenses:
-
-- Unlimited SmartScans
-- Categories and tags
-- Distance expenses
-- Submitting expenses to an approver
-- Marking outstanding reports as paid
-
-The following features are not included in the Submit plan. Attempting to enable one prompts you to upgrade to a paid plan:
-
-- Member roles (Collect)
-- Approvals and payments (Collect)
-- Accounting integrations (Collect)
-- Company cards (Collect)
-- The Expensify Card (Collect)
-- Expensify Travel (Collect)
-- Invoices (Collect)
-- Per Diem (Control)
-
-A Submit workspace can be upgraded to Collect or Control, but it can't be downgraded back to Submit. To learn more, see [how to use a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace).
 
