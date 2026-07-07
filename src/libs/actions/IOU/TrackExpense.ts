@@ -1001,7 +1001,11 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyName: policy?.name ?? defaultWorkspaceName ?? '',
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
-            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            // "Submit to my employer" must use the EMPLOYER engagement choice so the backend creates the Submit (submit2026)
+            // workspace with its intended ADVANCED approval mode (via generateFree2026). Passing TRACK_WORKSPACE makes the
+            // backend fall back to a track-style submit-and-close (OPTIONAL) workspace, which wrongly shows "Mark as done"
+            // instead of "Submit". Categorize/share keep TRACK_WORKSPACE since they create a team workspace.
+            engagementChoice: policyType === CONST.POLICY.TYPE.SUBMIT ? CONST.ONBOARDING_CHOICES.EMPLOYER : CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             // "Submit to my employer" with no existing workspace creates a Submit (submit2026) workspace; categorize/share default to a team workspace.
             type: policyType,
             currency: currentUserLocalCurrency,
