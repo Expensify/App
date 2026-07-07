@@ -24,7 +24,7 @@ type WorkspaceSpendRulesTableProps = {
     rulesData: SpendRuleTableItem[];
     selectionEnabled: boolean;
     selectedKeys: string[];
-    emptyState?: TableEmptyStateProps;
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
@@ -115,7 +115,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
             <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />
-            {!!emptyState && <Table.EmptyState {...emptyState} />}
+            <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
