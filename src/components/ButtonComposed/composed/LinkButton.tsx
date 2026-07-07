@@ -1,14 +1,15 @@
-import React from 'react';
 import Button from '@components/ButtonComposed/Button';
-import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
 import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
 import type {ButtonProps} from '@components/ButtonComposed/types';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 /**
  * Link-styled text primitive used inside `LinkButton`. Wraps `ButtonText` and
@@ -41,10 +42,10 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
  * exposes a `'link'` variant — all link-specific behavior lives here:
  *   - Transparent background applied as an invariant (callers cannot override
  *     it via `innerStyles`).
- *   - `shouldUseDefaultHover` is forced off because the legacy `link` Button
- *     was always rendered with `shouldUseDefaultHover={false}` everywhere it
- *     was used in the codebase. The two props are coupled in practice, so we
- *     bake that coupling into `LinkButton` and remove both from the public API.
+ *   - Default hover background neutralized via `hoverStyles={styles.bgTransparent}`,
+ *     since the legacy `link` Button was always rendered with the default hover
+ *     disabled everywhere it was used in the codebase. The two are coupled in
+ *     practice, so we bake that coupling into `LinkButton`.
  *   - `LinkButton.Text` (a `LinkButtonText` instance) applies link-colored
  *     typography.
  *
@@ -56,7 +57,6 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
  * Like `Button`, content is composed via children using the same primitives:
  *   - `LinkButton.Icon`
  *   - `LinkButton.Text`
- *   - `LinkButton.DoubleLineText`
  *   - `LinkButton.KeyboardShortcut`
  *
  * @example
@@ -67,7 +67,7 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
  * </LinkButton>
  * ```
  */
-type LinkButtonProps = Omit<ButtonProps, 'variant' | 'shouldUseDefaultHover'>;
+type LinkButtonProps = Omit<ButtonProps, 'variant'>;
 
 function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonProps) {
     const styles = useThemeStyles();
@@ -75,7 +75,7 @@ function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonPr
         <Button
             {...rest}
             innerStyles={[innerStyles, styles.bgTransparent]}
-            shouldUseDefaultHover={false}
+            hoverStyles={styles.bgTransparent}
         >
             {children}
         </Button>
@@ -85,7 +85,6 @@ function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonPr
 const LinkButton = Object.assign(LinkButtonComponent, {
     Icon: ButtonIcon,
     Text: LinkButtonText,
-    DoubleLineText: ButtonDoubleLineText,
     KeyboardShortcut: ButtonKeyboardShortcut,
 });
 

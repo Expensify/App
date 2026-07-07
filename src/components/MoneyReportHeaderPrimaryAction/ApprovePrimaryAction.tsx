@@ -1,13 +1,13 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -17,10 +17,15 @@ import {
     isReportOwner,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
 
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
@@ -88,25 +93,24 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (!isAnyTransactionOnHold) {
-            approveMoneyRequest({
-                expenseReport: iouReport,
-                expenseReportPolicy,
-                policy: activePolicy,
-                currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: currentUserEmail,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-                betas,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                full,
-                onApproved: startApprovedAnimation,
-                delegateEmail,
-            });
+            return;
         }
+        approveMoneyRequest({
+            expenseReport: iouReport,
+            expenseReportPolicy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+            betas,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            full,
+            onApproved: startApprovedAnimation,
+            delegateEmail,
+        });
     };
 
     return (

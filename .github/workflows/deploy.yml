@@ -533,6 +533,8 @@ jobs:
       - name: Submit previous production build to 100%
         run: bundle exec fastlane ios complete_hybrid_rollout
         continue-on-error: true
+        env:
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Submit production build for App Store review and a slow rollout
         run: bundle exec fastlane ios submit_hybrid_for_rollout
@@ -747,7 +749,22 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy]
+    needs:
+      [
+        androidBuild,
+        androidUploadGooglePlay,
+        androidUploadBrowserStack,
+        androidUploadApplause,
+        androidSubmit,
+        iosBuild,
+        iosUploadTestflight,
+        iosUploadBrowserStack,
+        iosUploadApplause,
+        iosSubmit,
+        webBuild,
+        webDeploy,
+        victoryChartRendererBuild,
+      ]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -794,12 +811,13 @@ jobs:
   checkDeploymentSuccess:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
-      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+      IS_RELEASE_READY: ${{ steps.checkReleaseReady.outputs.IS_RELEASE_READY }}
+      VCR_RESULT: ${{ needs.victoryChartRendererBuild.result }}
       ANDROID_RESULT: ${{ steps.platformResults.outputs.ANDROID_RESULT }}
       IOS_RESULT: ${{ steps.platformResults.outputs.IOS_RESULT }}
       WEB_RESULT: ${{ steps.platformResults.outputs.WEB_RESULT }}
-    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy]
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
     if: ${{ always() }}
     steps:
       # Determine effective result for each platform
@@ -866,9 +884,20 @@ jobs:
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
+      - name: Check release readiness
+        id: checkReleaseReady
+        run: |
+          isReleaseReady="false"
+          if [ "${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}" == "true" ] && \
+            [ "${{ needs.victoryChartRendererBuild.result }}" == "success" ]; then
+            isReleaseReady="true"
+          fi
+          echo "IS_RELEASE_READY=$isReleaseReady" >> "$GITHUB_OUTPUT"
+          echo "IS_RELEASE_READY is $isReleaseReady (VCR result: ${{ needs.victoryChartRendererBuild.result }})"
+
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
@@ -877,13 +906,16 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
 
+      - name: Verify victory-chart-renderer artifact is present
+        run: test -f ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
+
       - name: Get last production release
         id: get_last_prod_version
         run: echo "LAST_PROD_VERSION=$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name:  🚀 Create release 🚀
+      - name: 🚀 Create release 🚀
         run: |
           # Check if the release already exists
           if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
@@ -899,6 +931,12 @@ jobs:
                 --generate-notes \
                 --verify-tag \
                 --target "${{ env.DEPLOY_ENV }}"; then
+                break
+              fi
+
+              # A transient GitHub error during create doesn't necessarily mean the release failed; it may have been created anyway, so a later "already exists" error means it's present.
+              if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+                echo "Release ${{ needs.prep.outputs.TAG }} exists despite a create error (likely a transient 502), treating as success."
                 break
               fi
               if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
@@ -960,7 +998,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload victory-chart-renderer to GitHub Release
-        if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
         run: |
           gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
             "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
@@ -983,6 +1020,68 @@ jobs:
               }]
             }
 
+  # Upload the production-bound binary to Sentry for size analysis.
+  # - Cherry-pick deploys build native in this run, so we pull the .aab/.ipa from the build artifact.
+  # - Re-promotion deploys don't build native, so we download from the matching `<TAG>-staging`
+  #   GitHub Release populated during the staging deploy of that version.
+  androidUploadSentry:
+    name: Upload Android build to Sentry for size analysis
+    needs: [prep, androidBuild, checkDeploymentSuccess]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: >-
+      ${{ always()
+          && needs.prep.outputs.DEPLOY_ENV == 'production'
+          && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
+    timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          platform: Android
+          asset-name: Expensify-release.aab
+          artifact-name: androidBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
+
+  iosUploadSentry:
+    name: Upload iOS build to Sentry for size analysis
+    needs: [prep, iosBuild, checkDeploymentSuccess]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: >-
+      ${{ always()
+          && needs.prep.outputs.DEPLOY_ENV == 'production'
+          && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
+    timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          platform: iOS
+          asset-name: Expensify.ipa
+          artifact-name: iosBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
+
   # Why is this necessary for CP-to-prod? Consider this scenario:
   #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
   #   2. You then CP a PR to production, and in the process create `9.0.35-0`
@@ -993,7 +1092,7 @@ jobs:
   #   2. CP that version bump to staging
   cherryPickExtraVersionBump:
     needs: [prep, checkDeploymentSuccess]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/cherryPick.yml
     secrets: inherit
     with:
@@ -1003,8 +1102,8 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, createRelease]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) && needs.victoryChartRendererBuild.result == 'success' && needs.createRelease.result == 'success' }}
+    needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, victoryChartRendererBuild, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
@@ -1051,8 +1150,8 @@ jobs:
 
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild, androidUploadSentry, iosUploadSentry]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
@@ -1060,5 +1159,5 @@ jobs:
       android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
       ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
       web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}
-      android_sentry_url: ${{ needs.androidBuild.outputs.SENTRY_URL }}
-      ios_sentry_url: ${{ needs.iosBuild.outputs.SENTRY_URL }}
+      android_sentry_url: ${{ needs.androidUploadSentry.outputs.SENTRY_URL }}
+      ios_sentry_url: ${{ needs.iosUploadSentry.outputs.SENTRY_URL }}

@@ -1,9 +1,11 @@
-import * as core from '@actions/core';
-import {readFileSync} from 'fs';
-import type {PackageJson} from 'type-fest';
 import GitUtils from '@github/libs/GitUtils';
 import * as versionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
+
+import type {PackageJson} from 'type-fest';
+
+import * as core from '@actions/core';
+import {readFileSync} from 'fs';
 
 function run() {
     const semverLevel = core.getInput('SEMVER_LEVEL', {required: true});

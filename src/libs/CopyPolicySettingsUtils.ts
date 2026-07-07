@@ -1,11 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import {isAuthenticationError} from './actions/connections';
+
 import type {Part} from './actions/Policy/CopyPolicySettings';
-import {isTimeTrackingEnabled} from './PolicyUtils';
+
+import {isAuthenticationError} from './actions/connections';
+import {isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -28,6 +31,7 @@ const FEATURE_ROWS = [
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
     {part: 'travel', labelKey: 'workspace.common.travel'},
     {part: 'timeTracking', labelKey: 'workspace.moreFeatures.timeTracking.title'},
+    {part: 'receiptPartners', labelKey: 'workspace.moreFeatures.receiptPartners.title'},
 ] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
@@ -230,9 +234,20 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return !!policy?.isTravelEnabled;
         case 'timeTracking':
             return isTimeTrackingEnabled(policy);
+        case 'receiptPartners':
+            return !!policy?.receiptPartners?.enabled || !!policy?.receiptPartners?.uber?.organizationID;
         default:
             return false;
     }
+}
+
+/** Subtitle for the receipt partners row when Uber is connected on the source. */
+function getReceiptPartnersCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const organizationName = policy?.receiptPartners?.uber?.organizationName;
+    if (organizationName) {
+        return organizationName;
+    }
+    return translate('common.enabled');
 }
 
 /** Subtitle for the time tracking row; rate is shown without currency because targets may use a different output currency. */
@@ -244,6 +259,16 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
+/**
+ * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
+ * source re-provisions each target (the backend creates a fresh entity), which requires accepting
+ * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
+ * provisioning check in BookTravelButton.
+ */
+function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
+    return isWorkspaceProvisionedForTravel(policy?.travelSettings);
+}
+
 export {
     getConnectionCompanyID,
     getAccountingConnectionIdentity,
@@ -253,6 +278,8 @@ export {
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
+    isSourceProvisionedForTravel,
+    getReceiptPartnersCopySettingsDescription,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};

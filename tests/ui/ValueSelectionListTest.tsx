@@ -1,9 +1,13 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
+
 import CONST from '@src/CONST';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -19,7 +23,7 @@ jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.
 
 describe('ValueSelectionList', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
-    const items = Array.from({length: CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD + 2}, (_, index) => ({
+    const items = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 2}, (_, index) => ({
         value: `value-${index}`,
         label: `Label ${index}`,
         description: `Description ${index}`,

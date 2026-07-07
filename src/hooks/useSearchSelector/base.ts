@@ -1,21 +1,27 @@
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {useState} from 'react';
-import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useOnyx from '@hooks/useOnyx';
 import useSortedActions from '@hooks/useSortedActions';
-import type {GetOptionsConfig, Option, Options, SearchOption} from '@libs/OptionsListUtils';
+
+import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {useState} from 'react';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,
@@ -146,6 +152,8 @@ type UseSearchSelectorReturn = {
     onListEndReached: () => void;
 };
 
+const emptyOptionList: OptionList = {reports: [], personalDetails: []};
+
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
@@ -180,20 +188,6 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
-        shouldInitialize,
-    });
-
-    const optionsWithContacts = (() => {
-        if (!contactOptions?.length || !areOptionsInitialized) {
-            return defaultOptions;
-        }
-        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
-        return {
-            ...defaultOptions,
-            personalDetails: personalDetailsWithContacts,
-        };
-    })();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -211,6 +205,34 @@ function useSearchSelectorBase({
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
+    const isSearchingOptions = !!debouncedSearchTerm.trim();
+    const {
+        options: filteredOptions,
+        isLoading: isLoadingOptions,
+        loadMore: loadMoreReports,
+        hasMore: hasMoreReports,
+    } = useFilteredOptions({
+        enabled: shouldInitialize,
+        isSearching: isSearchingOptions,
+        batchSize: maxResultsPerPage,
+        betas,
+    });
+    const areOptionsInitialized = !isLoadingOptions;
+    const defaultOptions = filteredOptions ?? emptyOptionList;
+
+    const optionsWithContacts = (() => {
+        if (!contactOptions?.length || !areOptionsInitialized) {
+            return defaultOptions;
+        }
+        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
+        return {
+            ...defaultOptions,
+            personalDetails: personalDetailsWithContacts,
+        };
+    })();
 
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
@@ -240,6 +262,7 @@ function useSearchSelectorBase({
                     personalDetails,
                     sortedActions,
                     conciergeReportID,
+                    isTrackIntentUser,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
@@ -262,6 +285,7 @@ function useSearchSelectorBase({
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
                     sortedActions,
+                    isTrackIntentUser,
                     ...getValidOptionsConfig,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -287,6 +311,7 @@ function useSearchSelectorBase({
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
                     sortedActions,
+                    isTrackIntentUser,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
@@ -309,6 +334,7 @@ function useSearchSelectorBase({
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
                     sortedActions,
+                    isTrackIntentUser,
                     ...getValidOptionsConfig,
                 });
             default:
@@ -316,12 +342,20 @@ function useSearchSelectorBase({
         }
     })();
 
+    // Two independent pagination cursors are checked here on purpose:
+    // - hasMore/maxResults track how many relevance-sorted options are rendered.
+    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
     const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized || !hasMore) {
+        if (!areOptionsInitialized) {
             return;
         }
 
-        setMaxResults((previous) => previous + maxResultsPerPage);
+        if (hasMore) {
+            setMaxResults((previous) => previous + maxResultsPerPage);
+        }
+        if (hasMoreReports) {
+            loadMoreReports();
+        }
     }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));

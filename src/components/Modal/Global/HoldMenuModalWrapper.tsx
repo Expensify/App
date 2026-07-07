@@ -1,13 +1,18 @@
-import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import DecisionModal from '@components/DecisionModal';
+
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
+
 import type {ModalProps} from './ModalContext';
 
 type HoldMenuModalWrapperProps = ModalProps & {
