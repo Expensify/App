@@ -1364,9 +1364,34 @@ function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
 
 /**
  * Persist that the user has seen the Submit plan migration in-product modal so it is never shown again.
+ *
+ * The Onyx key is prefixed with `nvp_`, but the backend NVP name is unprefixed (`submitMigrationModalShown`),
+ * so we can't reuse the generic `setNameValuePair` (which sends the prefixed Onyx key as the API `name`).
+ * Instead we send the unprefixed backend name while still storing the value under the prefixed Onyx key.
  */
 function setSubmitMigrationModalShown() {
-    setNameValuePair(ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN, true, false);
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: true,
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: false,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: CONST.SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME,
+        value: true,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, failureData});
 }
 
 function requestRefund() {
