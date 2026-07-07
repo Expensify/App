@@ -713,7 +713,6 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
-                shouldHandleNavigation: false,
             };
             return createDistanceRequest(distanceParams);
         }
