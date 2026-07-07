@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -9,16 +19,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,6 +63,7 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -975,7 +976,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'ウォレット',
             },
-            addVirtualCardPersonalDetails: {title: 'Expensify カード', subtitle: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください', cta: '詳細を追加'},
+            addVirtualCardPersonalDetails: {title: '個人情報を追加してください', subtitle: 'Expensify カードを表示して使い始めるには、詳細情報を入力してください。', cta: '詳細を追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
         announcements: 'お知らせ',

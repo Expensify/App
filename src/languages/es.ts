@@ -1,3 +1,6 @@
+import CONST from '@src/CONST';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -9,14 +12,12 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
+
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -918,7 +919,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
                 cta: 'Añade dirección',
             },
-            addVirtualCardPersonalDetails: {title: 'Tarjeta Expensify', subtitle: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify', cta: 'Añade detalles'},
+            addVirtualCardPersonalDetails: {title: 'Añade tus datos personales', subtitle: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', cta: 'Añade detalles'},
             addPaymentCard: {
                 title: 'Añade una tarjeta de pago para seguir usando Expensify',
                 subtitle: 'Cuenta > Suscripción',

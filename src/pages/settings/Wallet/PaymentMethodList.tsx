@@ -350,12 +350,6 @@ function PaymentMethodList({
                         ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
-                        // For a combo card, the physical card creates this grouped row first (sort key 0) but is not
-                        // itself actionable; the virtual card (sort key 1) is. Propagate the missing-details CTA onto
-                        // the existing domain row so combo cards still surface the prompt.
-                        if (!isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails) {
-                            assignedCardsGroupedItem.shouldShowMissingPersonalDetailsAction = true;
-                        }
                     }
                     continue;
                 }
