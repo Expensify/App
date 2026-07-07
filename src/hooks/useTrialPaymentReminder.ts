@@ -1,13 +1,19 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
+
 import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ValueOf} from 'type-fest';
+
+import {useCallback, useEffect, useMemo, useState} from 'react';
+
 import useOnyx from './useOnyx';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
+const ONE_MINUTE_MS = 60 * 1000;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
 /** Onyx values not yet resolved */
@@ -126,6 +132,16 @@ function computeCurrentVariation(firstDayFreeTrial: string | undefined, lastDayF
     return null;
 }
 
+function isSameVariation(a: TrialReminderVariation | null, b: TrialReminderVariation | null): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (!a || !b) {
+        return false;
+    }
+    return a.id === b.id && a.variant === b.variant && a.daysRemaining === b.daysRemaining;
+}
+
 function useTrialPaymentReminder() {
     const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -180,31 +196,27 @@ function useTrialPaymentReminder() {
 
     const [countdownTime, setCountdownTime] = useState<CountdownTime>({hours: 0, minutes: 0, seconds: 0});
 
-    const currentVariation = useMemo(() => computeCurrentVariation(firstDayFreeTrial, lastDayFreeTrial), [firstDayFreeTrial, lastDayFreeTrial]);
+    const [currentVariation, setCurrentVariation] = useState<TrialReminderVariation | null>(null);
 
-    // Run countdown timer when variant is 'countdown'
     useEffect(() => {
-        if (currentVariation?.variant !== CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN) {
+        const recompute = () =>
+            setCurrentVariation((prev) => {
+                const next = computeCurrentVariation(firstDayFreeTrial, lastDayFreeTrial);
+                return isSameVariation(prev, next) ? prev : next;
+            });
+
+        if (
+            !isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) ||
+            doesUserHavePaymentCardAdded(billingFundID) ||
+            currentVariation?.variant === CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN
+        ) {
             return;
         }
 
-        const updateCountdown = () => {
-            const secs = calculateRemainingTrialSeconds(lastDayFreeTrial);
-            if (secs <= 0) {
-                setCountdownTime({hours: 0, minutes: 0, seconds: 0});
-                return;
-            }
-            setCountdownTime({
-                hours: Math.floor(secs / 3600),
-                minutes: Math.floor((secs % 3600) / 60),
-                seconds: Math.floor(secs % 60),
-            });
-        };
-
-        updateCountdown();
-        const interval = setInterval(updateCountdown, 1000);
+        recompute();
+        const interval = setInterval(recompute, ONE_MINUTE_MS);
         return () => clearInterval(interval);
-    }, [currentVariation?.variant, lastDayFreeTrial]);
+    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, currentVariation?.variant]);
 
     const isEligibleToShow = useMemo(() => {
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
@@ -231,6 +243,31 @@ function useTrialPaymentReminder() {
         }
         return true;
     }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
+
+    // Run the 1s countdown only while the countdown modal is actually eligible to show, so we don't tick every
+    // second in the background when it isn't rendered.
+    useEffect(() => {
+        if (!isEligibleToShow || currentVariation?.variant !== CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN) {
+            return;
+        }
+
+        const updateCountdown = () => {
+            const secs = calculateRemainingTrialSeconds(lastDayFreeTrial);
+            if (secs <= 0) {
+                setCountdownTime({hours: 0, minutes: 0, seconds: 0});
+                return;
+            }
+            setCountdownTime({
+                hours: Math.floor(secs / 3600),
+                minutes: Math.floor((secs % 3600) / 60),
+                seconds: Math.floor(secs % 60),
+            });
+        };
+
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+        return () => clearInterval(interval);
+    }, [isEligibleToShow, currentVariation?.variant, lastDayFreeTrial]);
 
     const dismiss = useCallback(() => {
         if (!currentVariation) {
