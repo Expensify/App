@@ -95,7 +95,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         if (!newStartDate) {
             return;
         }
-        // When the user's most recent intent was to pin an end date, keep that end date and recompute duration.
+        // When the user's most recent intent was to pin an end date, keep it and recompute the duration.
         if (endDate && lastEditedRef.current !== 'duration') {
             const days = computeDurationDays(newStartDate, endDate);
             if (days === null) {
@@ -106,10 +106,16 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             }
             return;
         }
-        if (!durationAmount) {
+        // Otherwise the duration drives the end date.
+        if (durationAmount) {
+            setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
             return;
         }
-        setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
+        // With no duration to recompute from, drop an end date that is now before the start date so an
+        // invalid range can never be submitted.
+        if (endDate && computeDurationDays(newStartDate, endDate) === null) {
+            setEndDate('');
+        }
     };
 
     const applyDurationAmount = (newDurationAmount: string) => {
