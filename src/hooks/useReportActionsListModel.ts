@@ -1,10 +1,15 @@
-import {useRoute} from '@react-navigation/native';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -51,6 +56,7 @@ function useReportActionsListModel(reportID: string) {
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
@@ -108,6 +114,7 @@ function useReportActionsListModel(reportID: string) {
         transactionThreadReport,
         isReportArchived,
         isReportTransactionThread,
+        shouldBeAlignedToTop,
         isLoadingInitialReportActions,
         hasOnceLoadedReportActions,
         isLoadingApp,

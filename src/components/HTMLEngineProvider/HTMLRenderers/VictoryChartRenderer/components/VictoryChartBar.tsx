@@ -1,6 +1,3 @@
-import React from 'react';
-import type {TNode} from 'react-native-render-html';
-import {Bar} from 'victory-native';
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
@@ -8,6 +5,11 @@ import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRe
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCornerRadius';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+
+import type {TNode} from 'react-native-render-html';
+
+import React from 'react';
+import {Bar} from 'victory-native';
 
 type VictoryChartBarProps = {tnode: TNode};
 

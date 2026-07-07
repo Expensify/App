@@ -1,15 +1,21 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import WorkspaceTaxesTableRow from './WorkspaceTaxesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
+
+import WorkspaceTaxesTableRow from './WorkspaceTaxesTableRow';
 
 type WorkspaceTaxTableColumnKey = 'name' | 'enabled' | 'actions';
 
@@ -89,7 +95,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} />}
+            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
             <Table.Header />
             <Table.Body />
         </Table>
