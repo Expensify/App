@@ -1788,13 +1788,14 @@ function getVisibleTransactionViolations(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     shouldShowRterForSettledReport = true,
 ): TransactionViolations {
     return mergeProhibitedViolations(
         transactionViolations.filter(
             (violation) =>
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
                 shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
         ),
     );
@@ -1993,6 +1994,7 @@ function isDuplicate(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
@@ -2002,7 +2004,15 @@ function isDuplicate(
 
     const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
-    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(
+        transaction,
+        duplicatedTransactionViolation,
+        currentUserEmail,
+        currentUserAccountID,
+        iouReport,
+        policy,
+        iouReportOwnerLogin,
+    );
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
@@ -2028,6 +2038,7 @@ function isViolationDismissed(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    iouReportOwnerLogin?: string,
 ): boolean {
     if (!transaction || !violation) {
         return false;
@@ -2059,7 +2070,7 @@ function isViolationDismissed(
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
     if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
-        const reportOwnerEmail = getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
+        const reportOwnerEmail = iouReportOwnerLogin ?? getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
         if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
             return true;
         }
@@ -2107,6 +2118,7 @@ function hasDuplicateTransactions(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
@@ -2121,6 +2133,7 @@ function hasDuplicateTransactions(
                 currentUserEmail,
                 currentUserAccountID,
                 iouReport,
+                ownerLogin,
                 policy,
                 allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
             ),
