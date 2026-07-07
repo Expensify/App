@@ -1,13 +1,9 @@
-import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
@@ -15,17 +11,28 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
+
 import RHP_WEB_TRANSITION_SPEC from '@navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type Phase = 'open' | 'closing' | 'closed';
 

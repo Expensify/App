@@ -1,5 +1,6 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+
 import type SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 

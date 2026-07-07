@@ -1,10 +1,9 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -24,13 +23,20 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -5543,6 +5549,51 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.achAccount?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
             expect(updatedPolicy?.errorFields?.reimburser).toBeTruthy();
+        });
+
+        it('should update workspace payer in manual reimbursement mode', async () => {
+            // Given a workspace in manual reimbursement mode with no designated payer
+            const policy = {
+                ...createRandomPolicy(0),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: '',
+                achAccount: {reimburser: ''},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting a designated payer in manual mode
+            Policy.setWorkspacePayer(policy.id, 'payer@manual.com', policy.reimburser);
+
+            // Then optimistic data should set the reimburser
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
+            expect(updatedPolicy?.pendingFields?.reimburser).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared and reimburser preserved
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
+        });
+    });
+
+    describe('isPolicyPayer', () => {
+        it('returns true only for workspace owner when manual reimbursement has no achAccount reimburser', () => {
+            const policy = {
+                ...createRandomPolicy(0),
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'owner@test.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            expect(isPolicyPayer(policy, 'owner@test.com')).toBe(true);
+            expect(isPolicyPayer(policy, 'other-admin@test.com')).toBe(false);
         });
     });
 

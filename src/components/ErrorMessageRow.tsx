@@ -1,9 +1,12 @@
-import mapValues from 'lodash/mapValues';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import mapValues from 'lodash/mapValues';
+import React from 'react';
+
 import MessagesRow from './MessagesRow';
 
 type ErrorMessageRowProps = {
