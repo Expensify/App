@@ -2252,6 +2252,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Reemplazar dispositivo de autenticación de dos factores',
         verifyOldDeviceTitle: 'Verificar dispositivo anterior',
         verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
+        verifyOldDeviceDescriptionWithRecovery: 'Introduce un código de recuperación válido para confirmar que tienes acceso a tu cuenta.',
         verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
         downloadCodes: 'Descargar códigos',
@@ -2761,6 +2762,7 @@ ${amount} para ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
             'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
+        copilotNote: 'Este agente se añadirá como copiloto con acceso completo a tu cuenta, para que pueda actuar en tu nombre.',
     },
     editAgentPage: {
         title: 'Editar agente',
