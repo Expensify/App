@@ -1,9 +1,14 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {editReportComment} from '@libs/actions/Report';
+
 import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useEditMessage from '@pages/inbox/report/ReportActionCompose/useEditMessage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../../utils/LHNTestUtils';
 
 jest.mock('@libs/actions/Report', () => {
