@@ -1,4 +1,4 @@
-import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
@@ -24,7 +24,7 @@ function useInboxTabSpanLifecycle(): () => void {
 
     const onLayout = useCallback(() => {
         hasHadFirstLayout.current = true;
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
         spanOnMount.current = undefined;
     }, []);
 
@@ -33,7 +33,7 @@ function useInboxTabSpanLifecycle(): () => void {
     useFocusEffect(
         useCallback(() => {
             if (hasHadFirstLayout.current) {
-                endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+                endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
             }
             return () => cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
         }, []),

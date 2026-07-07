@@ -23,8 +23,6 @@ import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
 
-const componentsUsingHook = new Map<string, {renderDuration: number}>();
-
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
 type SidebarOrderedReportsContextProviderProps = {
@@ -118,11 +116,6 @@ function SidebarOrderedReportsContextProvider({
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
     const prevConciergeReportID = usePrevious(conciergeReportID);
-
-    const perfRef = useRef<{hookDuration: number}>({
-        hookDuration: 0,
-    });
-    const hookStartTime = useRef<number>(performance.now());
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -427,11 +420,6 @@ function SidebarOrderedReportsContextProvider({
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, setStickyReportID}), [clearLHNCache, setActiveTab, setStickyReportID]);
 
-    useEffect(() => {
-        const hookExecutionDuration = performance.now() - hookStartTime.current;
-        perfRef.current.hookDuration = hookExecutionDuration;
-    }, [stateValue]);
-
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
             <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
@@ -439,8 +427,7 @@ function SidebarOrderedReportsContextProvider({
     );
 }
 
-function useSidebarOrderedReportsState(componentName?: string) {
-    useSidebarOrderedReportsPerformance(componentName);
+function useSidebarOrderedReportsState() {
     return useContext(SidebarOrderedReportsStateContext);
 }
 
@@ -448,44 +435,10 @@ function useSidebarOrderedReportsActions() {
     return useContext(SidebarOrderedReportsActionsContext);
 }
 
-function useSidebarOrderedReports(componentName?: string) {
-    const state = useSidebarOrderedReportsState(componentName);
+function useSidebarOrderedReports() {
+    const state = useSidebarOrderedReportsState();
     const actions = useSidebarOrderedReportsActions();
     return {...state, ...actions};
-}
-
-function useSidebarOrderedReportsPerformance(componentName?: string) {
-    const renderStartTime = useRef<number>(0);
-
-    useEffect(() => {
-        if (!componentName) {
-            return;
-        }
-
-        componentsUsingHook.set(componentName, {renderDuration: 0});
-
-        return () => {
-            componentsUsingHook.delete(componentName);
-        };
-    }, [componentName]);
-
-    useEffect(() => {
-        if (!componentName) {
-            return;
-        }
-
-        renderStartTime.current = performance.now();
-
-        return () => {
-            const renderDuration = performance.now() - renderStartTime.current;
-            const currentData = componentsUsingHook.get(componentName);
-            if (currentData) {
-                componentsUsingHook.set(componentName, {
-                    renderDuration,
-                });
-            }
-        };
-    }, [componentName]);
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
