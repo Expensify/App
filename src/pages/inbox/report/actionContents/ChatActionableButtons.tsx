@@ -281,6 +281,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 text: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
                 button: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
             }}
+            wrapperStyle={isPhrasalConciergeOptions ? styles.mt4 : undefined}
         />
     );
 }

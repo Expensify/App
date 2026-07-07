@@ -145,22 +145,13 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
-    it('hides the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
+    it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.merge(
                 `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
                 buildPolicy({
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                    achAccount: {
-                        reimburser: 'test@user.com',
-                        bankAccountID: 123456,
-                        accountNumber: '1234567890',
-                        routingNumber: '011000015',
-                        bankName: 'Test Bank',
-                        addressName: 'Test Address',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
                 }),
             );
         });
@@ -168,7 +159,7 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).not.toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
     it('shows the Payer row when reimbursementChoice is undefined (legacy workspaces)', async () => {

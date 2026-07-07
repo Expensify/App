@@ -202,6 +202,8 @@ type GetTrackExpenseInformationParams = {
     delegateAccountID?: number | undefined;
     /** Policy type for the workspace created from a draft report (e.g. submit2026 for the "Submit to my employer" flow). Defaults to a team workspace. */
     policyType?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
+    isDraftChatReport?: boolean;
 };
 
 type DeleteTrackExpenseParams = {
@@ -862,6 +864,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
         policyType,
     } = params;
@@ -990,7 +993,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     }
 
     // Check if the report is a draft
-    const isDraftReportLocal = isDraftReport(chatReport?.reportID);
+    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
@@ -2365,8 +2368,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             formatPhoneNumber,
             personalDetailsList,
             {accountID: currentUserAccountID},
-            undefined,
-            undefined,
             reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
@@ -2450,6 +2451,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         previousOdometerDraft,
         delegateAccountID,
         reportActionsList,
+        isDraftChatReport,
         personalDetailsList,
         currentUserLocalCurrency,
     } = params;
@@ -2611,6 +2613,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
@@ -2704,6 +2707,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                reportActionsList: reportActionsList ?? {},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
