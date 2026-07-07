@@ -80,7 +80,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID, headerComponent}: Work
         />
     );
 
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.SearchBar label={translate('workspace.common.findRoom')} />);
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.FilterBar label={translate('workspace.common.findRoom')} />);
 
     return (
         <Table

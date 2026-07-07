@@ -9,8 +9,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -45,9 +43,22 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'card', label: translate('workspace.rules.spendRules.tableColumnCard'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.spendRules.tableColumnRule'), sortable: false},
-        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
+        {
+            key: 'card',
+            label: translate('workspace.rules.spendRules.tableColumnCard'),
+            sortable: true,
+        },
+        {
+            key: 'rule',
+            label: translate('workspace.rules.spendRules.tableColumnRule'),
+            sortable: false,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<SpendRuleTableItem, SpendRulesTableColumnKey> = (a, b, activeSorting) => {
@@ -89,10 +100,8 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     const isEmpty = rulesData.length === 0;
-    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} /> : undefined;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (

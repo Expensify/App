@@ -9,11 +9,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-
-import React from 'react';
 
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
 
@@ -82,8 +78,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
-    const shouldShowSearchBar = taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} /> : undefined;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (

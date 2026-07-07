@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -69,8 +69,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const shouldShowSearchBar = domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.common.findDomain')} /> : undefined;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {

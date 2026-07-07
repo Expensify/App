@@ -13,7 +13,7 @@ import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyState
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -115,8 +115,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const shouldShowSearchBar = workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.common.findWorkspace')} /> : undefined;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findWorkspace')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {

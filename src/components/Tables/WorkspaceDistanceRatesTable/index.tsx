@@ -129,8 +129,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
     );
 
     const isEmpty = ratesData.length === 0;
-    const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.distanceRates.findRate')} /> : undefined;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (

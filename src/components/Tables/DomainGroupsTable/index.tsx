@@ -8,11 +8,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-
-import React from 'react';
 
 import type {DomainGroupRowData} from './DomainGroupsTableRow';
 
@@ -72,8 +68,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
-    const shouldShowSearchBar = groups.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('domain.groups.findGroup')} /> : undefined;
+    const tableHeaderComponent = <Table.FilterBar label={translate('domain.groups.findGroup')} />;
 
     return (
         <Table

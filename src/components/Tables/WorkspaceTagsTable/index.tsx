@@ -10,7 +10,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -202,8 +201,7 @@ export default function WorkspaceTagsTable({
     );
 
     const isEmpty = tags.length === 0;
-    const shouldShowSearchBar = tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.tags.findTag')} /> : undefined;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.tags.findTag')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (

@@ -25,8 +25,7 @@
  *   filters={filterConfig}
  *   isItemInFilter={filterFn}
  * >
- *   <Table.SearchBar />
- *   <Table.FilterButtons />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -38,10 +37,9 @@ import composeTableHeaderComponent from './composeTableHeaderComponent';
 import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
-import TableFilterButtons from './TableFilterButtons';
+import TableFilterBar from './TableFilterBar';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
-import TableSearchBar from './TableSearchBar';
 
 /**
  * Table compound component with attached sub-components.
@@ -50,8 +48,7 @@ import TableSearchBar from './TableSearchBar';
  * - `Table.Context` - The React context (for advanced usage)
  * - `Table.Header` - Sortable column headers
  * - `Table.Body` - Data rows using FlashList
- * - `Table.FilterButtons` - Dropdown filter buttons
- * - `Table.SearchBar` - Search input
+ * - `Table.FilterBar` - Search input & filter bar
  */
 const Table = Object.assign(TableComponent, {
     /** The React context for accessing table state directly. */
@@ -63,14 +60,11 @@ const Table = Object.assign(TableComponent, {
     /** Renders data rows using FlashList. */
     Body: TableBody,
 
-    /** Renders dropdown filter buttons. */
-    FilterButtons: TableFilterButtons,
-
-    /** Renders a search input. */
-    SearchBar: TableSearchBar,
-
     /** Renders a row in the table */
     Row: TableRow,
+
+    /** The filter bar with a searchbar/filters menu */
+    FilterBar: TableFilterBar,
 });
 
 export default Table;
