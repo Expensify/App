@@ -149,7 +149,7 @@ function AuthScreensInitHandler() {
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
-            // FIX #82013: For an anonymous session (signed-out user opening a public-room deeplink), preserve
+            // For an anonymous session (signed-out user opening a public-room deeplink), preserve
             // the already-opened public room through OpenApp. With the default openApp(false), OpenApp's
             // response supersedes the anonymous public-room report data; once that report is gone,
             // ReportNavigateAwayHandler falls back to Concierge — the "room flashes then Concierge" symptom.

@@ -100,7 +100,7 @@ function ReportNavigateAwayHandler() {
 
     // Navigation action that reads non-reactive context (concierge params, modal state, etc.)
     const navigateAwayFromReport = useEffectEvent((prevOnyxReportID: string | undefined, prevParentReportID: string | undefined) => {
-        // FIX #82013: never navigate away from a signed-out public-room deeplink while it is still being
+        // Never navigate away from a signed-out public-room deeplink while it is still being
         // opened. The anonymous OpenApp settling can briefly make this report look removed/closed and
         // spuriously trigger a navigate-away to Concierge ~tens of seconds after the room is shown
         // ("room flashes then Concierge"). The pending key is cleared once the user signs in.
@@ -212,7 +212,7 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // FIX #82013: don't navigate away from a public-room deeplink being opened (see navigateAwayFromReport).
+        // Don't navigate away from a public-room deeplink being opened (see navigateAwayFromReport).
         if (isPendingPublicRoomDeeplink) {
             return;
         }

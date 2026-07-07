@@ -27,8 +27,9 @@ type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
 /**
- * Module-level Onyx subscriptions for OnboardingGuard
- * These provide synchronous access to onboarding-related data
+ * Module-level Onyx subscriptions for OnboardingGuard.
+ * The guard's evaluate() runs in the navigation layer as a plain function, not inside a React component, so it
+ * can't use useOnyx. connectWithoutView keeps these values in module scope for synchronous reads during evaluate().
  */
 let onboarding: OnyxEntry<Onboarding>;
 let account: OnyxEntry<Account>;
@@ -195,7 +196,7 @@ const OnboardingGuard: NavigationGuard = {
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
-        // FIX #82013: Onboarding can only be completed by a real, authenticated account. A signed-out user (no auth
+        // Onboarding can only be completed by a real, authenticated account. A signed-out user (no auth
         // token, e.g. right after signOut while a public-room deeplink is resolving) or an anonymous user (a public-room
         // deeplink viewer) must never be redirected into the onboarding flow. Without this, a stale
         // `hasCompletedGuidedSetupFlow: false` left over from a previous session pushes the signed-out/anonymous deeplink

@@ -72,7 +72,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         setHasSeenLoadingForCurrentReportID(true);
     }
 
-    // FIX #82013: While a signed-out public-room deeplink is being opened anonymously, the report data can be
+    // While a signed-out public-room deeplink is being opened anonymously, the report data can be
     // transiently missing as the anonymous session and OpenApp settle (a release-build timing race that does not
     // surface in dev). It is a valid public room being fetched, so don't declare it "not found" — the data settles
     // shortly after. The RAM-only key is set in openReportFromDeepLink and cleared once a real account signs in.

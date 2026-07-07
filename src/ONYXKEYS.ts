@@ -454,7 +454,7 @@ const ONYXKEYS = {
     /** The report ID of the public room that the user is currently viewing */
     VIEWING_PUBLIC_ROOM_REPORT_ID: 'ViewingPublicRoomReportID',
 
-    /** ReportID for the signed-out public-room deeplink currently being opened (#82013). Lets the
+    /** ReportID for the signed-out public-room deeplink currently being opened. Lets the
      * ReportsSplitNavigator keep that room focused instead of defaulting to the last-accessed (Concierge) report. */
     RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID: 'pendingPublicRoomDeepLinkReportID',
 

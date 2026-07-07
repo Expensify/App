@@ -24,7 +24,7 @@ const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/Repor
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
-// FIX #82013: track the pending signed-out public-room deeplink reportID via a module-level listener
+// Track the pending signed-out public-room deeplink reportID via a module-level listener
 // (not useOnyx) so it is available synchronously inside the initialReportID useState initializer below.
 let pendingPublicRoomDeepLinkReportID: string | undefined;
 Onyx.connectWithoutView({
@@ -65,7 +65,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
             return '';
         }
 
-        // FIX #82013: While a signed-out public-room deeplink is being opened, keep that room focused
+        // While a signed-out public-room deeplink is being opened, keep that room focused
         // instead of defaulting to the last-accessed report (which is Concierge for a fresh anonymous
         // user). Without this, once OpenApp/auth settle and this navigator re-resolves without the
         // reportID in its route params, findLastAccessedReport() picks Concierge and overrides the room.

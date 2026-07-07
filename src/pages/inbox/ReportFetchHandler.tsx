@@ -109,7 +109,7 @@ function ReportFetchHandler() {
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
 
-    // FIX #82013: Keep the pending public-room deeplink reportID for the whole anonymous session so the
+    // Keep the pending public-room deeplink reportID for the whole anonymous session so the
     // deeplinked room stays focused through the auth/OpenApp re-resolutions that would otherwise let
     // ReportsSplitNavigator default to the last-accessed (Concierge) report. Clear it only once the user
     // signs in to a real (non-anonymous) account, so it no longer affects their default report selection.

@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 let queuedOnyxUpdates: AnyOnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-// FIX #82013: Collections that OpenReport returns for a public room the anonymous (signed-out) deeplink is opening.
+// Collections that OpenReport returns for a public room the anonymous (signed-out) deeplink is opening.
 // When the flushed batch itself establishes the anonymous session we widen the stale-data allow-list to these keys
 // (plus PERSONAL_DETAILS_LIST) so the room renders, while every unrelated collection stays filtered.
 const ANONYMOUS_SESSION_ALLOWED_COLLECTIONS: OnyxKey[] = [
@@ -27,7 +27,7 @@ const ANONYMOUS_SESSION_ALLOWED_COLLECTIONS: OnyxKey[] = [
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        // FIX #82013: when the account is lost (sign-out / session cleared), drop any buffered updates so old-account
+        // When the account is lost (sign-out / session cleared), drop any buffered updates so old-account
         // data can't ride through the anonymous-session allow-list in flushQueue() on a later signed-out deeplink.
         // Doing it here covers every account-loss path, not just the explicit cleanupSession() call.
         if (currentAccountID !== undefined && session?.accountID === undefined) {
@@ -71,7 +71,7 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.PRESERVED_USER_SESSION,
         ]);
 
-        // FIX #82013: The signed-out public-room deeplink flow flushes while currentAccountID is still undefined,
+        // The signed-out public-room deeplink flow flushes while currentAccountID is still undefined,
         // because OpenReport returns the anonymous SESSION and the room's data in the same batch. When the batch
         // itself establishes the anonymous session we keep the stale-data filter (#48427/#52822) active for every
         // unrelated key, but additionally allow the report-family + personal-details + policy keys the room needs —
@@ -107,7 +107,7 @@ function isEmpty() {
 }
 
 /**
- * FIX #82013: Discard any queued updates without applying them. Called from the SESSION listener above whenever the
+ * Discard any queued updates without applying them. Called from the SESSION listener above whenever the
  * account is lost, so the buffer cannot carry stale, old-account updates into a later anonymous session (the
  * signed-out public-room deeplink flow), where flushQueue() widens the stale-data allow-list for the batch that
  * establishes the anonymous session. Also exported for unit tests.
