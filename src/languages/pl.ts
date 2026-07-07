@@ -2364,6 +2364,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Zastąp urządzenie dwuetapowej weryfikacji',
         verifyOldDeviceTitle: 'Zweryfikuj stare urządzenie',
         verifyOldDeviceDescription: 'Wpisz sześciocyfrowy kod z bieżącej aplikacji uwierzytelniającej, żeby potwierdzić, że masz do niej dostęp.',
+        verifyOldDeviceDescriptionWithRecovery: 'Wprowadź prawidłowy kod odzyskiwania, żeby potwierdzić, że masz dostęp do swojego konta.',
         verifyNewDeviceTitle: 'Skonfiguruj nowe urządzenie',
         verifyNewDeviceDescription: 'Zeskanuj kod QR nowym urządzeniem, a następnie wpisz ten kod, aby zakończyć konfigurację.',
         downloadCodes: 'Pobierz kody',
@@ -2878,6 +2879,7 @@ ${amount} dla ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agent ${displayName}`,
         defaultPrompt:
             'Odrzucaj wydatki związane z hazardem, filmami lub innymi oczywistymi celami niezwiązanymi z działalnością biznesową.\n\nPrzypominaj użytkownikowi, aby zawsze dołączał zdjęcie paragonu, na którym wysokość napiwku jest wyraźnie widoczna.\n\nZatwierdź raport, jeśli jest bardzo podobny do wcześniejszych raportów tego samego użytkownika.\n\nOdrzucaj raporty zawierające więcej niż 500 USD wydatków na podróże.',
+        copilotNote: 'Ten agent zostanie dodany jako Copilot z pełnym dostępem do Twojego konta, aby mógł działać w Twoim imieniu.',
     },
     editAgentPage: {
         title: 'Edytuj agenta',
@@ -6355,6 +6357,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 one: 'Ustaw jako administratora osób',
                 other: 'Ustaw administratorów osób',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Ustaw jako administratora płatności',
+                other: 'Ustaw administratorów płatności',
+            }),
             selectAll: 'Zaznacz wszystko',
             error: {
                 genericAdd: 'Wystąpił problem z dodaniem tego członka przestrzeni roboczej',
@@ -6388,6 +6394,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             makeCardAdmin: () => ({one: 'Ustaw jako administratora karty', other: 'Ustaw administratorów kart'}),
             cardAdmins: 'Administratorzy kart',
             peopleAdmins: 'Administratorzy osób',
+            paymentsAdmins: 'Administratorzy płatności',
             members: 'Członkowie',
         },
         card: {
@@ -9693,6 +9700,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             changesBasedOn: 'To się zmienia w zależności od korzystania z Karty Expensify i poniższych opcji subskrypcji.',
             collectBillingDescription: 'Przestrzenie robocze Collect są rozliczane miesięcznie za każdego członka, bez rocznego zobowiązania.',
             pricing: 'Cennik',
+            editSubscription: 'Edytuj subskrypcję',
         },
         cancelSubscription: {
             title: 'Anuluj subskrypcję',

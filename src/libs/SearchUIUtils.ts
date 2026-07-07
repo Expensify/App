@@ -41,6 +41,7 @@ import type {
     SearchQueryJSON,
     SearchSortBy,
     SearchStatus,
+    SearchTextFilterKeys,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
@@ -62,7 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -152,6 +153,7 @@ import {
     getReimbursableTotal,
     getReportCustomColumnValue,
     getReportOrDraftReport,
+    getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     hasHeldExpenses,
     hasInvoiceReports,
@@ -320,6 +322,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: 'formattedPaidStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -620,7 +623,7 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
-    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'];
+    reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 };
 
 /**
@@ -2734,8 +2737,8 @@ function createAndOpenSearchTransactionThread({
  */
 function getReportActionsSections(
     data: OnyxTypes.SearchResults['data'],
+    reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined,
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue,
-    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
@@ -2891,6 +2894,7 @@ function getReportSections({
                 const formattedFirstApprover = firstApproverAccountID ? formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate})) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
+                const formattedPaidStatus = getReportStatusTooltipTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const policy = getPolicyFromKey(data, reportItem);
 
                 const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -2935,6 +2939,7 @@ function getReportSections({
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
+                    formattedPaidStatus,
                     transactions,
                     shouldShowStatusAsPending,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
@@ -3657,7 +3662,7 @@ function getSections({
     reportAttributesDerivedValue,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, visibleReportActionsData, reportAttributesDerivedValue), false];
+        return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
@@ -4404,6 +4409,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
+            return 'common.paidStatus';
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return 'common.exchangeRate';
         case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
@@ -5489,6 +5496,10 @@ function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined
     return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
 }
 
+function isTextFilterKey(key: string): key is SearchTextFilterKeys {
+    return (TEXT_FILTER_KEYS as Set<string>).has(key);
+}
+
 const isAmountFilterKey = (key: SearchFilter['key']): key is SearchAmountFilterKeys => {
     return AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys);
 };
@@ -6541,6 +6552,7 @@ export {
     getDateDisplayValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
+    isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
     getSingleSelectFilterOptions,

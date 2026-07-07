@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.27-2",
+  "version": "9.4.28-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -60,7 +60,6 @@
     "spell": "cspell --color **/*",
     "spell-changed": "cspell --color --no-must-find-files",
     "fmt": "oxfmt --write .",
-    "fmt-changed": "oxfmt --write $(git diff --diff-filter=AMR --name-only origin/main HEAD)",
     "fmt-watch": "onchange \"**/*.{js,mjs,ts,tsx,yml,yaml}\" -- oxfmt --write {{changed}}",
     "print-version": "echo $npm_package_version",
     "storybook": "storybook dev -p 6006",
