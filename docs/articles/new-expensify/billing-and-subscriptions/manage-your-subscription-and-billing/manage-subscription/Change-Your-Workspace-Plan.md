@@ -6,6 +6,7 @@ internalScope: Audience is workspace owners. Covers how to switch a Workspace be
 retrievalIntent: How to switch a workspace between Collect and Control.
 contentType: task
 platform: new
+order: 4
 ---
 
 # Change Your Workspace Plan
