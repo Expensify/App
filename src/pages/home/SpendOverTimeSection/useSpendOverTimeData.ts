@@ -105,6 +105,7 @@ function useSpendOverTimeData() {
                       bankAccountList: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
+                      reportAttributesDerivedValue: undefined,
                   })[0],
                   localeCompare,
                   translate,

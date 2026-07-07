@@ -42,6 +42,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
             draftTransactionIDs: ['txn-1'],
             linkedTrackedExpenseReportAction,
+            shouldWaitForUpcomingTransition: true,
         });
         expect(navigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
@@ -222,14 +223,32 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be false for CREATE when backToReport diverts navigation away from the receiving chat', () => {
+        it('should be true for CREATE when backToReport is the receiving chat (report-preview "Add expense" returns to the chat whose preview card shows the new expense)', () => {
+            jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,
                 report: chatReport,
                 draftTransactionIDs: [],
                 transactionID: 'txn-1',
                 isFromGlobalCreate: false,
-                backToReport: 'somewhere-else',
+                backToReport: 'receiving-chat',
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+        });
+
+        it('should be false for CREATE when backToReport points to a money-request (expense) report that highlights via its own live diff', () => {
+            jest.mocked(getReportOrDraftReport).mockReturnValue(expenseReport);
+            jest.mocked(isMoneyRequestReport).mockReturnValue(true);
+
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: chatReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+                backToReport: 'back-expense',
             });
 
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
