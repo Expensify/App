@@ -130,7 +130,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, translateLocal, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {

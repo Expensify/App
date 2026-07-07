@@ -5053,6 +5053,76 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.keyForList).toBe(taskReportID);
         });
 
+        it('should compute parentReportName and parentReportIcon when the parent report exists in the data', () => {
+            const taskReportID = 'task_report_101';
+            const parentReportID = 'parent_report_201';
+            const taskCreatorAccountID = 11111;
+            const taskAssigneeAccountID = 22222;
+
+            const taskReport = {
+                type: CONST.REPORT.TYPE.TASK,
+                reportID: taskReportID,
+                reportName: 'Fix the login bug',
+                description: 'The login page has a bug that needs fixing',
+                accountID: taskCreatorAccountID,
+                managerID: taskAssigneeAccountID,
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                created: '2025-01-15 10:00:00',
+            } as const;
+
+            const parentReport = {
+                type: CONST.REPORT.TYPE.CHAT,
+                reportID: parentReportID,
+                reportName: 'Parent chat',
+                participants: {
+                    [taskCreatorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [taskAssigneeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as const;
+
+            const taskData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {
+                    [taskCreatorAccountID]: {
+                        accountID: taskCreatorAccountID,
+                        avatar: '',
+                        displayName: 'Task Creator',
+                        login: 'creator@test.com',
+                    },
+                    [taskAssigneeAccountID]: {
+                        accountID: taskAssigneeAccountID,
+                        avatar: '',
+                        displayName: 'Task Assignee',
+                        login: 'assignee@test.com',
+                    },
+                },
+                [`report_${taskReportID}`]: taskReport,
+                [`report_${parentReportID}`]: parentReport,
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.TASK,
+                data: taskData,
+                currentAccountID: taskCreatorAccountID,
+                currentUserEmail: 'creator@test.com',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                conciergeReportID: '999',
+                convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
+            });
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)).toEqual(
+                expect.objectContaining({
+                    parentReportName: 'Parent chat',
+                    parentReportIcon: expect.objectContaining({id: taskCreatorAccountID, type: CONST.ICON_TYPE_AVATAR, name: 'Task Creator'}),
+                }),
+            );
+        });
+
         it('resolves task assignee and creator fallback names through the provided translate function', () => {
             const taskReportID = 'task_report_hidden_members';
             const taskReport = {
