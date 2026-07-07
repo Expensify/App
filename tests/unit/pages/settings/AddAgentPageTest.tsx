@@ -296,27 +296,7 @@ describe('AddAgentPage', () => {
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
         });
 
-        it('does not open the DM on reconnect when created offline and the user has navigated away from the Agents list', async () => {
-            mockGetIsOffline.mockReturnValue(true);
-            mockIsActiveRoute.mockReturnValue(false);
-
-            render(
-                <AddAgentPage
-                    route={makeRoute({})}
-                    navigation={undefined as never}
-                />,
-            );
-
-            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
-
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
-
-            // The real accountID resolves (reconnect), but the user is no longer on the Agents list, so we stay put.
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-        });
-
-        it('opens the DM on reconnect when created offline but the user is still on the Agents list', async () => {
+        it('does not open the DM when created offline, even if the user is still on the Agents list', async () => {
             mockGetIsOffline.mockReturnValue(true);
             mockIsActiveRoute.mockReturnValue(true);
 
@@ -329,10 +309,11 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
+            // We return to the Agents list but never open the DM — the real accountID only arrives on reconnect,
+            // long after the user has moved on, so we don't yank them into the DM.
             expect(mockGoBack).toHaveBeenCalledTimes(1);
-
-            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(22542959, {shouldDismissModal: true}));
-            expect(mockIsActiveRoute).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS);
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
         });
     });
 });

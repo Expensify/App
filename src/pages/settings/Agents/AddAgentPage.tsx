@@ -107,17 +107,19 @@ function AddAgentPage({route}: AddAgentPageProps) {
             : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
         // Leave the add-agent modal right away so the optimistic agent shows in the Agents list
-        // (this also keeps the flow usable offline). We can't open the DM with the optimistic
-        // accountID — account IDs are server-assigned — so open it as soon as the real one resolves.
+        // (this also keeps the flow usable offline).
         const wasOffline = getIsOffline();
         Navigation.goBack();
+
+        // Opening the DM is the immediate continuation of tapping "Create" — but it needs the real,
+        // server-assigned accountID, which doesn't exist until CREATE_AGENT responds. When created offline
+        // that response only arrives after reconnect, long after the user has moved on, so auto-opening the
+        // DM then would yank them out of whatever they're doing. Only continue into the DM for agents created
+        // online; offline creations just leave the new agent in the list for the user to open when they choose.
+        if (wasOffline) {
+            return;
+        }
         createdAgentAccountID.then((accountID) => {
-            // When created offline, the promise only resolves once we're back online — by which point the user
-            // may have navigated somewhere else entirely. Only pull them into the DM if they created it online,
-            // or they're still on the Agents list, so we don't yank them out of an unrelated screen on reconnect.
-            if (wasOffline && !Navigation.isActiveRoute(ROUTES.SETTINGS_AGENTS)) {
-                return;
-            }
             chatWithAgent(accountID, {shouldDismissModal: true});
         });
     };
