@@ -22,6 +22,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getIsOffline} from '@libs/NetworkState';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {createAgent} from '@userActions/Agent';
@@ -108,8 +109,17 @@ function AddAgentPage({route}: AddAgentPageProps) {
         // Leave the add-agent modal right away so the optimistic agent shows in the Agents list
         // (this also keeps the flow usable offline). We can't open the DM with the optimistic
         // accountID — account IDs are server-assigned — so open it as soon as the real one resolves.
+        const wasOffline = getIsOffline();
         Navigation.goBack();
-        createdAgentAccountID.then((accountID) => chatWithAgent(accountID, {shouldDismissModal: true}));
+        createdAgentAccountID.then((accountID) => {
+            // When created offline, the promise only resolves once we're back online — by which point the user
+            // may have navigated somewhere else entirely. Only pull them into the DM if they created it online,
+            // or they're still on the Agents list, so we don't yank them out of an unrelated screen on reconnect.
+            if (wasOffline && !Navigation.isActiveRoute(ROUTES.SETTINGS_AGENTS)) {
+                return;
+            }
+            chatWithAgent(accountID, {shouldDismissModal: true});
+        });
     };
 
     return (

@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getIsOffline} from '@libs/NetworkState';
 
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
@@ -15,6 +16,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: jest.fn(),
@@ -56,7 +59,18 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}])
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
+    isActiveRoute: jest.fn(() => true),
 }));
+
+jest.mock('@libs/NetworkState', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/NetworkState');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        getIsOffline: jest.fn(() => false),
+    };
+});
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -123,6 +137,8 @@ const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
 const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockIsActiveRoute = jest.mocked(Navigation.isActiveRoute);
+const mockGetIsOffline = jest.mocked(getIsOffline);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -136,6 +152,8 @@ describe('AddAgentPage', () => {
         jest.clearAllMocks();
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
         mockCreateAgent.mockReturnValue({optimisticAccountID: -123456, avatarURI: undefined, createdAgentAccountID: Promise.resolve(22542959)});
+        mockGetIsOffline.mockReturnValue(false);
+        mockIsActiveRoute.mockReturnValue(true);
         mockAvatarOnPress = undefined;
     });
 
@@ -276,6 +294,45 @@ describe('AddAgentPage', () => {
 
             await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(22542959, {shouldDismissModal: true}));
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not open the DM on reconnect when created offline and the user has navigated away from the Agents list', async () => {
+            mockGetIsOffline.mockReturnValue(true);
+            mockIsActiveRoute.mockReturnValue(false);
+
+            render(
+                <AddAgentPage
+                    route={makeRoute({})}
+                    navigation={undefined as never}
+                />,
+            );
+
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+            // The real accountID resolves (reconnect), but the user is no longer on the Agents list, so we stay put.
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
+        });
+
+        it('opens the DM on reconnect when created offline but the user is still on the Agents list', async () => {
+            mockGetIsOffline.mockReturnValue(true);
+            mockIsActiveRoute.mockReturnValue(true);
+
+            render(
+                <AddAgentPage
+                    route={makeRoute({})}
+                    navigation={undefined as never}
+                />,
+            );
+
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(22542959, {shouldDismissModal: true}));
+            expect(mockIsActiveRoute).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS);
         });
     });
 });
