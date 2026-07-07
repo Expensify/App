@@ -1015,8 +1015,8 @@ const translations = {
                 cta: 'Add address',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Expensify Card',
-                subtitle: 'Add your details to view and start using your Expensify Card.',
+                title: 'Add your details to view and start using your Expensify Card.',
+                subtitle: 'Expensify Card',
                 cta: 'Add details',
             },
             addPaymentCard: {
