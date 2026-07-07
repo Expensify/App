@@ -495,9 +495,7 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
-                    shouldShowMissingPersonalDetailsAction: !shouldShowConnectionStatus
-                        ? !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails
-                        : undefined,
+                    shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
                 });
             }
 
