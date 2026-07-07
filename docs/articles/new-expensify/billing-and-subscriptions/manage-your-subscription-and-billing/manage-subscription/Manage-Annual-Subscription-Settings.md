@@ -14,11 +14,15 @@ Annual subscriptions include settings that let you manage your subscription, inc
 
 These settings apply only to Annual subscriptions. A Pay-per-use subscription has no commitment. 
 
+To check your current plan and subscription settings, see [how to view your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription).
+
 ---
 
 ## Who can manage Annual subscription settings
 
-Only the workspace Owner can view and change Annual subscription settings. If you don't see **Subscription** under **Account**, you're not a Workspace owner. To find out who is, open the **Workspaces** tab (on the left on web, at the bottom on mobile) and check the **Owner** column for your Workspace.
+Only the Workspace owner can view and change Annual subscription settings.
+
+If you don't see **Subscription** under **Account**, you're not a Workspace owner. To find out who is, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
 
 ---
 
@@ -39,7 +43,7 @@ Only the workspace Owner can view and change Annual subscription settings. If yo
 
 **Note:** You can increase your subscription size during an Annual subscription term, but you can't decrease it until the current term ends. Increasing your subscription size starts a new 12-month term, and you can't lower the size again until that term ends.
 
-To learn more, see [Learn About Subscriptions](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Subscriptions).
+For more details, see [Learn About Subscriptions](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Subscriptions).
 
 ---
 
@@ -60,5 +64,3 @@ While it's enabled, any month your active members exceed your subscription size,
 3. Disable **Auto-renew** and confirm your choice.
 
 Your Annual subscription stays active until the renewal date shown on the page. After that, your Workspace continues on Pay-per-use billing.
-
-* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription)
