@@ -1,14 +1,20 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import UserPill from '@components/UserPill';
+
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AgentRulesSection from '@pages/workspace/rules/AgentRulesSection';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 jest.mock('@components/Badge', () => jest.fn(() => null));
 jest.mock('@components/MenuItem', () => jest.fn(() => null));

@@ -1,8 +1,11 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
+
+import type {ComponentType} from 'react';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {useEffect} from 'react';
+
 import type {SubPageProps, UseSubPageProps} from './types';
 
 /**

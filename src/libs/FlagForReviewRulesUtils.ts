@@ -1,6 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {TableData} from '@components/Table';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -8,6 +10,7 @@ import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm'
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';

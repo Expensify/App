@@ -1,9 +1,5 @@
-import {PortalProvider} from '@gorhom/portal';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -13,9 +9,11 @@ import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRe
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import {getReportName} from '@src/libs/ReportNameUtils';
@@ -24,6 +22,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -272,6 +278,36 @@ describe('MoneyRequestReportPreview', () => {
         }
     });
 
+    it('renders the report total when the preview has more than one transaction', async () => {
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(mockIOUReport);
+        expect(screen.getByText(TestHelper.translateLocal('common.total'))).toBeOnTheScreen();
+        expect(screen.getAllByText(convertToDisplayString(totalDisplaySpend, mockIOUReport.currency)).length).toBeGreaterThan(0);
+    });
+
+    it('hides the report total when the preview has a single transaction', async () => {
+        setReportPreviewData({transactions: [mockTransaction]});
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, mockTransaction);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(TestHelper.translateLocal('common.total'))).not.toBeOnTheScreen();
+    });
+
     it('forwards the selected bank account to the hold menu when paying a held expense from the preview', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
@@ -292,6 +328,26 @@ describe('MoneyRequestReportPreview', () => {
         expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
         expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
         expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
+    });
+
+    it('does not open the hold menu for request types other than pay or approve', async () => {
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOnHoldMenuOpenHolder.current).toBeDefined();
+
+        act(() => {
+            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockHoldMenuPropsHolder.current).toBeUndefined();
     });
 
     it('renders RBR for every transaction with violations', async () => {
