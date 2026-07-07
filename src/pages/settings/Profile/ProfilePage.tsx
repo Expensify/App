@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
@@ -104,7 +104,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
+            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },

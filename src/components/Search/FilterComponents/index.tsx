@@ -62,6 +62,7 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
 type MultiSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     filterKey: MultiSelectFilterKeys;
@@ -225,6 +226,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
             return (
                 <MultiSelectFilterComponents

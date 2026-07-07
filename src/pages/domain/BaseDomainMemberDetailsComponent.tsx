@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -54,7 +54,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
         selector: personalDetailsSelector,
     });
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
+    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate}));
     const phoneNumber = getPhoneNumber(personalDetails);
     const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
