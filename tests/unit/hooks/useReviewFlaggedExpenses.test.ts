@@ -1,10 +1,15 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useReviewFlaggedExpenses from '@pages/home/ForYouSection/useReviewFlaggedExpenses';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import {createMockReport} from '../../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -124,6 +129,49 @@ describe('useReviewFlaggedExpenses', () => {
                 transaction: expect.objectContaining({transactionID: 't1'}),
                 reportActions: expect.arrayContaining([expect.objectContaining({reportActionID: 'action1', childReportID: 'thread-r1'})]),
                 siblingTransactionIDs: ['t1', 't2'],
+                backTo: ROUTES.HOME,
+            }),
+        );
+    });
+
+    it('opens the flagged transaction thread when a lone flagged expense sits inside a multi-transaction report', async () => {
+        // A single OPEN expense report holding two transactions, but only one is flagged. The report's
+        // transactionCount is 2, so the "open the report directly" shortcut (reserved for one-transaction
+        // reports) must NOT apply — pressing the row should open the flagged expense's thread instead.
+        await act(async () => {
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.REPORT}r1`,
+                createMockReport({
+                    reportID: 'r1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    transactionCount: 2,
+                }),
+            );
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1', amount: 100, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t2`, {transactionID: 't2', reportID: 'r1', amount: 200, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'});
+            // Only t1 is flagged; t2 has no violations.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}t1`, [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(1);
+
+        act(() => {
+            result.current.reviewExpenses();
+        });
+
+        expect(mockNavigateToTransactionThread).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToTransactionThread).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionID: 't1',
+                report: expect.objectContaining({reportID: 'r1'}),
+                siblingTransactionIDs: ['t1'],
                 backTo: ROUTES.HOME,
             }),
         );

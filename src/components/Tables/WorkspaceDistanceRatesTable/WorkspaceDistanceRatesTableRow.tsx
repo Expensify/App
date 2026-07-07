@@ -1,6 +1,3 @@
-import {format, parseISO} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
@@ -8,16 +5,24 @@ import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
+
+import {format, parseISO} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 type DistanceRateTableItemData = TableData & {
     rateID: string;
