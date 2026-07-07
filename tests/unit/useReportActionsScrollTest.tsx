@@ -252,7 +252,8 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.shouldBeAlignedToTop).toBe(false);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
-            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
+            expect(result.current.maintainVisibleContentPosition.disabled).toBe(true);
+            expect(result.current.maintainVisibleContentPosition.autoscrollToBottomThreshold).toBeUndefined();
         });
 
         it('is aligned to top and focuses to top on mount for a transaction thread report', async () => {
@@ -411,8 +412,9 @@ describe('useReportActionsScroll', () => {
                 result.current.onLoad();
             });
 
-            // Stays undefined for a regular chat.
-            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
+            // Stays disabled with no autoscroll threshold for a regular chat.
+            expect(result.current.maintainVisibleContentPosition.disabled).toBe(true);
+            expect(result.current.maintainVisibleContentPosition.autoscrollToBottomThreshold).toBeUndefined();
         });
 
         it('waits for the report actions to have loaded before disabling autoscroll-to-top', async () => {
