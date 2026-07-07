@@ -1614,7 +1614,6 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | string | undefined, re
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isCurrentUserSubmitter(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
-    // TODO: deprecatedCurrentUserAccountID fallback should be removed once currentUserAccountID is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     return !!report && report.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
@@ -1705,7 +1704,6 @@ function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefin
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        // TODO: deprecatedCurrentUserAccountID fallback should be removed once currentUserAccountID is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
         return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === report.invoiceReceiver.accountID;
     }
 
@@ -2894,7 +2892,6 @@ function isPayer(
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isActionCreator(reportAction: OnyxInputOrEntry<ReportAction> | Partial<ReportAction>, currentUserAccountID?: number): boolean {
-    // TODO: deprecatedCurrentUserAccountID fallback should be removed once currentUserAccountID is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     return reportAction?.actorAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
@@ -4980,7 +4977,6 @@ function canEditMoneyRequest(
 function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = false, currentUserEmail?: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(report?.policyID);
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
 
     // If the current user took control, then they are the final approver and we don't have a next approver
@@ -5937,7 +5933,6 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>, currentUserEmail?: s
         return '';
     }
 
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail;
     let policyCount = 0;
     for (const policy of policiesArray) {
@@ -6227,7 +6222,6 @@ function getParsedComment(
         return lodashEscape(text);
     }
 
-    // TODO: deprecatedCurrentUserPrivateDomain fallback should be removed once currentUserEmailParam is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     let userEmailDomain = deprecatedCurrentUserPrivateDomain;
     if (currentUserEmailParam !== undefined) {
         userEmailDomain = isEmailPublicDomain(currentUserEmailParam) ? '' : Str.extractEmailDomain(currentUserEmailParam);
@@ -6595,7 +6589,6 @@ function populateOptimisticReportFormula(
         return 'New report';
     }
 
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
@@ -8615,7 +8608,6 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[], cur
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function shouldPinAdminRoomByDefault(currentUserEmail?: string) {
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     return !isExpensifyTeam(currentUserEmail ?? deprecatedCurrentUserEmail);
 }
 
@@ -9048,7 +9040,6 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
         }
     }
 
-    // TODO: deprecatedCurrentUserAccountID fallback should be removed once currentUserAccountID is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     return reportToLook.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
@@ -9126,7 +9117,6 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
         return null;
     }
 
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
 
     // We only show the RBR to the submitter
@@ -11290,7 +11280,6 @@ function canJoinChat(
     }
 
     // For restricted visibility rooms, the user must be a workspace member to join
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail)) {
         return false;
     }
@@ -11762,7 +11751,6 @@ function prepareOnboardingOnyxData({
         });
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmail is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     const currentUserEmailToUse = currentUserEmail ?? deprecatedCurrentUserEmail;
     const firstAdminPolicy = getActivePolicies(allPolicies, currentUserEmailToUse).find(
         (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, currentUserEmailToUse) === CONST.POLICY.ROLE.ADMIN,
@@ -12383,7 +12371,6 @@ function isChatUsedForOnboarding(
  */
 // TODO: currentUserEmailParam will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose, currentUserEmailParam?: string): boolean {
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once currentUserEmailParam is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     const currentUserEmail = currentUserEmailParam ?? deprecatedCurrentUserEmail ?? '';
     const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail, CONST.SMS.DOMAIN);
     return engagementChoice !== undefined && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (!currentUserEmail.includes('+') || userHasPhonePrimaryEmail);
