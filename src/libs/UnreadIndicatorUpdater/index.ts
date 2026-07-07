@@ -30,6 +30,8 @@ Onyx.connectWithoutView({
     },
 });
 
+// this utility updates the web tab's title (to display the unread message indicator)
+// which is not a react component, so therefore, there is no way to use useOnyx().
 Onyx.connectWithoutView({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
