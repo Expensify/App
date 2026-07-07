@@ -1237,18 +1237,23 @@ function getTopmostSearchReportID(state = navigationRef.getRootState()): string 
  */
 function openExpenseOverParentReport(parentReportID: string, childReportID: string, backTo: string) {
     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
-    navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+    const expenseRoute = ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute);
 
-    // On web, react-navigation mirrors every split-stack entry into window.history, and it decides push-vs-replace
-    // from the stack length, not the URL. The reset below grows the split stack by one route (the parent report),
-    // which the web history sync treats as a forward PUSH — a second history entry for the *unchanged* expense URL.
-    // That dead entry makes the first browser/OS back a no-op. Web needs no native single-slide trick: the expense's
-    // backTo (reportRoute) already drives the header back as expense -> report -> chat, and a browser back returns
-    // straight to the chat carousel.
+    // On web, react-navigation mirrors the split stack into window.history and decides push-vs-replace from the stack
+    // length, not the URL. Push the report and then the expense as two distinct history entries (different URLs) so the
+    // browser/OS back and the header back both step expense -> report -> chat consistently, with no dead entry. (The
+    // native single-slide splice below keeps the expense on top; on web that would push a second, same-URL entry — a
+    // dead first back — and leave the report out of history, so a browser back would skip to the chat and disagree with
+    // the header back.)
     if (getPlatform() === CONST.PLATFORM.WEB) {
+        navigate(reportRoute);
+        setNavigationActionToMicrotaskQueue(() => navigate(expenseRoute));
         return;
     }
 
+    // Native (react-native-screens): push the expense, then splice the parent report beneath it so it opens as a single
+    // forward slide with the report as a real stack entry underneath for OS/swipe back.
+    navigate(expenseRoute);
     setNavigationActionToMicrotaskQueue(() => {
         const rootState = navigationRef.getRootState();
         const tabNavigator = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
