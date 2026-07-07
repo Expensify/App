@@ -1,11 +1,16 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+
+import React, {useMemo} from 'react';
 
 const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER, ANNUAL_VOLUME, APPLICANT_TYPE_ID, TRADE_VOLUME, BUSINESS_CATEGORY} = INPUT_IDS;
 

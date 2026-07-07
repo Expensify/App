@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
