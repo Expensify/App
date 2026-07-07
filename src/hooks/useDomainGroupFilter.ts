@@ -1,5 +1,6 @@
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 
 import CONST from '@src/CONST';
