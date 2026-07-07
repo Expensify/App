@@ -3,8 +3,10 @@ import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullRec
 import {writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import '@libs/subscribeToFullReconnect';
 
 import Onyx from 'react-native-onyx';
@@ -76,6 +78,22 @@ async function applyCapturedResponse(callIndex: number, redeliveredCutoff: strin
     await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, redeliveredCutoff);
     await waitForBatchedUpdates();
     await Onyx.update(capturedOnyxData.at(callIndex)?.successData ?? []);
+    await waitForBatchedUpdates();
+    await waitForBatchedUpdates();
+}
+
+/**
+ * Applies a captured request's response the way the full pipeline does since the
+ * RecordFullReconnectTime middleware: the response's onyxData is first passed through
+ * recordFullReconnectTimeFromResponse, then applied, then the (also updated) successData.
+ */
+async function applyCapturedResponseThroughMiddleware(callIndex: number, deliveredCutoff: string): Promise<void> {
+    const successData = capturedOnyxData.at(callIndex)?.successData ?? [];
+    const responseOnyxData: AnyOnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, value: deliveredCutoff}];
+    recordFullReconnectTimeFromResponse(responseOnyxData, successData);
+    await Onyx.update(responseOnyxData);
+    await waitForBatchedUpdates();
+    await Onyx.update(successData);
     await waitForBatchedUpdates();
     await waitForBatchedUpdates();
 }
@@ -183,6 +201,26 @@ describe('subscribeToFullReconnect', () => {
         // The OpenApp response recorded the cutoff, not the behind-clock now, so nothing reads as stale.
         expect(getReconnectRequests()).toHaveLength(0);
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(SERVER_CUTOFF);
+    });
+
+    it('does not fire an extra reconnect when an OpenApp response delivers a newer cutoff than was known at build time', async () => {
+        // Reach the settled state first: one reconnect for the cutoff, then its response recorded the time.
+        await setServerCutoff(SERVER_CUTOFF);
+        await applyServerResponse(SERVER_CUTOFF);
+        jest.clearAllMocks();
+        capturedOnyxData = [];
+        capturedCommands = [];
+
+        // App reload: OpenApp fires while SERVER_CUTOFF is the known cutoff, but the response delivers a
+        // newer one. Without the middleware transform this fires two extra reconnects: one the moment the
+        // new cutoff is saved next to the old recorded time, and one more when the stale build-time
+        // successData lowers the recorded time below the cutoff again.
+        openApp();
+        await waitForCondition(() => getOpenAppRequestIndex() > -1, 'OpenApp request');
+        await applyCapturedResponseThroughMiddleware(getOpenAppRequestIndex(), NEWER_SERVER_CUTOFF);
+
+        expect(getReconnectRequests()).toHaveLength(0);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(NEWER_SERVER_CUTOFF);
     });
 
     it('does not fire a redundant reconnect through clearOnyxAndSeedFullReconnect and records client-now when there is no cutoff', async () => {

@@ -1,3 +1,8 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
+
 import DateUtils from './DateUtils';
 
 /**
@@ -32,4 +37,31 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
     return now >= serverReconnectCutoff ? now : serverReconnectCutoff;
 }
 
-export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord};
+/**
+ * The response of an OpenApp or full-ReconnectApp request can itself deliver a newer server cutoff
+ * than the one known when the request was built. The reconnect time in the request's successData was
+ * computed from that build-time cutoff, so it can land below the delivered one and the app would read
+ * itself as stale right after downloading everything. This recomputes the time from the cutoff the
+ * response actually carries and writes it to both places that matter, in place:
+ * - into the response's onyxData, right before the cutoff entry, so the two values are saved together
+ *   and the reconnect subscription never sees a new cutoff next to an old reconnect time;
+ * - into the successData entry (raising it, never lowering), so the later successData write cannot
+ *   undo the value seeded above.
+ */
+function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], successData: AnyOnyxUpdate[] | undefined): void {
+    const cutoffIndex = responseOnyxData.findIndex((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE);
+    const recordedTimeEntry = successData?.find((update) => update.key === ONYXKEYS.LAST_FULL_RECONNECT_TIME);
+    if (cutoffIndex === -1 || !recordedTimeEntry) {
+        return;
+    }
+
+    const deliveredCutoff = (responseOnyxData.at(cutoffIndex)?.value as string | undefined) ?? '';
+    const timeForDeliveredCutoff = getLastFullReconnectTimeToRecord(deliveredCutoff);
+    const buildTimeValue = (recordedTimeEntry.value as string | undefined) ?? '';
+    const valueToRecord = timeForDeliveredCutoff >= buildTimeValue ? timeForDeliveredCutoff : buildTimeValue;
+
+    recordedTimeEntry.value = valueToRecord;
+    responseOnyxData.splice(cutoffIndex, 0, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: valueToRecord});
+}
+
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, recordFullReconnectTimeFromResponse};
