@@ -1,9 +1,10 @@
+import * as core from '@actions/core';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 
-/**
- * @jest-environment node
- */
 /* eslint-disable @typescript-eslint/naming-convention */
+import * as ActionUtils from '../../.github/libs/ActionUtils';
 import CONST from '../../.github/libs/CONST';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
@@ -37,15 +38,80 @@ type CommitData = {
     };
 };
 
-let run: () => Promise<void>;
-
 const mockGetInput = jest.fn();
 const mockGetPullRequest = jest.fn();
 const mockCreateComment = jest.fn();
 const mockListTags = jest.fn();
 const mockGetCommit = jest.fn();
 
-let workflowRunURL: string | null;
+const mockGetJSONInput = jest.fn().mockImplementation((name: string, defaultValue: string) => {
+    try {
+        const input = mockGetInput(name) as string;
+        return JSON.parse(input) as unknown;
+    } catch (err) {
+        return defaultValue;
+    }
+});
+
+// Capture the real exports by value before mocking: `ActionUtils` is a live namespace binding tied to the shared
+// module registry entry, so once mock.module() below replaces that entry, `ActionUtils` would itself resolve to
+// the mocked exports too - which would make the afterAll restoration below a no-op that "restores" the mock
+// forever instead of the real module.
+const originalActionUtils = {...ActionUtils};
+
+// Must run before `markPullRequestsAsDeployed` (which imports `ActionUtils` internally) is imported below:
+// mock.module patches the shared module registry entry, and existing named-import bindings to it are live, but
+// only if the patch happens before those bindings are first read.
+await mock.module('../../.github/libs/ActionUtils', () => ({
+    ...ActionUtils,
+    getJSONInput: mockGetJSONInput,
+}));
+
+// Must also be set before `markPullRequestsAsDeployed` is imported below: it computes `workflowURL` from these env
+// vars in a top-level (module-load-time) constant, not at runtime.
+process.env.GITHUB_SERVER_URL = 'https://github.com';
+process.env.GITHUB_RUN_ID = '1234';
+const workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+
+// Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
+// reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+
+// Must also be set before `markPullRequestsAsDeployed` is imported below: it does `memoize(GithubUtils.octokit.git.
+// getCommit)` in a top-level (module-load-time) constant, capturing whatever `internalOctokit` points to at that
+// moment rather than reading it fresh on each call.
+const mockOctokit = {
+    rest: {
+        issues: {
+            listForRepo: jest.fn().mockImplementation(async () => ({
+                data: [
+                    {
+                        number: 5,
+                    },
+                ],
+            })),
+
+            listEvents: jest.fn().mockImplementation(async () => ({
+                data: [{event: 'closed', actor: {login: 'thor'}}],
+            })),
+            createComment: mockCreateComment,
+        },
+        pulls: {
+            get: mockGetPullRequest,
+        },
+        repos: {
+            listTags: mockListTags,
+        },
+        git: {
+            getCommit: mockGetCommit,
+        },
+    },
+    paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
+};
+GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
+
+// Must be imported after the GithubUtils.internalOctokit setup above so it picks up the mocks.
+const {default: run} = await import('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 
 const PRList: Record<number, PullRequest> = {
     1: {
@@ -100,63 +166,14 @@ function mockGetCommitDefaultImplementation({commit_sha}: Commit): CommitData {
     return {data: {message: 'Test commit 2'}};
 }
 
+let originalGetPullRequestsDeployedBetween: typeof GitUtils.getPullRequestsDeployedBetween;
+
 beforeAll(() => {
-    // Mock core module
-    jest.mock('@actions/core', () => ({
-        getInput: mockGetInput,
-    }));
     mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
 
-    // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            issues: {
-                listForRepo: jest.fn().mockImplementation(async () => ({
-                    data: [
-                        {
-                            number: 5,
-                        },
-                    ],
-                })),
-
-                listEvents: jest.fn().mockImplementation(async () => ({
-                    data: [{event: 'closed', actor: {login: 'thor'}}],
-                })),
-                createComment: mockCreateComment,
-            },
-            pulls: {
-                get: mockGetPullRequest,
-            },
-            repos: {
-                listTags: mockListTags,
-            },
-            git: {
-                getCommit: mockGetCommit,
-            },
-        },
-        paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-    };
-
-    GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
-
     // Mock GitUtils
+    originalGetPullRequestsDeployedBetween = GitUtils.getPullRequestsDeployedBetween;
     GitUtils.getPullRequestsDeployedBetween = jest.fn();
-
-    jest.mock('../../.github/libs/ActionUtils', () => ({
-        getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
-            try {
-                const input = mockGetInput(name) as string;
-                return JSON.parse(input) as unknown;
-            } catch (err) {
-                return defaultValue;
-            }
-        }),
-    }));
-
-    // Set GH runner environment variables
-    process.env.GITHUB_SERVER_URL = 'https://github.com';
-    process.env.GITHUB_RUN_ID = '1234';
-    workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 });
 
 beforeEach(() => {
@@ -173,16 +190,19 @@ afterEach(() => {
     mockGetPullRequest.mockClear();
 });
 
-afterAll(() => {
+afterAll(async () => {
     jest.clearAllMocks();
+    // `bun test` runs all files in one process sharing GithubUtils'/GitUtils' module-level state and the module
+    // registry, unlike Jest's per-file module registry; reset them so later test files start from a clean slate.
+    GithubUtils.internalOctokit = undefined;
+    GitUtils.getPullRequestsDeployedBetween = originalGetPullRequestsDeployedBetween;
+    await mock.module('../../.github/libs/ActionUtils', () => originalActionUtils);
+    delete process.env.GITHUB_SERVER_URL;
+    delete process.env.GITHUB_RUN_ID;
 });
-
-type MockedActionRun = () => Promise<void>;
 
 describe('markPullRequestsAsDeployed', () => {
     it('comments on pull requests correctly for a standard staging deploy', async () => {
-        // Note: we import this in here so that it executes after all the mocks are set up
-        run = require<{default: MockedActionRun}>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed').default;
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
@@ -209,9 +229,6 @@ platform | result
             }
             return mockGetInputDefaultImplementation(key);
         });
-
-        // Note: we import this in here so that it executes after all the mocks are set up
-        run = require<{default: MockedActionRun}>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed').default;
 
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
@@ -270,8 +287,6 @@ platform | result
             return mockGetCommitDefaultImplementation({commit_sha});
         });
 
-        // Note: we import this in here so that it executes after all the mocks are set up
-        run = require<{default: MockedActionRun}>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed').default;
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith({
@@ -299,8 +314,6 @@ platform | result
             return mockGetInputDefaultImplementation(key);
         });
 
-        // Note: we import this in here so that it executes after all the mocks are set up
-        run = require<{default: MockedActionRun}>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed').default;
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {

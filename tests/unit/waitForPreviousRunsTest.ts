@@ -2,13 +2,9 @@ import run from '@github/actions/javascript/waitForPreviousRuns/waitForPreviousR
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import asMutable from '@src/types/utils/asMutable';
-
 /* eslint-disable @typescript-eslint/naming-convention */
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
+import {afterAll, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 const CURRENT_RUN_ID = 1000;
 const WORKFLOW_ID = 'testBuildOnPush.yml';
@@ -51,16 +47,10 @@ function getErrorMessages(): string[] {
     return coreErrorSpy.mock.calls.map((call) => String(call[0]));
 }
 
-jest.mock('@github/libs/CONST', () => ({
-    __esModule: true,
-    default: {
-        GITHUB_OWNER: 'Expensify',
-        APP_REPO: 'App',
-    },
-}));
-
 beforeAll(() => {
-    asMutable(core).getInput = mockGetInput;
+    // Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be reassigned
+    // directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
     mockGetInput.mockImplementation((name: string) => {
         if (name === 'WORKFLOW_ID') {
@@ -94,6 +84,12 @@ beforeEach(() => {
     coreWarningSpy.mockClear();
     coreErrorSpy.mockClear();
     mockListWorkflowRuns.mockClear();
+});
+
+afterAll(() => {
+    // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's per-file
+    // module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+    GithubUtils.internalOctokit = undefined;
 });
 
 describe('waitForPreviousRuns', () => {

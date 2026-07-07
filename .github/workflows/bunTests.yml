@@ -7,6 +7,21 @@ on:
     paths:
       - 'server/**'
       - 'src/**'
+      - '.github/libs/**'
+      - 'scripts/utils/Git.ts'
+      - 'scripts/utils/esmGithubDeps.ts'
+      - 'tests/unit/awaitStagingDeploysTest.ts'
+      - 'tests/unit/checkDeployBlockersTest.ts'
+      - 'tests/unit/CIGitLogicTest.ts'
+      - 'tests/unit/createOrUpdateDeployChecklistTest.ts'
+      - 'tests/unit/DeployChecklistUtilsTest.ts'
+      - 'tests/unit/getPullRequestIncrementalChangesTest.ts'
+      - 'tests/unit/GithubUtilsTest.ts'
+      - 'tests/unit/isAuthorizedContributorTest.ts'
+      - 'tests/unit/isDeployChecklistLockedTest.ts'
+      - 'tests/unit/markPullRequestsAsDeployedTest.ts'
+      - 'tests/unit/postOrReplaceComment.ts'
+      - 'tests/unit/waitForPreviousRunsTest.ts'
       - 'bunfig.toml'
       - '.bun-version'
       - 'package.json'
@@ -30,6 +45,9 @@ jobs:
 
       - name: Run Bun tests
         run: npm run test:bun
+
+      - name: Run Bun tests for GitHub scripts/actions libs
+        run: npm run test:bun:scripts
 
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux

@@ -688,6 +688,37 @@ const config = defineConfig([
         },
     },
 
+    {
+        // These files are excluded from the root tsconfig.json (see tsconfig.json) because they need
+        // @types/bun, which conflicts with the @types/jest used everywhere else.
+        files: [
+            'tests/unit/awaitStagingDeploysTest.ts',
+            'tests/unit/checkDeployBlockersTest.ts',
+            'tests/unit/CIGitLogicTest.ts',
+            'tests/unit/createOrUpdateDeployChecklistTest.ts',
+            'tests/unit/DeployChecklistUtilsTest.ts',
+            'tests/unit/getPullRequestIncrementalChangesTest.ts',
+            'tests/unit/GithubUtilsTest.ts',
+            'tests/unit/isAuthorizedContributorTest.ts',
+            'tests/unit/isDeployChecklistLockedTest.ts',
+            'tests/unit/markPullRequestsAsDeployedTest.ts',
+            'tests/unit/postOrReplaceComment.ts',
+            'tests/unit/waitForPreviousRunsTest.ts',
+        ],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tests/tsconfig.bun.json'),
+                projectService: false,
+            },
+        },
+        rules: {
+            // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
+            // own docs recommend (and its runtime requires) awaiting them, so this rule false-positives on that
+            // pattern here. See https://github.com/oven-sh/bun/pull/23425.
+            '@typescript-eslint/await-thenable': 'off',
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',

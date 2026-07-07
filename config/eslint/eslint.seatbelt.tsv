@@ -1672,7 +1672,7 @@
 "../../tests/unit/BaseSelectionListSectionsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/BulletListRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/ButtonStyleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/CIGitLogicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/unit/CIGitLogicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/CLIVariadicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardFeedErrorsDerivedValueTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardFeedUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

@@ -26,7 +26,24 @@ module.exports = {
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
-    testPathIgnorePatterns: ['<rootDir>/node_modules'],
+    testPathIgnorePatterns: [
+        '<rootDir>/node_modules',
+        // These test files exercise `.github/libs`/`scripts` code that depends on ESM-only `@actions/*`/`@octokit/*`
+        // packages. They run under `bun test` instead (see the `test:bun:scripts` npm script), which supports real
+        // ESM imports natively, so no CJS shims are needed for them.
+        '<rootDir>/tests/unit/awaitStagingDeploysTest.ts',
+        '<rootDir>/tests/unit/checkDeployBlockersTest.ts',
+        '<rootDir>/tests/unit/CIGitLogicTest.ts',
+        '<rootDir>/tests/unit/createOrUpdateDeployChecklistTest.ts',
+        '<rootDir>/tests/unit/DeployChecklistUtilsTest.ts',
+        '<rootDir>/tests/unit/getPullRequestIncrementalChangesTest.ts',
+        '<rootDir>/tests/unit/GithubUtilsTest.ts',
+        '<rootDir>/tests/unit/isAuthorizedContributorTest.ts',
+        '<rootDir>/tests/unit/isDeployChecklistLockedTest.ts',
+        '<rootDir>/tests/unit/markPullRequestsAsDeployedTest.ts',
+        '<rootDir>/tests/unit/postOrReplaceComment.ts',
+        '<rootDir>/tests/unit/waitForPreviousRunsTest.ts',
+    ],
     // .worktrees/ and .claude/worktrees/ hold parallel git worktrees a developer may check out locally.
     // Each one carries its own modules/hybrid-app/package.json, which trips
     // jest-haste-map's "duplicate package name" assertion. Skip them entirely.
@@ -60,7 +77,9 @@ module.exports = {
         // sets "type": "module" with no "require"/"default" export fallback. Jest's require()-based module
         // system refuses to load such a module synchronously ("Must use import to load ES Module"), regardless
         // of transformIgnorePatterns, because that check runs before any transform. Redirect these specifiers to
-        // pre-bundled, fully self-contained CJS shims instead (see jest/buildEsmShims.ts).
+        // pre-bundled, fully self-contained CJS shims instead (see jest/buildEsmShims.ts). These are still needed
+        // because GitUtilsTest.ts (via GitUtils -> GithubUtils) and jest/setup.ts import these packages directly
+        // and have not been migrated to bun test.
         '^@actions/core$': '<rootDir>/jest/shims/actions-core.cjs',
         '^@actions/github/lib/utils$': '<rootDir>/jest/shims/actions-github-utils.cjs',
         '^@actions/github$': '<rootDir>/jest/shims/actions-github.cjs',

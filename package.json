@@ -46,8 +46,8 @@
     "test:verbose": "TZ=utc NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" JEST_VERBOSE=true jest",
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
-    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc && NODE_OPTIONS=--max_old_space_size=8192 tsc -p server/tsconfig.json && NODE_OPTIONS=--max_old_space_size=8192 tsc -p server/victory-chart-renderer/tsconfig.json",
-    "typecheck-tsgo": "tsgo --noEmit --incremental --tsBuildInfoFile tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/tsconfig.json --incremental --tsBuildInfoFile server/tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/victory-chart-renderer/tsconfig.json --incremental --tsBuildInfoFile server/victory-chart-renderer/tsconfig.tsgo.tsbuildinfo",
+    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc && NODE_OPTIONS=--max_old_space_size=8192 tsc -p server/tsconfig.json && NODE_OPTIONS=--max_old_space_size=8192 tsc -p server/victory-chart-renderer/tsconfig.json && NODE_OPTIONS=--max_old_space_size=8192 tsc -p tests/tsconfig.bun.json",
+    "typecheck-tsgo": "tsgo --noEmit --incremental --tsBuildInfoFile tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/tsconfig.json --incremental --tsBuildInfoFile server/tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/victory-chart-renderer/tsconfig.json --incremental --tsBuildInfoFile server/victory-chart-renderer/tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p tests/tsconfig.bun.json --incremental --tsBuildInfoFile tests/tsconfig.tsgo.tsbuildinfo",
     "lint": "./scripts/lint.sh",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
@@ -83,6 +83,7 @@
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
     "test:bun": "bun test --concurrent --max-concurrency 7",
+    "test:bun:scripts": "bun test --preload ./tests/setupBunScripts.ts ./tests/unit/awaitStagingDeploysTest.ts ./tests/unit/checkDeployBlockersTest.ts ./tests/unit/CIGitLogicTest.ts ./tests/unit/createOrUpdateDeployChecklistTest.ts ./tests/unit/DeployChecklistUtilsTest.ts ./tests/unit/getPullRequestIncrementalChangesTest.ts ./tests/unit/GithubUtilsTest.ts ./tests/unit/isAuthorizedContributorTest.ts ./tests/unit/isDeployChecklistLockedTest.ts ./tests/unit/markPullRequestsAsDeployedTest.ts ./tests/unit/postOrReplaceComment.ts ./tests/unit/waitForPreviousRunsTest.ts",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
     "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"

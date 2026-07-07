@@ -7,11 +7,8 @@ import type {SemverLevel} from '@github/libs/versionUpdater';
 
 import type {PackageJson} from 'type-fest';
 
-/**
- * @jest-environment node
- * @jest-config bail=true
- */
 import * as core from '@actions/core';
+import {afterAll, beforeAll, describe, expect, jest, setDefaultTimeout, test} from 'bun:test';
 import {execSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -23,7 +20,7 @@ const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Octokit GithubAPI
-const mockGetInput = jest.fn<string | undefined, [string]>();
+const mockGetInput = jest.fn<(name: string) => string | undefined>();
 
 const isVerbose = process.env.JEST_VERBOSE === 'true';
 
@@ -73,8 +70,11 @@ function initGithubAPIMocking() {
         return mockGetInput(name) ?? '';
     });
 
-    // Mock various compareCommits responses with single mocked function
-    jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation((params) => {
+    // Mock various compareCommits responses with a single mocked function. Assigned directly rather than via
+    // jest.spyOn/spyOn: Octokit's REST endpoint methods are lazily memoized (each is replaced with a plain value
+    // the first time it's accessed), and under bun:test, spyOn silently fails to override that already-memoized
+    // property on this particular object shape, so the mock is never installed. A direct assignment works fine.
+    const mockCompareCommits = jest.fn().mockImplementation((params: Parameters<typeof GithubUtils.octokit.repos.compareCommits>[0]) => {
         const base = params?.base;
         const head = params?.head;
         const tagPairKey = `${base}...${head}`;
@@ -184,6 +184,7 @@ function initGithubAPIMocking() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
     });
+    GithubUtils.octokit.repos.compareCommits = mockCompareCommits as unknown as typeof GithubUtils.octokit.repos.compareCommits;
 }
 
 function initGitServer() {
@@ -469,6 +470,10 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
  *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
  */
 
+// These tests shell out to real `git`/`npm` subprocesses many times per test and can exceed the default 5000ms
+// per-test timeout (shared with Jest's default), especially on a cold cache.
+setDefaultTimeout(30000);
+
 let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
@@ -482,6 +487,9 @@ describe('CIGitLogic', () => {
 
     afterAll(() => {
         jest.restoreAllMocks();
+        // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's
+        // per-file module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+        GithubUtils.internalOctokit = undefined;
         fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
         fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
         process.chdir(startingDir);

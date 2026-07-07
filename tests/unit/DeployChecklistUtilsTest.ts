@@ -2,14 +2,27 @@ import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeplo
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import type {Writable} from 'type-fest';
-
-/**
- * @jest-environment node
- */
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
+// bun:test's fake timers don't offer Jest's `advanceTimersByTimeAsync`, which flushes pending microtasks both
+// before and after advancing timers in one step. Without an initial flush, the rejected `listForRepo` mock's
+// `catch` block (which schedules the retry's `setTimeout`) hasn't run yet by the time we call
+// `advanceTimersByTime`, so the timer is never registered and the retry hangs forever; flushing again afterwards
+// lets the resolved timer's continuation (the next `listForRepo` attempt) run.
+async function flushMicrotasks(): Promise<void> {
+    for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+    }
+}
+
+async function advanceTimersAndFlush(ms: number): Promise<void> {
+    await flushMicrotasks();
+    jest.advanceTimersByTime(ms);
+    await flushMicrotasks();
+}
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
@@ -39,10 +52,10 @@ type ObjectMethodData<T> = {
 
 type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
 
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
-
 beforeAll(() => {
-    asMutable(core).getInput = mockGetInput;
+    // Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be reassigned
+    // directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
     const mockOctokit = {
         rest: {
@@ -69,6 +82,12 @@ afterEach(() => {
     mockListIssues.mockClear();
 });
 
+afterAll(() => {
+    // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's per-file
+    // module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+    GithubUtils.internalOctokit = undefined;
+});
+
 describe('DeployChecklistUtils', () => {
     describe('getDeployChecklist', () => {
         const baseIssue: Issue = {
@@ -93,7 +112,7 @@ describe('DeployChecklistUtils', () => {
 
         issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
 
-        const baseExpectedResponse: Partial<Awaited<ReturnType<typeof getDeployChecklist>>> = {
+        const baseExpectedResponse: Awaited<ReturnType<typeof getDeployChecklist>> = {
             PRList: [
                 {
                     url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21`,
@@ -160,7 +179,7 @@ describe('DeployChecklistUtils', () => {
                 body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
             };
 
-            const bareExpectedResponse: Partial<Awaited<ReturnType<typeof getDeployChecklist>>> = {
+            const bareExpectedResponse: Awaited<ReturnType<typeof getDeployChecklist>> = {
                 ...baseExpectedResponse,
                 PRList: [],
                 PRListMobileExpensify: [],
@@ -218,7 +237,7 @@ describe('DeployChecklistUtils', () => {
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining('#100'));
+                expect((e as Error).message).toContain('#100');
             }
         });
 
@@ -232,8 +251,8 @@ describe('DeployChecklistUtils', () => {
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
-                expect((e as Error).message).toEqual(expect.stringContaining('#500'));
+                expect((e as Error).message).toContain('Inconsistent GitHub response');
+                expect((e as Error).message).toContain('#500');
             }
         });
 
@@ -244,7 +263,7 @@ describe('DeployChecklistUtils', () => {
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining(`No StagingDeployCash issues found at all`));
+                expect((e as Error).message).toContain(`No StagingDeployCash issues found at all`);
             }
         });
     });
@@ -261,7 +280,7 @@ describe('DeployChecklistUtils', () => {
 
             jest.useFakeTimers();
             const pending = getDeployChecklist();
-            await jest.advanceTimersByTimeAsync(2000);
+            await advanceTimersAndFlush(2000);
             const data = await pending;
             jest.useRealTimers();
 
@@ -277,10 +296,12 @@ describe('DeployChecklistUtils', () => {
 
             jest.useFakeTimers();
             const pending = getDeployChecklist();
-            const assertion = expect(pending).rejects.toThrow(RequestError);
-            await jest.advanceTimersByTimeAsync(2000);
-            await jest.advanceTimersByTimeAsync(5000);
-            await assertion;
+            // Capturing the `.rejects` assertion in a variable before it's awaited (as the original Jest test did)
+            // deadlocks bun's fake-timer microtask flushing below; awaiting the assertion directly once the
+            // retries have played out avoids that.
+            await advanceTimersAndFlush(2000);
+            await advanceTimersAndFlush(5000);
+            await expect(pending).rejects.toThrow(RequestError);
             jest.useRealTimers();
 
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
@@ -316,7 +337,7 @@ describe('DeployChecklistUtils', () => {
 
             jest.useFakeTimers();
             const pending = getDeployChecklist();
-            await jest.advanceTimersByTimeAsync(2000);
+            await advanceTimersAndFlush(2000);
             const data = await pending;
             jest.useRealTimers();
 
@@ -340,8 +361,8 @@ describe('DeployChecklistUtils', () => {
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
-                expect((e as Error).message).toEqual(expect.stringContaining('#800'));
+                expect((e as Error).message).toContain('Inconsistent GitHub response');
+                expect((e as Error).message).toContain('#800');
             }
         });
     });
