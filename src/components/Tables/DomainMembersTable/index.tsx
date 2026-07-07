@@ -51,18 +51,19 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = groupFilterValue?.at(0);
+        const activeGroupFilters = Array.isArray(groupFilterValue) ? groupFilterValue.filter((value): value is string => typeof value === 'string') : [];
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {
-            if (activeGroupFilter) {
+            if (activeGroupFilters.length > 0) {
                 tableMethods.updateFilter({key: 'group', value: []});
             }
             return;
         }
 
-        if (activeGroupFilter && !groupOptionValues.includes(activeGroupFilter)) {
-            tableMethods.updateFilter({key: 'group', value: []});
+        const validFilters = activeGroupFilters.filter((filter) => groupOptionValues.includes(filter));
+        if (validFilters.length !== activeGroupFilters.length) {
+            tableMethods.updateFilter({key: 'group', value: validFilters});
         }
     }, [shouldShowGroupFilter, groupOptionValuesKey, groupFilterValue, tableMethods]);
 
