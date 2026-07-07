@@ -20,7 +20,7 @@ import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
@@ -210,7 +210,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: false,
                     });
-                    cleanupAfterSkipConfirmSubmit({
+                    cleanupAfterExpenseCreate({
                         draftTransactionIDs,
                         linkedTrackedExpenseReportAction,
                     });
@@ -274,7 +274,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
             executeWrite: (overrides) => {
                 // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
                 const runCleanup = () =>
-                    cleanupAfterSkipConfirmSubmit({
+                    cleanupAfterExpenseCreate({
                         draftTransactionIDs,
                         linkedTrackedExpenseReportAction,
                     });

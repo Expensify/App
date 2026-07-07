@@ -2,7 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
-import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
+import type {UseSearchAutoRefetchParams} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
@@ -11,10 +11,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+const mockUseIsFocused = jest.fn((): boolean => true);
+
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
-    useIsFocused: jest.fn(() => true),
+    useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
+}));
+// The unfocused path also consults isSearchTopmostFullScreenRoute (an RHP over Search keeps refetching);
+// the stubbed navigationRef above can't answer that, so model "not on Search" explicitly.
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
+    __esModule: true,
+    default: jest.fn(() => false),
 }));
 jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
@@ -23,7 +31,9 @@ jest.mock('@rnmapbox/maps', () => ({
     setAccessToken: jest.fn(),
 }));
 
-const mockUseIsFocused = jest.fn().mockReturnValue(true);
+beforeEach(() => {
+    mockUseIsFocused.mockReturnValue(true);
+});
 
 afterEach(() => {
     jest.clearAllMocks();
@@ -36,7 +46,7 @@ describe('useSearchAutoRefetch', () => {
         });
     });
 
-    const baseProps: UseSearchAutoRefetch = {
+    const baseProps: UseSearchAutoRefetchParams = {
         searchResults: {
             data: {
                 personalDetailsList: {},
@@ -84,7 +94,7 @@ describe('useSearchAutoRefetch', () => {
             previousTransactions: {'1': {transactionID: '1'}},
         };
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+        const {rerender} = renderHook((props: UseSearchAutoRefetchParams) => useSearchAutoRefetch(props), {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
@@ -108,13 +118,26 @@ describe('useSearchAutoRefetch', () => {
     it('should not trigger search when not focused', () => {
         mockUseIsFocused.mockReturnValue(false);
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps: baseProps,
+        // Non-empty previous data so the hook gets past the initial-load early return and the focus
+        // check is what actually suppresses the search.
+        const initialProps = {
+            ...baseProps,
+            transactions: {'1': {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
+
+        const {rerender} = renderHook((props: UseSearchAutoRefetchParams) => useSearchAutoRefetch(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
         });
 
         const updatedProps = {
-            ...baseProps,
-            transactions: {'1': {transactionID: '1'}},
+            ...initialProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
         };
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -124,8 +147,6 @@ describe('useSearchAutoRefetch', () => {
     });
 
     it('should trigger search for chat when report actions added and focused', () => {
-        mockUseIsFocused.mockReturnValue(true);
-
         const chatProps = {
             ...baseProps,
             queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
@@ -141,7 +162,7 @@ describe('useSearchAutoRefetch', () => {
             },
         };
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+        const {rerender} = renderHook((props: UseSearchAutoRefetchParams) => useSearchAutoRefetch(props), {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
@@ -176,7 +197,7 @@ describe('useSearchAutoRefetch', () => {
             },
         };
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+        const {rerender} = renderHook((props: UseSearchAutoRefetchParams) => useSearchAutoRefetch(props), {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
@@ -196,8 +217,6 @@ describe('useSearchAutoRefetch', () => {
     });
 
     it('should not trigger search for chat when report actions removed and focused', () => {
-        mockUseIsFocused.mockReturnValue(true);
-
         const chatProps = {
             ...baseProps,
             queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
@@ -215,7 +234,7 @@ describe('useSearchAutoRefetch', () => {
             },
         };
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+        const {rerender} = renderHook((props: UseSearchAutoRefetchParams) => useSearchAutoRefetch(props), {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,

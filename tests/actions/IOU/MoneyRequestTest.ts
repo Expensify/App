@@ -72,12 +72,12 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// cleanupAfterSkipConfirmSubmit is a spy so the cleanup contract (draft ids + linked tracked action) can be asserted. It's cleanup-only — the write action owns post-create navigation.
-const mockCleanupAfterSkipConfirmSubmit = jest.fn();
-jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => ({
+// cleanupAfterExpenseCreate is a spy so the cleanup contract (draft ids + linked tracked action) can be asserted. It's cleanup-only — the write action owns post-create navigation.
+const mockCleanupAfterExpenseCreate = jest.fn();
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
     __esModule: true,
     default: (...args: unknown[]): void => {
-        mockCleanupAfterSkipConfirmSubmit(...args);
+        mockCleanupAfterExpenseCreate(...args);
     },
 }));
 
@@ -744,10 +744,10 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
             // Cleanup is cleanup-only now; it carries the moved transaction's linkedTrackedExpenseReportAction
             // (used to release the original tracked expense thread screen).
-            expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     linkedTrackedExpenseReportAction,
                 }),
@@ -766,7 +766,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     draftTransactionIDs: [baseParams.transactionID],
                 }),

@@ -13,7 +13,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -329,7 +329,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             currentUserLocalCurrency,
                             shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
-                        cleanupAfterSkipConfirmSubmit({
+                        cleanupAfterExpenseCreate({
                             draftTransactionIDs,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                         });
@@ -398,7 +398,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             policyTagList,
                         },
                     });
-                    cleanupAfterSkipConfirmSubmit({
+                    cleanupAfterExpenseCreate({
                         draftTransactionIDs,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                     });

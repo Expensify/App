@@ -33,7 +33,7 @@ jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => ({
     }),
 }));
 
-jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 const mockSendMoneyElsewhere = jest.fn();
 const mockSendMoneyWithWallet = jest.fn();

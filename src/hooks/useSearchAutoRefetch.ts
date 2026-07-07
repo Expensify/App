@@ -16,7 +16,7 @@ import {useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
 
-type UseSearchAutoRefetch = {
+type UseSearchAutoRefetchParams = {
     searchResults: OnyxEntry<SearchResults>;
     transactions: OnyxCollection<Transaction>;
     previousTransactions: OnyxCollection<Transaction>;
@@ -38,7 +38,7 @@ function useSearchAutoRefetch({
     searchKey,
     offset,
     shouldCalculateTotals,
-}: UseSearchAutoRefetch) {
+}: UseSearchAutoRefetchParams) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const searchTriggeredRef = useRef(false);
@@ -172,4 +172,4 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 }
 
 export default useSearchAutoRefetch;
-export type {UseSearchAutoRefetch};
+export type {UseSearchAutoRefetchParams};

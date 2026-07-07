@@ -324,10 +324,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
         let allTransactionsCreated = true;
-        let lastOptimisticTransactionID: string | undefined;
 
         for (const [index, item] of transactions.entries()) {
-            lastOptimisticTransactionID = rand64();
+            const optimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
@@ -431,7 +430,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
-                optimisticTransactionID: lastOptimisticTransactionID,
+                optimisticTransactionID,
                 // The action owns post-create navigation + growl, but only when the caller permits it
                 // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
                 // the destination themselves) and only for the final transaction of the batch.
@@ -595,9 +594,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
-        let lastOptimisticTransactionID: string | undefined;
         for (const [index, item] of transactions.entries()) {
-            lastOptimisticTransactionID = rand64();
+            const optimisticTransactionID = rand64();
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -651,7 +649,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
-                optimisticTransactionID: lastOptimisticTransactionID,
+                optimisticTransactionID,
                 // The action owns post-create navigation + growl, but only when the caller permits it
                 // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
                 // the destination themselves) and only for the final transaction of the batch.

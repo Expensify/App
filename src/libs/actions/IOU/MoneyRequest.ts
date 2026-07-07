@@ -95,6 +95,8 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     /** Whether the created action should own post-creation navigation. Skip-confirm orchestrators that dismiss/reveal first pass `false` so navigation isn't run twice. */
     shouldHandleNavigation?: boolean;
+    /** Report the flow started from; post-create navigation returns there instead of the written-to report. */
+    backToReport?: string;
 };
 
 function createTransaction({
@@ -124,6 +126,7 @@ function createTransaction({
     optimisticChatReportID,
     currentUserLocalCurrency,
     shouldHandleNavigation = true,
+    backToReport,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -218,6 +221,7 @@ function createTransaction({
                 optimisticTransactionID,
                 shouldHandleNavigation,
                 isLastTransactionOfBatch: index === files.length - 1,
+                backToReport,
             });
         }
     }

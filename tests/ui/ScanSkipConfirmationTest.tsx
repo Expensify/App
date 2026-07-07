@@ -32,7 +32,7 @@ let capturedCreateTransactionArg: CreateTransactionArg | undefined;
 const mockCreateTransaction = jest.fn((arg: CreateTransactionArg) => {
     capturedCreateTransactionArg = arg;
 });
-const mockCleanupAfterSkipConfirmSubmit = jest.fn();
+const mockCleanupAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForScan = jest.fn(() => ({report: undefined, chatReportID: 'chat-resolved', optimisticChatReportID: 'optimistic-resolved'}));
 // Fire the write synchronously with the fallback override so createTransaction + cleanup run inline.
 const mockSubmitWithDismissFirst = jest.fn((params: {executeWrite: (overrides: {shouldHandleNavigation: boolean}) => void}) => params.executeWrite({shouldHandleNavigation: true}));
@@ -87,10 +87,10 @@ jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => ({
     submitWithDismissFirst: (params: {executeWrite: (overrides: {shouldHandleNavigation: boolean}) => void}) => mockSubmitWithDismissFirst(params),
 }));
 
-jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => ({
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
     __esModule: true,
     default: (params: Record<string, unknown>) => {
-        mockCleanupAfterSkipConfirmSubmit(params);
+        mockCleanupAfterExpenseCreate(params);
     },
 }));
 
@@ -194,6 +194,6 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         expect(capturedCreateTransactionArg?.optimisticChatReportID).toBe('optimistic-resolved');
 
         // Cleanup is cleanup-only (draft ids + linked tracked action); it no longer receives navigation params.
-        expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
+        expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
 });

@@ -73,19 +73,12 @@ type NavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
-    shouldNavigate?: boolean;
 };
 
 type ShowExpenseAddedGrowlParams = {
     iouReportID?: string;
     transactionID?: string;
     transactionThreadReportID?: string;
-
-    /**
-     * Whether the growl was shown in the Inbox context. When omitted (dismiss-first orchestrator
-     * paths that don't know where the user lands), the context is resolved at "View" press time.
-     */
-    isInbox?: boolean;
 
     /** Whether this confirmation is for an invoice (changes the toast copy from "Expense added"). */
     isInvoice?: boolean;
@@ -100,7 +93,7 @@ type ShowExpenseAddedGrowlParams = {
  * to land, then build the thread + show the growl. A safety timeout falls back to a growl
  * without the "View" link if the iouAction never appears.
  */
-function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox, isInvoice}: ShowExpenseAddedGrowlParams) {
+function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice}: ShowExpenseAddedGrowlParams) {
     if (!transactionID) {
         return;
     }
@@ -139,9 +132,9 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         const resolvedThreadReportID = threadReportID;
         const navigateToExpenseRHP = () => {
             const backTo = Navigation.getActiveRoute();
-            // The explicit flag wins (set when the growl's origin context is known). Otherwise
-            // (dismiss-first orchestrator paths) resolve the context at press time.
-            const openOnInbox = isInbox ?? (isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute());
+            // Resolved at press time (not growl-show time) so navigation matches whatever surface the
+            // user is actually looking at, even if they switched tabs while the growl was up.
+            const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
             if (!openOnInbox) {
                 // Spend context: open the transaction thread RHP within Search (the report is shown
@@ -293,7 +286,6 @@ function navigateAfterExpenseCreate({
 
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
-    shouldNavigate = true,
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
     const isUserOnSpend = isSearchTopmostFullScreenRoute();
@@ -302,9 +294,7 @@ function navigateAfterExpenseCreate({
     // we just need to dismiss the money request flow screens and open the report chat
     // containing the IOU report. No growl is shown in this case.
     if (!isFromGlobalCreate || !transactionID) {
-        if (shouldNavigate) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
-        }
+        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
@@ -315,18 +305,11 @@ function navigateAfterExpenseCreate({
     // chat containing the IOU report) and show the "Expense added" growl on top of it. We don't
     // redirect to Spend here - the growl just shows.
     if (isUserOnInbox) {
-        if (shouldNavigate) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
-        }
+        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
-        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: true, isInvoice});
-        return;
-    }
-
-    // The caller owns navigation in this case, so skip redirecting to Search.
-    if (!shouldNavigate) {
+        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice});
         return;
     }
 
@@ -385,7 +368,7 @@ function navigateAfterExpenseCreate({
         Navigation.isNavigationReady().then(navigateToSearch);
     }
 
-    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: false, isInvoice});
+    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice});
 }
 
 export default navigateAfterExpenseCreate;

@@ -18,7 +18,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
-import cleanupAfterSkipConfirmSubmit from '../../src/libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
+import cleanupAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -106,7 +106,6 @@ jest.mock('@libs/Navigation/Navigation', () => {
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
 
 // Action-assertion test: post-create navigation is exercised elsewhere; keep the cleanup helper inert here.
-jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
@@ -268,6 +267,6 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         // cleanup is cleanup-only and no longer takes transaction ids beyond the draft list.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
-        expect(cleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
+        expect(cleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
 });

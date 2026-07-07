@@ -8,7 +8,7 @@ import {
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
 } from '@libs/IOUUtils';
-import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
@@ -425,9 +425,10 @@ function submitAmount({
                             optimisticChatReportID,
                             optimisticTransactionID,
                             shouldHandleNavigation: overrides.shouldHandleNavigation,
+                            backToReport,
                         });
                     }
-                    cleanupAfterSkipConfirmSubmit({
+                    cleanupAfterExpenseCreate({
                         draftTransactionIDs: draftTransactionIDsList,
                         linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
                     });
