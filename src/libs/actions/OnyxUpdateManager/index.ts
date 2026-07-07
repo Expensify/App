@@ -87,7 +87,7 @@ function escalateIfFetchStalled(response: Awaited<ReturnType<typeof getMissingOn
     }
 
     // The client advanced, either through this response or through another path in the meantime
-    // (e.g. a contiguous Pusher update applied mid-fetch). The fetches are making progress.
+    // (e.g. a parallel Pusher update applied mid-fetch). The fetches are making progress.
     if (Number(response.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID) > lastUpdateIDFromClient || lastUpdateIDAppliedToClient > lastUpdateIDFromClient) {
         return false;
     }
