@@ -6,6 +6,7 @@ internalScope: Audience is Workspace owners. Covers how to view the current Work
 retrievalIntent: How to view your current plan and subscription.
 contentType: task
 platform: new
+order: 2
 ---
 
 # View Your Plan and Subscription
