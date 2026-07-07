@@ -166,6 +166,7 @@ function KYCWall({
                             adminPolicy,
                             formatPhoneNumber,
                             filteredReportActions,
+                            reportPreviewAction,
                             currentUserAccountID,
                             employeeLogin,
                             doesSubmitterPersonalDetailExist ?? false,
@@ -174,19 +175,19 @@ function KYCWall({
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
-                                if (adminPolicy?.achAccount) {
+                                if (adminPolicy?.achAccount?.bankAccountID) {
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                             });
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, true, reportTransactions);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, true, reportTransactions);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
 
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
                                 setNavigationActionToMicrotaskQueue(() => {
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
-                                    if (adminPolicy?.achAccount) {
+                                    if (adminPolicy?.achAccount?.bankAccountID) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
