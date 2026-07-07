@@ -1,7 +1,7 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency]
+keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer]
 ---
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
@@ -83,6 +83,26 @@ If you reimburse employees through another method, such as payroll or cash, you 
 2. Enable **Payments**.
 
 Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
+
+---
+
+## How to choose an authorized payer without a connected bank account
+
+When **Payments** is enabled, you can set an **Authorized payer** even if no bank account is connected. The authorized payer is the Workspace Admin responsible for paying reports, and they'll be the one prompted to pay.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+2. Under **Payments**, click **Payer**.
+3. Select the **Workspace Admin** you want to set as the authorized payer.
+
+<!-- SCREENSHOT:
+Suggestion: Workflows tab with Payments enabled and no bank account connected, showing the Payer field
+Location: How to choose an authorized payer without a connected bank account
+Purpose: Confirms the Payer field is available before a bank account is added
+-->
+
+## What happens after you set an authorized payer
+
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other Workspace Admins won't receive those prompts. Other admins can still open a report and pay it.
 
 ---
 
