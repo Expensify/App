@@ -31,8 +31,8 @@ type TextInputFilterContentProps = {
     onChange: (value: string | undefined) => void;
 };
 
-function isTextInput(el: BaseTextInputRef | RNTextInput | null): el is RNTextInput {
-    return !!el && 'isFocused' in el;
+function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
+    return !!element && 'isFocused' in element;
 }
 
 function TextInputFilterContent({filterKey, value: initialValue, autoFocus, largeButton, style, onChange}: TextInputFilterContentProps) {
