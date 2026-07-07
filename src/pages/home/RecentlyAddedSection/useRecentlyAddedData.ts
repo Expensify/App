@@ -14,7 +14,8 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo} from 'react';
+import {deepEqual} from 'fast-equals';
+import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
@@ -58,7 +59,7 @@ type RecentlyAddedExpense = {
  *
  * The Search snapshot is only refreshed by an online API call, so a just-created expense (e.g. one added while
  * offline) is absent from it until the next successful search. To keep the slot reflecting optimistic data, any
- * locally-created expense still pending sync (`pendingAction === ADD`) is merged in and deduped against the
+ * locally-created expense the snapshot hasn't confirmed yet is merged in and deduped against the
  * snapshot by `transactionID`. This mirrors how other transaction lists surface offline-pending rows.
  *
  * Offline edits and deletes mutate only the local `transactions_` copy, never the snapshot, so each row prefers
@@ -113,15 +114,10 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         return map;
     }, [localTransactions]);
 
-    // Expenses created locally but not yet synced (e.g. added while offline) are absent from the snapshot, so they're
-    // merged in below. A local optimistic ADD always belongs to the current user, so a `reportID` is the only requirement.
-    const localPendingTransactions = useMemo(
-        () =>
-            Object.values(localTransactions ?? {}).filter(
-                (transaction): transaction is Transaction & {reportID: string} => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !!transaction?.reportID,
-            ),
-        [localTransactions],
-    );
+    // Locally-created expenses the snapshot hasn't confirmed yet. Holding a just-created expense here keeps it in the
+    // slot after `pendingAction` clears on sync but before the refreshed snapshot arrives (otherwise it briefly
+    // disappears and reappears).
+    const [unconfirmedTransactionIDs, setUnconfirmedTransactionIDs] = useState(() => new Set<string>());
 
     const fireSearch = useEffectEvent(() => {
         if (isOffline || !queryJSON) {
@@ -147,7 +143,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
 
     const snapshotData = searchResults?.data;
 
-    const transactions = useMemo(() => {
+    const {transactions, nextUnconfirmedTransactionIDs} = useMemo(() => {
         const data = snapshotData ?? {};
 
         const reportByReportID = new Map<string, Report>();
@@ -186,9 +182,19 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             return ownerAccountID === undefined || ownerAccountID === accountID;
         });
 
-        // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
+        // Locally-created expenses the snapshot hasn't confirmed yet are merged in below (deduped by `transactionID`).
+        // A local optimistic ADD always belongs to the current user, so no ownership check is needed (unlike the snapshot path).
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
-        const combined = [...filtered, ...localPendingTransactions.filter((transaction) => !snapshotTransactionIDs.has(transaction.transactionID))]
+        const pendingAddIDs = Object.values(localTransactions ?? {})
+            .filter((transaction): transaction is Transaction => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+            .map((transaction) => transaction.transactionID);
+        const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...pendingAddIDs].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
+        const combined = [
+            ...filtered,
+            ...Object.values(localTransactions ?? {}).filter(
+                (transaction): transaction is Transaction & {reportID: string} => !!transaction?.reportID && nextUnconfirmed.has(transaction.transactionID),
+            ),
+        ]
             // When an expense is split, its (local) copy is reassigned to the synthetic SPLIT_REPORT_ID and the
             // resulting split children are added as new expenses. Drop the now-orphaned original so the slot shows
             // only the splits. Prefer the local copy's reportID, which reflects the split even before the snapshot refreshes.
@@ -199,7 +205,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         const getRecencyKey = (transaction: Transaction & {reportID: string}) =>
             insertedByTransactionID.get(transaction.transactionID) ?? transaction.inserted ?? getCreated(transaction) ?? '';
 
-        return combined
+        const transactionsList = combined
             .sort((firstTransaction, secondTransaction) => {
                 const firstKey = getRecencyKey(firstTransaction);
                 const secondKey = getRecencyKey(secondTransaction);
@@ -238,7 +244,13 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                     transaction: sourceTransaction,
                 };
             });
-    }, [snapshotData, accountID, insertedByTransactionID, localPendingTransactions, localTransactionByID, translate]);
+
+        return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed};
+    }, [snapshotData, unconfirmedTransactionIDs, accountID, insertedByTransactionID, localTransactions, localTransactionByID, translate]);
+
+    if (!deepEqual(nextUnconfirmedTransactionIDs, unconfirmedTransactionIDs)) {
+        setUnconfirmedTransactionIDs(nextUnconfirmedTransactionIDs);
+    }
 
     return {transactions};
 }
