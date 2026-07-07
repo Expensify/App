@@ -10,6 +10,8 @@ import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
+import React from 'react';
+
 import type {DomainGroupRowData} from './DomainGroupsTableRow';
 
 import DomainGroupsTableRow from './DomainGroupsTableRow';

@@ -2907,6 +2907,7 @@ ${amount} pour ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
         defaultPrompt:
             'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
+        copilotNote: 'Cet agent sera ajouté comme copilote avec un accès complet à votre compte, afin de pouvoir agir en votre nom.',
     },
     editAgentPage: {
         title: 'Modifier l’agent',
@@ -6427,6 +6428,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur des personnes',
                 other: 'Nommer des administrateurs des personnes',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Nommer administrateur des paiements',
+                other: 'Nommer des administrateurs des paiements',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre de l’espace de travail',
@@ -6460,6 +6465,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
             peopleAdmins: 'Administrateurs des personnes',
+            paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
         },
         card: {
@@ -9795,6 +9801,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
             collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
             pricing: 'Tarification',
+            editSubscription: 'Modifier l’abonnement',
         },
         cancelSubscription: {
             title: "Annuler l'abonnement",

@@ -315,7 +315,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         (tagValue: string, orderWeight?: number) => {
             if (orderWeight !== undefined) {
                 Navigation.navigate(
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight)) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, orderWeight),
+                    createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(orderWeight)),
                 );
             } else {
                 Navigation.navigate(
@@ -325,7 +325,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 );
             }
         },
-        [isQuickSettingsFlow, policyID],
+        [isQuickSettingsFlow],
     );
 
     useEffect(() => {
@@ -444,8 +444,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const navigateToTagsSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
-    }, [isQuickSettingsFlow, policyID, backTo]);
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
+    }, [isQuickSettingsFlow]);
 
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
