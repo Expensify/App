@@ -3,10 +3,15 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 
 import StringUtils from '@libs/StringUtils';
 
+import CONST from '@src/CONST';
+
 type NavigationSuggestionSourceItem = SearchQueryItem & {
     action?: () => void;
     matchTerms?: string[];
 };
+
+const MAX_NAVIGATION_SUGGESTIONS = 8;
+const MIN_NAVIGATION_QUERY_LENGTH = 3;
 
 function stripNavigationIntentPrefix(query: string) {
     const trimmedQuery = query.trim();
@@ -53,5 +58,32 @@ function getGoToText(translate: LocaleContextProps['translate'], destination: st
     return translate('search.goTo', {destination});
 }
 
-export {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText};
+function buildNavigationSuggestions(query: string, sources: NavigationSuggestionSourceItem[][], localeCompare: LocaleContextProps['localeCompare']): SearchQueryItem[] {
+    const trimmedQuery = query.trim();
+    const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
+    const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
+    const isAllowedShortQuery = /^hr$/i.test(matchQuery);
+    if (trimmedQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly && !isAllowedShortQuery) {
+        return [];
+    }
+
+    const buildItem = (item: NavigationSuggestionSourceItem): SearchQueryItem | null => {
+        if (!isNavigationIntentOnly && !matchesNavigationQuery(matchQuery, item.text, ...(item.matchTerms ?? []))) {
+            return null;
+        }
+
+        return {
+            ...item,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+        };
+    };
+
+    return sources
+        .flatMap((source) => sortNavigationSuggestionItems(source, localeCompare))
+        .map(buildItem)
+        .filter((item): item is SearchQueryItem => !!item)
+        .slice(0, MAX_NAVIGATION_SUGGESTIONS);
+}
+
+export {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText, buildNavigationSuggestions, MAX_NAVIGATION_SUGGESTIONS};
 export type {NavigationSuggestionSourceItem};

@@ -1,5 +1,12 @@
 import navigateToWorkspaceSettingsRoute from '@components/Search/SearchRouter/navigateToWorkspaceSettingsRoute';
-import {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems} from '@components/Search/SearchRouter/SearchRouterHelpers';
+import {
+    stripNavigationIntentPrefix,
+    isNavigationIntentOnlyQuery,
+    matchesNavigationQuery,
+    sortNavigationSuggestionItems,
+    buildNavigationSuggestions,
+    MAX_NAVIGATION_SUGGESTIONS,
+} from '@components/Search/SearchRouter/SearchRouterHelpers';
 
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -281,5 +288,61 @@ describe('sortNavigationSuggestionItems', () => {
         ];
         const sorted = sortNavigationSuggestionItems(items, localeCompare);
         expect(sorted.map((item) => item.keyForList)).toEqual(['workspace-a_members', 'workspace-b_members']);
+    });
+});
+
+describe('buildNavigationSuggestions', () => {
+    const localeCompare = (a: string, b: string) => a.localeCompare(b);
+    const item = (text: string, key: string) => ({text, keyForList: key, searchItemType: undefined});
+
+    it('returns empty for short non-intent queries', () => {
+        expect(buildNavigationSuggestions('a', [[item('Go to Inbox', 'inbox')]], localeCompare)).toEqual([]);
+        expect(buildNavigationSuggestions('ab', [[item('Go to Inbox', 'inbox')]], localeCompare)).toEqual([]);
+    });
+
+    it('allows "hr" despite being only 2 characters', () => {
+        const hrItem = {text: 'Go to HR', keyForList: 'hr', searchItemType: undefined};
+        const result = buildNavigationSuggestions('hr', [[hrItem]], localeCompare);
+        expect(result).toHaveLength(1);
+        expect(result[0].text).toBe('Go to HR');
+    });
+
+    it('shows all items for bare "go" intent', () => {
+        const sources = [[item('Go to Inbox', 'inbox'), item('Go to Home', 'home')]];
+        const result = buildNavigationSuggestions('go', sources, localeCompare);
+        expect(result).toHaveLength(2);
+    });
+
+    it('shows all items for bare "go to" intent', () => {
+        const sources = [[item('Go to Inbox', 'inbox'), item('Go to Home', 'home')]];
+        const result = buildNavigationSuggestions('go to', sources, localeCompare);
+        expect(result).toHaveLength(2);
+    });
+
+    it('filters items matching "go target" query', () => {
+        const sources = [[item('Go to Inbox', 'inbox'), item('Go to Home', 'home')]];
+        const result = buildNavigationSuggestions('go inbox', sources, localeCompare);
+        expect(result).toHaveLength(1);
+        expect(result[0].keyForList).toBe('inbox');
+    });
+
+    it('filters items matching plain query', () => {
+        const sources = [[item('Go to Inbox', 'inbox'), item('Go to Home', 'home')]];
+        const result = buildNavigationSuggestions('inbox', sources, localeCompare);
+        expect(result).toHaveLength(1);
+        expect(result[0].keyForList).toBe('inbox');
+    });
+
+    it('caps results at MAX_NAVIGATION_SUGGESTIONS', () => {
+        const manyItems = Array.from({length: 12}, (_, i) => item(`Go to Item ${i}`, `item-${i}`));
+        const result = buildNavigationSuggestions('go', [manyItems], localeCompare);
+        expect(result).toHaveLength(MAX_NAVIGATION_SUGGESTIONS);
+    });
+
+    it('preserves source ordering across categories', () => {
+        const topLevel = [item('Go to Inbox', 'top_inbox')];
+        const spend = [item('Go to Reports', 'spend_reports')];
+        const result = buildNavigationSuggestions('go', [topLevel, spend], localeCompare);
+        expect(result.map((r) => r.keyForList)).toEqual(['top_inbox', 'spend_reports']);
     });
 });

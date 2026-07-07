@@ -42,6 +42,7 @@ import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryU
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 
+import getDomainMenuItems from '@pages/domain/getDomainMenuItems';
 import useInitialSettingsPageMenuData from '@pages/settings/useInitialSettingsPageMenuData';
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 
@@ -68,7 +69,15 @@ import {View} from 'react-native';
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
-import {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText} from './SearchRouterHelpers';
+import {
+    stripNavigationIntentPrefix,
+    isNavigationIntentOnlyQuery,
+    matchesNavigationQuery,
+    sortNavigationSuggestionItems,
+    getGoToText,
+    buildNavigationSuggestions,
+    MAX_NAVIGATION_SUGGESTIONS,
+} from './SearchRouterHelpers';
 
 type RightSideContextProps = {
     label: string;
@@ -95,8 +104,6 @@ type WorkspaceContextProps = {
     policy: OnyxTypes.Policy;
 };
 
-const MAX_NAVIGATION_SUGGESTIONS = 8;
-const MIN_NAVIGATION_QUERY_LENGTH = 3;
 const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
 const ACCOUNT_NAVIGATION_KEYWORDS = new Map<TranslationPaths, string[]>([['initialSettingsPage.security', ['password', '2fa', 'two factor', 'two-factor']]]);
 
@@ -402,32 +409,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     ]);
 
     const domainItems = useMemo(() => {
-        const domainMenuItems = [
-            {
-                translationKey: 'domain.domainMembers' as const,
-                icon: icons.User,
-                getRoute: ROUTES.DOMAIN_MEMBERS.getRoute,
-                key: 'members',
-            },
-            {
-                translationKey: 'domain.domainAdmins' as const,
-                icon: icons.UserShield,
-                getRoute: ROUTES.DOMAIN_ADMINS.getRoute,
-                key: 'admins',
-            },
-            {
-                translationKey: 'domain.groups.title' as const,
-                icon: icons.Users,
-                getRoute: ROUTES.DOMAIN_GROUPS.getRoute,
-                key: 'groups',
-            },
-            {
-                translationKey: 'domain.saml' as const,
-                icon: icons.UserLock,
-                getRoute: ROUTES.DOMAIN_SAML.getRoute,
-                key: 'saml',
-            },
-        ];
+        const domainMenuItems = getDomainMenuItems({icons: {User: icons.User, UserShield: icons.UserShield, Users: icons.Users, UserLock: icons.UserLock}});
 
         return Object.values(allDomains ?? {})
             .filter((domain): domain is OnyxTypes.Domain => !!domain?.accountID && !!domain.email && isAdminSelector(currentUserPersonalDetails.accountID)(domain))
@@ -494,7 +476,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     });
 
     const canSendInvoice = canSendInvoicePolicyUtils(allPoliciesCollection, sessionEmail);
-    const travelEnabledPolicy = useMemo(() => Object.values(allPoliciesCollection ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPoliciesCollection]);
+    const travelEnabledPolicy = activePolicyEntry?.isTravelEnabled ? activePolicyEntry : undefined;
     const isTravelVisible = !!travelEnabledPolicy;
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
@@ -615,36 +597,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     );
 
     return useMemo(() => {
-        const trimmedQuery = query.trim();
-        const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
-        const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
-        const isAllowedShortQuery = /^hr$/i.test(matchQuery);
-        if (trimmedQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly && !isAllowedShortQuery) {
-            return [];
-        }
-
-        const buildItem = (item: NavigationSuggestionSourceItem): SearchQueryItem | null => {
-            if (!isNavigationIntentOnly && !matchesNavigationQuery(matchQuery, item.text, ...(item.matchTerms ?? []))) {
-                return null;
-            }
-
-            return {
-                ...item,
-                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
-            };
-        };
-
-        return [
-            ...sortNavigationSuggestionItems(topLevelItems, localeCompare),
-            ...sortNavigationSuggestionItems(spendItems, localeCompare),
-            ...sortNavigationSuggestionItems(accountItems, localeCompare),
-            ...sortNavigationSuggestionItems(workspaceItems, localeCompare),
-            ...sortNavigationSuggestionItems(domainItems, localeCompare),
-            ...sortNavigationSuggestionItems(createItems, localeCompare),
-        ]
-            .map(buildItem)
-            .filter((item): item is SearchQueryItem => !!item)
-            .slice(0, MAX_NAVIGATION_SUGGESTIONS);
+        return buildNavigationSuggestions(query, [topLevelItems, spendItems, accountItems, workspaceItems, domainItems, createItems], localeCompare);
     }, [accountItems, createItems, domainItems, localeCompare, query, spendItems, topLevelItems, workspaceItems]);
 }
 
