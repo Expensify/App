@@ -40,14 +40,19 @@ type DropdownButtonProps = WithSentryLabel &
         /** Caret wrapper style */
         caretWrapperStyle?: StyleProp<ViewStyle>;
         onClosePress?: () => void;
+
+        /** When true, the close button is shown but disabled (used for a suggested search's mandatory filters) */
+        isCloseButtonDisabled?: boolean;
     };
 
-function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
+function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, isCloseButtonDisabled = false, ...props}: DropdownButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const shouldShowCloseButton = !!onClosePress;
+    // A suggested search's mandatory filters can't be removed, so we omit the close section entirely and
+    // render a fully-rounded pill rather than a disabled "x".
+    const shouldShowCloseButton = !!onClosePress && !isCloseButtonDisabled;
 
     /**
      * When no items are selected, render the label, otherwise, render the

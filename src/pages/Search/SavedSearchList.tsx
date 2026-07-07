@@ -2,6 +2,7 @@ import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -45,6 +46,7 @@ type SavedSearchMenuItemBuilderParams = {
     key: string;
     index: number;
     hash: number | undefined;
+    activeSavedSearchKey: string | undefined;
     title: string;
     getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     shouldShowSavedSearchTooltip: boolean;
@@ -60,6 +62,7 @@ function buildSavedSearchMenuItem({
     key,
     index,
     hash,
+    activeSavedSearchKey,
     title,
     getOverflowMenu,
     shouldShowSavedSearchTooltip,
@@ -69,7 +72,9 @@ function buildSavedSearchMenuItem({
     tooltipWrapperStyle,
     isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    const isItemFocused = Number(key) === hash;
+    // Match by the anchored saved-search key so the item stays focused after its filters are edited (which
+    // changes the query hash), falling back to the hash for the unedited case.
+    const isItemFocused = key === activeSavedSearchKey || Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
     return {
@@ -78,7 +83,7 @@ function buildSavedSearchMenuItem({
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
             setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name, savedSearchKey: key}));
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
@@ -121,6 +126,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
 
+    const {currentSavedSearchKey} = useSearchQueryContext();
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -166,6 +172,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                       key,
                       index,
                       hash,
+                      activeSavedSearchKey: currentSavedSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
                       getOverflowMenu,
                       shouldShowSavedSearchTooltip,

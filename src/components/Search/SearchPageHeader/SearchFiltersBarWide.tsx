@@ -14,7 +14,7 @@ type SearchFiltersBarWideProps = {
 };
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading, clearFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, clearFilters, shouldShowClearButton} = useSearchFiltersBar(queryJSON);
 
     if (hasErrors) {
         return null;
@@ -41,7 +41,7 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
                     item={item}
                 />
             ))}
-            {filters.length > 0 && <SearchFiltersClearButton onPress={clearFilters} />}
+            {shouldShowClearButton && <SearchFiltersClearButton onPress={clearFilters} />}
         </>
     );
 }

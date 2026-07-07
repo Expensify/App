@@ -4,7 +4,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getCurrentSearchKey, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ function SearchColumnsPage() {
             sortOrder: currentQueryJSON?.sortOrder,
         });
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey: getCurrentSearchKey()}), {forceReplace: true});
     };
 
     return (

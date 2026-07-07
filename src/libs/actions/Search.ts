@@ -1539,6 +1539,14 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
 }
 
 /**
+ * Persists a suggested search's last-used query (its filters + columns) so it sticks across navigation.
+ * Passing an empty query clears the stored override, reverting the search to its defaults.
+ */
+function setSuggestedSearchOverride(searchKey: string, query: string) {
+    Onyx.merge(ONYXKEYS.SEARCH_SUGGESTED_OVERRIDES, {[searchKey]: query || null});
+}
+
+/**
  * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
  * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
  */
@@ -1812,6 +1820,7 @@ export {
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
     setSearchContext,
+    setSuggestedSearchOverride,
     deleteSavedSearch,
     getSearchPayOnyxData,
     getSearchApproveOnyxData,

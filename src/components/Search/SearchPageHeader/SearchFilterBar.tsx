@@ -16,11 +16,11 @@ import React from 'react';
 
 import type {FilterItem} from './useSearchFiltersBar';
 
-type DropdownProps = Pick<DropdownButtonProps, 'label' | 'PopoverComponent' | 'sentryLabel' | 'onClosePress'> & {
+type DropdownProps = Pick<DropdownButtonProps, 'label' | 'PopoverComponent' | 'sentryLabel' | 'onClosePress' | 'isCloseButtonDisabled'> & {
     value: SearchFilter['value'];
 };
 
-function UserDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function UserDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const users = useFilterUserValue(value);
     return (
         <DropdownButton
@@ -29,11 +29,12 @@ function UserDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
 
-function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const workspaceValue = useFilterWorkspaceValue(value);
     return (
         <DropdownButton
@@ -42,11 +43,12 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClose
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
 
-function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const feedValue = useFilterFeedValue(value as string[]);
     return (
         <DropdownButton
@@ -55,11 +57,12 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
 
-function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const cardValue = useFilterCardValue(value as string[]);
     return (
         <DropdownButton
@@ -68,11 +71,12 @@ function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
 
-function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const bankAccountValue = useFilterBankAccountValue(value);
     return (
         <DropdownButton
@@ -81,11 +85,12 @@ function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClo
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
 
-function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const taxRateValue = useFilterTaxRateValue(value as string[]);
     return (
         <DropdownButton
@@ -94,11 +99,12 @@ function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePr
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
 
-function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, isCloseButtonDisabled}: DropdownProps) {
     const reportValue = useFilterReportValue(value);
     return (
         <DropdownButton
@@ -107,6 +113,7 @@ function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePre
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            isCloseButtonDisabled={isCloseButtonDisabled}
         />
     );
 }
@@ -138,6 +145,7 @@ function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
             PopoverComponent={item.PopoverComponent}
             sentryLabel={item.sentryLabel}
             onClosePress={item.onClosePress}
+            isCloseButtonDisabled={item.isCloseButtonDisabled}
         />
     );
 }

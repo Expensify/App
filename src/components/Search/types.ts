@@ -185,6 +185,12 @@ type SearchQueryContextValue = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
+
+    /** The hash key of the active saved search, kept anchored even after its filters are adjusted */
+    currentSavedSearchKey: string | undefined;
+
+    /** The stored query of the active saved search, used as the defaults to lock and reset to */
+    currentSavedSearchQuery: string | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;

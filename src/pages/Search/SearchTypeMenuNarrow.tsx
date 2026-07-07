@@ -2,6 +2,7 @@ import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -23,6 +24,7 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,12 +82,15 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
+    const {currentSearchKey, currentSavedSearchKey} = useSearchQueryContext();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
         hash: queryJSON?.hash,
         similarSearchHash: queryJSON?.similarSearchHash,
         sortBy: queryJSON?.sortBy,
         sortOrder: queryJSON?.sortOrder,
         type: queryJSON?.type,
+        searchKey: currentSearchKey,
+        hasActiveSavedSearch: !!currentSavedSearchKey,
     });
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -98,6 +103,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [suggestedSearchOverrides] = useOnyx(ONYXKEYS.SEARCH_SUGGESTED_OVERRIDES);
     const isFocused = useIsFocused();
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -148,7 +154,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'CheckCircle',
     ]);
 
-    const queryMap = new Map<string, {query: string; name?: string}>();
+    const queryMap = new Map<string, {query: string; name?: string; searchKey?: SearchKey; savedSearchKey?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
     let activeKey = '';
@@ -162,7 +168,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
-                  queryMap.set(key, {query: item.query ?? '', name: item.name});
+                  queryMap.set(key, {query: item.query ?? '', name: item.name, savedSearchKey: key});
                   const itemHash = Number(key);
                   savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
                       onShare: () => {
@@ -172,7 +178,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                       isCopied: copiedHash === itemHash,
                   });
 
-                  if (Number(key) === queryJSON?.hash) {
+                  if (key === currentSavedSearchKey || Number(key) === queryJSON?.hash) {
                       activeKey = key;
                   }
 
@@ -202,7 +208,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     title,
                     badgeText,
                 });
-                queryMap.set(item.key, {query: item.searchQuery});
+                queryMap.set(item.key, {query: item.searchQuery, searchKey: item.key});
                 if (item.key === activeTypeMenuKey) {
                     activeKey = item.key;
                 }
@@ -229,10 +235,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         }
         onTabPress?.();
         setSearchContext(false);
+        // Restore the suggested search's last-used filters & columns if the user previously customized them.
+        const query = (searchData.searchKey ? suggestedSearchOverrides?.[searchData.searchKey] : undefined) ?? searchData.query;
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
+                params: {q: query, name: searchData.name, rawQuery: undefined, searchKey: searchData.searchKey, savedSearchKey: searchData.savedSearchKey},
             },
         });
     };
