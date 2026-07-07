@@ -49,6 +49,7 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
         id: POLICY_ID,
         pendingAction: undefined,
         role: CONST.POLICY.ROLE.ADMIN,
+        areCategoriesEnabled: true,
         areCompanyCardsEnabled: false,
         areRulesEnabled: false,
         connections: undefined,
@@ -515,15 +516,14 @@ describe('useGettingStartedItems', () => {
             expect(categoriesItem?.isFeatureEnabled).toBe(true);
         });
 
-        it('should have isFeatureEnabled=false when categories feature is not enabled', async () => {
-            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: false}});
+        it('should not be shown when categories feature is not enabled', async () => {
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: false, areCompanyCardsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
-            expect(categoriesItem).toBeDefined();
-            expect(categoriesItem?.isFeatureEnabled).toBe(false);
+            expect(categoriesItem).toBeUndefined();
         });
 
         it('should navigate to workspace categories route', async () => {
@@ -887,6 +887,129 @@ describe('useGettingStartedItems', () => {
         });
     });
 
+    describe('row - Configure approval workflow', () => {
+        it('should be shown when the workflows feature is enabled', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areWorkflowsEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem).toBeDefined();
+        });
+
+        it('should not be shown when the workflows feature is not enabled', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areWorkflowsEnabled: false}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem).toBeUndefined();
+        });
+
+        it('should navigate to the workspace workflows route', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areWorkflowsEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+        });
+
+        it('should be not completed for the default workflow (approver is the owner, no forwarding, no custom submitters)', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'member@test.com': {email: 'member@test.com', submitsTo: 'owner@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(false);
+        });
+
+        it('should be completed when the first approver differs from the owner', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areWorkflowsEnabled: true, owner: 'owner@test.com', approver: 'manager@test.com'},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed when the default approver forwards approvals to someone', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'owner@test.com': {email: 'owner@test.com', forwardsTo: 'boss@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed when a member submits to a non-default approver', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'member@test.com': {email: 'member@test.com', submitsTo: 'lead@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should ignore submitters pending deletion when detecting a custom workflow', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {
+                        'member@test.com': {
+                            email: 'member@test.com',
+                            submitsTo: 'lead@test.com',
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(false);
+        });
+    });
+
     describe('item ordering', () => {
         it('should return items in the correct order: createWorkspace, accounting/categories, companyCards, rules', async () => {
             await setupManageTeamScenario({
@@ -940,6 +1063,25 @@ describe('useGettingStartedItems', () => {
 
             const keys = result.current.items.map((item) => item.key);
             expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'issueExpensifyCards', 'setupRules']);
+        });
+
+        it('should place configureApprovals below the card rows and above setupRules', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areConnectionsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    areWorkflowsEnabled: true,
+                    areRulesEnabled: true,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const keys = result.current.items.map((item) => item.key);
+            expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'configureApprovals', 'setupRules']);
         });
     });
 
