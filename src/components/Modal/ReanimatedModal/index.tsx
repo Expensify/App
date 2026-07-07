@@ -17,8 +17,7 @@ import type {NativeEventSubscription, ViewStyle} from 'react-native';
 
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
+import {BackHandler, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 
 import type ReanimatedModalProps from './types';
@@ -67,7 +66,6 @@ function ReanimatedModal({
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number | undefined>(undefined);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
     const styles = useThemeStyles();
@@ -111,10 +109,6 @@ function ReanimatedModal({
 
     useEffect(
         () => () => {
-            if (handleRef.current) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.clearInteractionHandle(handleRef.current);
-            }
             if (transitionHandleRef.current) {
                 TransitionTracker.endTransition(transitionHandleRef.current);
                 transitionHandleRef.current = null;
@@ -129,8 +123,6 @@ function ReanimatedModal({
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            handleRef.current = InteractionManager.createInteractionHandle();
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
@@ -138,7 +130,6 @@ function ReanimatedModal({
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            handleRef.current = InteractionManager.createInteractionHandle();
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
@@ -156,10 +147,6 @@ function ReanimatedModal({
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
         setIsContainerOpen(true);
-        if (handleRef.current) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.clearInteractionHandle(handleRef.current);
-        }
         if (transitionHandleRef.current) {
             TransitionTracker.endTransition(transitionHandleRef.current);
             transitionHandleRef.current = null;
@@ -170,9 +157,6 @@ function ReanimatedModal({
     const onCloseCallBack = useCallback(() => {
         setIsTransitioning(false);
         setIsContainerOpen(false);
-        if (handleRef.current) {
-            InteractionManager.clearInteractionHandle(handleRef.current);
-        }
         if (transitionHandleRef.current) {
             TransitionTracker.endTransition(transitionHandleRef.current);
             transitionHandleRef.current = null;

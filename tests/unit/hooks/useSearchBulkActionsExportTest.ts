@@ -183,15 +183,6 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     default: () => ({duplicateTransactions: {}, duplicateTransactionViolations: {}}),
 }));
 
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void | Promise<void>) => {
-            callback();
-            return {cancel: jest.fn()};
-        },
-    },
-}));
-
 // ---------------------------------------------------------------------------
 // Mutable context state
 // ---------------------------------------------------------------------------

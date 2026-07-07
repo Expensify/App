@@ -167,22 +167,6 @@
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
-### [react-native+0.83.1+023+restore-interaction-manager.patch](react-native+0.83.1+023+restore-interaction-manager.patch)
-
-- Reason:
-
-    ```
-    This patch restores the old InteractionManager behavior. React Native 0.80 deprecated InteractionManager and modified
-    it to behave like `setImmediate`, more info here - https://github.com/facebook/react-native/blob/d9262c60f4c02d66417008970dc9c34b742aaa75/CHANGELOG.md?plain=1#L597
-  
-    We need to restore the previous behavior to avoid introducing any bugs in the app.
-    Bug example - https://github.com/Expensify/App/pull/69535#issuecomment-3443059319
-    ```
-
-- Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
-- E/App issue: https://github.com/Expensify/App/issues/71913
-- PR introducing patch: https://github.com/Expensify/App/pull/69535
-
 ### [react-native+0.83.1+024+perf-increase-initial-heap-size.patch](react-native+0.83.1+024+perf-increase-initial-heap-size.patch)
 
 - Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.

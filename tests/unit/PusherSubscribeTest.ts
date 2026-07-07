@@ -12,7 +12,7 @@ import {Pusher as MockedPusher} from '../../__mocks__/@pusher/pusher-websocket-r
  *
  * This covers the race condition where:
  * 1. Pusher.init() is called and connects
- * 2. Pusher.subscribe() is called, which defers work via InteractionManager
+ * 2. Pusher.subscribe() is called, which defers work via TransitionTracker.runAfterTransitions
  * 3. Pusher.disconnect() is called (e.g. during "Upgrade Required" teardown)
  * 4. The deferred callback finally runs and finds socket === null
  *
@@ -61,14 +61,14 @@ describe('Pusher.subscribe', () => {
         await initPusher();
 
         // 2. Start subscribe — captures the already-resolved initPromise
-        //    InteractionManager.runAfterInteractions callback is queued but hasn't fired yet
+        //    TransitionTracker.runAfterTransitions callback is queued but hasn't fired yet
         const subscribePromise = Pusher.subscribe('private-user-123', 'multipleEvents');
 
-        // 3. Disconnect BEFORE the InteractionManager callback runs (sets socket = null)
+        // 3. Disconnect BEFORE the TransitionTracker callback runs (sets socket = null)
         //    This simulates the race condition during "Upgrade Required" teardown
         Pusher.disconnect();
 
-        // 4. Flush timers and microtasks so the InteractionManager callback fires
+        // 4. Flush timers and microtasks so the TransitionTracker callback fires
         await jest.runAllTimersAsync();
 
         // 5. Subscribe should NOT throw — it should resolve gracefully
@@ -116,7 +116,7 @@ describe('Pusher.subscribe', () => {
 
         const subscribePromise = Pusher.subscribe('private-user-789', 'multipleEvents');
 
-        // Flush so InteractionManager callback fires and subscription completes
+        // Flush so the TransitionTracker callback fires and subscription completes
         await jest.runAllTimersAsync();
 
         await expect(subscribePromise).resolves.toBeUndefined();
@@ -229,7 +229,7 @@ describe('Per-callback subscription handles', () => {
         // Unsubscribe immediately (sets disposed = true)
         handle.unsubscribe();
 
-        // Now flush — the InteractionManager callback should see disposed=true and skip binding
+        // Now flush — the TransitionTracker callback should see disposed=true and skip binding
         await jest.runAllTimersAsync();
         await expect(handle).resolves.toBeUndefined();
 
@@ -316,7 +316,7 @@ describe('Per-callback subscription handles', () => {
         const callback = jest.fn();
         const handle = Pusher.subscribe(CHANNEL, EVENT, callback);
 
-        // Flush InteractionManager — socket.subscribe() fires, but onSubscriptionSucceeded is deferred
+        // Flush TransitionTracker — socket.subscribe() fires, but onSubscriptionSucceeded is deferred
         await jest.runAllTimersAsync();
         expect(capturedOnSuccess).toBeDefined();
 

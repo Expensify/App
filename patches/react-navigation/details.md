@@ -41,14 +41,6 @@
 - PR Introducing Patch: [#93268](https://github.com/Expensify/App/pull/93268)
 - PR Updating Patch: N/A
 
-### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
-
-- Reason: Adds `InteractionManager` implementation to `@react-navigation/native-stack`
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887
-- E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
-- PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
-
 ### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
