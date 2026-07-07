@@ -102,6 +102,16 @@ function escalateIfFetchStalled(response: Awaited<ReturnType<typeof getMissingOn
     return true;
 }
 
+// A fetch from this client state already stalled and escalated to a ReconnectApp. That reconnect
+// is the recovery; don't repeat a fetch the server has shown it cannot serve.
+function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
+    if (stalledFetchClientUpdateID !== lastUpdateIDFromClient) {
+        return false;
+    }
+    setMissingOnyxUpdatesQueryPromise(Promise.resolve());
+    return true;
+}
+
 // Fetches the missing updates and afterwards validates and applies the deferred updates. This will trigger
 // recursive calls to "validateAndApplyDeferredUpdates" if there are gaps in the deferred updates. When the
 // fetch settles without progress, escalateIfFetchStalled takes over and the deferred updates are skipped:
@@ -188,10 +198,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
                 return true;
             }
 
-            // A fetch from this client state already stalled and escalated to a ReconnectApp. That reconnect
-            // is the recovery; don't repeat a fetch the server has shown it cannot serve.
-            if (stalledFetchClientUpdateID === lastUpdateIDFromClient) {
-                setMissingOnyxUpdatesQueryPromise(Promise.resolve());
+            if (isFetchAlreadyStalled(lastUpdateIDFromClient)) {
                 return true;
             }
 
@@ -238,10 +245,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
             return false;
         }
 
-        // A fetch from this client state already stalled and escalated to a ReconnectApp. That reconnect
-        // is the recovery; don't repeat a fetch the server has shown it cannot serve.
-        if (stalledFetchClientUpdateID === lastUpdateIDFromClient) {
-            setMissingOnyxUpdatesQueryPromise(Promise.resolve());
+        if (isFetchAlreadyStalled(lastUpdateIDFromClient)) {
             return true;
         }
 
