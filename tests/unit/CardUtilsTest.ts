@@ -5,7 +5,6 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 import type IllustrationsType from '@styles/theme/illustrations/types';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
@@ -77,6 +76,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
     Card,
