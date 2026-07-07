@@ -6266,6 +6266,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6290,6 +6291,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6319,6 +6321,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6372,6 +6375,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6395,6 +6399,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6418,6 +6423,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6441,6 +6447,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6477,6 +6484,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6508,6 +6516,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6539,6 +6548,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6564,6 +6574,7 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6591,6 +6602,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6611,6 +6623,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6634,6 +6647,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6677,6 +6691,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6697,6 +6712,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6725,6 +6741,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -6782,6 +6799,36 @@ describe('ReportUtils', () => {
             ).toBeNull();
         });
 
+        it('should include an empty chat in the option list only when the conciergeReportID param marks it as the concierge chat', async () => {
+            // Same empty chat in every respect - only the conciergeReportID param differs between the two assertions,
+            // so this isolates the concierge branch as the sole cause of the report being shown vs hidden.
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'concierge-report-param-321',
+            };
+
+            // Clear the deprecated Onyx.connect fallback so the param is the only source considered
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            const params = {
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: true,
+                draftComment: '',
+                isReportArchived: undefined,
+            };
+
+            // When the param identifies this report as Concierge, the empty chat is kept in the option list...
+            expect(shouldReportBeInOptionList({...params, conciergeReportID: report.reportID})).toBe(true);
+            // ...but with a non-matching conciergeReportID the identical empty chat is excluded.
+            expect(shouldReportBeInOptionList({...params, conciergeReportID: 'a-different-report-id'})).toBe(false);
+        });
+
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
@@ -6800,6 +6847,7 @@ describe('ReportUtils', () => {
                     includeDomainEmail: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6846,6 +6894,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6866,6 +6915,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6900,6 +6950,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     betas: undefined,
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6931,6 +6982,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -6960,6 +7012,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6982,6 +7035,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -7026,6 +7080,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7077,6 +7132,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -7099,6 +7155,7 @@ describe('ReportUtils', () => {
                     includeSelfDM: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeNull();
         });
@@ -7120,6 +7177,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -7141,6 +7199,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7162,6 +7221,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7183,6 +7243,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7199,6 +7260,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7255,6 +7317,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -13741,6 +13804,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13799,6 +13863,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -13906,6 +13971,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13949,6 +14015,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -14475,6 +14542,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14658,6 +14726,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -14843,6 +14912,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14865,6 +14935,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -14966,6 +15037,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedBefore.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -15006,6 +15078,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedAfter.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -15660,6 +15733,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15727,6 +15801,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15798,6 +15873,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15868,6 +15944,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -17932,6 +18009,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -18001,6 +18079,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 

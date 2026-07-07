@@ -193,6 +193,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
+                conciergeReportID: undefined,
             }),
         );
     });
