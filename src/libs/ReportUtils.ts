@@ -6011,8 +6011,8 @@ function getParentNavigationSubtitle(
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
+    parentReportName: string | undefined,
     isParentReportArchived = false,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
@@ -6057,7 +6057,7 @@ function getParentNavigationSubtitle(
     }
 
     return {
-        reportName: getReportName(parentReport, reportAttributes ?? reportAttributesDerivedValue),
+        reportName: parentReportName ?? parentReport.reportName ?? '',
         workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
