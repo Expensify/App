@@ -208,7 +208,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
                 lastUpdateIDFromClient,
             });
 
-            fetchMissingUpdates(lastUpdateIDFromClient, pendingUpdateID, clientLastUpdateID);
+            fetchMissingUpdates(lastUpdateIDFromClient, lastUpdateIDFromServer, clientLastUpdateID);
 
             return true;
         }
