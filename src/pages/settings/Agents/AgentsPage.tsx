@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -12,30 +10,39 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
+
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-type AgentsBulkActionType = typeof CONST.AGENTS.BULK_ACTION_TYPES.DELETE;
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 function AgentsPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
@@ -92,11 +99,20 @@ function AgentsPage() {
         if (!details) {
             return [];
         }
-        const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
-        const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
-        const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
         const pendingAction = agentPrompt?.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+        if (!isOffline && isPendingDeletion) {
+            return [];
+        }
+
+        const mergedErrors = {
+            ...(shouldShowErrors(pendingAction) ? getLatestError(agentPrompt?.errors ?? undefined) : {}),
+            ...getLatestError(agentPrompt?.nameErrors ?? undefined),
+            ...getLatestError(agentPrompt?.promptErrors ?? undefined),
+            ...getLatestError(agentPrompt?.avatarErrors ?? undefined),
+        };
+        const rowErrors = getLatestError(mergedErrors);
 
         return [
             {
@@ -104,9 +120,8 @@ function AgentsPage() {
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
-                hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
                 pendingAction,
-                errors: shouldShowErrors(pendingAction) ? (agentPrompt?.errors ?? undefined) : undefined,
+                errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
                 onChatPress: () => chatWithAgent(accountID),
@@ -219,7 +234,7 @@ function AgentsPage() {
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
                 <>
-                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                    <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3]}>
                         <RenderHTML html={translate('agentsPage.subtitle')} />
                     </View>
                     <AgentsTable
