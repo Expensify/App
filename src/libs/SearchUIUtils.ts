@@ -4,11 +4,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
-import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
-import TaskListItem from '@components/Search/SearchList/ListItem/TaskListItem';
-import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
-import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {
     ExpenseReportListItemType,
     GroupChildrenContainerItemType,
@@ -42,6 +37,7 @@ import type {
     SearchDatePreset,
     SearchFilterKey,
     SearchGroupBy,
+    SearchPaidStatus,
     SearchQueryJSON,
     SearchSortBy,
     SearchStatus,
@@ -74,7 +70,6 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
-    ListItemType,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -3631,25 +3626,6 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
 }
 
 /**
- * Returns the appropriate list item component based on the type and status of the search data.
- */
-function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
-    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return ChatListItem;
-    }
-    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return TaskListItem;
-    }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return ExpenseReportListItem;
-    }
-    if (groupBy) {
-        return TransactionGroupListItem;
-    }
-    return TransactionListItem;
-}
-
-/**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
 function getSections({
@@ -5249,6 +5225,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.withdrawalStatus',
         icon: 'DotIndicator',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS]: {
+        labelKey: 'common.paidStatus',
+        icon: 'MoneyBag',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
         labelKey: 'iou.amount',
         icon: 'Coins',
@@ -5450,6 +5430,10 @@ function getDisplayValue(
         return getWithdrawalStatusDisplayText(form[key], translate);
     }
 
+    if (key === FILTER_KEYS.PAID_STATUS) {
+        return getPaidStatusDisplayText(form[key], translate);
+    }
+
     if (key === FILTER_KEYS.STATUS) {
         const status = form[key];
         if (!status?.length) {
@@ -5629,6 +5613,10 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
         return getWithdrawalStatusOptions(translate);
     }
 
+    if (filterKey === FILTER_KEYS.PAID_STATUS) {
+        return getPaidStatusOptions(translate);
+    }
+
     return [];
 }
 
@@ -5645,6 +5633,20 @@ function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefine
         return undefined;
     }
     return getWithdrawalStatusOptions(translate)
+        .filter((option) => value.includes(option.value))
+        .map((option) => option.text)
+        .join(', ');
+}
+
+function getPaidStatusOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.PAID_STATUS).map((value) => ({text: translate(`paidStatus.${value}`), value}));
+}
+
+function getPaidStatusDisplayText(value: SearchPaidStatus | undefined, translate: LocaleContextProps['translate']): string | undefined {
+    if (!value?.length) {
+        return undefined;
+    }
+    return getPaidStatusOptions(translate)
         .filter((option) => value.includes(option.value))
         .map((option) => option.text)
         .join(', ');
@@ -6419,14 +6421,60 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
     return {splitData, stickyHeaderIndices};
 }
 
+/**
+ * Checks whether a transaction belongs to the given group list item, based on the active groupBy.
+ */
+function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined): boolean {
+    if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+        return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+        return !!transaction.transactionID;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
+        return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
+        return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
+        const monthGroup = groupItem as TransactionMonthGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        return DateUtils.isDateStringInMonth(transactionDateString, monthGroup.year, monthGroup.month);
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
+        const weekGroup = groupItem as TransactionWeekGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const datePart = transactionDateString.substring(0, 10);
+        const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
+        return datePart >= weekStart && datePart <= weekEnd;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.YEAR) {
+        const yearGroup = groupItem as TransactionYearGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
+        return transactionYear === yearGroup.year;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.QUARTER) {
+        const quarterGroup = groupItem as TransactionQuarterGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
+        const transactionMonth = parseInt(transactionDateString.substring(5, 7), 10);
+        // Calculate which quarter the transaction belongs to (1-4)
+        const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
+        return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
+    }
+    return false;
+}
+
 export {
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
-    getListItem,
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
     getViolationsFromSearchData,
+    isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
     isTransactionCategoryGroupListItemType,

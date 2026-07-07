@@ -6546,6 +6546,11 @@ const CONST = {
             CLEARED: 'cleared',
             FAILED: 'failed',
         },
+        PAID_STATUS: {
+            MARKED_AS_PAID: 'markedAsPaid',
+            WITHDRAWING: 'withdrawing',
+            CONFIRMED: 'confirmed',
+        },
         IS_VALUES: {
             READ: 'read',
             UNREAD: 'unread',
@@ -6956,6 +6961,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWAL_STATUS: 'withdrawalStatus',
+            PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
             TITLE: 'title',
@@ -7033,6 +7039,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWAL_STATUS: 'withdrawal-status',
+            PAID_STATUS: 'paid-status',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -7920,6 +7927,13 @@ const CONST = {
         },
     },
 
+    TABLES: {
+        FILTER_TYPE: {
+            SINGLE_SELECT: 'singleSelect',
+            MULTI_SELECT: 'multiSelect',
+        },
+    },
+
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -8077,6 +8091,7 @@ const CONST = {
             TABLE_ROW: 'ExpenseRules-TableRow',
         },
         TABLE: {
+            FILTERS: 'Table-Filters',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
