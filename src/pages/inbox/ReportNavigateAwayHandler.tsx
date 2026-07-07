@@ -1,6 +1,7 @@
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
+import useIsPendingPublicRoomDeeplink from '@hooks/useIsPendingPublicRoomDeeplink';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
@@ -77,7 +78,7 @@ function ReportNavigateAwayHandler() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [pendingPublicRoomReportID] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID);
+    const isPendingPublicRoomDeeplink = useIsPendingPublicRoomDeeplink(reportIDFromRoute);
 
     const parentReportAction = useParentReportAction(report);
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -103,7 +104,7 @@ function ReportNavigateAwayHandler() {
         // opened. The anonymous OpenApp settling can briefly make this report look removed/closed and
         // spuriously trigger a navigate-away to Concierge ~tens of seconds after the room is shown
         // ("room flashes then Concierge"). The pending key is cleared once the user signs in.
-        if (pendingPublicRoomReportID && reportIDFromRoute === pendingPublicRoomReportID) {
+        if (isPendingPublicRoomDeeplink) {
             return;
         }
         const currentRoute = navigationRef.getCurrentRoute();
@@ -212,7 +213,7 @@ function ReportNavigateAwayHandler() {
         }
 
         // FIX #82013: don't navigate away from a public-room deeplink being opened (see navigateAwayFromReport).
-        if (pendingPublicRoomReportID && reportIDFromRoute === pendingPublicRoomReportID) {
+        if (isPendingPublicRoomDeeplink) {
             return;
         }
 
@@ -244,7 +245,7 @@ function ReportNavigateAwayHandler() {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, pendingPublicRoomReportID, reportIDFromRoute]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, isPendingPublicRoomDeeplink]);
 
     return null;
 }
