@@ -1272,8 +1272,8 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
                 const pendingChatMembers = [
-                    {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE as const},
-                    {accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE as const},
+                    {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    {accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                 ];
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers)).toEqual('One, Three');
             });
@@ -1287,7 +1287,7 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-                const pendingChatMembers = [{accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD as const}];
+                const pendingChatMembers = [{accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers)).toEqual('Four, One, Three, Two');
             });
 
@@ -1303,7 +1303,7 @@ describe('ReportNameUtils', () => {
                     pendingChatMembers: [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
                 });
 
-                const pendingChatMembers = [{accountID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE as const}];
+                const pendingChatMembers = [{accountID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}];
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers)).toEqual('Four, One, Two');
             });
         });
