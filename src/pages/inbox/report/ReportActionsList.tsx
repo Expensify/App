@@ -18,6 +18,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
@@ -346,6 +347,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     useEffect(() => {
         const prevActionBadgeTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
         if (!shouldFollowActionBadgeTarget({isProduction, actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
+            return;
+        }
+        // Only follow the badge when the resolving action happened on this report's preview while this report is the one on
+        // screen. If the target advanced because the action was done on another page (e.g. submitting inside the expense report
+        // itself, or resolving it from an RHP), this report isn't the topmost/active report, so auto-scrolling it would shift the
+        // list out from under the user and is confusing.
+        if (Navigation.getTopmostReportId() !== reportID || !!Navigation.getReportRHPActiveRoute()) {
             return;
         }
         // Animated (submit/approve/pay) badges play a success animation on the resolved preview, so wait for it to finish before
