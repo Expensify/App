@@ -72,6 +72,12 @@ function SuggestionEmoji({
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
 
+    // Snapshot of the composer value and cursor captured when the list is dismissed with ESC. It suppresses
+    // only the recalculation triggered by refocusing the composer with the same text/cursor (e.g. after
+    // closing the FAB/action-menu popover with ESC). Any real edit (different value or cursor) clears the
+    // snapshot and recalculates normally, so a typed character is never swallowed.
+    const dismissedEmojiSuggestion = useRef<{value: string; selectionEnd: number | undefined} | null>(null);
+
     /**
      * Replace the code of emoji and update selection
      * @param {Number} selectedEmoji
@@ -139,17 +145,17 @@ function SuggestionEmoji({
                 e.preventDefault();
 
                 if (suggestionsExist) {
-                    // Block the next suggestion calculation so refocusing the composer (e.g. after closing the
-                    // FAB/action-menu popover with ESC) does not reopen the list the user just dismissed. The flag
-                    // is one-shot: calculateEmojiSuggestion clears it on its next run, so typing re-enables suggestions.
-                    shouldBlockCalc.current = true;
+                    // Remember the dismissed text/cursor so refocusing the composer (e.g. after closing the
+                    // FAB/action-menu popover with ESC) does not reopen the list the user just dismissed, while
+                    // typing another character or moving the cursor immediately re-enables suggestions.
+                    dismissedEmojiSuggestion.current = {value, selectionEnd: selection.end};
                     resetSuggestions();
                 }
 
                 return true;
             }
         },
-        [highlightedEmojiIndex, insertSelectedEmoji, resetSuggestions, suggestionValues.suggestedEmojis.length],
+        [highlightedEmojiIndex, insertSelectedEmoji, resetSuggestions, selection.end, suggestionValues.suggestedEmojis.length, value],
     );
 
     /**
@@ -157,6 +163,18 @@ function SuggestionEmoji({
      */
     const calculateEmojiSuggestion = useCallback(
         (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+            // If the list was dismissed with ESC, suppress only the recalculation triggered by refocusing the
+            // composer with the same text and cursor. The snapshot is consumed on the first calculation after
+            // dismissal; if the value or cursor changed (the user typed), fall through and recalculate normally.
+            if (dismissedEmojiSuggestion.current) {
+                const {value: dismissedValue, selectionEnd: dismissedSelectionEnd} = dismissedEmojiSuggestion.current;
+                dismissedEmojiSuggestion.current = null;
+                if (dismissedValue === newValue && dismissedSelectionEnd === selectionEnd) {
+                    resetSuggestions();
+                    return;
+                }
+            }
+
             if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !newValue || (selectionStart === 0 && selectionEnd === 0)) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
