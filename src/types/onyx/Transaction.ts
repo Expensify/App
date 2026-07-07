@@ -264,7 +264,7 @@ type Receipt = {
     /** Local thumbnail URI for fast preview on confirmation page */
     thumbnail?: string;
 
-    /** Opaque correlation id minted at capture, used to follow this receipt through the capture → upload pipeline in the logs */
+    /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
 };
 

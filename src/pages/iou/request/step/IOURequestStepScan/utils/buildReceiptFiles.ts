@@ -29,7 +29,7 @@ type BuildReceiptFilesParams = {
      */
     draftTransactionIDsToCleanUp?: string[];
 
-    /** How the receipt entered the app, recorded on the capture observability log. */
+    /** How the receipt entered the app, recorded on the capture log. */
     captureSource?: ReceiptCaptureSource;
 };
 

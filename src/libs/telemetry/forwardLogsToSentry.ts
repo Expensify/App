@@ -5,8 +5,13 @@ import * as Sentry from '@sentry/react-native';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-/** Maps our internal log levels onto Sentry breadcrumb severity levels (note: `warn` becomes `warning`). */
-const SENTRY_BREADCRUMB_LEVEL: Record<SentryLogLevel, SeverityLevel> = {debug: 'debug', info: 'info', warn: 'warning', error: 'error'};
+/** Maps our log levels onto Sentry breadcrumb severity levels. */
+const SENTRY_BREADCRUMB_LEVEL: Record<SentryLogLevel, SeverityLevel> = {
+    debug: 'debug',
+    info: 'info',
+    warn: 'warning',
+    error: 'error',
+};
 
 /**
  * Whitelist of parameter key patterns allowed to be forwarded to Sentry.
@@ -32,9 +37,9 @@ const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[OnyxUpdateManager
 type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
 
 /**
- * Parameter keys forwarded only for a specific log prefix, on top of PARAMETERS_WHITELIST. Keys here are NOT allowed for
- * any other prefix, so a generic key like `event` can't leak from an unrelated forwarded line. Keep the receipt
- * observability keys scoped to `[Receipt]` rather than widening the global whitelist.
+ * Extra parameter keys forwarded only for a given log prefix, on top of PARAMETERS_WHITELIST. A key here is not
+ * allowed for any other prefix, so a generic key like event cannot leak from an unrelated line. This keeps the
+ * receipt keys tied to the receipt logs instead of widening the global whitelist.
  */
 const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([['[Receipt]', ['receiptTraceId', 'transactionID', 'event']]]);
 
@@ -105,11 +110,18 @@ function forwardLogsToSentry(logPacket: string | undefined) {
         return;
     }
 
-    let parsedPacket: Array<{message?: string; parameters?: Record<string, unknown> | undefined}> | undefined;
+    let parsedPacket:
+        | Array<{
+              message?: string;
+              parameters?: Record<string, unknown> | undefined;
+          }>
+        | undefined;
     try {
         parsedPacket = JSON.parse(logPacket) as typeof parsedPacket;
     } catch {
-        Sentry.logger.warn('Failed to parse log packet for Sentry forwarding', {logPacket});
+        Sentry.logger.warn('Failed to parse log packet for Sentry forwarding', {
+            logPacket,
+        });
         return;
     }
 
@@ -137,10 +149,10 @@ function forwardLogsToSentry(logPacket: string | undefined) {
             }
         }
 
-        // Mirror the line as a breadcrumb so the trail rides along on any crash/error event. Breadcrumb data is the same
-        // whitelisted set as the forwarded log — opaque ids only, never the receipt source/filename/bytes. The receipt
-        // trace id is searchable via the breadcrumb's `data.receiptTraceId`; we do NOT call Sentry.setTag because tags
-        // are global and the most recent receipt would overwrite earlier ones, tagging unrelated crashes with the wrong id.
+        // Mirror the line as a breadcrumb so the trail shows up on any crash or error. The breadcrumb carries the same
+        // whitelisted keys as the forwarded log, so only opaque ids, never the receipt source, filename, or bytes. You
+        // can search the trace id by data.receiptTraceId. We avoid Sentry.setTag because tags are global, so the latest
+        // receipt would overwrite earlier ones and tag unrelated crashes with the wrong id.
         Sentry.addBreadcrumb({
             category: prefix.replaceAll(/[[\]]/g, '').toLowerCase(),
             type: 'info',

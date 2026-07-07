@@ -8,25 +8,24 @@ import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-/** Prefix on every receipt observability log line, so the logs can be filtered without parsing free text. */
+/** Prefix on every receipt log line so we can filter the logs without parsing free text. */
 const RECEIPT_LOG_PREFIX = '[Receipt]';
 
-/** Lifecycle boundaries at which we snapshot the still-pending receipts. */
+/** Points in the app lifecycle where we snapshot the receipts that are still pending. */
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
 type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace';
 
 /**
- * Maps the picker-driven capture path to a `ReceiptCaptureSource`. On native the picker is the OS gallery; on web the
- * same callback fires for file-browse and drag-and-drop. Keep the mapping in one place so future platforms only need
- * one change.
+ * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
+ * for both file browsing and drag and drop. Keeping it here means a new platform only has to change one place.
  */
 function getPickerCaptureSource(): ReceiptCaptureSource {
     return getPlatform() === CONST.PLATFORM.WEB ? 'file' : 'gallery';
 }
 
-/** Inputs for the enqueued milestone, captured at the moment the receipt request reaches the write queue. */
+/** Inputs for the enqueued milestone, taken when the receipt request reaches the write queue. */
 type ReceiptEnqueuedParams = {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
@@ -35,9 +34,9 @@ type ReceiptEnqueuedParams = {
 };
 
 /**
- * Write commands whose request params carry a captured receipt. A pending request with one of these commands is a
- * receipt that has not yet reached the server. Keep aligned with the durability slice's enumeration so the two
- * features never disagree on which queued requests own a local receipt file.
+ * Write commands whose params can carry a captured receipt. A pending request with one of these commands is a receipt
+ * that has not reached the server yet. Keep this in sync with the durability slice so the two features agree on which
+ * queued requests own a local receipt file.
  */
 const RECEIPT_BEARING_COMMANDS = new Set<string>([
     WRITE_COMMANDS.REQUEST_MONEY,
@@ -53,23 +52,22 @@ const RECEIPT_BEARING_COMMANDS = new Set<string>([
     WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
 ]);
 
-/** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has been waiting. */
+/** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
 const enqueuedAtByTransactionID = new Map<string, number>();
 
 /**
- * Upper bound on the enqueue-timing map. It is normally drained in the snapshot path, but a session that never hits a
- * snapshot boundary (e.g. a long-lived web tab that never backgrounds or signs out) would otherwise grow it one entry
- * per submitted receipt without bound. The oldest entry is evicted past this cap; losing it only degrades a future
- * snapshot's `msSinceEnqueued` for that receipt, never correctness.
+ * Upper bound on the enqueue timing map. The snapshot path normally drains it, but a session that never backgrounds
+ * or signs out, like a long-lived web tab, would keep adding one entry per receipt. Once we pass this cap we drop the
+ * oldest entry. Losing it only makes a later snapshot miss the wait time for that receipt, so the data stays correct.
  */
 const MAX_TRACKED_ENQUEUE_TIMESTAMPS = 100;
 
 /**
- * Mints a unique, opaque correlation id for a captured receipt and stamps it on the in-memory file object.
+ * Creates a unique correlation id for a captured receipt and stamps it on the in-memory file object.
  *
- * The id is added as an own-enumerable property so it rides along with the file through the submit path into the
- * final request params, and survives `JSON.stringify` and Onyx storage into the persisted request — even when the
- * receipt began life as a `File` on web, whose binary content never serializes.
+ * We add it as a normal property so it travels with the file through submit into the final request params, and
+ * survives JSON.stringify and Onyx storage into the persisted request. This still works for a web File, whose binary
+ * content never serializes.
  */
 function mintAndStampReceiptTraceId(file: FileObject): string {
     const receiptTraceId = rand64();
@@ -79,9 +77,9 @@ function mintAndStampReceiptTraceId(file: FileObject): string {
 }
 
 /**
- * Records the capture milestone: the moment a receipt image entered the app. Carries the entry point and the file
- * format and size, so a later investigation can test whether lost receipts skew toward a format (e.g. HEIC or PDF)
- * or toward large files. Delivered immediately so it survives a hard app kill.
+ * Records the capture milestone, the moment a receipt image enters the app. It carries the entry point, file format,
+ * and size, so we can later check whether lost receipts lean toward a format like HEIC or PDF, or toward large files.
+ * Sent right away so it survives a hard app kill.
  */
 function logReceiptCaptured({file, captureSource, receiptTraceId}: {file: FileObject; captureSource: ReceiptCaptureSource; receiptTraceId: string}) {
     Log.info(`${RECEIPT_LOG_PREFIX} captured`, true, {
@@ -96,8 +94,8 @@ function logReceiptCaptured({file, captureSource, receiptTraceId}: {file: FileOb
 }
 
 /**
- * Records the submit milestone, mapping the draft transaction id to the final transaction id. This is the join from
- * the capture-side logs to everything downstream, since the id changes from the constant draft id at submit.
+ * Records the submit milestone and maps the draft transaction id to the final one. This is what joins the capture
+ * logs to everything downstream, because the id changes from the fixed draft id at submit.
  */
 function logReceiptSubmitted({
     receiptTraceId,
@@ -123,14 +121,14 @@ function logReceiptSubmitted({
 }
 
 /**
- * Records the enqueued milestone: the receipt upload reached the write queue. The gap between this and the existing
- * network "sent" log is the blocked-queue window the investigation is about. Records the offline state and the queue
- * depth so a normal offline wait can be told apart from a stuck queue.
+ * Records the enqueued milestone, when the receipt upload reaches the write queue. The gap between this and the
+ * existing network "sent" log is the window where the queue is blocked, which is what we want to see. It records the
+ * offline state and queue depth so we can tell a normal offline wait apart from a stuck queue.
  */
 function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
     if (transactionID) {
-        // Re-insert so the key moves to the newest slot (Map preserves insertion order), then trim the oldest entries
-        // past the cap. This bounds the map even if a snapshot boundary is never reached to drain it.
+        // Re-insert so this key becomes the newest, then drop the oldest entries past the cap. This keeps the map
+        // bounded even when no snapshot ever runs to drain it.
         enqueuedAtByTransactionID.delete(transactionID);
         enqueuedAtByTransactionID.set(transactionID, Date.now());
         while (enqueuedAtByTransactionID.size > MAX_TRACKED_ENQUEUE_TIMESTAMPS) {
@@ -153,18 +151,18 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
 }
 
 /**
- * Emits one snapshot line per receipt still pending in the write queue, tagged with the lifecycle boundary that
- * triggered it. Stays silent when nothing is pending, so the logs are quiet in the normal case. Delivered immediately
- * so the snapshot survives a hard app kill from the background.
+ * Logs one line per receipt still pending in the write queue, tagged with what triggered the snapshot. Stays quiet
+ * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
+ * background.
  */
 function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
     const isOffline = getIsOffline();
     const now = Date.now();
     const pendingTransactionIDs = new Set<string>();
 
-    // Include the ongoing request. Once processNextRequest() moves a receipt from the persisted queue into the ongoing
-    // slot it is the one actively uploading, but it no longer shows up in getAll(). Without this it would be skipped here
-    // and then dropped from the timing map by the cleanup below.
+    // Include the ongoing request. Once processNextRequest moves a receipt into the ongoing slot it is the one
+    // actively uploading, but it no longer shows up in getAll. Without this we would skip it here and then drop it
+    // from the timing map in the cleanup below.
     const ongoingRequest = getOngoingRequest();
     const requests = ongoingRequest ? [ongoingRequest, ...getAllPersistedRequests()] : getAllPersistedRequests();
 
@@ -174,9 +172,9 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
         }
 
         const data = (request.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
-        // Skip when the receipt isn't reachable at data.receipt (e.g. SplitBill nests it inside the splits JSON; SendMoney
-        // without an attached receipt has no receipt field). Logging without a trace id is noise — it cannot be joined to the
-        // capture log and only pollutes the snapshot with non-correlatable rows.
+        // Skip when there is no receipt at data.receipt. SplitBill nests it inside the splits JSON, and SendMoney with
+        // no attached receipt has no receipt field. A row without a trace id cannot be joined to the capture log, so
+        // it would only add noise to the snapshot.
         if (!data.receipt) {
             continue;
         }
@@ -197,7 +195,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
         });
     }
 
-    // Drop timing entries for receipts that have drained from the queue, so the map stays bounded to pending receipts.
+    // Drop timing entries for receipts that already left the queue, so the map only holds pending receipts.
     for (const transactionID of enqueuedAtByTransactionID.keys()) {
         if (pendingTransactionIDs.has(transactionID)) {
             continue;
