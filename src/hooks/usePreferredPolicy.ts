@@ -1,6 +1,4 @@
-import {Str} from 'expensify-common';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
+import useUserSecurityGroup from './useUserSecurityGroup';
 
 type UsePreferredPolicyResult = {
     /** Whether the user is restricted to use only the preferred policy */
@@ -17,19 +15,7 @@ type UsePreferredPolicyResult = {
  * Hook to get the preferred policy settings from the user's domain security group
  */
 function usePreferredPolicy(): UsePreferredPolicyResult {
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
-    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
-    // Get the user's domain from their email
-    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
-
-    // Get the security group ID for the user's domain
-    const securityGroupID = userDomain && myDomainSecurityGroups?.[userDomain];
-
-    // Get the security group details
-    const securityGroupKey = `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`;
-    const securityGroup = securityGroupID ? securityGroups?.[securityGroupKey] : null;
+    const {securityGroup} = useUserSecurityGroup();
 
     // Only restrict if both enableRestrictedPrimaryPolicy is true AND we have a valid policy ID
     const restrictedPolicyID = securityGroup?.restrictedPrimaryPolicyID;

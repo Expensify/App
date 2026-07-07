@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUserSecurityGroup from '@hooks/useUserSecurityGroup';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     clearContactMethod,
@@ -55,13 +56,12 @@ type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorP
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
-    const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
-    const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
+    const {securityGroup, isLoadingSecurityGroup} = useUserSecurityGroup();
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, isLoadingReportDataResult) || isLoadingSecurityGroup;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -103,19 +103,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * - The security group exists and has `enableRestrictedPrimaryLogin` enabled → restricted.
      */
     const isRestrictedDefaultContactMethodSwitch = useMemo(() => {
-        const domainName = Str.extractEmailDomain(session?.email ?? '');
-        const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
-
-        // If there's no security group associated with the user for the primary domain,
-        // default to NOT restricting the user from switching their default contact method.
-        if (!primaryDomainSecurityGroupID) {
-            return false;
-        }
-
-        /// Restrict the user from switching their default contact method if their security group
-        // restricts primary login switching.
-        return !!securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
-    }, [session?.email, myDomainSecurityGroups, securityGroups]);
+        // Restrict the user from switching their default contact method if their domain security group
+        // restricts primary login switching. Defaults to NOT restricted when the user has no security group.
+        return !!securityGroup?.enableRestrictedPrimaryLogin;
+    }, [securityGroup]);
 
     /**
      * Checks if the user is allowed to change their default contact method.
