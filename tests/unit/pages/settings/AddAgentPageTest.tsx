@@ -250,7 +250,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
-            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456);
+            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456, {shouldDismissModal: true});
             expect(mockGoBack).not.toHaveBeenCalled();
         });
 
@@ -265,7 +265,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
-            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456);
+            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456, {shouldDismissModal: true});
             expect(mockGoBack).not.toHaveBeenCalled();
         });
     });

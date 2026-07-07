@@ -2412,6 +2412,7 @@ function navigateToAndOpenReportWithAccountIDs(
     betas: OnyxEntry<Beta[]>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     shouldRevalidateExistingChat = false,
+    shouldDismissModal = false,
 ) {
     const participants = participantAccountIDs.map((accountID): ParticipantInfo => {
         return {
@@ -2441,7 +2442,7 @@ function navigateToAndOpenReportWithAccountIDs(
             betas,
         });
 
-        navigateToReport(fallbackChat.reportID, {shouldDismissModal: false});
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal});
     };
 
     if (!chat || isReportNotFound(chat)) {
@@ -2450,7 +2451,7 @@ function navigateToAndOpenReportWithAccountIDs(
     }
 
     if (!shouldRevalidateExistingChat) {
-        navigateToReport(chat.reportID, {shouldDismissModal: false});
+        navigateToReport(chat.reportID, {shouldDismissModal});
         return;
     }
 
@@ -2476,7 +2477,7 @@ function navigateToAndOpenReportWithAccountIDs(
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
-    navigateToReport(chat.reportID, {shouldDismissModal: false});
+    navigateToReport(chat.reportID, {shouldDismissModal});
 }
 
 /**

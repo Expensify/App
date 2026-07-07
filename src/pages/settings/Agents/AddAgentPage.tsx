@@ -106,7 +106,9 @@ function AddAgentPage({route}: AddAgentPageProps) {
             ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        chatWithAgent(optimisticAccountID);
+        // This page lives on the RHP/modal stack, so dismiss the modal before navigating —
+        // otherwise the modal stays on top and the new DM is never shown to the user.
+        chatWithAgent(optimisticAccountID, {shouldDismissModal: true});
     };
 
     return (
