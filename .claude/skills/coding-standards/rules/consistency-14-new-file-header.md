@@ -7,7 +7,7 @@ title: Non-trivial new files start with a header description
 
 ### Reasoning
 
-Per the PR checklist, when a new file is added it should carry a short description of what it does and/or why it is needed at the top of the file, unless the code is self explanatory. A one-line header comment on a new module, component, hook, or util orients the next reader immediately instead of forcing them to reverse-engineer the file's purpose from its exports.
+When a new file is added it should carry a short description of what it does and/or why it is needed at the top, unless the code is self explanatory. A one-line header comment on a new module, component, hook, or util orients the next reader immediately instead of forcing them to reverse-engineer the file's purpose from its exports.
 
 ### Incorrect
 
