@@ -118,7 +118,7 @@ compute: ([reports, personalDetails]) => {
 
 ## Onyx State Export
 
-Users can export their full Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.
+Users can export their Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.
 
 ### - Every Onyx key MUST be deliberately categorized for export
 There is no safe implicit default: a key that leaks credentials and a key holding a harmless boolean flag both need an explicit decision. To make that decision impossible to skip, every top-level and `COLLECTION.*` key in `ONYXKEYS` is placed into exactly one of four mutually-exclusive buckets in `src/libs/ExportOnyxState/common.ts`:
