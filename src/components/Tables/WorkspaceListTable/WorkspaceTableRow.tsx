@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -8,15 +6,25 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WorkspaceRowData} from '.';
+
+import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
 import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
@@ -43,7 +51,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator', 'Hourglass']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'Hourglass']);
 
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
@@ -59,15 +67,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     ]
         .filter(Boolean)
         .join(', ');
-
-    const BrickRoadIndicator = !!item.brickRoadIndicator && (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-            <Icon
-                src={icons.DotIndicator}
-                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
-            />
-        </View>
-    );
 
     const JoinRequestPendingBadge = (
         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
@@ -100,7 +99,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
 
     const ThreeDotsMenuWithBrickRoadIndicator = (
         <View style={[styles.flexRow, styles.gap1]}>
-            {item.brickRoadIndicator && BrickRoadIndicator}
+            {item.role === CONST.POLICY.ROLE.ADMIN && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />}
             <WorkspaceRowThreeDotsMenu
                 item={item}
                 onDeleteWorkspace={onDeleteWorkspace}
@@ -116,8 +115,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'WorkspaceRow'}}
-            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
             offlineWithFeedback={{
