@@ -31,7 +31,7 @@ You may be asked to submit a short access request form before downloading certai
 
 ---
 
-# How to request Expensify’s SOC 1 Type 2 Report or SOC 2 Type 2 Report
+## How to request Expensify’s SOC 1 Type 2 Report or SOC 2 Type 2 Report
 
 If you need a SOC report for a vendor security review or procurement process, go to the Expensify Trust Center at [https://trust.expensify.com/](https://trust.expensify.com/) and follow these steps:
 
@@ -42,7 +42,7 @@ If you need a SOC report for a vendor security review or procurement process, go
 
 ---
 
-# How to get Expensify’s SOC 1 and SOC 2 Bridge Letter
+## How to get Expensify’s SOC 1 and SOC 2 Bridge Letter
 
 The SOC bridge letter provides coverage between the end of the last audit period and the current date.
 
@@ -54,7 +54,7 @@ To access the bridge letter, visit the Expensify Trust Center at [https://trust.
 
 ---
 
-# How to get Expensify’s W-9 or Certificate of Insurance
+## How to get Expensify’s W-9 or Certificate of Insurance
 
 For accounting, tax setup, or vendor onboarding, go to the Expensify Trust Center at [https://trust.expensify.com/](https://trust.expensify.com/) and follow these steps:
 
@@ -71,7 +71,7 @@ To access the reports, go to the Expensify Trust Center resources page at [https
 
 ---
 
-# When to contact Expensify about compliance documentation
+## When to contact Expensify about compliance documentation
 
 If you’re unable to access a document in the Trust Center, or if your organization requires additional documentation for a vendor security review, reach out to your Account Manager or Concierge.
 
