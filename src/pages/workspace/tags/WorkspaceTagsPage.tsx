@@ -742,7 +742,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         return (
             <ButtonWithDropdownMenu
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}

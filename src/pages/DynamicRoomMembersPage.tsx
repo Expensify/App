@@ -371,7 +371,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             <View style={styles.w100}>
                 {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
                         customText={translate('workspace.common.selected', {count: selectedMembers.length})}

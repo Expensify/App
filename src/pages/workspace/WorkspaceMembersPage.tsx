@@ -694,7 +694,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
                 size={CONST.BUTTON_SIZE.MEDIUM}

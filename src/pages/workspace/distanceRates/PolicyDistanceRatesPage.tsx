@@ -428,7 +428,7 @@ function PolicyDistanceRatesPage({
                 </>
             ) : (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}

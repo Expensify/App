@@ -5949,6 +5949,17 @@ const CONST = {
         SMALL: 'small',
     },
 
+    BUTTON_VARIANT: {
+        SUCCESS: 'success',
+        DANGER: 'danger',
+    },
+
+    BUTTON_REMOVE_BORDER_RADIUS: {
+        LEFT: 'left',
+        RIGHT: 'right',
+        ALL: 'all',
+    },
+
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR: 'CUSTOM_HISTORY-MFA_MODAL_NAVIGATOR',

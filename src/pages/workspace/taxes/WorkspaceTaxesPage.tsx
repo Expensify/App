@@ -338,7 +338,7 @@ function WorkspaceTaxesPage({
 
         return (
             <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => {}}
                 options={dropdownMenuOptions}
                 size={CONST.BUTTON_SIZE.MEDIUM}

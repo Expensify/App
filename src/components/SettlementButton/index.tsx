@@ -689,7 +689,7 @@ function SettlementButton({
                     isLoading={isLoading}
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                    variant={!hasOnlyHeldExpenses ? 'success' : undefined}
+                    variant={!hasOnlyHeldExpenses ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}

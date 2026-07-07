@@ -136,7 +136,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
                 option?.onSelected?.();
             }}
             pressOnEnter
-            variant={hasActiveScheduledCall ? 'success' : undefined}
+            variant={hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
             size={CONST.BUTTON_SIZE.MEDIUM}
             options={options}
             shouldUseOptionIcon

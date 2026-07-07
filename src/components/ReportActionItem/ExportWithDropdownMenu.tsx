@@ -114,7 +114,7 @@ function ExportWithDropdownMenu({
 
     return (
         <ButtonWithDropdownMenu<ReportExportType>
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             pressOnEnter
             shouldAlwaysShowDropdownMenu
             anchorAlignment={dropdownAnchorAlignment}

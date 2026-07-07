@@ -3,6 +3,8 @@ import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMe
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
+import CONST from '@src/CONST';
+
 import type {StoryFn} from '@storybook/react-webpack5';
 
 import React, {useMemo} from 'react';
@@ -32,7 +34,7 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
 
     return (
         <ButtonWithDropdownMenu
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             {...props}
             options={options}
         />

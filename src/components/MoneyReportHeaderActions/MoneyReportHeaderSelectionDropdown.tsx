@@ -351,7 +351,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             {bulkDuplicateHandler}
             {exportDownloadStatusModal}
             <ButtonWithDropdownMenu
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 options={selectedTransactionsOptions}
                 customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}

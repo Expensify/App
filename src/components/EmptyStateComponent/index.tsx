@@ -74,7 +74,7 @@ function EmptyStateComponent({
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
-                                            variant="success"
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                                             key={buttonText}
                                             onPress={() => {}}
                                             shouldAlwaysShowDropdownMenu

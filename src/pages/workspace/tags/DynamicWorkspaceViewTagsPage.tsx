@@ -358,7 +358,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
 
         return (
             <ButtonWithDropdownMenu
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 buttonRef={dropdownButtonRef}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu

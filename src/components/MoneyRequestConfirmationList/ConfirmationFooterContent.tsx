@@ -130,7 +130,7 @@ function ConfirmationFooterContent({
             >
                 <View>
                     <ButtonWithDropdownMenu
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         pressOnEnter
                         onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
                         options={splitOrRequestOptions}

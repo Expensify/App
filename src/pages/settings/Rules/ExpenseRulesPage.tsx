@@ -140,7 +140,7 @@ function ExpenseRulesPage() {
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedRules.length})}
             isDisabled={!selectedRules.length}

@@ -241,7 +241,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const getHeaderButtons = () => {
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedMembers.length})}
                 size={CONST.BUTTON_SIZE.MEDIUM}

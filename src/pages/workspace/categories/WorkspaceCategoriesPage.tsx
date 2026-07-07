@@ -529,7 +529,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}

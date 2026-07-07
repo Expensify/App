@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
@@ -83,7 +83,7 @@ function SelectionDropdown({
 
     return (
         <ButtonWithDropdownMenu
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => null}
             options={selectedTransactionsOptions}
             customText={translate('workspace.common.selected', {

@@ -216,7 +216,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         isDisabled={isDisabled || areAllOptionsDisabled}
                         stayNormalOnDisable={stayNormalOnDisable}
                         isLoading={isLoading}
-                        removeBorderRadius="right"
+                        removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT}
                         style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : nonSplitButtonStyle}
                         size={size}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
@@ -265,13 +265,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             stayNormalOnDisable={stayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
-                            removeBorderRadius="left"
+                            removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT}
                             size={size}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             sentryLabel={sentryLabel}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
-                                <View style={[variant === 'success' ? styles.buttonSuccessDivider : styles.buttonDivider]} />
+                                <View style={[variant === CONST.BUTTON_VARIANT.SUCCESS ? styles.buttonSuccessDivider : styles.buttonDivider]} />
                                 <View
                                     style={[
                                         isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
@@ -286,7 +286,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
                                         additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                        fill={variant === 'success' ? theme.buttonSuccessText : theme.buttonIcon}
+                                        fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
                                         testID="dropdown-arrow-icon"
                                     />
                                 </View>
