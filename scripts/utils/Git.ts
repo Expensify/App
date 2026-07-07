@@ -1,11 +1,14 @@
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
+
+import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
+
 import {context} from '@actions/github';
 import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
-import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import {promisify} from 'util';
-import CONST from '@github/libs/CONST';
-import GitHubUtils from '@github/libs/GithubUtils';
+
 import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
