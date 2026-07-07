@@ -334,7 +334,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, betas});
+            openReport({reportID, introSelected, betas, isReportActionsExist: true});
             reportScrollManager.scrollToBottom();
             return;
         }
