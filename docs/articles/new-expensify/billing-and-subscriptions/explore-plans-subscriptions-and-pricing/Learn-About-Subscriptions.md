@@ -22,7 +22,7 @@ A Workspace owner's subscription applies to every Workspace they own. Only the W
 
 Because a single subscription covers all Workspaces owned by the same Workspace owner, organizations that use multiple Workspaces typically assign the same Workspace owner to each Workspace.
 
-For more details, see [Learn about Billing Permissions](articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permission).
+For more details, see [Learn about Billing Permissions](articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
 
 ---
 
@@ -50,7 +50,7 @@ Workspaces can use either subscription type with either plan:
 
 Together, each Workspace's plan and its owner's subscription determine how that Workspace is billed.
 
-To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+For more details, see [Learn About Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Plan-and-Subscription-Management).
 
 ---
 
