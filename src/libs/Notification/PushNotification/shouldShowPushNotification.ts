@@ -16,7 +16,8 @@ import Onyx from 'react-native-onyx';
 
 import parsePushNotificationPayload from './parsePushNotificationPayload';
 
-// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
+// Push notifications aren't rendered using React, so it's impossible to access Onyx data with useOnyx(), therefore, it's OK to use connectWithoutView() here.
+
 let currentUserAccountID = -1;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -25,7 +26,6 @@ Onyx.connectWithoutView({
     },
 });
 
-// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -33,7 +33,6 @@ Onyx.connectWithoutView({
     callback: (value) => (allReportActions = value),
 });
 
-// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
 let allReports: OnyxCollection<ReportType>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
