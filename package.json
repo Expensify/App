@@ -262,6 +262,7 @@
     "@rsbuild/core": "^2.1.4",
     "@rsbuild/plugin-babel": "^2.0.1",
     "@rsbuild/plugin-svgr": "^2.0.5",
+    "@rsdoctor/rspack-plugin": "^1.5.17",
     "@rspack/core": "^2.1.2",
     "@rspack/plugin-react-refresh": "^2.0.2",
     "@sentry/cli": "3.3.0",
@@ -294,7 +295,6 @@
     "@types/react-test-renderer": "^19.1.0",
     "@types/semver": "^7.5.4",
     "@types/setimmediate": "^1.0.2",
-    "@types/webpack-bundle-analyzer": "^4.7.0",
     "@typescript/native-preview": "^7.0.0-dev.20260219.1",
     "@vercel/ncc": "0.38.1",
     "@vitest/mocker": "4.0.16",
@@ -363,8 +363,7 @@
     "type-fest": "4.35.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "8.58.1",
-    "wait-port": "^0.2.9",
-    "webpack-bundle-analyzer": "^4.5.0"
+    "wait-port": "^0.2.9"
   },
   "overrides": {
     "@typescript-eslint/eslint-plugin": "8.58.1",
