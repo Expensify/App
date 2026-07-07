@@ -1115,6 +1115,7 @@ const transactionReportGroupListItems = [
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
+        formattedPaidStatus: '',
         formattedTo: '',
         from: {
             accountID: 18439984,
@@ -1240,6 +1241,7 @@ const transactionReportGroupListItems = [
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
+        formattedPaidStatus: '',
         formattedTo: 'Admin',
         from: {
             accountID: 18439984,
@@ -1374,6 +1376,7 @@ const transactionReportGroupListItems = [
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
+        formattedPaidStatus: '',
         formattedTo: 'Approver',
         hasVisibleViolations: false,
         isActionColumnWide: false,
@@ -1581,6 +1584,7 @@ const transactionReportGroupListItems = [
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
+        formattedPaidStatus: '',
         formattedTo: '',
         from: {
             accountID: 18439984,
