@@ -1,7 +1,9 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import Log from './Log';
 
 const accountIDToNameMap: Record<string, string> = {};
@@ -65,10 +67,6 @@ class ExpensiMarkWithContext extends ExpensiMark {
 
     isHTML(text: string): boolean {
         return /<[^>]+>/.test(text) || /&[#\w]+;/.test(text);
-    }
-
-    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {
-        return super.truncateHTML(htmlString, limit, extras);
     }
 }
 

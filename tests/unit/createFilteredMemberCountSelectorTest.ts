@@ -1,7 +1,9 @@
 import Onyx from 'react-native-onyx';
+
+import type {PersonalDetailsList, PolicyEmployeeList} from '../../src/types/onyx';
+
 import {createFilteredMemberCountSelector} from '../../src/libs/PolicyUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyEmployeeList} from '../../src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 

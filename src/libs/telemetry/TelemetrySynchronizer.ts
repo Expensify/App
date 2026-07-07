@@ -1,15 +1,19 @@
+import {getActivePolicies} from '@libs/PolicyUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 /**
  * This file contains the logic for sending additional data to Sentry.
  *
  * It uses Onyx.connectWithoutView as nothing here is related to the UI. We only send data to the external provider and want to keep this outside of the render loop.
  */
 import * as Sentry from '@sentry/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getActivePolicies} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+
 import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
 import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
