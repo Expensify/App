@@ -519,7 +519,7 @@ function IOURequestStepConfirmation({
     const isMRReport = isMoneyRequestReport(report);
     const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
     const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
-    const destinationReportID = backToReport ?? (isSelfDMDestination ? selfDMReportID : routeDestinationReportID) ?? selfDMReportID;
+    const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {
