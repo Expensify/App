@@ -713,7 +713,6 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
-                shouldHandleNavigation: false,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -871,6 +870,7 @@ function duplicateExpenseTransaction({
             betas,
             isSelfTourViewed,
             currentUserLocalCurrency,
+            reportActionsList: undefined,
         };
         return trackExpense(trackExpenseParams);
     }
