@@ -1,22 +1,29 @@
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+
 import {getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 type UseReceiptDropParams = {
     reportID: string;
@@ -38,6 +45,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -53,6 +61,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                 transactionPolicy: policy,
                 transactionPolicyCategories: policyCategories,
                 transactionPolicyTagList: policyTagList,
+                transactionViolations,
             });
             return;
         }

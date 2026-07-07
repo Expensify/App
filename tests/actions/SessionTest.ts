@@ -1,9 +1,7 @@
 // cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+
+import {openApp, reconnectApp} from '@libs/actions/App';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
@@ -15,16 +13,24 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 import reauthenticate from '@libs/Reauthentication';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import '@libs/Notification/PushNotification/subscribeToPushNotifications';
+
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {openAuthSessionAsync} from 'expo-web-browser';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -75,6 +81,43 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate aborts when RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN is true', async () => {
+        // Given a SignIn with short lived token is currently in flight
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then it aborts cleanly without redirecting to sign in
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
+        // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
+        // The Session type no longer declares the field, so cast to write the legacy shape.
+        await Onyx.merge(ONYXKEYS.SESSION, {isAuthenticatingWithShortLivedToken: true} as unknown as Session);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called with no credentials stored
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
         expect(result).toBe(false);
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
@@ -138,7 +181,6 @@ describe('Session', () => {
             );
 
         // When we attempt to fetch the initial app data via the API
-        confirmReadyToOpenApp();
         openApp();
         await waitForBatchedUpdates();
 
@@ -165,7 +207,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -187,7 +228,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -209,7 +249,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
         reconnectApp();
         reconnectApp();

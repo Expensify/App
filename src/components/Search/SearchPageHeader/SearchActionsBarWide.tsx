@@ -1,32 +1,36 @@
+import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
+import {useSelectionCounts} from '@components/Search/SearchSelectionProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {SearchQueryJSON} from '@components/Search/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {SearchResults} from '@src/types/onyx';
+
 import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
 import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchFiltersBarWide from './SearchFiltersBarWide';
-import SearchPageInputWide from './SearchPageInputWide';
+import SearchPageInput from './SearchPageInput';
 import SearchSaveButton from './SearchSaveButton';
 
 type SearchActionsBarWideProps = {
     queryJSON: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
-    handleSearch: (value: string) => void;
     onSort: () => void;
 };
 
-function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: SearchActionsBarWideProps) {
+function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsBarWideProps) {
     const styles = useThemeStyles();
-    const {selectedTransactions} = useSearchSelectionContext();
-    const hasSelectedItems = Object.keys(selectedTransactions ?? {}).length > 0;
+    const {selected} = useSelectionCounts();
+    const hasSelectedItems = selected > 0;
 
     return (
-        <View style={[styles.searchActionsBarContainer, styles.gap2, styles.mt3]}>
+        <View style={[styles.searchActionsBarContainer]}>
             {hasSelectedItems ? (
                 <View style={styles.searchBulkActionsButton}>
                     <SearchBulkActionsButton queryJSON={queryJSON} />
@@ -34,10 +38,7 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
             ) : (
                 <>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.pRelative, styles.w100, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.zIndex10]}>
-                        <SearchPageInputWide
-                            queryJSON={queryJSON}
-                            handleSearch={handleSearch}
-                        />
+                        <SearchPageInput queryJSON={queryJSON} />
                         <SearchFiltersBarWide queryJSON={queryJSON} />
                     </View>
                     <View style={styles.filtersBar}>

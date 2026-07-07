@@ -1,17 +1,12 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -24,25 +19,29 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import CardListItemHeader from './CardListItemHeader';
-import CategoryListItemHeader from './CategoryListItemHeader';
-import MemberListItemHeader from './MemberListItemHeader';
-import MerchantListItemHeader from './MerchantListItemHeader';
-import MonthListItemHeader from './MonthListItemHeader';
-import QuarterListItemHeader from './QuarterListItemHeader';
-import ReportListItemHeader from './ReportListItemHeader';
-import TagListItemHeader from './TagListItemHeader';
-import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -59,6 +58,17 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from './types';
+
+import CardListItemHeader from './CardListItemHeader';
+import CategoryListItemHeader from './CategoryListItemHeader';
+import MemberListItemHeader from './MemberListItemHeader';
+import MerchantListItemHeader from './MerchantListItemHeader';
+import MonthListItemHeader from './MonthListItemHeader';
+import QuarterListItemHeader from './QuarterListItemHeader';
+import ReportListItemHeader from './ReportListItemHeader';
+import TagListItemHeader from './TagListItemHeader';
+import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -93,6 +103,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -119,11 +130,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+
+    const snapshotActions = reportGroupID ? Object.values(currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] ?? {}) : [];
+    const liveGroupItem = useLiveRowCapabilities<TransactionReportGroupListItemType>({
+        item: groupItem as TransactionReportGroupListItemType,
+        reportID: reportGroupID,
+        itemKey: `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportGroupID)}`,
+        snapshotData: currentSearchResults?.data,
+        snapshotActions,
+        enabled: isExpenseReportType && !!reportGroupID,
+    }) as TransactionGroupListItemType;
+
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -142,10 +164,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
             formatPhoneNumber,
             bankAccountList,
             isActionLoadingSet,
-            allReportMetadata,
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -164,7 +186,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
+    // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
+    const isDisabledOrEmpty = isEmpty || isDisabled;
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {
@@ -198,7 +222,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const StyleUtils = useStyleUtils();
-    const isItemSelected = isSelectAllChecked || item?.isSelected;
+    const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
+    const isItemSelected = isSelectAllChecked || liveRowSelected;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -276,7 +301,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType) {
+        if (isExpenseReportType || transactions.length === 0) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
@@ -311,7 +336,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -325,7 +350,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
@@ -339,7 +364,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -352,7 +377,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <CategoryListItemHeader
                     category={groupItem as TransactionCategoryGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -365,7 +390,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MerchantListItemHeader
                     merchant={groupItem as TransactionMerchantGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -378,7 +403,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <TagListItemHeader
                     tag={groupItem as TransactionTagGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -391,7 +416,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -404,7 +429,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <WeekListItemHeader
                     week={groupItem as TransactionWeekGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -417,7 +442,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <YearListItemHeader
                     year={groupItem as TransactionYearGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -430,7 +455,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <QuarterListItemHeader
                     quarter={groupItem as TransactionQuarterGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -444,7 +469,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return (
                 <ReportListItemHeader
-                    report={groupItem as TransactionReportGroupListItemType}
+                    report={liveGroupItem as TransactionReportGroupListItemType}
                     onSelectRow={(listItem, event) => onSelectRow(listItem, transactionPreviewData, event)}
                     onCheckboxPress={handleSelectionButtonPress}
                     isDisabled={isDisabled}

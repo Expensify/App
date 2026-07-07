@@ -1,17 +1,22 @@
-import React, {useImperativeHandle, useRef} from 'react';
-import ViewShot from 'react-native-view-shot';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+
 import fileDownload from '@libs/fileDownload';
-import QRShare from '..';
+
+import React, {useImperativeHandle, useRef} from 'react';
+import ViewShot from 'react-native-view-shot';
+
 import type {QRShareWithDownloadProps} from './types';
+
+import QRShare from '..';
 
 function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const qrCodeScreenshotRef = useRef<ViewShot>(null);
+    const qrCodeScreenshotRef = useRef<React.ComponentRef<typeof ViewShot>>(null);
 
     useImperativeHandle(
         ref,

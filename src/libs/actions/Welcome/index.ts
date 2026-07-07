@@ -1,12 +1,10 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -16,6 +14,12 @@ import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
 import type {OnboardingCompanySize} from './OnboardingFlow';
 
 let isLoadingReportData = true;
@@ -56,6 +60,10 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
+function setOnboardingPersonalTrackGoal(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, value);
+}
+
 function setOnboardingErrorMessage(value: TranslationPaths | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
@@ -90,10 +98,6 @@ function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
 
-function setOnboardingTestDriveModalDismissed() {
-    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
-}
-
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -117,7 +121,7 @@ function completeHybridAppOnboarding() {
             return;
         }
 
-        // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
+        // No matter what the response is, we want to mark the onboarding as completed.
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
         HybridAppModule.completeOnboarding({status: true});
     });
@@ -218,7 +222,7 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
-    setOnboardingTestDriveModalDismissed,
+    setOnboardingPersonalTrackGoal,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,
 };

@@ -1,6 +1,7 @@
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -9,12 +10,16 @@ type ConciergeDraft = {
     bodyMarkdown?: string;
     /** Current server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
     pusherTargetBodyMarkdown?: string;
+    /** Current server-rendered HTML snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
+    pusherTargetFinalRenderedHTML?: string;
     /** Server event sequence for the current Pusher target snapshot. */
     pusherTargetSequence?: number;
     /** Newer server markdown snapshots queued behind the current Pusher target. */
     pusherQueuedTargetEvents?: ConciergeDraftEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
     pusherPendingCompletionEvent?: ConciergeDraftEvent;
+    /** Terminal lifecycle event used to reject stale chunks after a content-free completion. */
+    pusherTerminalEvent?: ConciergeDraftEvent;
     /** Number of UTF-16 source units consumed from the current Pusher target. */
     pusherVisibleSourceOffset?: number;
     /** Source markdown prefix consumed from the current Pusher target, used to detect server-side corrections. */
@@ -33,6 +38,7 @@ type BuildConciergeDraftReportActionParams = {
     finalRenderedHTML?: string;
     reportActionID: string;
     reportID: string;
+    isGroupPolicyReport: boolean;
 };
 
 type TextRange = {
@@ -54,6 +60,14 @@ type VisibleConciergeDraftMarkdown = {
     sourceMarkdown: string;
     sourceOffset: number;
 };
+
+const CONCIERGE_DRAFT_STATUS = {
+    STARTED: 'started',
+    UPDATED: 'updated',
+    COMPLETED: 'completed',
+    FAILED: 'failed',
+    CLEARED: 'cleared',
+} as const satisfies Record<string, ConciergeDraftEvent['status']>;
 
 const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
@@ -569,8 +583,16 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
-    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
+function buildConciergeDraftReportAction({
+    actorAccountID,
+    bodyMarkdown,
+    created,
+    finalRenderedHTML,
+    reportActionID,
+    reportID,
+    isGroupPolicyReport,
+}: BuildConciergeDraftReportActionParams): ReportAction | null {
+    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
     if (!html) {
         return null;
@@ -665,7 +687,7 @@ function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
     }
 }
 
-function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string): ConciergeDraft | null {
+function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string, isGroupPolicyReport: boolean): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
     }
@@ -676,11 +698,11 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
         return currentDraft;
     }
 
-    if (!isSameStreamSession && currentDraft && event.status !== 'started' && event.status !== 'updated') {
+    if (!isSameStreamSession && currentDraft && event.status !== CONCIERGE_DRAFT_STATUS.STARTED && event.status !== CONCIERGE_DRAFT_STATUS.UPDATED) {
         return currentDraft;
     }
 
-    if (event.status === 'failed' || event.status === 'cleared') {
+    if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
         return isSameStreamSession ? null : currentDraft;
     }
 
@@ -692,6 +714,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
             finalRenderedHTML: event.finalRenderedHTML,
             reportActionID: event.reportActionID,
             reportID: event.reportID,
+            isGroupPolicyReport,
         }) ?? currentDraft?.reportAction;
 
     if (!nextReportAction) {
@@ -708,5 +731,13 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
+export {
+    applyConciergeDraftEvent,
+    CONCIERGE_DRAFT_STATUS,
+    getCachedDraft,
+    getNextVisibleConciergeDraftBodyMarkdown,
+    getNextVisibleConciergeDraftMarkdown,
+    setCachedDraft,
+    stripIncompleteMarkdown,
+};
 export type {ConciergeDraft};

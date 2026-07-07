@@ -1,11 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -13,21 +7,38 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {getConnectedHRProvider} from '@libs/HRUtils';
-import {isCurrentUserValidated} from '@libs/UserUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+
+import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
+import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
+import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
+import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
@@ -48,17 +59,6 @@ type BrokenPolicyConnection = {
 
     /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
     integrationName: string;
-};
-
-type BrokenCompanyCardConnection = {
-    /** The policy ID associated with this connection */
-    policyID: string;
-
-    /** The policy name associated with this connection */
-    policyName: string;
-
-    /** The card ID associated with this connection */
-    cardID: string;
 };
 
 type BrokenPersonalCardConnection = {
@@ -82,7 +82,16 @@ function TimeSensitiveSection() {
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
-    const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
+    const {
+        shouldShowAddShippingAddress,
+        shouldShowActivateCard,
+        shouldShowReviewCardFraud,
+        shouldShowAddVirtualCardPersonalDetails,
+        cardsNeedingShippingAddress,
+        cardsNeedingActivation,
+        cardsWithFraud,
+        virtualCardsNeedingPersonalDetails,
+    } = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
     // Selector for filtering admin policies (Release 4)
@@ -94,12 +103,14 @@ function TimeSensitiveSection() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
+    const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
+    const brokenCompanyCardConnections = useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies);
 
     // Find policies with broken connections (accounting + HR, only for admins)
     const brokenPolicyConnections: BrokenPolicyConnection[] = [];
@@ -129,31 +140,6 @@ function TimeSensitiveSection() {
         }
     }
 
-    // Get company cards with broken connections (for admins)
-    const brokenCompanyCardConnections: BrokenCompanyCardConnection[] = [];
-    const cardsWithBrokenConnection = cardFeedErrors.cardsWithBrokenFeedConnection;
-    if (cardsWithBrokenConnection && adminPolicies) {
-        for (const card of Object.values(cardsWithBrokenConnection)) {
-            if (!card?.fundID) {
-                continue;
-            }
-
-            // Find the policy associated with this card's fundID (workspaceAccountID)
-            const cardFundID = Number(card.fundID);
-            const matchingPolicy = adminPolicies.find((policy) => policy.policyAccountID === cardFundID);
-
-            if (!matchingPolicy) {
-                continue;
-            }
-
-            brokenCompanyCardConnections.push({
-                policyID: matchingPolicy.id,
-                policyName: matchingPolicy.name,
-                cardID: String(card.cardID),
-            });
-        }
-    }
-
     // Get personal cards with broken connections
     const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];
     const personalCardsWithBrokenConnection = cardFeedErrors.personalCardsWithBrokenConnection;
@@ -176,6 +162,7 @@ function TimeSensitiveSection() {
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         lockedBankAccounts.length > 0 ||
+        shouldShowEnterSignerInfo ||
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
@@ -184,7 +171,8 @@ function TimeSensitiveSection() {
         hasBrokenPersonalCards ||
         hasBrokenPolicyConnections ||
         shouldShowAddShippingAddress ||
-        shouldShowActivateCard;
+        shouldShowActivateCard ||
+        shouldShowAddVirtualCardPersonalDetails;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
@@ -198,9 +186,11 @@ function TimeSensitiveSection() {
     // 5. Broken bank connections (company cards)
     // 6. Broken bank connections (personal cards)
     // 7. Locked bank accounts (workspace VBAs and personal)
-    // 8. Broken policy connections (accounting + HR)
-    // 9. Expensify card shipping
-    // 10. Expensify card activation
+    // 8. Enter signer info for global bank accounts
+    // 9. Broken policy connections (accounting + HR)
+    // 10. Expensify card shipping
+    // 11. Expensify card activation
+    // 12. Virtual Expensify card needs personal details
     const items: React.ReactNode[] = [];
 
     // Priority 1: Validate account
@@ -237,7 +227,7 @@ function TimeSensitiveSection() {
         }
         items.push(
             <FixCompanyCardConnection
-                key={`company-card-${connection.cardID}`}
+                key={`company-card-${connection.feedKey}`}
                 card={card}
                 policyID={connection.policyID}
                 policyName={connection.policyName}
@@ -267,7 +257,18 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 8: Broken policy connections (accounting + HR)
+    // Priority 8: Enter signer info for global bank accounts
+    for (const item of pendingSignerInfo) {
+        items.push(
+            <EnterSignerInfo
+                key={`signer-${item.policyID}-${item.bankAccountID}`}
+                policyID={item.policyID}
+                bankAccountID={item.bankAccountID}
+                bankAccountLastFour={item.bankAccountLastFour}
+            />,
+        );
+    }
+    // Priority 9: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -279,7 +280,7 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 9: Expensify card shipping
+    // Priority 10: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -290,12 +291,23 @@ function TimeSensitiveSection() {
             );
         }
     }
-    // Priority 10: Expensify card activation
+    // Priority 11: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
                 <ActivateCard
                     key={`activate-${card.cardID}`}
+                    card={card}
+                />,
+            );
+        }
+    }
+    // Priority 11: Virtual Expensify card needs personal details before reveal
+    if (shouldShowAddVirtualCardPersonalDetails) {
+        for (const card of virtualCardsNeedingPersonalDetails) {
+            items.push(
+                <AddVirtualCardPersonalDetails
+                    key={`virtual-card-details-${card.cardID}`}
                     card={card}
                 />,
             );

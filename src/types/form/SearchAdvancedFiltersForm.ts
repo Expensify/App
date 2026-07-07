@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import type {
     ReportFieldDateKey,
     ReportFieldKey,
@@ -8,12 +7,17 @@ import type {
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchPaidStatus,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
 } from '@components/Search/types';
+
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
@@ -77,6 +81,9 @@ const FILTER_KEYS = {
     WITHDRAWAL_STATUS_NOT: 'withdrawalStatusNot',
     WITHDRAWAL_STATUS: 'withdrawalStatus',
 
+    PAID_STATUS_NOT: 'paidStatusNot',
+    PAID_STATUS: 'paidStatus',
+
     WITHDRAWN_NOT: 'withdrawnNot',
     WITHDRAWN_ON: 'withdrawnOn',
     WITHDRAWN_AFTER: 'withdrawnAfter',
@@ -95,6 +102,9 @@ const FILTER_KEYS = {
 
     FEED_NOT: 'feedNot',
     FEED: 'feed',
+
+    BANK_ACCOUNT_NOT: 'bankAccountNot',
+    BANK_ACCOUNT: 'bankAccount',
 
     MERCHANT_NOT: 'merchantNot',
     MERCHANT: 'merchant',
@@ -121,6 +131,9 @@ const FILTER_KEYS = {
 
     EXPENSE_TYPE_NOT: 'expenseTypeNot',
     EXPENSE_TYPE: 'expenseType',
+
+    RECEIPT_TYPE_NOT: 'receiptTypeNot',
+    RECEIPT_TYPE: 'receiptType',
 
     TAG_NOT: 'tagNot',
     TAG: 'tag',
@@ -198,6 +211,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID,
         FILTER_KEYS.EXPENSE_TYPE,
         FILTER_KEYS.EXPENSE_TYPE_NOT,
+        FILTER_KEYS.RECEIPT_TYPE,
+        FILTER_KEYS.RECEIPT_TYPE_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
         FILTER_KEYS.DATE_ON,
@@ -228,6 +243,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CARD_ID_NOT,
         FILTER_KEYS.FEED,
         FILTER_KEYS.FEED_NOT,
+        FILTER_KEYS.BANK_ACCOUNT,
+        FILTER_KEYS.BANK_ACCOUNT_NOT,
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
@@ -323,6 +340,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
         FILTER_KEYS.WITHDRAWAL_STATUS,
         FILTER_KEYS.WITHDRAWAL_STATUS_NOT,
+        FILTER_KEYS.PAID_STATUS,
+        FILTER_KEYS.PAID_STATUS_NOT,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -593,6 +612,8 @@ type IsFilterValues = IsFilterValue[];
 type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 type ExpenseTypeValues = ExpenseTypeValue[];
+type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
+type ReceiptTypeValues = ReceiptTypeValue[];
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -646,6 +667,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.WITHDRAWAL_STATUS]: SearchWithdrawalStatus;
         [FILTER_KEYS.WITHDRAWAL_STATUS_NOT]: SearchWithdrawalStatus;
 
+        [FILTER_KEYS.PAID_STATUS]: SearchPaidStatus;
+        [FILTER_KEYS.PAID_STATUS_NOT]: SearchPaidStatus;
+
         [FILTER_KEYS.WITHDRAWN_ON]: string;
         [FILTER_KEYS.WITHDRAWN_NOT]: string;
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
@@ -666,6 +690,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.FEED_NOT]: string[];
+
+        [FILTER_KEYS.BANK_ACCOUNT]: string[];
+        [FILTER_KEYS.BANK_ACCOUNT_NOT]: string[];
 
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.MERCHANT_NOT]: string;
@@ -694,6 +721,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.EXPENSE_TYPE]: ExpenseTypeValues;
         [FILTER_KEYS.EXPENSE_TYPE_NOT]: ExpenseTypeValues;
+
+        [FILTER_KEYS.RECEIPT_TYPE]: ReceiptTypeValues;
+        [FILTER_KEYS.RECEIPT_TYPE_NOT]: ReceiptTypeValues;
 
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.TAG_NOT]: string[];
@@ -758,6 +788,6 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};

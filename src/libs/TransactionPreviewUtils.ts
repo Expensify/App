@@ -1,27 +1,24 @@
-import truncate from 'lodash/truncate';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import truncate from 'lodash/truncate';
+
+import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
+
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
-import {hasDynamicExternalWorkflow} from './PolicyUtils';
+import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {
-    hasActionWithErrorsForTransaction,
-    hasReceiptError,
-    isExpenseReport,
-    isPaidGroupPolicyExpenseReport,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
-    isReportApproved,
-    isSettled,
-} from './ReportUtils';
-import type {TransactionDetails} from './ReportUtils';
+import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
@@ -45,7 +42,7 @@ import {
     isScanning,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
-import {filterReceiptViolations} from './Violations/ViolationsUtils';
+import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -162,7 +159,7 @@ function getViolationTranslatePath(
 
     const filteredViolations = receiptFilteredViolations.filter((violation) => {
         if (shouldShowOnlyViolations) {
-            return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+            return isHardViolationOrRateDateWarning(violation);
         }
         return true;
     });
@@ -240,9 +237,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicy;
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -257,7 +254,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
     }
@@ -341,7 +338,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
             previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});
-        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
+        } else if (isExpenseReport(iouReport) && isGroupPolicyUtil(policy) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
             previewHeaderText.push(dotSeparator, {translationPath: 'iou.approved'});
         } else if (iouReport?.isCancelledIOU) {
             previewHeaderText.push(dotSeparator, {translationPath: 'iou.canceled'});
@@ -404,7 +401,7 @@ function createTransactionPreviewConditionals({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
     const hasViolationsOfTypeNotice =
-        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
+        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isGroupPolicyUtil(policy);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -474,6 +471,9 @@ function transactionHasRBR(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportActions?: OnyxTypes.ReportActions,
+    // Optional precomputed action-error state. When provided, the per-transaction action-error check is an O(1)
+    // lookup instead of re-scanning every report action — build it once with getActionErrorsByTransaction.
+    actionErrors?: ActionErrorsByTransaction,
 ): boolean {
     if (!transaction) {
         return false;
@@ -487,8 +487,8 @@ function transactionHasRBR(
         return true;
     }
 
-    // Check for notice-type violations (only on paid group policies)
-    if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicyUtil(iouReport)) {
+    // Check for notice-type violations (only on group policies)
+    if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) && isGroupPolicyUtil(policy)) {
         return true;
     }
 
@@ -523,7 +523,7 @@ function transactionHasRBR(
     }
 
     // Check for report action errors associated with this transaction
-    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions)) {
+    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions, actionErrors)) {
         return true;
     }
 

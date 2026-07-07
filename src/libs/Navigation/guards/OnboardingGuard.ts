@@ -1,14 +1,9 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,6 +11,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -169,9 +174,9 @@ const OnboardingGuard: NavigationGuard = {
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
-        const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+        const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
@@ -185,7 +190,15 @@ const OnboardingGuard: NavigationGuard = {
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         const shouldSkipOnboarding =
-            skipOnboardingConfig || isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isNavigatingWithReplace;
+            skipOnboardingConfig ||
+            isLoading ||
+            isTransitioning ||
+            isOnboardingCompleted ||
+            isMigratedUser ||
+            isInvitedOrGroupMember ||
+            isSingleEntry ||
+            isFirstTimeHybridAppTransition ||
+            isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -210,7 +223,7 @@ const OnboardingGuard: NavigationGuard = {
             isOnboardingCompleted,
             isMigratedUser,
             isSingleEntry,
-            needsExplanationModal,
+            isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
         });

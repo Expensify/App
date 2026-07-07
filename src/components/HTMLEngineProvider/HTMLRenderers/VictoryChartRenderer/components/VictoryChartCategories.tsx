@@ -1,5 +1,7 @@
-import React from 'react';
 import type {TNode} from 'react-native-render-html';
+
+import React from 'react';
+
 import VictoryChartPie from './VictoryChartPie';
 
 type VictoryChartCategoriesProps = {tnode: TNode};
@@ -23,7 +25,5 @@ function VictoryChartCategories({tnode}: VictoryChartCategoriesProps) {
 
     return <CategoriesRenderer tnode={tnode} />;
 }
-
-VictoryChartCategories.displayName = 'VictoryChartCategories';
 
 export default VictoryChartCategories;

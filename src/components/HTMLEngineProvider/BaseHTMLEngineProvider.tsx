@@ -1,13 +1,20 @@
-import React, {useMemo} from 'react';
-import type {TextProps} from 'react-native';
-import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
-import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {TextProps} from 'react-native';
+import type {TNode} from 'react-native-render-html';
+
+import React, {useMemo} from 'react';
+import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
+import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
@@ -200,38 +207,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
             }),
-            victorychart: HTMLElementModel.fromCustomModel({
-                tagName: 'victorychart',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorybar: HTMLElementModel.fromCustomModel({
-                tagName: 'victorybar',
-                contentModel: HTMLContentModel.block,
-            }),
-            victoryline: HTMLElementModel.fromCustomModel({
-                tagName: 'victoryline',
-                contentModel: HTMLContentModel.block,
-            }),
-            victoryaxis: HTMLElementModel.fromCustomModel({
-                tagName: 'victoryaxis',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorylabel: HTMLElementModel.fromCustomModel({
-                tagName: 'victorylabel',
-                contentModel: HTMLContentModel.textual,
-            }),
-            victorylegend: HTMLElementModel.fromCustomModel({
-                tagName: 'victorylegend',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorygroup: HTMLElementModel.fromCustomModel({
-                tagName: 'victorygroup',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorypie: HTMLElementModel.fromCustomModel({
-                tagName: 'victorypie',
-                contentModel: HTMLContentModel.block,
-            }),
+            ...VICTORY_HTML_ELEMENT_MODELS,
         }),
         [
             styles.taskTitleMenuItem,

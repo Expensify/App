@@ -17,7 +17,7 @@ jobs:
     runs-on: blacksmith-8vcpu-ubuntu-2404
     env:
       CI: true
-      NODE_OPTIONS: "--experimental-vm-modules --max-old-space-size=8192"
+      NODE_OPTIONS: '--experimental-vm-modules --max-old-space-size=8192'
     strategy:
       fail-fast: false
       matrix:
@@ -36,15 +36,19 @@ jobs:
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest
+          # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
+          # shared key freezes one shard's partial cache for all shards. The hash refreshes the
+          # cache when dependencies or Babel config change; restore-keys warms it in between.
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
+          restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
-        # v5
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        # v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
           flags: unit
@@ -57,8 +61,8 @@ jobs:
         id: load-codecov-token
         # Codecov needs a token to be run on the default branch (which happens in preDeploy.yml after a PR is merged to main)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -67,8 +71,8 @@ jobs:
 
       - name: Upload coverage to Codecov (token required)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        # v5
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        # v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info

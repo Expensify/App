@@ -1,19 +1,26 @@
-import React, {useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
-import {ButtonContext} from './context';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {ButtonProps} from './types';
+
+import {ButtonContext} from './context';
 
 function Button({
     children,
@@ -30,17 +37,17 @@ function Button({
     style = [],
     disabledStyle,
     innerStyles = [],
-    shouldUseDefaultHover = true,
+    hoverStyles,
     variant,
-    shouldRemoveBorderRadius,
-    shouldEnableHapticFeedback = false,
+    removeBorderRadius,
+    enableHapticFeedback = false,
     isLongPressDisabled = false,
     id = '',
     testID = undefined,
     accessibilityLabel = '',
     isNested = false,
-    shouldBlendOpacity = false,
-    shouldStayNormalOnDisable = false,
+    blendOpacity = false,
+    stayNormalOnDisable = false,
     sentryLabel,
     ref,
     accessibilityState,
@@ -58,19 +65,22 @@ function Button({
             isHovered,
             variant,
             size,
+            onPress,
+            isDisabled,
+            isLoading,
         }),
-        [isHovered, variant, size],
+        [isHovered, variant, size, onPress, isDisabled, isLoading],
     );
 
     const buttonVariantStyles = useMemo(() => {
-        const shouldUseDisabledStyles = isDisabled && !shouldStayNormalOnDisable;
+        const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
         if (!variant) {
             return shouldUseDisabledStyles ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined;
         }
 
         const {normal: defaultStyles, disabled: disabledStyles} = StyleUtils.getButtonVariantStyles(styles);
         return [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
-    }, [isDisabled, shouldStayNormalOnDisable, styles, variant, StyleUtils]);
+    }, [isDisabled, stayNormalOnDisable, styles, variant, StyleUtils]);
 
     const borderRadiusStyles = useMemo<Record<'left' | 'right' | 'all', StyleProp<ViewStyle>>>(
         () => ({
@@ -96,21 +106,17 @@ function Button({
             StyleUtils.getButtonSizeStyle(styles, size),
             horizontalPaddingBySize[size],
             buttonVariantStyles,
-            shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
+            removeBorderRadius ? borderRadiusStyles[removeBorderRadius] : undefined,
             styles.alignItemsStretch,
             innerStyles,
-            variant === 'link' && styles.bgTransparent,
         ],
-        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
+        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, removeBorderRadius, borderRadiusStyles, innerStyles],
     );
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
-        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
-    );
+    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(() => [buttonStyles, blendOpacity && styles.buttonBlendContainer], [buttonStyles, blendOpacity, styles.buttonBlendContainer]);
 
     const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!shouldBlendOpacity) {
+        if (!blendOpacity) {
             return undefined;
         }
 
@@ -120,7 +126,14 @@ function Button({
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, shouldBlendOpacity]);
+    }, [buttonStyles, blendOpacity]);
+
+    let loadingIndicatorColor = theme.text;
+    if (variant === 'danger') {
+        loadingIndicatorColor = theme.buttonDangerText;
+    } else if (variant === 'success') {
+        loadingIndicatorColor = theme.textLight;
+    }
 
     return (
         <PressableWithFeedback
@@ -133,22 +146,23 @@ function Button({
             role={getButtonRole(isNested)}
             isNested={isNested}
             disabled={isLoading || isDisabled}
-            disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
-            shouldBlendOpacity={shouldBlendOpacity}
+            disabledStyle={!stayNormalOnDisable ? disabledStyle : undefined}
+            shouldBlendOpacity={blendOpacity}
             style={buttonContainerStyles}
             wrapperStyle={[
-                isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                isDisabled && !stayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                 styles.buttonContainer,
-                shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
+                removeBorderRadius ? borderRadiusStyles[removeBorderRadius] : undefined,
                 style,
             ]}
             hoverDimmingValue={1}
             hoverStyle={
-                !isDisabled || !shouldStayNormalOnDisable
+                !isDisabled || !stayNormalOnDisable
                     ? [
-                          shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
+                          !isDisabled ? styles.buttonDefaultHovered : undefined,
                           variant === 'success' && !isDisabled ? styles.buttonSuccessHovered : undefined,
                           variant === 'danger' && !isDisabled ? styles.buttonDangerHovered : undefined,
+                          hoverStyles,
                       ]
                     : []
             }
@@ -156,15 +170,15 @@ function Button({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onMouseDown={onMouseDown}
-            onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
-            onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
+            onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
+            onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {
                 if (event?.type === 'click') {
                     const currentTarget = event?.currentTarget as HTMLElement;
                     currentTarget?.blur();
                 }
 
-                if (shouldEnableHapticFeedback) {
+                if (enableHapticFeedback) {
                     HapticFeedback.press();
                 }
 
@@ -177,13 +191,13 @@ function Button({
                 if (isLongPressDisabled) {
                     return;
                 }
-                if (shouldEnableHapticFeedback) {
+                if (enableHapticFeedback) {
                     HapticFeedback.longPress();
                 }
                 onLongPress(event);
             }}
         >
-            {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
+            {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
             <ButtonContext.Provider value={contextValue}>
                 <View
                     style={[
@@ -201,7 +215,7 @@ function Button({
             </ButtonContext.Provider>
             {isLoading && (
                 <ActivityIndicator
-                    color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
+                    color={loadingIndicatorColor}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                     reasonAttributes={buttonLoadingReasonAttributes}
                 />

@@ -1,10 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilterPendingDeleteReports from './useFilterPendingDeleteReports';
@@ -26,16 +27,12 @@ function useSearchSections(): UseSearchSectionsResult {
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: selectFilteredReportActions,
-    });
-
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerivedValue = useReportAttributes();
 
@@ -57,16 +54,15 @@ function useSearchSections(): UseSearchSectionsResult {
             formatPhoneNumber,
             bankAccountList,
             groupBy,
-            reportActions: exportReportActions,
             currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            reportNameValuePairs,
             isActionLoadingSet,
             cardFeeds,
-            cardList: nonPersonalAndWorkspaceCards,
-            allReportMetadata,
+            cardList: personalAndWorkspaceCards,
+            nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
             conciergeReportID,
-            reportAttributesDerivedValue,
             convertToDisplayString,
+            reportAttributesDerivedValue,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }

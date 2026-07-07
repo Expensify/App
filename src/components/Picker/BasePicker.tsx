@@ -1,22 +1,29 @@
-import lodashDefer from 'lodash/defer';
-import type {ReactElement, ReactNode, RefObject} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
-import {View} from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile} from '@libs/Browser';
+
 import CONST from '@src/CONST';
-import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
+
+import type {ReactElement, ReactNode, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
+
+import lodashDefer from 'lodash/defer';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+
 import type {BasePickerProps} from './types';
+
+import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 
 type IconToRender = () => ReactElement;
 
@@ -229,6 +236,7 @@ function BasePicker<TPickerValue>({
                         accessibilityLabel: actualAccessibilityLabel,
                     }}
                     doneText={translate('common.done')}
+                    dismissText={translate('common.dismiss')}
                     pickerProps={{
                         ref: picker,
                         tabIndex: pickerTabIndex,

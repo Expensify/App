@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -10,14 +7,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
@@ -54,7 +57,6 @@ function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackBut
 function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -122,7 +124,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldDisplayStatus
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
-                policy={policy}
                 shouldShowBackButton={shouldShowBackButton}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}

@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -12,29 +9,39 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {clearApprovalWorkflowApprover, setApprovalWorkflowApprover, setApprovalWorkflowIsInitialFlow} from '@userActions/Workflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT>;
@@ -46,6 +53,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) || 0;
@@ -65,9 +73,9 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
+    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
-    const shouldShowNotFoundView =
-        (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
 
     const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
     const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;
@@ -86,8 +94,12 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const navigateAfterCompletion = () => {
         if (isEditFlow) {
-            // In edit mode, always go directly to the Edit page when saving
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover));
+            // In edit mode, always go directly to the Edit page when saving.
+            // Don't compare params: when the workflow was opened from "Add agent", the mounted edit
+            // screen carries extra seed params, so a strict param match misses it and REPLACE mounts
+            // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
+            // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover), {compareParams: false});
             return;
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
@@ -178,6 +190,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

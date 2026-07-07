@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import CONST from '@src/CONST';
 

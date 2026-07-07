@@ -1,11 +1,14 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Badge from '@components/Badge';
 import {useListItemFocus} from '@components/SelectionList/ListItemFocusContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type MemberRightIconProps = {
     owner?: string;
@@ -19,18 +22,18 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
     const styles = useThemeStyles();
     const {isFocused} = useListItemFocus();
 
-    let badgeText: TranslationPaths | undefined;
+    let badgeText = '';
     if (owner && owner === login) {
-        badgeText = 'common.owner';
-    } else if (role === CONST.POLICY.ROLE.ADMIN) {
-        badgeText = 'common.admin';
-    } else if (role === CONST.POLICY.ROLE.AUDITOR) {
-        badgeText = 'common.auditor';
+        badgeText = translate('common.owner');
+    } else if (role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.CARD_ADMIN || role === CONST.POLICY.ROLE.PEOPLE_ADMIN) {
+        badgeText = translate('workspace.common.roleName', role);
+    } else if (role === CONST.POLICY.ROLE.EDITOR) {
+        badgeText = translate('common.editor');
     }
     if (badgeText) {
         return (
             <Badge
-                text={translate(badgeText)}
+                text={badgeText}
                 badgeStyles={[isFocused && styles.badgeDefaultActive, badgeStyles]}
             />
         );

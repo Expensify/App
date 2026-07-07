@@ -1,25 +1,33 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+
 import * as AgentActions from '@libs/actions/Agent';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -98,11 +106,12 @@ describe('ProfilePage contact method indicator', () => {
         const email = 'user@example.com';
 
         // Current user provided by mocked hook uses the same email
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [email]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${email}`]: {
+                partnerID: 1,
                 partnerUserID: email,
                 validatedDate: '',
-                errorFields: {anyError: {message: 'oops'}},
+                errorFields: {addedLogin: {message: 'oops'}},
             },
         });
         await waitForBatchedUpdates();
@@ -114,8 +123,9 @@ describe('ProfilePage contact method indicator', () => {
         expect(node).toBeDefined();
 
         // Verify that RBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [email]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${email}`]: {
+                partnerID: 1,
                 partnerUserID: email,
                 validatedDate: '2024-02-02',
                 errorFields: null,
@@ -133,12 +143,14 @@ describe('ProfilePage contact method indicator', () => {
     it('shows info when there is an unvalidated secondary login', async () => {
         const defaultEmail = 'user@example.com';
         const otherEmail = 'other@example.com';
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [defaultEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${defaultEmail}`]: {
+                partnerID: 1,
                 partnerUserID: defaultEmail,
                 validatedDate: '2024-01-01',
             },
-            [otherEmail]: {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '',
             },
@@ -151,8 +163,9 @@ describe('ProfilePage contact method indicator', () => {
         expect(node).toBeDefined();
 
         // Verify that GBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [otherEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
             },
@@ -324,7 +337,7 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 
-    it('shows loading state on save button while prompt update is pending', async () => {
+    it('does not show loading state on save button for a pending prompt update that was not user-initiated', async () => {
         const accountID = 123;
         await setupUser('agent_123@expensify.ai');
 
@@ -340,7 +353,104 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(false);
+    });
+
+    it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
         expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
+            // so isSaving is true. The button is intentionally not disabled while offline.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'First offline edit.',
+                pendingAction: 'update',
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Second offline edit.');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Second offline edit.', 'First offline edit.');
+    });
+
+    it('clears save loader when network drops mid-save', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        // Optimistic write sets pendingAction='update' so the user-initiated save shows the loader.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const loadingButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
+        expect(loadingButtonProps.accessibilityState?.disabled).toBe(true);
+
+        // Network drops while the request is still in flight: pendingAction stays 'update'.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const offlineButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
+        expect(offlineButtonProps.accessibilityState?.disabled).toBe(false);
     });
 
     it('does not call updateAgentPrompt when saving blank prompt', async () => {

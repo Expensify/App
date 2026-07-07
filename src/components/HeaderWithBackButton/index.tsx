@@ -1,6 +1,3 @@
-import React, {useMemo} from 'react';
-import {Keyboard, StyleSheet, View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
@@ -12,6 +9,7 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,12 +18,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {SvgProps} from 'react-native-svg';
+
+import React, {useMemo} from 'react';
+import {Keyboard, StyleSheet, View} from 'react-native';
+
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
@@ -40,7 +47,6 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
-    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -79,6 +85,7 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
+    shouldSkipFocusAfterTransition = false,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
@@ -137,7 +144,6 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
-                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
@@ -153,6 +159,7 @@ function HeaderWithBackButton({
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
+                shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             />
         );
     }, [
@@ -161,7 +168,6 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
-        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -176,6 +182,7 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
+        shouldSkipFocusAfterTransition,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

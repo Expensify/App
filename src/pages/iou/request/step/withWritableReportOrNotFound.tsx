@@ -1,20 +1,28 @@
-import type {ComponentType} from 'react';
-import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {openReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
 
 type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
@@ -29,6 +37,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
@@ -63,6 +72,10 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
+
+function dismissMoneyRequestModal() {
+    Navigation.dismissModal();
+}
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
@@ -99,7 +112,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         }
 
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
-            return <FullPageNotFoundView shouldShow />;
+            return <NotFoundPage onBackButtonPress={dismissMoneyRequestModal} />;
         }
 
         return (

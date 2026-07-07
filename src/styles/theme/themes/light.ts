@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -27,10 +28,13 @@ const lightTheme = {
     syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
+    linkReversed: colors.blue300,
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
+    buttonHoveredBGReversed: colors.productDark500,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
+    buttonDangerText: colors.white,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -162,10 +166,6 @@ const lightTheme = {
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
-        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,

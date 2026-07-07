@@ -1,29 +1,33 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
@@ -42,7 +46,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
 
     const shouldGoBackToSpecificRoute = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK || shouldShowVendorMenuItems,

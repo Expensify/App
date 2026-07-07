@@ -23,7 +23,7 @@ on:
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
@@ -70,14 +70,13 @@ jobs:
         working-directory: ./docs
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@f0a1cd58cd66095dee69bfa18fa5efd1dde93bca
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         id: deploy
         if: env.IS_PR_FROM_FORK != 'true'
         with:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: helpdot
-          directory: ./docs/_site
+          command: pages deploy ./docs/_site --project-name=helpdot
 
       - name: Setup Cloudflare CLI
         if: env.IS_PR_FROM_FORK != 'true'
@@ -92,7 +91,7 @@ jobs:
       - name: Check if only articles are updated
         if: ${{ github.event_name == 'pull_request' }}
         id: verify_articles_only_updated
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         with:
           filters: |
             articles:
@@ -119,7 +118,7 @@ jobs:
         uses: ./.github/actions/javascript/generateHelpPreviewComment
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ROOT_URL: ${{ steps.deploy.outputs.alias }}
+          ROOT_URL: ${{ steps.deploy.outputs.deployment-url }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Leave a comment on the PR
@@ -139,19 +138,16 @@ jobs:
     if: ${{ failure() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     steps:
       - name: Warn deployers if Expensify Help deploy failed
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `Expensify Help <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed. Please fix it!`,
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "Expensify Help <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed. Please fix it!"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

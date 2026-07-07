@@ -1,29 +1,37 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+
+import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
-import {calculateAmount} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {isParticipantP2P} from '@pages/iou/request/step/IOURequestStepAmount';
+import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
+
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -96,7 +104,9 @@ function AmountField({
     const isP2P = isNewManualExpenseFlowEnabled
         ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
         : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired';
+    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
+    // amount itself is the missing value.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -114,7 +124,7 @@ function AmountField({
     // amount programmatically and never set isAmountSet.
     const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
@@ -237,6 +247,16 @@ function AmountField({
 
         buildAndSaveSplitShares(updatedAmount, value);
         persistMainDraftTotal(updatedAmount, value);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const taxCode = value !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, updatedAmount, getCurrencyDecimals(value)));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     const handleAmountChange = (newAmount: string) => {
@@ -249,6 +269,8 @@ function AmountField({
             // User cleared the field — mark amount as unset so the field stays empty
             // and submission is blocked until a value is re-entered.
             clearMoneyRequestAmount(transactionID);
+            // Recalculate split shares to 0 so each participant's individual amount reflects the cleared total.
+            buildAndSaveSplitShares(0, effectiveCurrency);
             return;
         }
 
@@ -262,6 +284,18 @@ function AmountField({
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
         persistMainDraftTotal(parsedAmount, effectiveCurrency);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(newAmount));
+            const defaultTaxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            const taxCode = getTaxCode(transactionForHandlers) || defaultTaxCode;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     return (

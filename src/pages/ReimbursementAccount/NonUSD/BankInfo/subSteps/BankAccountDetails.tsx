@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
@@ -7,20 +5,27 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {CorpayFormField} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
@@ -77,7 +82,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const corpayFieldsLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'BankAccountDetails', isLoading: !!corpayFields?.isLoading};

@@ -1,7 +1,6 @@
-import React, {Fragment} from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
@@ -10,15 +9,25 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getBase62ReportID from '@libs/getBase62ReportID';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
+
+import React, {Fragment} from 'react';
+import {View} from 'react-native';
+
 import type {ExpenseReportListItemRowWideProps} from './types';
+
+import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
 
 function ExpenseReportListItemRowWide({
     item,
@@ -26,6 +35,7 @@ function ExpenseReportListItemRowWide({
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
+    chatReport,
     containerStyle,
     showTooltip,
     canSelectMultiple,
@@ -36,14 +46,20 @@ function ExpenseReportListItemRowWide({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    shouldDisableActionPointerEvents = false,
+    isMarkAsDone,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {isSelected} = useRowSelection(item.keyForList);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
+    const submitterUserID = item.submitterUserID;
+    const submitterPayrollID = item.submitterPayrollID;
+    const orderDealNumbers = item.orderDealNumbers;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
@@ -82,6 +98,27 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER)]}>
+                {!!item.firstApproverAccountID && (
+                    <UserInfoCell
+                        accountID={item.firstApproverAccountID}
+                        avatar={item.firstApproverAvatar}
+                        displayName={item.formattedFirstApprover ?? ''}
+                        isLargeScreenWidth
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)]}>
+                <DateCell
+                    date={item.firstApproved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
@@ -97,7 +134,7 @@ function ExpenseReportListItemRowWide({
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
                     isPending={item.shouldShowStatusAsPending}
-                    isSelected={item.isSelected}
+                    isSelected={isSelected}
                 />
             </View>
         ),
@@ -171,6 +208,21 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}>
+                <TextCell text={submitterUserID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}>
+                <TextCell text={submitterPayrollID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}>
+                <TextCell text={orderDealNumbers} />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
@@ -188,17 +240,21 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <DeferredActionCell
-                    action={item.action}
-                    onButtonPress={onButtonPress}
-                    isSelected={item.isSelected}
-                    isLoading={isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={item.total}
-                    shouldDisablePointerEvents={isPendingDelete}
-                />
+                <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
+                    <DeferredActionCell
+                        action={item.action}
+                        onButtonPress={onButtonPress}
+                        isSelected={isSelected}
+                        isLoading={isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
+                        hash={item.hash}
+                        amount={item.total}
+                        chatReport={chatReport}
+                        isMarkAsDone={isMarkAsDone}
+                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                    />
+                </ReportSubmitToPopoverMeasurableAnchor>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (

@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import type {SelectedReports} from '@components/Search/types';
+
 import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
+
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateReports: jest.fn(),
@@ -62,7 +67,10 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         reportID: 'report1',
         policyID: 'policy1',
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
         total: 100,
         currency: 'USD',
         chatReportID: undefined,

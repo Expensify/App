@@ -1,7 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,6 +10,7 @@ import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAc
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,12 +19,15 @@ import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {AddWorkEmail} from '@userActions/Session';
 import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
@@ -36,6 +36,12 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {useIsFocused} from '@react-navigation/native';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingWorkEmailProps} from './types';
 
 type Item = {
@@ -76,11 +82,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     useEffect(() => {
         const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                return;
-            }
-            if (isSmb) {
+            if (isVsb || isSmb) {
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                 return;
             }
@@ -141,7 +143,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, [onboardingErrorMessageTranslationKey]);
 
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
-        if (errorTranslation !== 'onboarding.workEmail2FAError' && errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle') {
+        if (
+            errorTranslation !== 'onboarding.workEmail2FAError' &&
+            errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle' &&
+            errorTranslation !== 'onboarding.singleSignOnError'
+        ) {
             return true;
         }
         return false;

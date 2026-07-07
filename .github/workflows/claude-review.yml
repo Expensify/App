@@ -55,7 +55,7 @@ jobs:
 
       - name: Filter paths
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: filter
         with:
           filters: |
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Claude review toolkit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@43c1b4348cd46637e44064b02f5d316bfab990ee
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@2b751e9a86d8690f53443cce0ce886079eccea76
 
       - name: Mark review as in progress
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
@@ -80,15 +80,16 @@ jobs:
       - name: Run Claude Code (code)
         id: code-review
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
+        uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
-          display_report: "true"
+          display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          allowed_non_write_users: "*"
-          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          allowed_non_write_users: '*'
+          prompt: '/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
+            --effort xhigh
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
@@ -99,34 +100,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
-        run: |
-          if [ -z "$STRUCTURED_OUTPUT" ]; then
-            echo "::error::Claude Code Action returned empty structured output"
-            exit 1
-          fi
-          COUNT=$(echo "$STRUCTURED_OUTPUT" | jq '.violations | length')
-          if [ "$COUNT" -eq 0 ]; then
-            addPrReaction.sh "$PR_NUMBER" "+1"
-          else
-            echo "$STRUCTURED_OUTPUT" | jq -c '.violations[]' | while IFS= read -r v; do
-              PATH_ARG=$(echo "$v" | jq -r '.path')
-              BODY_ARG=$(echo "$v" | jq -r '.body')
-              LINE_ARG=$(echo "$v" | jq -r '.line')
-              createInlineComment.sh "$PR_NUMBER" "$PATH_ARG" "$BODY_ARG" "$LINE_ARG" || true
-            done
-          fi
+        run: postCodeReviewResults.sh "$PR_NUMBER"
 
       - name: Run Claude Code (docs)
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
+        uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
-          display_report: "true"
+          display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          allowed_non_write_users: "*"
-          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          allowed_non_write_users: '*'
+          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
+            --effort high
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
 
       - name: Remove in-progress indicator

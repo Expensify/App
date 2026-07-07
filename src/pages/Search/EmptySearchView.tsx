@@ -1,10 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React from 'react';
-import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
@@ -12,6 +5,7 @@ import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCreateReport from '@hooks/useCreateReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -21,22 +15,34 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React from 'react';
+import {Linking, View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
@@ -71,13 +77,14 @@ type EmptySearchViewItem = {
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
+    const {isBetaEnabled} = usePermissions();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies);
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,

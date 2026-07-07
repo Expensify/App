@@ -1,13 +1,18 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import AvatarSelector from '@components/AvatarSelector';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {PRESET_AVATAR_CATALOG} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLetterAvatars', () => ({
@@ -76,15 +81,23 @@ describe('AvatarSelector', () => {
         });
     });
 
-    describe('PRESET_AVATAR_CATALOG_ORDERED avatars', () => {
-        it('renders all avatars from custom catalog', async () => {
+    describe('USER_AVATARS grid', () => {
+        it('renders all user catalog avatars', async () => {
             renderAvatarSelector();
             await waitForBatchedUpdates();
 
-            // Check that all custom avatars are rendered
-            const avatars = Object.keys(PRESET_AVATAR_CATALOG);
-            for (const id of avatars) {
+            for (const {id} of USER_AVATARS.ordered) {
                 expect(screen.getByTestId(`AvatarSelector_${id}`)).toBeOnTheScreen();
+            }
+        });
+
+        it('does not render agent (bot) avatars', async () => {
+            renderAvatarSelector();
+            await waitForBatchedUpdates();
+
+            const agentAvatarIds = ['bot-avatar--blue', 'bot-avatar--green', 'bot-avatar--ice', 'bot-avatar--pink', 'bot-avatar--tangerine', 'bot-avatar--yellow'];
+            for (const id of agentAvatarIds) {
+                expect(screen.queryByTestId(`AvatarSelector_${id}`)).not.toBeOnTheScreen();
             }
         });
 
@@ -92,8 +105,7 @@ describe('AvatarSelector', () => {
             renderAvatarSelector();
             await waitForBatchedUpdates();
 
-            const avatars = Object.keys(PRESET_AVATAR_CATALOG);
-            const firstAvatarId = avatars.at(0);
+            const firstAvatarId = USER_AVATARS.ordered.at(0)?.id;
             const firstAvatar = screen.getByTestId(`AvatarSelector_${firstAvatarId}`);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -105,8 +117,7 @@ describe('AvatarSelector', () => {
         });
 
         it('shows selected custom avatar with border styling', async () => {
-            const avatars = Object.keys(PRESET_AVATAR_CATALOG);
-            const selectedId = avatars.at(1) as keyof typeof PRESET_AVATAR_CATALOG;
+            const selectedId = USER_AVATARS.ordered.at(1)?.id;
 
             renderAvatarSelector({selectedID: selectedId});
             await waitForBatchedUpdates();
@@ -187,8 +198,8 @@ describe('AvatarSelector', () => {
             renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 
-            const presetAvatars = Object.keys(PRESET_AVATAR_CATALOG);
-            expect(screen.getByTestId(`AvatarSelector_${presetAvatars.at(0)}`)).toBeOnTheScreen();
+            const firstUserAvatarId = USER_AVATARS.ordered.at(0)?.id;
+            expect(screen.getByTestId(`AvatarSelector_${firstUserAvatarId}`)).toBeOnTheScreen();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
             const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));

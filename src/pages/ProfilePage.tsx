@@ -1,8 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
@@ -17,6 +12,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -24,11 +20,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Permissions from '@libs/Permissions';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
@@ -41,12 +38,15 @@ import {
 import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
+
 import type {ProfileNavigatorParamList} from '@navigation/types';
+
 import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +55,13 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.DYNAMIC_PROFILE>;
 
@@ -94,6 +101,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
     const styles = useThemeStyles();
@@ -121,7 +129,9 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
+    const displayName = formatPhoneNumber(
+        temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, shouldAddCurrentUserPostfix: isCurrentUser, youAfterTranslation: translate('common.you').toLowerCase(), translate}),
+    );
 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -158,7 +168,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
-    const isConcierge = isConciergeChatReport(report);
+    const isConcierge = isConciergeChatReport(report, conciergeReportID);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {

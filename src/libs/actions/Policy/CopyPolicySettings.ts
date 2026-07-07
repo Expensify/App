@@ -1,16 +1,35 @@
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
-type Part = 'overview' | 'members' | 'reports' | 'accounting' | 'categories' | 'tags' | 'taxes' | 'workflows' | 'rules' | 'codingRules' | 'distanceRates' | 'perDiem' | 'invoices' | 'travel';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+type Part =
+    | 'overview'
+    | 'members'
+    | 'reports'
+    | 'accounting'
+    | 'categories'
+    | 'tags'
+    | 'taxes'
+    | 'workflows'
+    | 'rules'
+    | 'codingRules'
+    | 'distanceRates'
+    | 'perDiem'
+    | 'invoices'
+    | 'travel'
+    | 'timeTracking'
+    | 'receiptPartners';
 
 const PARTS_TO_POLICY_FIELDS = {
     overview: ['outputCurrency', 'address', 'description'],
@@ -41,13 +60,18 @@ const PARTS_TO_POLICY_FIELDS = {
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'invoice'],
-    travel: ['isTravelEnabled', 'travelSettings'],
+    // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
+    // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
+    // and must not be copied — each target is re-provisioned with its own entity by the backend.
+    travel: ['isTravelEnabled'],
+    timeTracking: [],
+    receiptPartners: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
 
-function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): void {
-    Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
+function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
+    return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
 }
 
 function clearCopyPolicySettings(): void {
@@ -101,9 +125,66 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
     return {customUnits: patch};
 }
 
+/** Replaces receiptPartners on the target; omits employees and ephemeral Uber UI state. */
+function buildReceiptPartnersPatch(sourcePolicy: Policy): Pick<Policy, 'receiptPartners'> | undefined {
+    const sourceReceiptPartners = sourcePolicy.receiptPartners;
+    if (!sourceReceiptPartners) {
+        return undefined;
+    }
+
+    const sourceUber = sourceReceiptPartners.uber;
+    const uberPatch = sourceUber
+        ? {
+              ...(sourceUber.enabled !== undefined ? {enabled: sourceUber.enabled} : {}),
+              ...(sourceUber.autoInvite !== undefined ? {autoInvite: sourceUber.autoInvite} : {}),
+              ...(sourceUber.autoRemove !== undefined ? {autoRemove: sourceUber.autoRemove} : {}),
+              ...(sourceUber.organizationID !== undefined ? {organizationID: sourceUber.organizationID} : {}),
+              ...(sourceUber.organizationName !== undefined ? {organizationName: sourceUber.organizationName} : {}),
+              ...(sourceUber.centralBillingAccountEmail !== undefined ? {centralBillingAccountEmail: sourceUber.centralBillingAccountEmail} : {}),
+          }
+        : undefined;
+
+    return {
+        receiptPartners: {
+            ...(sourceReceiptPartners.enabled !== undefined ? {enabled: sourceReceiptPartners.enabled} : {}),
+            ...(uberPatch ? {uber: uberPatch} : {}),
+        },
+    };
+}
+
+/** Merges source units.time onto the target without generating IDs. */
+function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | undefined {
+    const sourceTime = sourcePolicy.units?.time;
+    if (!sourceTime) {
+        return undefined;
+    }
+    return {units: {time: sourceTime}};
+}
+
+/**
+ * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
+ * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
+ * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
+ * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
+ * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
+ * as provisioned.
+ */
+function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
+    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
+    if (sourceAutoAddTripName === undefined) {
+        return undefined;
+    }
+
+    // A target that is not yet provisioned has no travelSettings, so the spread yields just
+    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
+    // provision time), so leaving them out here keeps the target from looking provisioned.
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+}
+
 /**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
- * mapping is handled separately (customUnits, categories, tags collection keys).
+ * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
 function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
@@ -146,7 +227,8 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
-    | typeof ONYXKEYS.COPY_POLICY_SETTINGS;
+    | typeof ONYXKEYS.COPY_POLICY_SETTINGS
+    | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
 function buildCopyPolicySettingsData(
     sourcePolicy: Policy,
@@ -171,7 +253,24 @@ function buildCopyPolicySettingsData(
     const isTagsSelected = parts.includes('tags');
     const isDistanceSelected = parts.includes('distanceRates');
     const isPerDiemSelected = parts.includes('perDiem');
+    const isTimeTrackingSelected = parts.includes('timeTracking');
+    const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isTravelSelected = parts.includes('travel');
+    const timeTrackingPendingFields = isTimeTrackingSelected
+        ? {
+              isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+          }
+        : {};
+    const timeTrackingClearedPendingFields = isTimeTrackingSelected
+        ? {
+              isTimeTrackingEnabled: null,
+              timeTrackingDefaultRate: null,
+          }
+        : {};
+    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
@@ -193,6 +292,9 @@ function buildCopyPolicySettingsData(
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
+        const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
+        const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
         const codingRulesPatch = isCodingRulesSelected
             ? {
                   rules: {
@@ -212,8 +314,18 @@ function buildCopyPolicySettingsData(
                 ...targetPolicy,
                 ...policyFieldPatch,
                 ...(customUnitsPatch ? {customUnits: {...targetPolicy.customUnits, ...customUnitsPatch.customUnits}} : {}),
+                ...(timeTrackingPatch
+                    ? {
+                          units: {
+                              ...targetPolicy.units,
+                              ...timeTrackingPatch.units,
+                          },
+                      }
+                    : {}),
+                ...(travelSettingsPatch ?? {}),
+                ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
                 ...codingRulesPatch,
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields},
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
             },
         });
 
@@ -222,7 +334,7 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: clearedPendingFields,
+                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields},
                 errors: null,
             },
         });
@@ -288,12 +400,20 @@ function buildCopyPolicySettingsData(
     });
 
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
-    // Success intentionally omits this key — the backend transitions currentStep
-    // to 'complete' via the bulkCopySettings NVP push.
+    // Success intentionally omits this key — the backend transitions the bulk policy
+    // copy NVP state to complete, which the UI uses to show the completion modal.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: 'loading'},
+        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
+    });
+
+    // Optimistically set NVP state to 'in-progress' to avoid stale state flash
+    // (e.g., if prior run left it at 'complete', user would briefly see "All Set")
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
+        value: {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.IN_PROGRESS},
     });
 
     failureData.push({

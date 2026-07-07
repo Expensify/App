@@ -1,19 +1,27 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
-import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetSessionFlag} from '@libs/Navigation/guards/MigratedUserWelcomeModalGuard';
+import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetDismissedProductTrainingState, resetSessionFlag} from '@libs/Navigation/guards/MigratedUserWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+
+const migratedUserWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, ROUTES.HOME);
 
 const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]) => {
         mockNavigate(...args);
     },
+    getActiveRoute: () => 'home',
 }));
 
 describe('MigratedUserWelcomeModalGuard', () => {
@@ -62,6 +70,36 @@ describe('MigratedUserWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it('should allow when nudge migration is set but NVP_DISMISSED_PRODUCT_TRAINING has not loaded yet (race condition)', async () => {
+        // Simulate the race condition: NVP_TRY_NEW_DOT has arrived but
+        // NVP_DISMISSED_PRODUCT_TRAINING has not yet been delivered by Onyx.
+        // This happens on large accounts (e.g. copilot sessions) where OpenApp takes
+        // 20-30 seconds and the user navigates before the full Onyx payload is processed.
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            nudgeMigration: {
+                timestamp: new Date(),
+                cohort: 'test',
+            },
+        });
+
+        // Merge a placeholder so Onyx.clear() in the next beforeEach sees a real value
+        // change and re-fires the NVP_DISMISSED_PRODUCT_TRAINING callback (Onyx skips
+        // the callback when the value was already undefined on both sides of clear()).
+        await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {});
+        await waitForBatchedUpdates();
+
+        // Reset module-level state to replicate the window where NVP_DISMISSED_PRODUCT_TRAINING
+        // has not yet been delivered — i.e. isDismissedProductTrainingLoaded is still false.
+        // This is the exact moment the race condition strikes.
+        resetDismissedProductTrainingState();
+
+        // evaluate must return ALLOW while the dismissal NVP is still in-flight,
+        // regardless of whether the user previously dismissed the modal. Without the
+        // isDismissedProductTrainingLoaded guard this would incorrectly return REDIRECT.
+        const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should redirect when user has been added to nudge migration and modal not dismissed', async () => {
         await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
             nudgeMigration: {
@@ -74,7 +112,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
         expect(result.type).toBe('REDIRECT');
         if (result.type === 'REDIRECT') {
-            expect(result.route).toBe(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+            expect(result.route).toBe(migratedUserWelcomeRoute);
         }
     });
 
@@ -125,11 +163,11 @@ describe('MigratedUserWelcomeModalGuard', () => {
         const modalState: NavigationState = {
             key: 'root',
             index: 0,
-            routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT],
+            routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT],
             routes: [
                 {
                     key: 'migratedUserModal',
-                    name: SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+                    name: SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
                 },
             ],
             stale: false,
@@ -154,11 +192,11 @@ describe('MigratedUserWelcomeModalGuard', () => {
             payload: {
                 key: 'root',
                 index: 0,
-                routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT],
+                routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT],
                 routes: [
                     {
                         key: 'migratedUserModal',
-                        name: SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+                        name: SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
                     },
                 ],
                 stale: false,
@@ -351,7 +389,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
             // Now signal that session is ready and app is done loading
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
 
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+            expect(mockNavigate).toHaveBeenCalledWith(migratedUserWelcomeRoute);
         });
 
         it('should not navigate when app is still loading', async () => {
@@ -449,7 +487,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
 
             // The NVP_TRY_NEW_DOT callback triggers navigateToMigratedUserWelcomeModalIfReady
             // which should navigate because all conditions are met
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+            expect(mockNavigate).toHaveBeenCalledWith(migratedUserWelcomeRoute);
         });
     });
 });

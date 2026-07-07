@@ -1,6 +1,7 @@
+import type {Report, ReportAction, Transaction} from '../../src/types/onyx';
+
 import {getReportPreviewSenderID} from '../../src/components/ReportActionAvatars/useReportPreviewSenderID';
 import CONST from '../../src/CONST';
-import type {Report, ReportAction, Transaction} from '../../src/types/onyx';
 
 const CURRENT_USER_ACCOUNT_ID = 100;
 const OWNER_ACCOUNT_ID = 200;

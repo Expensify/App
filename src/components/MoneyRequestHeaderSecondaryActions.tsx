@@ -1,11 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -20,14 +12,18 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -62,15 +58,27 @@ import {
     isDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
+
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import React, {useRef, useState} from 'react';
+
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
@@ -84,7 +92,7 @@ type MoneyRequestHeaderSecondaryActionsProps = {
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
 function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: MoneyRequestHeaderSecondaryActionsProps) {
@@ -98,7 +106,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
-    const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID, localCurrencyCode} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -133,6 +141,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const rawTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
 
     // NVP subscriptions
@@ -149,7 +158,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
+    const personalPolicy = usePersonalPolicy();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -242,8 +254,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }
     };
@@ -252,7 +264,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
         }
     };
 
@@ -260,7 +272,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
             }
         } else {
             dismissRejectUseExplanation();
@@ -313,7 +325,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed || isParentChatReportDM) {
-                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -335,7 +347,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
@@ -343,7 +355,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, policy, report, accountID, {isProduction});
+                initSplitExpense(transaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -443,6 +455,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
                     setDeleteTransactionNavigateBackUrl(backToRoute);
+
+                    let afterDelete: (() => void) | undefined;
                     if (isTrackExpenseAction(parentReportAction) && !isExpenseSplit) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
@@ -465,8 +479,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
                             return;
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
+                        afterDelete = () => {
                             const deleteResult = deleteTransactions(
                                 [transaction.transactionID],
                                 duplicateTransactions,
@@ -480,14 +493,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             }
 
                             removeTransaction(transaction.transactionID);
-                        });
+                        };
                     }
                     if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen();
+                        // The super wide RHP close animation was changed, and because of that the report was deleted right after
+                        // the animation finished, which caused flickering in the reports list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
+                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: () => setTimeout(() => afterDelete?.(), CONST.EXPENSE_REPORT_DELETE_DELAY_MS)});
                         return;
                     }
 
-                    onBackButtonPress();
+                    onBackButtonPress(false, {afterTransition: afterDelete});
                 });
             },
         },

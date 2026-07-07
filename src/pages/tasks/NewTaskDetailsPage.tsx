@@ -1,30 +1,37 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAncestors from '@hooks/useAncestors';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue, setShareDestinationValue} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
@@ -34,6 +41,9 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+    });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [localTitle, setLocalTitle] = useState<string>();
@@ -88,6 +98,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 isCreatedUsingMarkdown: false,
                 quickAction,
                 ancestors,
+                taskCreatorAndAssigneeDetails,
             });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));

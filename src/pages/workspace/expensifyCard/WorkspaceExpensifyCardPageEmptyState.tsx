@@ -1,36 +1,48 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {clearIssueNewCardFormData} from '@libs/actions/Card';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils';
 import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
 import variables from '@styles/variables';
+
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
@@ -50,6 +62,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
     const isCurrencyModalOpen = useRef(false);
@@ -63,20 +77,32 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
+    const hasAccessibleFeeds = allFeeds.length > 0;
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
+    const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
+    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
+    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup);
 
     const startFlow = () => {
-        if (!eligibleBankAccounts.length || isSetupUnfinished) {
+        if (hasAccessibleFeeds && policy?.id) {
+            clearIssueNewCardFormData();
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
+            return;
+        }
+        if (shouldStartBankAccountSetup) {
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                     policyID: policy?.id,
                     backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id),
                 }),
             );
-        } else if (policy?.id) {
+            return;
+        }
+        if (policy?.id) {
             clearIssueNewCardFormData();
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
         }
     };
 
@@ -120,6 +146,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             route={route}
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
             addBottomSafeAreaPadding
         >
             <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
@@ -127,9 +154,17 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
+                    ctaText={translate(isSetupUnfinished && !hasAccessibleFeeds ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
+                        if (!canWriteExpensifyCard) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        if (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup) {
+                            showReadOnlyModal();
+                            return;
+                        }
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
@@ -148,6 +183,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
+                    buttonInnerStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
+                    buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                 />
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

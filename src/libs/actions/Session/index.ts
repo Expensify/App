@@ -1,12 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import throttle from 'lodash/throttle';
-import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
-import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
@@ -49,8 +40,10 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
+
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
+
+import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {clearCachedAttachments} from '@userActions/Attachment';
 import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
 import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
@@ -59,6 +52,7 @@ import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import * as Welcome from '@userActions/Welcome';
+
 import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -72,6 +66,16 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+
+import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {openAuthSessionAsync} from 'expo-web-browser';
+import throttle from 'lodash/throttle';
+import Onyx from 'react-native-onyx';
+
 import pkg from '../../../../package.json';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
@@ -138,6 +142,10 @@ function isSupportAuthToken(): boolean {
     return session.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
+function isSupportalSession(): boolean {
+    return isSupportAuthToken() || !!session?.isSupportAuthTokenUsed;
+}
+
 /**
  * Sets the SupportToken. This method will only be used on dev.
  */
@@ -155,7 +163,9 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 }
 
 function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -171,14 +181,19 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             value: {
                 signedInWithShortLivedAuthToken: true,
                 signedInWithSAML: isSAML,
-                isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
+        },
+        // Kept on a RAM-only key so an interrupted SignIn cannot persist a stuck `true` to IndexedDB and block all future reauth attempts.
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            value: true,
         },
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -193,8 +208,12 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
                 signedInWithShortLivedAuthToken: null,
                 signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
-                isAuthenticatingWithShortLivedToken: false,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            value: false,
         },
     ];
 
@@ -227,6 +246,11 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
+
+    // Record the token so the transition pages skip a duplicate sign-in for it. The Public/Auth navigator
+    // swap re-mounts the transition screen mid-login, and without this the re-mounted page fires this call
+    // again and trips the support-token rate limit. Matches signInWithShortLivedAuthToken.
+    NetworkStore.setLastShortAuthToken(authToken);
 }
 
 /**
@@ -457,7 +481,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                         Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                         Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
-                        confirmReadyToOpenApp();
                         openApp();
 
                         if (CONFIG.IS_HYBRID_APP && hasSwitchedAccountInHybridMode) {
@@ -609,7 +632,7 @@ function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSO
  * Creates an account for the new user and signs them into the application with the newly created account.
  *
  */
-function signUpUser(preferredLocale: Locale | undefined) {
+function signUpUser(preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -646,6 +669,9 @@ function signUpUser(preferredLocale: Locale | undefined) {
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        if (hasSMSMarketingConsent !== undefined) {
+            params.hasSMSMarketingConsent = hasSMSMarketingConsent;
+        }
         API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
     });
 }
@@ -716,10 +742,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                     },
                 })
                     .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
-                    .then(() => {
-                        confirmReadyToOpenApp();
-                        return openApp();
-                    });
+                    .then(() => openApp());
             }
 
             Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
@@ -746,7 +769,6 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
                 .then(() => {
                     Log.info('[HybridApp] Calling openApp to get delegate account details');
-                    confirmReadyToOpenApp();
                     return openApp();
                 });
         })
@@ -821,7 +843,9 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
 function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod}, {optimisticData, failureData, finallyData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
+    });
     NetworkStore.setLastShortAuthToken(authToken);
 }
 
@@ -1414,12 +1438,10 @@ function waitForUserSignIn(): Promise<boolean> {
 }
 
 function handleExitToNavigation(exitTo: Route) {
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                Navigation.goBack(ROUTES.HOME);
-                Navigation.navigate(exitTo);
-            });
+    waitForUserSignIn().then(() => {
+        Navigation.waitForProtectedRoutes().then(() => {
+            Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            Navigation.navigate(exitTo, {waitForTransition: true});
         });
     });
 }
@@ -1518,6 +1540,11 @@ function AddWorkEmail(workEmail: string) {
 
         if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
+            return;
+        }
+
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.singleSignOnError');
             return;
         }
 
@@ -1702,4 +1729,5 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
+    isSupportalSession,
 };

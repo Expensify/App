@@ -1,10 +1,5 @@
-import {emailSelector} from '@selectors/Session';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,6 +9,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -21,15 +17,23 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {getDefaultChatEnabledPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
-import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
@@ -57,8 +61,9 @@ function QuickCreationActionsBar() {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
-    const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
-    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [email]);
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const groupPoliciesWithChatEnabledSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email);
+    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPoliciesWithChatEnabledSelector}, [email, isSubmit2026BetaEnabled]);
 
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
@@ -79,7 +84,7 @@ function QuickCreationActionsBar() {
             return false;
         }
 
-        const isPolicyProvisioned = travelEnabledPolicy?.travelSettings?.spotnanaCompanyID ?? travelEnabledPolicy?.travelSettings?.associatedTravelDomainAccountID;
+        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(travelEnabledPolicy?.travelSettings);
 
         return travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
     }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);

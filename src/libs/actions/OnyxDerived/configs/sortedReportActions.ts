@@ -1,10 +1,14 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import {getIsOffline} from '@libs/NetworkState';
 import {getCombinedReportActions, getOneTransactionThreadReportID, getSortedReportActions, withDEWRoutedActionsArray} from '@libs/ReportActionsUtils';
+
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const EMPTY_VALUE: SortedReportActionsDerivedValue = {sortedActions: {}, lastActions: {}, transactionThreadIDs: {}};
 
@@ -13,6 +17,7 @@ function computeForReport(
     actions: ReportActions,
     allReportActions: OnyxCollection<ReportActions>,
     allReports: OnyxCollection<Report>,
+    isOffline: boolean,
 ): {sortedReportActions: ReportAction[]; transactionThreadReportID: string | undefined; lastAction: ReportAction | undefined} {
     const reportActionsArray = Object.values(actions);
     let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
@@ -20,7 +25,7 @@ function computeForReport(
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions, isOffline);
 
     if (transactionThreadReportID && allReportActions) {
         const transactionThreadReportActionsArray = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
@@ -37,11 +42,14 @@ function computeForReport(
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT],
+    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.NETWORK],
     compute: ([allReportActions, allReports], {sourceValues, currentValue}): SortedReportActionsDerivedValue => {
         if (!allReportActions) {
             return EMPTY_VALUE;
         }
+
+        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        const isOffline = getIsOffline();
 
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
 
@@ -65,7 +73,7 @@ export default createOnyxDerivedValueConfig({
                     continue;
                 }
 
-                const result = computeForReport(reportID, actions, allReportActions, allReports);
+                const result = computeForReport(reportID, actions, allReportActions, allReports, isOffline);
                 sortedActions[reportID] = result.sortedReportActions;
                 transactionThreadIDs[reportID] = result.transactionThreadReportID;
                 if (result.lastAction) {
@@ -93,7 +101,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const result = computeForReport(reportID, actions, allReportActions, allReports);
+            const result = computeForReport(reportID, actions, allReportActions, allReports, isOffline);
             sortedActions[reportID] = result.sortedReportActions;
             transactionThreadIDs[reportID] = result.transactionThreadReportID;
             if (result.lastAction) {

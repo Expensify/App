@@ -1,12 +1,10 @@
-import React, {useEffect, useRef} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,13 +13,22 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
+
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import type {CardList, Policy, Report, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
+
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -36,6 +43,12 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Policy to which the transaction belongs */
     policy: OnyxEntry<Policy>;
+
+    /** Categories for the policy to which the transaction belongs */
+    policyCategories?: PolicyCategories;
+
+    /** Tag lists for the policy to which the transaction belongs */
+    policyTagLists?: PolicyTagLists;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -81,6 +94,10 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
+
+    /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
+     * instead of mounting the heavy RBR inner; the parent computes it once so rows don't scan report actions individually. */
+    transactionThreadReportID?: string;
 };
 
 type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
@@ -96,6 +113,8 @@ function MoneyRequestReportTransactionItemBody({
     violations,
     report,
     policy,
+    policyCategories,
+    policyTagLists,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -111,13 +130,15 @@ function MoneyRequestReportTransactionItemBody({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
+    transactionThreadReportID,
     inlineEdit,
     animatedHighlightStyle,
 }: MoneyRequestReportTransactionItemBodyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isEditingCell} = useEditingCellState();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -141,6 +162,23 @@ function MoneyRequestReportTransactionItemBody({
             scrollToNewTransaction?.(pageY);
         });
     }, [scrollToNewTransaction, shouldBeHighlighted]);
+
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const handleMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleHoverIn = () => setShouldDisableHoverStyle(false);
 
     return (
         <OfflineWithFeedback
@@ -169,10 +207,12 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                onMouseDown={handleMouseDown}
+                onHoverIn={handleHoverIn}
                 onPressIn={() => {
-                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
                     if (canUseTouchScreen()) {
                         ControlSelection.block();
                     }
@@ -191,6 +231,9 @@ function MoneyRequestReportTransactionItemBody({
                         violations={violations}
                         report={report}
                         policy={policy}
+                        policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
+                        transactionThreadReportID={transactionThreadReportID}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
@@ -231,7 +274,9 @@ function MoneyRequestReportTransactionItemBody({
 type InlineEditValues = ReturnType<typeof useTransactionInlineEdit>;
 
 function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyRequestReportTransactionItemBodyProps, 'inlineEdit'>) {
-    const inlineEdit = useTransactionInlineEdit({transactionID: props.transaction.transactionID});
+    const inlineEdit = useTransactionInlineEdit({
+        transactionID: props.transaction.transactionID,
+    });
 
     return (
         <MoneyRequestReportTransactionItemBody
