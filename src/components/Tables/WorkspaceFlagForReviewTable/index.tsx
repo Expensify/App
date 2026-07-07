@@ -1,5 +1,5 @@
-import {EmptyStateComponentProps} from '@components/EmptyStateComponent/types';
 import type {TableRenderRowProps} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
 
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +15,7 @@ type WorkspaceFlagForReviewTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    emptyState: EmptyStateComponentProps;
+    emptyState: TableEmptyStateProps;
 };
 
 function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyState}: WorkspaceFlagForReviewTableProps) {
