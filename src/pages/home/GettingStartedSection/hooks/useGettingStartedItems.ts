@@ -13,6 +13,7 @@ import {
     getValidConnectedIntegration,
     hasAccountingFeatureConnection,
     hasConfiguredRules,
+    hasCustomApprovalWorkflow,
     hasCustomCategories,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -112,14 +113,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     });
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        items.push({
-            key: 'customizeCategories',
-            label: translate('homePage.gettingStartedSection.customizeCategories'),
-            isComplete: hasCustomCategories(policyCategories),
-            route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
-        });
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeCategories',
+                label: translate('homePage.gettingStartedSection.customizeCategories'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+                isFeatureEnabled: policy.areCategoriesEnabled,
+                enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
+            });
+        }
 
         const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         items.push({
@@ -150,7 +153,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             isFeatureEnabled: policy.areConnectionsEnabled,
             enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
         });
-    } else {
+    } else if (policy.areCategoriesEnabled) {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
@@ -182,6 +185,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
             isFeatureEnabled: policy.areExpensifyCardsEnabled,
             enableFeature: () => enableExpensifyCard(activePolicyID, true, false),
+        });
+    }
+
+    if (policy.areWorkflowsEnabled) {
+        items.push({
+            key: 'configureApprovals',
+            label: translate('homePage.gettingStartedSection.configureApprovals'),
+            isComplete: hasCustomApprovalWorkflow(policy),
+            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID),
         });
     }
 

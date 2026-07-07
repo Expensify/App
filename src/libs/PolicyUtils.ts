@@ -1640,6 +1640,36 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver || policy?.owner || '';
 }
 
+/**
+ * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
+ * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
+ * - a new workflow was created (a member submits to an approver other than the default approver).
+ */
+function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const defaultApprover = getDefaultApprover(policy);
+
+    // The default workflow's first approver was changed away from the workspace owner.
+    if (!!policy.approver && !!policy.owner && policy.approver !== policy.owner) {
+        return true;
+    }
+
+    const employees = policy.employeeList ?? {};
+
+    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added.
+    if (!!defaultApprover && !!employees[defaultApprover]?.forwardsTo) {
+        return true;
+    }
+
+    // A new workflow exists when a member submits to an approver other than the default approver.
+    return Object.values(employees).some(
+        (employee) => employee?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!employee?.submitsTo && employee.submitsTo !== defaultApprover,
+    );
+}
+
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
     const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
@@ -2930,6 +2960,7 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
+    hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
