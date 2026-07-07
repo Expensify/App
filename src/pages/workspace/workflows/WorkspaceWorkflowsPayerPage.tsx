@@ -76,8 +76,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
     const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
     const bankAccountID = policyBankAccountID ?? bankAccountInfo?.accountData?.bankAccountID;
-    const isBankAccountFullySetup = policy?.achAccount && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
-    const bankAccountState = isBankAccountFullySetup ? policy.achAccount.state : bankAccountConnectedToWorkspace?.accountData?.state;
+    const policyAchAccountState = policy?.achAccount?.state;
+    const isBankAccountFullySetup = policyAchAccountState === CONST.BANK_ACCOUNT.STATE.OPEN || policyAchAccountState === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
     const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
