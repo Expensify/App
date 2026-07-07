@@ -294,9 +294,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
+                    variant="success"
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={options}
                     isSplitButton={false}
@@ -314,7 +315,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                 <ButtonWithDropdownMenu
-                    success={false}
+                    variant={undefined}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

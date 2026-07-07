@@ -83,6 +83,7 @@ function SelectionDropdown({
 
     return (
         <ButtonWithDropdownMenu
+            variant="success"
             onPress={() => null}
             options={selectedTransactionsOptions}
             customText={translate('workspace.common.selected', {

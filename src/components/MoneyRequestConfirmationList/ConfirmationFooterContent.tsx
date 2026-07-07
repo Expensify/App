@@ -91,7 +91,7 @@ function ConfirmationFooterContent({
             shouldShowPersonalBankAccountOption
             currency={iouCurrencyCode}
             policyID={policyID}
-            buttonSize={CONST.BUTTON_SIZE.LARGE}
+            size={CONST.BUTTON_SIZE.LARGE}
             kycWallAnchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -130,10 +130,11 @@ function ConfirmationFooterContent({
             >
                 <View>
                     <ButtonWithDropdownMenu
+                        variant="success"
                         pressOnEnter
                         onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
                         options={splitOrRequestOptions}
-                        buttonSize={CONST.BUTTON_SIZE.LARGE}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         enterKeyEventListenerPriority={1}
                         useKeyboardShortcuts
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || because we want undefined and false to both be treated as falsy for isLoading

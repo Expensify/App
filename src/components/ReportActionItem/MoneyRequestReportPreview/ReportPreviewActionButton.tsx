@@ -219,6 +219,7 @@ function ReportPreviewActionButton({
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE) {
             return (
                 <ButtonWithDropdownMenu
+                    variant="success"
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('iou.addExpense')}

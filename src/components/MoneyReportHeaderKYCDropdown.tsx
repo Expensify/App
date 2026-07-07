@@ -86,7 +86,7 @@ function MoneyReportHeaderKYCDropdown({
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
                     ref={dropdownMenuRef}
-                    success={shouldShowSuccessStyle ?? false}
+                    variant={(shouldShowSuccessStyle ?? false) ? 'success' : undefined}
                     onPress={() => {}}
                     onSubItemSelected={(item, _index, event) => {
                         if (isSecondaryActionAWorkspacePolicyOption(item)) {

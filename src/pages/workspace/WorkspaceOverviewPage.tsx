@@ -426,7 +426,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenu = secondaryActions.length > 0 && (
         <ButtonWithDropdownMenu
             ref={dropdownMenuRef}
-            success={false}
+            variant={undefined}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}

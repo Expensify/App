@@ -32,6 +32,7 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
 
     return (
         <ButtonWithDropdownMenu
+            variant="success"
             {...props}
             options={options}
         />

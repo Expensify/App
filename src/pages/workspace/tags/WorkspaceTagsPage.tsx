@@ -590,7 +590,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {secondaryActions.length > 0 && (
                         <ButtonWithDropdownMenu
-                            success={false}
+                            variant={undefined}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
                             customText={translate('common.more')}
@@ -742,10 +742,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         return (
             <ButtonWithDropdownMenu
+                variant="success"
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}

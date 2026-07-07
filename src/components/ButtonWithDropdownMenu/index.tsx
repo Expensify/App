@@ -58,7 +58,7 @@ function DoubleLineButtonText({primaryText, primaryTextStyle, secondLineText}: D
 
 function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
-        success = true,
+        variant,
         isSplitButton = true,
         isLoading = false,
         isDisabled = false,
@@ -69,7 +69,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         style,
         buttonStyle,
         disabledStyle,
-        buttonSize = CONST.BUTTON_SIZE.MEDIUM,
+        size = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
         buttonRef,
         onPress,
@@ -91,7 +91,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
-        shouldStayNormalOnDisable = false,
+        stayNormalOnDisable = false,
         brickRoadIndicator,
         sentryLabel,
     } = props;
@@ -113,9 +113,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
-    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
-    const isButtonSizeLarge = buttonSize === CONST.BUTTON_SIZE.LARGE;
-    const isButtonSizeSmall = buttonSize === CONST.BUTTON_SIZE.SMALL;
+    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(size);
+    const isButtonSizeLarge = size === CONST.BUTTON_SIZE.LARGE;
+    const isButtonSizeSmall = size === CONST.BUTTON_SIZE.SMALL;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
     const splitButtonIcon = hasError ? icons.DotIndicator : icon;
@@ -209,16 +209,16 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={dropdownButtonStyle}>
                     <Button
-                        variant={success ? 'success' : undefined}
+                        variant={variant}
                         ref={dropdownButtonRef}
                         onPress={handlePress}
                         accessibilityState={!isSplitButton ? {expanded: isMenuVisible} : undefined}
                         isDisabled={isDisabled || areAllOptionsDisabled}
-                        stayNormalOnDisable={shouldStayNormalOnDisable}
+                        stayNormalOnDisable={stayNormalOnDisable}
                         isLoading={isLoading}
                         removeBorderRadius="right"
                         style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : nonSplitButtonStyle}
-                        size={buttonSize}
+                        size={size}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         testID={testID}
                         sentryLabel={sentryLabel}
@@ -259,19 +259,19 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     {isSplitButton && (
                         <Button
                             ref={dropdownAnchor}
-                            variant={success ? 'success' : undefined}
+                            variant={variant}
                             isDisabled={isDisabled}
                             accessibilityState={{expanded: isMenuVisible}}
-                            stayNormalOnDisable={shouldStayNormalOnDisable}
+                            stayNormalOnDisable={stayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             removeBorderRadius="left"
-                            size={buttonSize}
+                            size={size}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             sentryLabel={sentryLabel}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
-                                <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
+                                <View style={[variant === 'success' ? styles.buttonSuccessDivider : styles.buttonDivider]} />
                                 <View
                                     style={[
                                         isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
@@ -286,7 +286,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
                                         additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                        fill={success ? theme.buttonSuccessText : theme.buttonIcon}
+                                        fill={variant === 'success' ? theme.buttonSuccessText : theme.buttonIcon}
                                         testID="dropdown-arrow-icon"
                                     />
                                 </View>
@@ -296,15 +296,15 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                 </View>
             ) : (
                 <Button
-                    variant={success ? 'success' : undefined}
+                    variant={variant}
                     ref={buttonRef}
                     isDisabled={isDisabled || !!options.at(0)?.disabled}
-                    stayNormalOnDisable={shouldStayNormalOnDisable}
+                    stayNormalOnDisable={stayNormalOnDisable}
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
                     onPress={handleSingleOptionPress}
-                    size={buttonSize}
+                    size={size}
                     innerStyles={[innerStyleDropButton, shouldShowButtonRightIcon && styles.dropDownButtonCartIconView]}
                     testID={testID}
                     sentryLabel={sentryLabel}

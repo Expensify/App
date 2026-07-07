@@ -128,7 +128,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <ButtonWithDropdownMenu<ChronosAction>
-                success={!timerStartTime}
+                variant={!timerStartTime ? 'success' : undefined}
                 isDisabled={shouldDisableButton}
                 onPress={() => {
                     callFunctionIfActionIsAllowed(sendCommentToChronos)();

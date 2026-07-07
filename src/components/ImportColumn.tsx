@@ -272,7 +272,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                     <View style={styles.ml2}>
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
-                            buttonSize={CONST.BUTTON_SIZE.SMALL}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}
@@ -281,7 +281,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             }}
                             defaultSelectedIndex={selectedIndex}
                             options={options}
-                            success={false}
+                            variant={undefined}
                             shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         />
                     </View>

@@ -416,7 +416,7 @@ function PolicyDistanceRatesPage({
                         success
                     />
                     <ButtonWithDropdownMenu
-                        success={false}
+                        variant={undefined}
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}
@@ -428,10 +428,11 @@ function PolicyDistanceRatesPage({
                 </>
             ) : (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
+                    variant="success"
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
-                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1]}

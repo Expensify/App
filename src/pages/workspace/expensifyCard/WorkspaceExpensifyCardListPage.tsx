@@ -217,7 +217,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return (
                 <View style={headerButtonsRowStyle}>
                     <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
-                        success
+                        variant="success"
                         onPress={() => {}}
                         customText={translate('workspace.common.selected', {count: selectedCardIDs.length})}
                         options={bulkExportOptions}
@@ -247,7 +247,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 )}
                 {secondaryActions.length > 0 && (
                     <ButtonWithDropdownMenu
-                        success={false}
+                        variant={undefined}
                         onPress={() => {}}
                         customText={translate('common.more')}
                         options={secondaryActions}

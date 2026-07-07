@@ -161,7 +161,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     <View style={[styles.flexRow, styles.gap3]}>
                         {!isLoading && canWriteCompanyCards && (
                             <ButtonWithDropdownMenu
-                                success={false}
+                                variant={undefined}
                                 onPress={() => {}}
                                 shouldUseOptionIcon
                                 customText={translate('common.more')}
