@@ -1590,7 +1590,7 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/downgrade/DowngradeIntro.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/downgrade/PayAndDowngradePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/downgrade/DynamicPayAndDowngradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
