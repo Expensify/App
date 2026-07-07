@@ -7435,6 +7435,7 @@ const CONST = {
                 title: 'workspace.upgrade.controlPolicyRoles.title' as const,
                 description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             reports: {
                 id: 'reports' as const,
