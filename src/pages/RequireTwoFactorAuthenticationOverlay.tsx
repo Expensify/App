@@ -93,10 +93,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                                 variant="success"
                                 onPress={navigateToTwoFactorAuth}
                             >
-                                <Button.KeyboardShortcut
-                                    pressOnEnter
-                                    onPress={navigateToTwoFactorAuth}
-                                />
+                                <Button.KeyboardShortcut />
                                 <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
                             </Button>
                         </View>

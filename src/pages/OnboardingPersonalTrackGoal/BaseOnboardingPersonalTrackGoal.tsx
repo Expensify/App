@@ -170,10 +170,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={submitSomethingElseGoal}
                     >
-                        <Button.KeyboardShortcut
-                            pressOnEnter
-                            onPress={submitSomethingElseGoal}
-                        />
+                        <Button.KeyboardShortcut />
                         <Button.Text>{translate('common.continue')}</Button.Text>
                     </Button>
                 </View>

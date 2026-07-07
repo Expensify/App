@@ -83,11 +83,7 @@ function ParticipantSelectorFooter({
                     isDisabled={shouldShowSplitBillErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEXT_BUTTON}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={onConfirmSelection}
-                        isDisabled={shouldShowSplitBillErrorMessage}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('common.next')}</Button.Text>
                 </Button>
             )}
@@ -98,10 +94,7 @@ function ParticipantSelectorFooter({
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEW_WORKSPACE_BUTTON}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={onNewWorkspace}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('workspace.new.newWorkspace')}</Button.Text>
                 </Button>
             )}

@@ -199,11 +199,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={confirmSelection}
-                        isDisabled={shouldShowErrorMessage}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('common.save')}</Button.Text>
                 </Button>
             </>

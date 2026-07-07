@@ -128,10 +128,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 onPress={submitCompanySize}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             >
-                <Button.KeyboardShortcut
-                    pressOnEnter
-                    onPress={submitCompanySize}
-                />
+                <Button.KeyboardShortcut />
                 <Button.Text>{translate('common.continue')}</Button.Text>
             </Button>
         </>

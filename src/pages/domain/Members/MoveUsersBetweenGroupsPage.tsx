@@ -126,11 +126,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                         onPress={moveSelectedMembersToGroup}
                         isDisabled={!selectedGroupId}
                     >
-                        <Button.KeyboardShortcut
-                            pressOnEnter
-                            onPress={moveSelectedMembersToGroup}
-                            isDisabled={!selectedGroupId}
-                        />
+                        <Button.KeyboardShortcut />
                         <Button.Text>{translate('common.save')}</Button.Text>
                     </Button>
                 </FixedFooter>

@@ -431,12 +431,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     isLoading={isLoading}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={submitInterestedFeatures}
-                        isDisabled={isOffline}
-                        isLoading={isLoading}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('common.continue')}</Button.Text>
                 </Button>
             </FixedFooter>

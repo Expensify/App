@@ -239,11 +239,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         onPress={validateAndContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
                     >
-                        <Button.KeyboardShortcut
-                            pressOnEnter
-                            onPress={validateAndContinue}
-                            isDisabled={!isEmptyObject(hasErrors)}
-                        />
+                        <Button.KeyboardShortcut />
                         <Button.Text>{translate('common.continue')}</Button.Text>
                     </Button>
                 </FixedFooter>

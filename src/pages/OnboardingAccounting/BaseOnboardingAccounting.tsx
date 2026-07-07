@@ -264,10 +264,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     onPress={submitAccounting}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 >
-                    <Button.KeyboardShortcut
-                        pressOnEnter
-                        onPress={submitAccounting}
-                    />
+                    <Button.KeyboardShortcut />
                     <Button.Text>{translate('common.continue')}</Button.Text>
                 </Button>
             </FixedFooter>
