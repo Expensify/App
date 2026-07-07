@@ -25,8 +25,13 @@ const LETTER_AVATAR_INITIALS = 'JD';
 const LETTER_AVATAR_URL = `${CONST.CLOUDFRONT_URL}${CONST.GENERATED_LETTER_AVATAR_PATH}v1/blue100/${LETTER_AVATAR_INITIALS}.png`;
 const SMALL_LETTER_AVATAR_URL = `${CONST.CLOUDFRONT_URL}${CONST.GENERATED_LETTER_AVATAR_PATH}v1/blue100/${LETTER_AVATAR_INITIALS}_128.png`;
 const FALLBACK_ICON_TEST_ID = 'SvgFallbackAvatar Icon';
+const CUSTOM_FALLBACK_ICON_TEST_ID = 'CustomFallback Icon';
 const AVATAR_IMAGE_TEST_ID = 'AvatarImage';
 const WORKSPACE_NAME = "Cathy's Croissants";
+
+function CustomFallbackIcon() {
+    return mockRenderView({testID: 'CustomFallbackIconSvg'});
+}
 
 // Captures the mocked <Image>'s onError callback so tests can simulate a failed image load.
 const mockImageErrorHandlerRef: {current?: () => void} = {current: undefined};
@@ -156,6 +161,45 @@ describe('Avatar', () => {
             expect(getHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeTruthy();
         });
 
+        it('renders the custom fallback Icon when no source is provided', async () => {
+            renderAvatar({
+                type: CONST.ICON_TYPE_AVATAR,
+                avatarID: 1,
+                fallbackIcon: CustomFallbackIcon,
+                fallbackIconTestID: CUSTOM_FALLBACK_ICON_TEST_ID,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(CUSTOM_FALLBACK_ICON_TEST_ID)).toBeTruthy();
+            expect(queryHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeNull();
+        });
+
+        it('switches from the Image branch to the custom fallback Icon when the image fails to load', async () => {
+            renderAvatar({
+                type: CONST.ICON_TYPE_AVATAR,
+                source: UPLOADED_AVATAR_URL,
+                avatarID: 1,
+                fallbackIcon: CustomFallbackIcon,
+                fallbackIconTestID: CUSTOM_FALLBACK_ICON_TEST_ID,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(screen.getByTestId(AVATAR_IMAGE_TEST_ID)).toBeTruthy();
+            expect(queryHiddenTestId(CUSTOM_FALLBACK_ICON_TEST_ID)).toBeNull();
+            expect(queryHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeNull();
+
+            mockImageErrorHandlerRef.current?.();
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(CUSTOM_FALLBACK_ICON_TEST_ID)).toBeTruthy();
+            expect(queryHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeNull();
+        });
+
         it('renders locally drawn initials for a generated letter-avatar URL instead of fetching the image', async () => {
             renderAvatar({
                 type: CONST.ICON_TYPE_AVATAR,
@@ -228,10 +272,33 @@ describe('Avatar', () => {
             expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
             expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
         });
+
+        it('switches from the Image branch to the default workspace Icon when the uploaded logo fails to load', async () => {
+            const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
+
+            renderAvatar({
+                type: CONST.ICON_TYPE_WORKSPACE,
+                source: UPLOADED_AVATAR_URL,
+                name: WORKSPACE_NAME,
+                avatarID: 'policy_123',
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(screen.getByTestId(AVATAR_IMAGE_TEST_ID)).toBeTruthy();
+            expect(queryHiddenTestId(workspaceFallbackTestID)).toBeNull();
+
+            mockImageErrorHandlerRef.current?.();
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
+        });
     });
 
-    describe('compound roots', () => {
-        it('Avatar.User renders the same as the back-compat default for user avatars', async () => {
+    describe('AvatarUser and AvatarWorkspace', () => {
+        it('AvatarUser renders the same as the back-compat default for user avatars', async () => {
             render(
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
                     <AvatarUser
@@ -247,7 +314,7 @@ describe('Avatar', () => {
             expect(screen.getByTestId(AVATAR_IMAGE_TEST_ID)).toBeTruthy();
         });
 
-        it('Avatar.Workspace renders the same as the back-compat default for workspace avatars', async () => {
+        it('AvatarWorkspace renders the same as the back-compat default for workspace avatars', async () => {
             const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
 
             render(
