@@ -109,6 +109,7 @@ function SearchStaticList({
             bankAccountList: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
