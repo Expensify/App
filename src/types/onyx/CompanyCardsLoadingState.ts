@@ -20,4 +20,3 @@ type CompanyCardsLoadingState = {
 };
 
 export default CompanyCardsLoadingState;
-export type {CompanyCardsFeedLoadingState};
