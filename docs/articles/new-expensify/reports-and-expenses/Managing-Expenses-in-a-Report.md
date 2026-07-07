@@ -119,9 +119,10 @@ Comments update live for everyone with access to the report.
 
 On desktop, you can edit certain expense fields directly in the table without opening the expense details:
 
-1. Click a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table.
-2. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
-3. Click outside the cell or press Enter to save your changes.
+1. Hover over a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table.
+2. Click the edit icon (pencil) that appears in the cell. Clicking anywhere else in the row opens the expense instead.
+3. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
+4. Click outside the cell or press Enter to save your changes.
 
 **Note:** Inline editing is only available on desktop (wide layout). On mobile, tap the expense row to open the full details screen.
 

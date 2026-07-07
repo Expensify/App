@@ -50,7 +50,7 @@ Each row represents an expense and includes:
 
 ## Available Actions on the Table
 - **Click an expense** to view or edit it in the right-hand panel  
-- **Edit a cell directly (desktop only):** Click a **date**, **merchant**, **description**, **category**, **tag**, or **amount** cell to edit the value inline without opening the expense details. Click outside the cell or press Enter to save.
+- **Edit a cell directly (desktop only):** Hover over a **date**, **merchant**, **description**, **category**, **tag**, or **amount** cell and click the edit icon (pencil) that appears to edit the value inline without opening the expense details. Clicking anywhere else in the row opens the expense. Click outside the cell or press Enter to save.
 - **Select multiple expenses** using checkboxes, then apply bulk actions such as:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
