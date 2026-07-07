@@ -309,6 +309,14 @@ const SHARED_VALUES = {
 
     /** All states the MFA state machine can be in. See {@link MFA_STATE}. */
     MFA_STATE,
+
+    /** Stable testIDs shared between MFA views and tests. */
+    TEST_ID: {
+        INITIAL_SCREEN: 'MultifactorAuthenticationInitialScreen',
+        MODAL_BACKDROP: 'MultifactorAuthenticationModalBackdrop',
+        OUTCOME_SCREEN: 'MultifactorAuthenticationOutcomeScreen',
+        OUTCOME_CONFIRM_BUTTON: 'MultifactorAuthenticationOutcomeConfirmButton',
+    },
 } as const;
 
 export type {ReasonValue};

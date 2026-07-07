@@ -34,16 +34,10 @@ jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHis
 // The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
 jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
 
-const INITIAL_SCREEN_TEST_ID = 'MultifactorAuthenticationInitialScreen';
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 // These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while the MFA navigator is mounted.
-const OUTCOME_SCREEN_TEST_ID = 'MultifactorAuthenticationOutcomeScreen';
-const MODAL_BACKDROP_TEST_ID = 'MultifactorAuthenticationModalBackdrop';
-
-// This stable testID keeps the test independent of translated button text.
-const CONFIRM_BUTTON_TEST_ID = 'MultifactorAuthenticationOutcomeConfirmButton';
-
-const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+const TEST_ID = CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID;
 
 type MfaEventType = MfaEvent['type'];
 
@@ -66,13 +60,13 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             });
             await waitForBatchedUpdatesWithAct();
             // The test renderer does not calculate layout, so dispatch the event through the rendered View to exercise its onLayout wiring.
-            fireEvent(screen.getByTestId(INITIAL_SCREEN_TEST_ID), 'layout', {
+            fireEvent(screen.getByTestId(TEST_ID.INITIAL_SCREEN), 'layout', {
                 nativeEvent: {layout: {width: 1, height: 1, x: 0, y: 0}},
             });
             await waitForBatchedUpdatesWithAct();
         },
         CLOSE_MODAL: async () => {
-            fireEvent.press(screen.getByTestId(CONFIRM_BUTTON_TEST_ID));
+            fireEvent.press(screen.getByTestId(TEST_ID.OUTCOME_CONFIRM_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
         MODAL_CLOSED: async () => {
@@ -87,18 +81,18 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
 const testConfig = {
     states: {
         [MFA_STATE.CLOSED]: () => {
-            expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(0);
-            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(0);
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(0);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
-            expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(1);
-            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.authenticationSuccessful'))).toBeOnTheScreen();
             // Every outcome screen renders the same `OutcomeScreenBase`, so the route name identifies which one is on top.
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
         },
         [MFA_STATE.CLOSING]: () => {
-            expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             // The outcome stays mounted during the production close animation, while the test renderer processes
             // goBack() synchronously. Its presence is therefore not part of the closing-state contract.
         },

@@ -47,7 +47,7 @@ const loadPromptPage = () => require<ReactComponentModule>('../../../../pages/Mu
 function TransparentScreen() {
     return (
         <View
-            testID="MultifactorAuthenticationInitialScreen"
+            testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.INITIAL_SCREEN}
             style={StyleSheet.absoluteFill}
             onLayout={handleInitialScreenLayout}
         />
@@ -149,7 +149,7 @@ function MultifactorAuthenticationModalNavigator() {
                 <Animated.View style={[StyleSheet.absoluteFill, styles.overlayBackground, backdropAnimatedStyle]}>
                     <PressableWithoutFeedback
                         sentryLabel={CONST.SENTRY_LABEL.MFA_OVERLAY.BACKDROP}
-                        testID="MultifactorAuthenticationModalBackdrop"
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.MODAL_BACKDROP}
                         style={StyleSheet.absoluteFill}
                         onPress={requestCancel}
                         accessibilityLabel={translate('common.close')}

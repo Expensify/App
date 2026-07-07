@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Parser from '@libs/Parser';
+import CONST from '@src/CONST';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -78,7 +79,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
     );
 
     return (
-        <ScreenWrapper testID="MultifactorAuthenticationOutcomeScreen">
+        <ScreenWrapper testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.OUTCOME_SCREEN}>
             <HeaderWithBackButton
                 title={headerTitle}
                 onBackButtonPress={onClose}
@@ -104,7 +105,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                         style={styles.flex1}
                         onPress={onClose}
                         text={translate('common.buttonConfirm')}
-                        testID="MultifactorAuthenticationOutcomeConfirmButton"
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.OUTCOME_CONFIRM_BUTTON}
                     />
                 </View>
             </View>
