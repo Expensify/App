@@ -994,7 +994,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {
                 title: 'Carte Expensify',
-                subtitle: 'Ajoutez vos informations pour voir et commencer à utiliser votre Carte Expensify',
+                subtitle: 'Ajoutez vos informations pour voir et commencer à utiliser votre Carte Expensify.',
                 cta: 'Ajouter des détails',
             },
             enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
