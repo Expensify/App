@@ -53,7 +53,7 @@ function useReportPreviewActionDecision({
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
-    const settleableTransactions = transactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const filteredTransactions = transactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
@@ -66,7 +66,7 @@ function useReportPreviewActionDecision({
         bankAccountList,
         currentUserDetails.login ?? '',
         currentUserDetails.accountID,
-        settleableTransactions,
+        filteredTransactions,
         false,
         undefined,
         invoiceReceiverPolicy,
@@ -80,7 +80,7 @@ function useReportPreviewActionDecision({
             bankAccountList,
             currentUserDetails.login ?? '',
             currentUserDetails.accountID,
-            settleableTransactions,
+            filteredTransactions,
             true,
             undefined,
             invoiceReceiverPolicy,
@@ -93,7 +93,7 @@ function useReportPreviewActionDecision({
         currentUserLogin: currentUserDetails.login ?? '',
         report: iouReport,
         policy,
-        transactions: settleableTransactions,
+        transactions: filteredTransactions,
         bankAccountList,
         invoiceReceiverPolicy,
         isPaidAnimationRunning,

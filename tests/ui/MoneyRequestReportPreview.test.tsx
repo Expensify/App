@@ -99,7 +99,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
     return {
         __esModule: true,
         default: function MockReportPreviewActionButton() {
-            // ReportPreviewActionButton is now a propless context consumer; capture onHoldMenuOpen from the context instead of props.
+            // ReportPreviewActionButton now reads from context instead of props; capture onHoldMenuOpen from the context.
             const {onHoldMenuOpen} = useReportPreviewActions();
             mockOnHoldMenuOpenHolder.current = onHoldMenuOpen;
             return actualReact.createElement(actualModule.default);

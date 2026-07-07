@@ -35,7 +35,7 @@ const chatReport = {
     type: CONST.REPORT.TYPE.CHAT,
 } as Report;
 
-// PayActionButton is a propless context consumer; these mock-prefixed objects back the mocked context slice hooks.
+// PayActionButton reads from context instead of props; these mock-prefixed objects back the mocked context slice hooks.
 const mockReportPreviewData = {iouReportID: TEST_IOU_REPORT_ID, chatReportID: TEST_CHAT_REPORT_ID, chatReport};
 const mockReportPreviewAnimationState = {isPaidAnimationRunning: false, isApprovedAnimationRunning: false, isSubmittingAnimationRunning: false};
 const mockReportPreviewActions = {
