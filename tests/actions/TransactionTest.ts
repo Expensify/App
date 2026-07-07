@@ -375,7 +375,7 @@ describe('actions/Transaction', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
 
             // And a 10-mile distance expense in USD whose current rate does not exist on that workspace,
-            // which forces changeTransactionsReport to reselect the workspace's default rate and recalc.
+            // which forces changeTransactionsReport to reselect the workspace's default rate and calculation.
             const transactionID = 'txn-distance-move';
             const transaction: Transaction = {
                 transactionID,
