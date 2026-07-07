@@ -8795,7 +8795,7 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
-                title: 'Concierge AI expands to automation, insights & agents',
+                title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
                 publishedDate: '2026-07-01',
