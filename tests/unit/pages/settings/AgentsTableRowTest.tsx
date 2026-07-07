@@ -103,19 +103,33 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return MockOfflineWithFeedback;
 });
 
-jest.mock('@components/Button', () => {
+jest.mock('@components/ButtonComposed', () => {
     const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockButton({text, onPress, accessibilityLabel}: {text?: string; onPress: () => void; accessibilityLabel?: string}) {
+
+    function MockButtonIcon() {
+        return null;
+    }
+
+    function MockButtonText({children}: {children: React.ReactNode}) {
+        return <Text>{children}</Text>;
+    }
+
+    function MockButton({children, onPress, accessibilityLabel, isDisabled}: {children: React.ReactNode; onPress: () => void; accessibilityLabel?: string; isDisabled?: boolean}) {
         return (
             <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityLabel={accessibilityLabel ?? text}
+                accessibilityLabel={accessibilityLabel}
                 onPress={onPress}
+                disabled={isDisabled}
             >
-                {!!text && <Text>{text}</Text>}
+                {children}
             </TouchableOpacity>
         );
     }
+
+    MockButton.Icon = MockButtonIcon;
+    MockButton.Text = MockButtonText;
+
     return MockButton;
 });
 
