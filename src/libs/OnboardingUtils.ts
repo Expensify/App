@@ -1,7 +1,14 @@
 import CONST from '@src/CONST';
-import type {JoinablePolicies, OnboardingPurpose} from '@src/types/onyx';
+import type {OnboardingInvite} from '@src/CONST';
+import type {IntroSelected, JoinablePolicies, OnboardingPurpose} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+type SupportedInviteOnboardingChoice = typeof CONST.ONBOARDING_CHOICES.ADMIN | typeof CONST.ONBOARDING_CHOICES.SUBMIT | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+type SupportedPendingInviteIntroSelected = IntroSelected & {
+    choice: SupportedInviteOnboardingChoice;
+    inviteType: Exclude<OnboardingInvite, typeof CONST.ONBOARDING_INVITE_TYPES.IOU | typeof CONST.ONBOARDING_INVITE_TYPES.INVOICE>;
+};
 
 /**
  * Returns true when the onboarding choice is one of the "track" variants
@@ -24,5 +31,22 @@ function getVisibleJoinablePoliciesCount(joinablePolicies: OnyxEntry<JoinablePol
     return Object.values(joinablePolicies ?? {}).filter((policy) => policy.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026).length;
 }
 
-export {getVisibleJoinablePoliciesCount};
+function isSupportedInviteOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>): choice is SupportedInviteOnboardingChoice {
+    return choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+}
+
+function isSupportedPendingInviteOnboarding(introSelected: OnyxEntry<IntroSelected>): introSelected is SupportedPendingInviteIntroSelected {
+    if (!introSelected) {
+        return false;
+    }
+
+    if (!introSelected.inviteType || introSelected.isInviteOnboardingComplete) {
+        return false;
+    }
+
+    const isInviteIOUorInvoice = introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+
+    return isSupportedInviteOnboardingChoice(introSelected.choice) && !isInviteIOUorInvoice;
+}
 export default isTrackOnboardingChoice;
+export {getVisibleJoinablePoliciesCount, isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding};
