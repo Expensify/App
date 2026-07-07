@@ -1,3 +1,30 @@
+import Checkbox from '@components/Checkbox';
+import {useSession} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import StatusBadge from '@components/StatusBadge';
+import TransactionItemRow from '@components/TransactionItemRow';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import Navigation from '@libs/Navigation/Navigation';
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import type {SearchResults} from '@src/types/onyx';
+
+import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
+
 /**
  * Lightweight, hook-minimal static version of the search results list used
  * during the submit-and-navigate flow for fast perceived performance.
@@ -15,32 +42,12 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
-import Checkbox from '@components/Checkbox';
-import {useSession} from '@components/OnyxListItemProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import StatusBadge from '@components/StatusBadge';
-import TransactionItemRow from '@components/TransactionItemRow';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
-import Navigation from '@libs/Navigation/Navigation';
-import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {SearchResults} from '@src/types/onyx';
+
 import type {TransactionListItemType} from './SearchList/ListItem/types';
+import type {SearchColumnType, SearchQueryJSON} from './types';
+
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
 import SearchTableHeader from './SearchTableHeader';
-import type {SearchColumnType, SearchQueryJSON} from './types';
 
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
@@ -178,6 +185,7 @@ function SearchStaticList({
         const statusNum = item.report?.statusNum;
         const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
         const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
+        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
 
         return (
             <PressableWithoutFeedback
@@ -219,6 +227,7 @@ function SearchStaticList({
                                     text={statusText}
                                     backgroundColor={reportStatusColorStyle.backgroundColor}
                                     textColor={reportStatusColorStyle.textColor}
+                                    tooltipText={statusTooltipText}
                                 />
                             )}
                         </View>

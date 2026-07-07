@@ -1,6 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -9,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -20,22 +17,31 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
@@ -46,10 +52,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
@@ -65,6 +72,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_DETAILS);
@@ -80,51 +88,66 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     }, []);
 
     const completeOnboarding = useCallback(
-        (firstName: string, lastName: string) => {
-            if (!onboardingPurposeSelected) {
+        async (firstName: string, lastName: string) => {
+            if (!onboardingPurposeSelected || isLoading) {
                 return;
             }
-            completeOnboardingReport({
-                engagementChoice: onboardingPurposeSelected,
-                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-                firstName,
-                lastName,
-                adminsChatReportID: onboardingAdminsChatReportID,
-                onboardingPolicyID,
-                introSelected,
-                isSelfTourViewed,
-            });
 
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
+            setIsLoading(true);
+            try {
+                await completeOnboardingReport({
+                    engagementChoice: onboardingPurposeSelected,
+                    onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+                    firstName,
+                    lastName,
+                    adminsChatReportID: onboardingAdminsChatReportID,
+                    onboardingPolicyID,
+                    introSelected,
+                    isSelfTourViewed,
+                    conciergeChat,
+                });
 
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                conciergeChatReportID,
-                archivedReportsIDSet,
-                onboardingPolicyID,
-                mergedAccountConciergeReportID,
-                false,
-            );
+                setOnboardingAdminsChatReportID();
+                setOnboardingPolicyID();
+
+                navigateAfterOnboardingWithMicrotaskQueue(
+                    isSmallScreenWidth,
+                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                    conciergeChatReportID,
+                    reportNameValuePairs,
+                    onboardingPolicyID,
+                    mergedAccountConciergeReportID,
+                    false,
+                );
+                setIsLoading(false);
+            } catch (error) {
+                Log.warn('[BaseOnboardingPersonalDetails] Error completing onboarding', {error});
+                setIsLoading(false);
+            }
         },
         [
+            isLoading,
             onboardingPurposeSelected,
             onboardingAdminsChatReportID,
             onboardingMessages,
             onboardingPolicyID,
             isBetaEnabled,
-            archivedReportsIDSet,
+            reportNameValuePairs,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
             conciergeChatReportID,
             introSelected,
             isSelfTourViewed,
+            conciergeChat,
         ],
     );
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+            if (isLoading) {
+                return;
+            }
+
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
@@ -137,8 +160,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     return;
                 }
+                setIsLoading(true);
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                autoCreateSubmitWorkspace(firstName, lastName);
+                autoCreateSubmitWorkspace(firstName, lastName).finally(() => {
+                    setIsLoading(false);
+                });
                 return;
             }
 
@@ -149,14 +175,18 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             }
 
             if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
+                setIsLoading(true);
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
+                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected).finally(() => {
+                    setIsLoading(false);
+                });
                 return;
             }
 
             completeOnboarding(firstName, lastName);
         },
         [
+            isLoading,
             formatPhoneNumber,
             session?.accountID,
             session?.email,
@@ -243,6 +273,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 validate={validate}
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.continue')}
+                isLoading={isLoading}
                 enabledWhenOffline
                 submitFlexEnabled
                 shouldValidateOnBlur={false}

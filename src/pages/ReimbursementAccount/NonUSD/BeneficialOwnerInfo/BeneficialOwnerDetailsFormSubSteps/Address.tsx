@@ -1,13 +1,16 @@
-import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
 
 type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -73,7 +76,7 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={formTitle}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}

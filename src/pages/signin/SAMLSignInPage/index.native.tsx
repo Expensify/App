@@ -1,21 +1,27 @@
-import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
+
+import {openAuthSessionAsync} from 'expo-web-browser';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
