@@ -24,6 +24,10 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: mockTranslate})
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({})));
 
+const mockChatWithAgent = jest.fn();
+
+jest.mock('@hooks/useChatWithAgent', () => jest.fn(() => mockChatWithAgent));
+
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({textLight: '#fff'})));
 
 jest.mock('@hooks/useThemeStyles', () =>
@@ -235,7 +239,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit = undefined;
         });
 
-        it('goes back when policyID is absent in route params', () => {
+        it('opens the DM with the new agent when policyID is absent in route params', () => {
             render(
                 <AddAgentPage
                     route={makeRoute({})}
@@ -245,11 +249,12 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).not.toHaveBeenCalled();
+            expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
+            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456);
+            expect(mockGoBack).not.toHaveBeenCalled();
         });
 
-        it('goes back when policyID is present without navigating to a workflow editor', () => {
+        it('opens the DM with the new agent when policyID is present', () => {
             render(
                 <AddAgentPage
                     route={makeRoute({policyID: 'POL_42'})}
@@ -259,8 +264,9 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).not.toHaveBeenCalled();
+            expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
+            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456);
+            expect(mockGoBack).not.toHaveBeenCalled();
         });
     });
 });
