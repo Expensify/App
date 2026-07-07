@@ -16,6 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 
@@ -26,13 +28,14 @@ import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue,
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
+type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS>;
 
 function DynamicNewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK);
