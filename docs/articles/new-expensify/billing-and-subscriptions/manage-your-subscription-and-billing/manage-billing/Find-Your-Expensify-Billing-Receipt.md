@@ -30,4 +30,4 @@ To confirm who the Workspace owner is, see [Learn About Billing Permissions](/ar
 ## Related articles
 
  - [Review Your Expensify Billing Receipt](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Review-Your-Expensify-Billing-Receipt)
- - [Take Over Billing Ownership](//articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership)
+ - [Transfer Workspace Ownership](//articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership)
