@@ -1,23 +1,30 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+
 import Navigation from '@navigation/Navigation';
+
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {openUnreportedExpense} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 const minModalHeight = 380;
 

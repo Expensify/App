@@ -1,6 +1,3 @@
-// This file contains all the SVG imports for illustrations used in the app
-// Company Cards
-import type {SvgProps} from 'react-native-svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
@@ -73,6 +70,7 @@ import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import SortingMachine from '@assets/images/product-illustrations/illustration-sorting-machine.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
@@ -80,6 +78,7 @@ import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-o
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
+import ReceiptWranglerSpaceCowgirl from '@assets/images/product-illustrations/receipt-wrangler-space-cowgirl.svg';
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -144,6 +143,7 @@ import F1Flags from '@assets/images/simple-illustrations/simple-illustration__f1
 import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustration__fishbowl--blue.svg';
+import Flag from '@assets/images/simple-illustrations/simple-illustration__flag.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
@@ -168,6 +168,7 @@ import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illus
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import MonitorSyncNo from '@assets/images/simple-illustrations/simple-illustration__monitorsync-no.svg';
 import NewUser from '@assets/images/simple-illustrations/simple-illustration__newuser.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
@@ -216,6 +217,10 @@ import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration_
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+
+// This file contains all the SVG imports for illustrations used in the app
+// Company Cards
+import type {SvgProps} from 'react-native-svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
@@ -287,6 +292,7 @@ const Illustrations = {
     MushroomTopHat,
     PaymentHands,
     PlanetWithMobileApp,
+    ReceiptWranglerSpaceCowgirl,
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
@@ -296,6 +302,7 @@ const Illustrations = {
     SewerDino,
     QuestionMark,
     SmartScan,
+    SortingMachine,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
@@ -337,6 +344,7 @@ const Illustrations = {
     MoneyReceipts,
     MoneyWings,
     MoneyIntoWallet,
+    MonitorSyncNo,
     PerDiem,
     PiggyBank,
     RealEstate,
@@ -422,6 +430,7 @@ const Illustrations = {
     ConciergeBot,
     CowboyHat,
     F1Flags,
+    Flag,
     FishbowlBlue,
     SmallRocket,
     Sunglasses,
