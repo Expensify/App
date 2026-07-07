@@ -83,3 +83,9 @@ You can take over an annual subscription only if you're a Workspace Admin on eve
 
 - If the subscription includes only the Workspace you're transferring, you'll see the **Take over annual subscription** message. Continue to transfer the subscription to your account.
 - If the subscription includes multiple Workspaces, you'll see the **Duplicate subscription alert** message. Ask the current Workspace owner to add you as a Workspace Admin to every Workspace included in the subscription, then transfer ownership of each Workspace.
+
+## Why can't I see billing history from the previous Workspace owner?
+
+Billing history only includes subscription charges made while you're the Workspace owner. Charges paid by the previous Workspace owner won't appear in your billing history.
+
+If you need to review previous subscription charges, ask the previous Workspace owner to add those billing charges to an expense report. Once they're included in an expense report that you can access, you'll be able to view them as expenses.
