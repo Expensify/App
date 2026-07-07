@@ -1191,6 +1191,7 @@ function updateExpensifyCardLimitType(
     ];
 
     const parameters: UpdateExpensifyCardLimitTypeParams = {
+        workspaceAccountID,
         cardID,
         limitType: newLimitType,
         validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
