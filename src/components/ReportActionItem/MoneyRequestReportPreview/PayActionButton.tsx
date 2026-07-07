@@ -38,7 +38,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 type PayActionButtonProps = {
@@ -107,6 +107,7 @@ function PayActionButton({
     );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -167,6 +168,7 @@ function PayActionButton({
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                isTrackIntentUser,
             });
         }
     };
@@ -201,6 +203,7 @@ function PayActionButton({
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
+                    isTrackIntentUser,
                 });
             } else {
                 payMoneyRequest({
@@ -222,6 +225,7 @@ function PayActionButton({
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
+                    isTrackIntentUser,
                 });
             }
         }

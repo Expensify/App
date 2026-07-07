@@ -118,6 +118,7 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 submitterLogin,
+                isTrackIntentUser,
             });
         });
     };

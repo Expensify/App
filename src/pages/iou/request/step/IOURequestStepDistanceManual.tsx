@@ -234,6 +234,7 @@ function IOURequestStepDistanceManual({
                     parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
             }
             Navigation.goBack(backTo);

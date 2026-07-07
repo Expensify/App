@@ -704,6 +704,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     parentReportNextStep: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();

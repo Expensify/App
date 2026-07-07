@@ -517,7 +517,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         isASAPSubmitBetaEnabled,
         policy,
-        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,

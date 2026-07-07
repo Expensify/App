@@ -57,6 +57,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -161,6 +162,7 @@ function IOURequestStepDistance({
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
@@ -499,6 +501,7 @@ function IOURequestStepDistance({
                     parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
+                    isTrackIntentUser,
                 });
             }
             transactionWasSaved.current = true;
@@ -543,6 +546,7 @@ function IOURequestStepDistance({
         parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
+        isTrackIntentUser,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -610,6 +614,7 @@ function IOURequestStepDistance({
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
+            isTrackIntentUser,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -646,6 +651,7 @@ function IOURequestStepDistance({
         hasRouteError,
         delegateAccountID,
         distanceOriginalPolicy,
+        isTrackIntentUser,
     ]);
 
     const renderItem = useCallback(

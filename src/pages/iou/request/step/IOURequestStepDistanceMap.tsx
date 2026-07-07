@@ -47,6 +47,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -99,6 +100,7 @@ function IOURequestStepDistanceMap({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const transactionWaypoints = currentTransaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
@@ -366,6 +368,7 @@ function IOURequestStepDistanceMap({
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
             }
             transactionWasSaved.current = true;
@@ -403,6 +406,7 @@ function IOURequestStepDistanceMap({
         recentWaypoints,
         distanceOriginalPolicy,
         delegateAccountID,
+        isTrackIntentUser,
     ]);
 
     const renderItem = useCallback(

@@ -199,7 +199,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL]);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -299,6 +299,7 @@ describe('actions/Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -514,6 +515,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -693,6 +695,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -886,6 +889,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1102,6 +1106,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();

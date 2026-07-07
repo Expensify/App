@@ -53,6 +53,7 @@ type SelectPaymentTypeParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type BusinessBankAccountOption = {
@@ -226,6 +227,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        isTrackIntentUser,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -260,6 +262,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerBillingGracePeriodEnd,
                 full: true,
                 delegateEmail,
+                isTrackIntentUser,
             });
         }
         return;

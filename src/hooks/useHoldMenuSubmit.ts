@@ -14,7 +14,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -50,6 +50,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
@@ -90,6 +91,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                isTrackIntentUser,
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
@@ -112,6 +114,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 methodID,
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
         }
         onClose();

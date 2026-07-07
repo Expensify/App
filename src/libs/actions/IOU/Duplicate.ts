@@ -925,7 +925,7 @@ type DuplicateReportParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function duplicateReport({
@@ -956,7 +956,17 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+        ownerPersonalDetails,
+        false,
+        isASAPSubmitBetaEnabled,
+        targetPolicy,
+        betas,
+        isTrackIntentUser,
+        false,
+        undefined,
+        newReportName,
+    );
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 

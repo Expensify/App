@@ -26,7 +26,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
@@ -107,6 +107,7 @@ function useSelectionModePayment({
     const email = session?.email;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -188,6 +189,7 @@ function useSelectionModePayment({
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                isTrackIntentUser,
             });
         } else {
             payMoneyRequest({
@@ -209,6 +211,7 @@ function useSelectionModePayment({
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onPaid,
                 chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -302,6 +305,7 @@ function useSelectionModePayment({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             expenseReportPolicy: policy,
+            isTrackIntentUser,
         });
     };
 

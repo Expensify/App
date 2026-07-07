@@ -768,6 +768,7 @@ describe('actions/IOU', () => {
                 transactionReport: {reportID: 'tx-report-1', parentReportID: 'parent-report-1'},
                 expenseReport: {reportID: EXPENSE_REPORT_ID, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'},
                 isOffline: false,
+                isTrackIntentUser: false,
                 ...overrides,
             };
         }

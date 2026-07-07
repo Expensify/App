@@ -102,6 +102,7 @@ type ApproveMoneyRequestFunctionParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -121,6 +122,7 @@ type SubmitReportFunctionParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
@@ -443,6 +445,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         expenseReportPolicy,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
+        isTrackIntentUser,
     } = params;
     if (!expenseReport) {
         return;
@@ -504,6 +507,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              isTrackIntentUser,
           });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
@@ -853,7 +857,6 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
-        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1042,7 +1045,6 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1203,6 +1205,7 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -1232,6 +1235,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        isTrackIntentUser,
     });
 
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -1377,6 +1381,7 @@ function submitReport({
     submitterLogin,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
+    isTrackIntentUser,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1436,6 +1441,7 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
               bypassNextApproverID: optimisticNextStepApproverID,
+              isTrackIntentUser,
           });
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1669,6 +1675,7 @@ function assignReportToMe(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
@@ -1696,6 +1703,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        isTrackIntentUser,
     });
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
@@ -1784,6 +1792,7 @@ function addReportApprover(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
 
@@ -1811,6 +1820,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        isTrackIntentUser,
     });
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         optimisticData: [

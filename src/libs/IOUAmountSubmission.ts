@@ -85,7 +85,7 @@ type SubmitAmountArgs = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
@@ -506,6 +506,7 @@ function submitAmount({
         isASAPSubmitBetaEnabled,
         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         delegateAccountID,
+        isTrackIntentUser,
     });
     navigateBack();
 }

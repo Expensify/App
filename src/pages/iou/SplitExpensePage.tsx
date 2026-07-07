@@ -82,6 +82,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ValueOf} from 'type-fest';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -288,6 +289,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
@@ -381,6 +383,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
+            isTrackIntentUser,
         });
     };
 

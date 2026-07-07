@@ -287,7 +287,6 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
-            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -524,7 +523,6 @@ function unholdRequest(
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
-            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,

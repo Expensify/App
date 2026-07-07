@@ -2261,6 +2261,7 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
+            isTrackIntentUser: false,
             ...overrides,
         });
 

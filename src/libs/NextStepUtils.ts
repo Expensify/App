@@ -59,7 +59,6 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
-    isTrackIntentUser?: boolean;
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
@@ -92,7 +91,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntentUser: boolean | undefined}): ReportNextStep | null {
     const {
         report,
         policy,
@@ -501,7 +500,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isReopen,
         isRejectedReport,
         bypassNextApproverID,
-        isTrackIntentUser,
     } = params;
     if (!isExpenseReport(report)) {
         return null;
@@ -572,7 +570,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
             {
-                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackIntentUser ?? isTrackOnboardingChoice(introSelected?.choice), report, policy});
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
 
                 if (isRejectedReport) {
                     optimisticNextStep = {

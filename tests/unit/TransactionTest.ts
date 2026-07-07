@@ -171,6 +171,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -210,6 +211,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -263,6 +265,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -318,6 +321,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -361,6 +365,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -416,6 +421,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -468,6 +474,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -512,6 +519,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -562,6 +570,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -612,6 +621,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -669,6 +679,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -725,6 +736,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -776,6 +788,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -829,6 +842,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -895,6 +909,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -990,6 +1005,7 @@ describe('Transaction', () => {
                     policyTagList: undefined,
                     transactionViolations: {},
                     allReports: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -1057,6 +1073,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1113,6 +1130,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1170,6 +1188,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1211,6 +1230,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1247,6 +1267,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1296,6 +1317,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1357,6 +1379,7 @@ describe('Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1404,6 +1427,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1467,6 +1491,7 @@ describe('Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1515,6 +1540,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1592,6 +1618,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1678,6 +1705,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1755,6 +1783,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1833,6 +1862,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -2260,6 +2290,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -2325,6 +2356,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -2403,6 +2435,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions: {[transactionKey]: staleTransaction},
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -2441,6 +2474,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -2496,6 +2530,7 @@ describe('Transaction', () => {
                         isASAPSubmitBetaEnabled: false,
                         allTransactions,
                         currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                        isTrackIntentUser: false,
                     });
                     await waitForBatchedUpdates();
                 });
