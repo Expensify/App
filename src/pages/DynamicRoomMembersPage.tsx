@@ -35,7 +35,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -312,7 +312,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled,
                 isDisabledCheckbox,
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
@@ -342,6 +342,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         selectedMembers,
         session?.accountID,
         icons.FallbackAvatar,
+        translate,
     ]);
 
     const dismissError = useCallback(
@@ -373,7 +374,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
                         customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         isSplitButton={false}

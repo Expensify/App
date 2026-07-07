@@ -1,6 +1,9 @@
 pre-commit:
   commands:
     oxfmt:
-      glob: '*.{js,mjs,cjs,ts,tsx,mts,cts}'
-      run: npx oxfmt --write {staged_files}
+      glob:
+        - '*.{j,mj,cj}s'
+        - '*.{ts,tsx,mts,cts}'
+        - '*.{yml,yaml}'
+      run: npx oxfmt --write --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true

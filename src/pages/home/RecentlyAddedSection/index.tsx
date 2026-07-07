@@ -1,6 +1,4 @@
 import Icon from '@components/Icon';
-import PopoverMenu from '@components/PopoverMenu';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
@@ -10,7 +8,6 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,7 +20,8 @@ import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
-import type {AnchorPosition} from '@styles/index';
+import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -31,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
@@ -41,15 +39,6 @@ import RecentlyAddedRow, {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE} from './Rec
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 const HEADER_RECEIPT_ICON_SIZE = 16;
-
-// The overflow button is sized to its icon so it doesn't inflate the centered widget header row;
-// hitSlop keeps a comfortable tap target without adding visual height.
-const OVERFLOW_MENU_HIT_SLOP = {top: 10, bottom: 10, left: 10, right: 10};
-
-const OVERFLOW_MENU_ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-} as const;
 
 function RecentlyAddedSection() {
     const {transactions} = useRecentlyAddedData();
@@ -61,16 +50,12 @@ function RecentlyAddedSection() {
     // The hovered receipt preview is a portal on document.body, so it isn't dismissed by navigation alone.
     // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
     const isFocused = useIsFocused();
-    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Receipt']);
-    const {calculatePopoverPosition} = usePopoverPosition();
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {markReportIDAsExpense} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isOverflowMenuVisible, setIsOverflowMenuVisible] = useState(false);
-    const [overflowMenuPosition, setOverflowMenuPosition] = useState<AnchorPosition>();
-    const overflowMenuButtonRef = useRef<View>(null);
 
     const hasExpenses = transactions.length > 0;
 
@@ -108,13 +93,6 @@ function RecentlyAddedSection() {
         });
     };
 
-    const openOverflowMenu = () => {
-        calculatePopoverPosition(overflowMenuButtonRef, OVERFLOW_MENU_ANCHOR_ALIGNMENT).then((position) => {
-            setOverflowMenuPosition(position);
-            setIsOverflowMenuVisible(true);
-        });
-    };
-
     const navigateToExpensesPage = () => {
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
@@ -130,38 +108,18 @@ function RecentlyAddedSection() {
     }
 
     const overflowMenu = hasExpenses ? (
-        <>
-            <PressableWithoutFeedback
-                ref={overflowMenuButtonRef}
-                testID="recentlyAddedOverflowMenu"
-                accessibilityLabel={translate('common.more')}
-                sentryLabel="RecentlyAddedOverflowMenu"
-                onPress={openOverflowMenu}
-                hitSlop={OVERFLOW_MENU_HIT_SLOP}
-                style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.threeDotsMenuIconWidth]}
-            >
-                <Icon
-                    src={icons.ThreeDots}
-                    fill={theme.icon}
-                />
-            </PressableWithoutFeedback>
-            <PopoverMenu
-                isVisible={isOverflowMenuVisible}
-                anchorRef={overflowMenuButtonRef}
-                anchorPosition={overflowMenuPosition ?? {horizontal: 0, vertical: 0}}
-                anchorAlignment={OVERFLOW_MENU_ANCHOR_ALIGNMENT}
-                onClose={() => setIsOverflowMenuVisible(false)}
-                onItemSelected={() => setIsOverflowMenuVisible(false)}
-                menuItems={[
-                    {
-                        text: translate('homePage.recentlyAddedSection.viewAll'),
-                        icon: icons.Receipt,
-                        onSelected: navigateToExpensesPage,
-                        shouldCallAfterModalHide: true,
-                    },
-                ]}
-            />
-        </>
+        <WidgetHeaderMenu
+            testID="recentlyAddedOverflowMenu"
+            sentryLabel="RecentlyAddedOverflowMenu"
+            menuItems={[
+                {
+                    text: translate('homePage.recentlyAddedSection.viewAll'),
+                    icon: icons.Receipt,
+                    onSelected: navigateToExpensesPage,
+                    shouldCallAfterModalHide: true,
+                },
+            ]}
+        />
     ) : undefined;
 
     return (

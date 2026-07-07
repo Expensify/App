@@ -164,6 +164,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
+type SearchPaidStatus = Array<ValueOf<typeof CONST.SEARCH.PAID_STATUS>>;
 type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type SearchCustomColumnIds =
@@ -489,6 +490,7 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
+    SearchPaidStatus,
     UserFriendlyValue,
     SelectedReports,
     SearchTextFilterKeys,

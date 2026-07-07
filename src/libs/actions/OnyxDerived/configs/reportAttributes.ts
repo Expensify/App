@@ -1,3 +1,6 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
@@ -118,6 +121,7 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
+        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -373,6 +377,7 @@ export default createOnyxDerivedValueConfig({
                               reportActions,
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
+                              translate,
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
