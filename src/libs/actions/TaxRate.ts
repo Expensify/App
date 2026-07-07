@@ -609,6 +609,7 @@ function setPolicyTaxCode(
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
+                                previousTaxCode: oldTaxCode,
                                 pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},

@@ -25,6 +25,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
@@ -99,10 +100,11 @@ function Confirmation() {
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
     const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
     const taxData = useMemo(() => {
-        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxCode = resolveCurrentTaxCode(duplicatedTransactionPolicy, reviewDuplicatesTaxCode ?? '');
+        const currentDuplicatedTransactionTaxCode = resolveCurrentTaxCode(duplicatedTransactionPolicy, duplicatedTransactionTaxCode ?? '');
         const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
         // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
-        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+        if (!taxRate || (taxCode && currentDuplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
             return;
         }
 
@@ -111,7 +113,7 @@ function Confirmation() {
             taxValue: taxRate?.value,
             taxCode,
         };
-    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
+    }, [reviewDuplicatesTaxCode, duplicatedTransactionPolicy, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails?.login;
