@@ -660,6 +660,7 @@ const SCREENS = {
             RILLET_SETUP: 'Policy_Accounting_Rillet_Setup',
             RILLET_EXISTING_CONNECTIONS: 'Policy_Accounting_Rillet_Existing_Connections',
             RILLET_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Rillet_Subsidiary_Selector',
+            RILLET_IMPORT: 'Policy_Accounting_Rillet_Import',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
