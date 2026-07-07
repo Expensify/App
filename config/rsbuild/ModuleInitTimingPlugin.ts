@@ -5,7 +5,7 @@ import path from 'path';
 
 // @libs alias is not available in Node.js/Storybook context — use relative path instead
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-// eslint-disable-next-line import/extensions, @dword-design/import-alias/prefer-alias
+// eslint-disable-next-line @dword-design/import-alias/prefer-alias
 import dedent from '../../src/libs/StringUtils/dedent.ts';
 
 const PLUGIN_NAME = 'ModuleInitTimingPlugin';
