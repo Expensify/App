@@ -1,50 +1,65 @@
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import splitPathAndQuery from '@libs/Navigation/helpers/dynamicRoutesUtils/splitPathAndQuery';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES, VERIFY_ACCOUNT} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import {useEffect, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
 /**
- * Sends an unvalidated user to the verify-account (magic code) screen and re-runs the interrupted
- * action once they successfully validate their account.
+ * Returns a trigger that sends an unvalidated user to the verify-account (magic code) screen and,
+ * once they validate there, calls `onResume` with the payload the trigger stored.
  */
-function useVerifyAccountAndResume() {
+function useVerifyAccountAndResume<TPayload>(onResume: (payload: TPayload) => void) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
-    const [pendingAction, setPendingAction] = useState<{resume: () => void} | null>(null);
+    const [pendingAction, setPendingAction] = useState<{payload: TPayload; verifyAccountPath: string} | null>(null);
+
+    // Effect event, so the resume runs the latest `onResume` (a press-time closure would see pre-validation state).
+    const resumeAction = useEffectEvent(onResume);
 
     useEffect(() => {
-        if (!isUserValidated || !pendingAction) {
+        if (!pendingAction) {
             return;
         }
 
-        const shouldResume = Navigation.getActiveRouteWithoutParams().includes(VERIFY_ACCOUNT);
+        const isOnVerifyAccountScreen = () => Navigation.getActiveRouteWithoutParams() === pendingAction.verifyAccountPath;
 
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                setPendingAction(null);
-                if (!shouldResume) {
+        // Leaving the verify-account screen without validating abandons the action — it must never run without user intent.
+        if (!isUserValidated) {
+            return navigationRef.addListener('state', () => {
+                if (isOnVerifyAccountScreen()) {
                     return;
                 }
-                pendingAction.resume();
-            },
-            waitForUpcomingTransition: true,
+                setPendingAction(null);
+            });
+        }
+
+        // Resume only if validated on the exact screen this hook opened, not another flow's verify-account screen.
+        if (!isOnVerifyAccountScreen()) {
+            return;
+        }
+
+        const handle = Navigation.runAfterUpcomingTransition(() => {
+            setPendingAction(null);
+            resumeAction(pendingAction.payload);
         });
 
         return () => handle.cancel();
     }, [isUserValidated, pendingAction]);
 
-    const verifyAccountAndResume = (resume?: () => void) => {
-        setPendingAction(resume ? {resume} : null);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+    const verifyAccountAndResume = (payload: TPayload) => {
+        const verifyAccountRoute = createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
+        const [verifyAccountPath] = splitPathAndQuery(verifyAccountRoute);
+        setPendingAction(verifyAccountPath ? {payload, verifyAccountPath} : null);
+        Navigation.navigate(verifyAccountRoute);
     };
 
-    return verifyAccountAndResume;
+    return {isUserValidated, verifyAccountAndResume};
 }
 
 export default useVerifyAccountAndResume;
