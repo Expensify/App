@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
@@ -91,28 +91,31 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         {!shouldUseNarrowTableLayout && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Button
-                                    small
-                                    icon={icons.ChatBubble}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.onChatPress}
                                     isDisabled={areActionsDisabled}
                                     accessibilityLabel={translate('editAgentPage.chatWithAgent')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.CHAT}
-                                />
+                                >
+                                    <Button.Icon src={icons.ChatBubble} />
+                                </Button>
                                 <Button
-                                    small
-                                    text={translate('delegate.copilot')}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.onCopilotPress}
                                     isDisabled={areActionsDisabled}
                                     accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.COPILOT}
-                                />
+                                >
+                                    <Button.Text>{translate('delegate.copilot')}</Button.Text>
+                                </Button>
                                 <Button
-                                    small
-                                    text={translate('common.edit')}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.action}
                                     isDisabled={isPendingDeletion}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
-                                />
+                                >
+                                    <Button.Text>{translate('common.edit')}</Button.Text>
+                                </Button>
                             </View>
                         )}
                         <Icon
