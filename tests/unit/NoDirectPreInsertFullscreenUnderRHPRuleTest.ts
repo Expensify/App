@@ -42,6 +42,7 @@ describe('no-direct-pre-insert-fullscreen-under-rhp', () => {
             'const Navigation = {preInsertFullscreenUnderRHP: () => {}}; Navigation.preInsertFullscreenUnderRHP(route);',
             'const preInsertFullscreenUnderRHP = () => {}; preInsertFullscreenUnderRHP(route);',
             'const {preInsertFullscreenUnderRHP} = OtherNavigation; preInsertFullscreenUnderRHP(route);',
+            'const {preInsertFullscreenUnderRHP} = UnknownNavigation; preInsertFullscreenUnderRHP(route);',
             `${NAVIGATION_IMPORT} const preInsert = Navigation.preInsertFullscreenUnderRHP; function run() { const preInsert = () => {}; preInsert(route); }`,
             `${NAVIGATION_IMPORT} const {preInsertFullscreenUnderRHP} = Navigation; function run(preInsertFullscreenUnderRHP) { preInsertFullscreenUnderRHP(route); }`,
             {

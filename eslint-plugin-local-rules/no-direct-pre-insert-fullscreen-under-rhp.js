@@ -123,7 +123,13 @@ function create(context) {
             }
         },
         VariableDeclarator(node) {
-            if (node.id.type === 'ObjectPattern' && node.init?.type === 'Identifier' && navigationImportBindings.has(getVariableByName(sourceCode.getScope(node), node.init.name))) {
+            if (node.id.type === 'ObjectPattern' && node.init?.type === 'Identifier') {
+                const initVariable = getVariableByName(sourceCode.getScope(node), node.init.name);
+
+                if (!initVariable || !navigationImportBindings.has(initVariable)) {
+                    return;
+                }
+
                 for (const property of node.id.properties) {
                     const alias = getPreInsertAliasFromObjectPatternProperty(property);
                     if (alias) {
