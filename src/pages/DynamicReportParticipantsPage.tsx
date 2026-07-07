@@ -113,9 +113,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
-    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the list
-    const shouldShowSearchBar = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     useEffect(() => {
         if (!isAnnounceRoom(report)) {
             return;
@@ -287,7 +284,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         isGroupChat={isGroupChat}
                         selectionEnabled={isCurrentUserGroupChatAdmin}
                         selectedKeys={selectedKeys}
-                        shouldShowSearchBar={shouldShowSearchBar}
                         onRowSelectionChange={onRowSelectionChange}
                     />
                 </View>
