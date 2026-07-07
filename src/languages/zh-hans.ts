@@ -2294,6 +2294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '更换双重验证设备',
         verifyOldDeviceTitle: '验证旧设备',
         verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
+        verifyOldDeviceDescriptionWithRecovery: '请输入有效的恢复代码以确认您能访问您的账户。',
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
@@ -2794,6 +2795,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
+        copilotNote: '该代理将作为对你账户拥有完全访问权限的 Copilot 添加，以便代表你执行操作。',
     },
     editAgentPage: {
         title: '编辑代理',
@@ -9424,6 +9426,7 @@ ${reportName}`,
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
             collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
             pricing: '定价',
+            editSubscription: '编辑订阅',
         },
         cancelSubscription: {
             title: '取消订阅',
