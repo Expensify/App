@@ -1,9 +1,13 @@
-import React from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Image from '@components/Image';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {AvatarBranchCommonProps} from './types';
 
 type AvatarImageProps = AvatarBranchCommonProps & {

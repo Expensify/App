@@ -1,9 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import AvatarBody from './AvatarBody';
+
 import type {AvatarCommonProps} from './types';
+
+import AvatarBody from './AvatarBody';
 import useWorkspaceAvatarSource from './useWorkspaceAvatarSource';
 
 type WorkspaceAvatarProps = AvatarCommonProps & {

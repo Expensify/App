@@ -1,10 +1,14 @@
-import React from 'react';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+
+import type {AvatarCommonProps} from './types';
+
 import AvatarUser from './AvatarUser';
 import AvatarWorkspace from './AvatarWorkspace';
-import type {AvatarCommonProps} from './types';
 
 type AvatarProps = AvatarCommonProps & {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */

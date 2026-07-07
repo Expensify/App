@@ -1,11 +1,18 @@
-import React from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
+import type {ResolvedAvatar} from './types';
+
 import AvatarIcon from './AvatarIcon';
 import AvatarImage from './AvatarImage';
-import type {ResolvedAvatar} from './types';
+import AvatarInitials from './AvatarInitials';
 
 type AvatarBodyProps = {
     /** The resolved avatar model that selects which branch to render. */
@@ -27,10 +34,23 @@ type AvatarBodyProps = {
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
-/** Renders a resolved avatar as either a remote image or an SVG icon. */
+/** Renders a resolved avatar as a remote image, an SVG icon, or locally drawn initials. */
 function AvatarBody({resolvedAvatar, size, type, imageStyles, iconAdditionalStyles, fill}: AvatarBodyProps) {
     const theme = useTheme();
-    if (resolvedAvatar.isImageSource) {
+    if (resolvedAvatar.variant === 'initials') {
+        return (
+            <AvatarInitials
+                initials={resolvedAvatar.initials}
+                colors={resolvedAvatar.colors}
+                size={size}
+                type={type}
+                initialsContainerStyles={imageStyles}
+                initialsAdditionalStyles={iconAdditionalStyles}
+            />
+        );
+    }
+
+    if (resolvedAvatar.variant === 'image') {
         return (
             <AvatarImage
                 avatarSource={resolvedAvatar.avatarSource}

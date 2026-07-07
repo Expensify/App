@@ -1,9 +1,12 @@
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getAvatar, optimizeAvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, optimizeAvatarSource, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
+
 import type {ResolvedAvatar} from './types';
+
 import useAvatarLoadError from './useAvatarLoadError';
 
 type UseUserAvatarSourceParams = {
@@ -21,6 +24,17 @@ function useUserAvatarSource({source: originalSource, avatarID, fallbackIcon, fa
 
     const userAccountID = typeof avatarID === 'number' ? avatarID : undefined;
     const source = getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
+
+    // Generated letter-avatar URLs are not fetched — their color and initials are parsed out and drawn locally.
+    const letterAvatar = parseLetterAvatarURL(source);
+    if (letterAvatar) {
+        return {
+            variant: 'initials',
+            initials: letterAvatar.initials,
+            colors: letterAvatar.colors,
+        };
+    }
+
     const optimizedSource = optimizeAvatarSource(source);
     const useFallBackAvatar = hasImageError || !source || source === defaultAvatars.FallbackAvatar;
     const fallbackAvatar = (fallbackIcon ?? defaultAvatars.FallbackAvatar) || defaultAvatars.FallbackAvatar;
@@ -30,9 +44,8 @@ function useUserAvatarSource({source: originalSource, avatarID, fallbackIcon, fa
     if (typeof avatarSource === 'string') {
         return {
             avatarSource,
-            isImageSource: true,
+            variant: 'image',
             hasImageError,
-            iconColors: null,
             fallbackAvatarTestID,
             onImageError,
         };
@@ -45,7 +58,7 @@ function useUserAvatarSource({source: originalSource, avatarID, fallbackIcon, fa
 
     return {
         avatarSource,
-        isImageSource: false,
+        variant: 'icon',
         hasImageError,
         iconColors,
         fallbackAvatarTestID,

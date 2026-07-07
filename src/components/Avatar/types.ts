@@ -1,9 +1,13 @@
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {AvatarSizeName} from '@styles/utils';
 import type {SVGAvatarColorStyle} from '@styles/utils/types';
+
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
 type AvatarCommonProps = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -47,18 +51,15 @@ type ResolvedAvatarBase = {
 
 type ResolvedImageAvatar = ResolvedAvatarBase & {
     /** Discriminant marking this as a remote image avatar. */
-    isImageSource: true;
+    variant: 'image';
 
     /** URL of the remote avatar image. */
     avatarSource: string;
-
-    /** Icon colors are unused for image avatars. */
-    iconColors: null;
 };
 
 type ResolvedIconAvatar = ResolvedAvatarBase & {
     /** Discriminant marking this as an SVG icon avatar. */
-    isImageSource: false;
+    variant: 'icon';
 
     /** Icon asset to render as the avatar. */
     avatarSource: IconAsset;
@@ -67,7 +68,18 @@ type ResolvedIconAvatar = ResolvedAvatarBase & {
     iconColors: SVGAvatarColorStyle | null;
 };
 
-type ResolvedAvatar = ResolvedImageAvatar | ResolvedIconAvatar;
+type ResolvedInitialsAvatar = {
+    /** Discriminant marking this as a locally rendered initials (letter) avatar. */
+    variant: 'initials';
+
+    /** The initials to render. */
+    initials: string;
+
+    /** Background and fill colors parsed from the generated letter-avatar URL. */
+    colors: LetterAvatarColorStyle;
+};
+
+type ResolvedAvatar = ResolvedImageAvatar | ResolvedIconAvatar | ResolvedInitialsAvatar;
 
 type AvatarBranchCommonProps = {
     /** Size of Avatar */

@@ -1,8 +1,11 @@
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {optimizeAvatarSource} from '@libs/UserAvatarUtils';
+
 import type {ResolvedAvatar} from './types';
+
 import useAvatarLoadError from './useAvatarLoadError';
 
 type UseWorkspaceAvatarSourceParams = {
@@ -26,9 +29,8 @@ function useWorkspaceAvatarSource({source: originalSource, name = '', avatarID}:
     if (typeof avatarSource === 'string') {
         return {
             avatarSource,
-            isImageSource: true,
+            variant: 'image',
             hasImageError,
-            iconColors: null,
             fallbackAvatarTestID,
             onImageError,
         };
@@ -36,7 +38,7 @@ function useWorkspaceAvatarSource({source: originalSource, name = '', avatarID}:
 
     return {
         avatarSource,
-        isImageSource: false,
+        variant: 'icon',
         hasImageError,
         iconColors,
         fallbackAvatarTestID,
