@@ -1,5 +1,7 @@
-import type {TextInput} from 'react-native';
 import shouldSetSelectionRange from '@libs/shouldSetSelectionRange';
+
+import type {TextInput} from 'react-native';
+
 import type {InputType, Selection} from './types';
 
 const setSelectionRange = shouldSetSelectionRange();

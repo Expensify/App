@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -150,6 +154,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Analyse en cours',
         analyzing: 'Analyse en cours...',
         thinking: 'Concierge réfléchit...',
+        agentThinking: 'Réflexion en cours…',
         addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
         perPerson: 'par personne',
         phone: 'Téléphone',
@@ -395,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'ID de retrait',
         internationalReimbursementIDs: 'ID de remboursement international',
         withdrawalStatus: 'Statut de retrait',
+        paidStatus: 'Statut payé',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
         chooseFiles: 'Choisir des fichiers',
@@ -515,6 +521,9 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrictions',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        unableToDisplayChart: 'Impossible d’afficher le graphique',
+        webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        apiKey: 'Clé API',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -845,7 +854,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
         copyOnyxData: 'Copier les données Onyx',
-        copyAgentZeroRequestID: "Copier l'ID de requête AgentZero",
+        viewAgentZeroTrace: 'Voir la trace AgentZero',
         flagAsOffensive: 'Signaler comme offensant',
         menu: 'Menu',
     },
@@ -983,6 +992,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portefeuille',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'Ajoutez vos informations personnelles',
+                subtitle: 'Ajoutez vos informations pour afficher et commencer à utiliser votre Carte Expensify.',
+                cta: 'Ajouter des détails',
+            },
             enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
         },
         announcements: 'Annonces',
@@ -1062,6 +1076,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Connecter à la comptabilité',
             customizeCategories: 'Personnaliser les catégories comptables',
             linkCompanyCards: 'Lier des cartes d’entreprise',
+            issueExpensifyCards: 'Émettre des cartes Expensify',
+            issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
         },
@@ -1223,7 +1239,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Approuvé',
         cash: 'Espèces',
         card: 'Carte',
-        original: 'Original',
+        purchase: 'Achat',
         split: 'Diviser',
         splitExpense: 'Fractionner la dépense',
         splitDates: 'Diviser les dates',
@@ -2364,6 +2380,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
         verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
         verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
+        verifyOldDeviceDescriptionWithRecovery: 'Saisissez un code de récupération valide pour confirmer que vous avez accès à votre compte.',
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
@@ -2518,6 +2535,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inactif',
         assignedCards: 'Cartes',
         assignedCardsDescription: 'Les transactions des cartes assignées se synchronisent automatiquement.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Veuillez saisir vos coordonnées pour commencer à utiliser votre carte',
+            cta: 'Ajouter des détails',
+        },
         expensifyCard: 'Carte Expensify',
         walletActivationPending: 'Nous examinons vos informations. Veuillez revenir vérifier dans quelques minutes !',
         walletActivationFailed: 'Malheureusement, votre portefeuille ne peut pas être activé pour le moment. Veuillez discuter avec Concierge pour obtenir une assistance supplémentaire.',
@@ -2809,8 +2830,6 @@ ${amount} pour ${merchant} - ${date}`,
         activatePhysicalCard: 'Activer la carte physique',
         error: {
             thatDidNotMatch: 'Cela ne correspond pas aux 4 derniers chiffres de votre carte. Veuillez réessayer.',
-            throttled:
-                'Vous avez saisi de manière incorrecte les 4 derniers chiffres de votre Carte Expensify trop de fois. Si vous êtes sûr que les chiffres sont corrects, veuillez contacter Concierge pour résoudre le problème. Sinon, réessayez plus tard.',
         },
     },
     getPhysicalCard: {
@@ -2887,6 +2906,7 @@ ${amount} pour ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
         defaultPrompt:
             'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
+        copilotNote: 'Cet agent sera ajouté comme copilote avec un accès complet à votre compte, afin de pouvoir agir en votre nom.',
     },
     editAgentPage: {
         title: 'Modifier l’agent',
@@ -5510,6 +5530,21 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Configuration Rillet',
+            enterCredentials: 'Saisissez votre clé API Rillet',
+            howToFindAPIKey:
+                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Rillet</li><li>Accédez à Compte -> Paramètres</li><li>Copiez la clé API ci-dessous</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
+            noSubsidiariesFound: 'Aucune filiale trouvée',
+            noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans Rillet et synchroniser à nouveau la connexion',
+            accountTypesDescription: 'Vos comptes Rillet seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Rillet seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Rillet sont importées en tant que tags',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Rillet.',
+        },
         type: {
             free: 'Gratuit',
             control: 'Contrôle',
@@ -5755,6 +5790,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `Si vous changez le type de plafond de cette carte en Mensuel, les nouvelles transactions seront refusées, car le plafond mensuel de ${limit} a déjà été atteint.`,
             addShippingDetails: 'Ajouter les détails de livraison',
+            addPersonalDetails: 'Ajouter les informations personnelles',
             issuedCard: (assignee: string) => `a émis une Carte Expensify à ${assignee} ! La carte arrivera dans 2 à 3 jours ouvrés.`,
             issuedCardNoShippingDetails: (assignee: string) => `a émis une Carte Expensify à ${assignee} ! La carte sera expédiée une fois les informations de livraison confirmées.`,
             issuedCardVirtual: (assignee: string, link: string) => `a attribué une Carte Expensify virtuelle à ${assignee} ! Le ${link} peut être utilisé immédiatement.`,
@@ -6281,6 +6317,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             importedFromAccountingSoftware: 'Les taxes ci-dessous sont importées depuis votre',
             taxCode: 'Code fiscal',
             updateTaxCodeFailureMessage: 'Une erreur s’est produite lors de la mise à jour du code de taxe, veuillez réessayer',
+            taxRates: 'Taux d’imposition',
         },
         duplicateWorkspace: {
             title: 'Nommez votre nouvel espace de travail',
@@ -6391,6 +6428,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur des personnes',
                 other: 'Nommer des administrateurs des personnes',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Nommer administrateur des paiements',
+                other: 'Nommer des administrateurs des paiements',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre de l’espace de travail',
@@ -6424,6 +6465,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
             peopleAdmins: 'Administrateurs des personnes',
+            paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
         },
         card: {
@@ -6498,6 +6540,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6515,6 +6558,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6741,6 +6786,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             return 'Importation des dimensions';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marquage des notes de frais comme remboursées';
+                        case 'rilletSyncTitle':
+                            return 'Synchronisation des données Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Initialisation de la connexion à Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Chargement des données';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
                         }
@@ -7010,6 +7061,12 @@ ${reportName}`,
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Certinia. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Certinia pour une meilleure visibilité financière.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Notre intégration Certinia est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Rillet. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Rillet pour une meilleure visibilité financière.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration Rillet est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approbations avancées',
@@ -7821,6 +7878,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
             },
+            notSync: 'Non synchronisé',
+            authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnectez-vous.',
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -8435,6 +8496,46 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateDateRangeFrom: (date: string) => `à partir du ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `jusqu’au ${date}`,
         customUnitRateDateRangeAllDates: () => `pour toutes les dates`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `aperçu copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `a copié les membres depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `1 champ de note de frais copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `${count} champs de note de frais copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres comptables copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `a copié les paramètres de reçu partenaire depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres RH copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `1 catégorie copiée depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `${count} catégories copiées depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `1 tag copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `${count} tags copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `1 taux de taxe copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `a copié ${count} taux de taxe depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de suivi du temps copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `workflows copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `règles copiées depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `1 règle de commerçant copiée depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `a copié ${count} règles de commerçant depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `1 taux de distance copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `${count} taux de distance copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `a copié 1 taux de per diem depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `a copié ${count} taux journaliers de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -8634,6 +8735,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             past: 'Passé',
             submitted: 'Soumis',
             approved: 'Approuvé',
+            firstApprover: 'Premier approbateur',
+            firstApproved: 'Approuvé en premier',
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',
@@ -8795,6 +8898,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Marqué comme payé', withdrawing: 'Retrait en cours', confirmed: 'Confirmé'},
     reportLayout: {
         reportLayout: 'Mise en page de la note de frais',
         groupByLabel: 'Regrouper par :',
@@ -9697,6 +9801,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
             collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
             pricing: 'Tarification',
+            editSubscription: 'Modifier l’abonnement',
         },
         cancelSubscription: {
             title: "Annuler l'abonnement",
@@ -9865,6 +9970,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAProblemWithYourWalletTerms: 'Il y a un problème avec les conditions de votre portefeuille',
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
             completeHrSetup: 'Terminer la configuration RH',
+            theresAProblemWithAnHRConnection: 'Un problème est survenu avec une connexion RH',
         },
     },
     emptySearchView: {

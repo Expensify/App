@@ -1,5 +1,3 @@
-/** Onyx selectors used by the confirmation field leaves. */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
@@ -13,9 +11,13 @@ import {
     isMerchantMissing,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+/** Onyx selectors used by the confirmation field leaves. */
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type Transaction = OnyxTypes.Transaction;
 
