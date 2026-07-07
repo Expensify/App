@@ -139,6 +139,7 @@ function IOURequestStepDate({
                 delegateAccountID,
                 distanceOriginalPolicy,
                 isTrackIntentUser,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));

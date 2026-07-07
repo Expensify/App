@@ -345,6 +345,7 @@ function handleActionButtonPress({
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
                 isTrackIntentUser,
+                ownerLogin: submitterLogin,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -613,6 +614,7 @@ type GetApproveActionCallbackParams = {
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
     isTrackIntentUser: boolean | undefined;
+    ownerLogin: string | undefined;
 };
 
 function getApproveActionCallback({
@@ -631,6 +633,7 @@ function getApproveActionCallback({
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
     isTrackIntentUser,
+    ownerLogin,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -653,6 +656,7 @@ function getApproveActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerLogin,
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),

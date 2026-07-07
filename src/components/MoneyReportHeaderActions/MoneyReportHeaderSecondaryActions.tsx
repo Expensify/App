@@ -449,6 +449,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             ownerBillingGracePeriodEnd,
             delegateEmail,
             isTrackIntentUser,
+            ownerLogin: submitterLogin,
         });
     };
 

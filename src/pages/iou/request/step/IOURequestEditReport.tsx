@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
@@ -54,6 +55,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -106,6 +108,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactionViolation: transactionViolations,
                 allReports,
                 isTrackIntentUser,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -130,6 +133,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactionViolation: transactionViolations,
             allReports,
             isTrackIntentUser,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

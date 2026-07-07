@@ -35,6 +35,7 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
 import useSelfDMReport from './useSelfDMReport';
@@ -147,6 +148,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     const {isOffline} = useNetwork();
+    const personalPolicy = usePersonalPolicy();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -188,7 +190,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditDate = (newDate: string) => {
-        editTransactionDateInline(getEditParams(), newDate);
+        editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
     };
 
     const onEditMerchant = (newMerchant: string) => {

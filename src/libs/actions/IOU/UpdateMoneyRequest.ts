@@ -84,6 +84,7 @@ type UpdateMoneyRequestDateParams = {
     policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
 };
 
 type SearchSnapshotOnyxData = {
@@ -230,6 +231,7 @@ function updateMoneyRequestDate({
     policyForTrackExpense,
     distanceOriginalPolicy,
     isTrackIntentUser,
+    personalPolicyOutputCurrency,
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
@@ -273,6 +275,7 @@ function updateMoneyRequestDate({
             distanceOriginalPolicy,
             currentTransactionViolations,
             isTrackIntentUser,
+            personalPolicyOutputCurrency,
         });
         return;
     }
@@ -939,6 +942,7 @@ type UpdateMoneyRequestDistanceParams = {
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -963,6 +967,7 @@ function updateMoneyRequestDistance({
     distanceOriginalPolicy,
     delegateAccountID,
     isTrackIntentUser,
+    personalPolicyOutputCurrency,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -988,6 +993,8 @@ function updateMoneyRequestDistance({
             undefined,
             undefined,
             distanceOriginalPolicy,
+            undefined,
+            personalPolicyOutputCurrency,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -1006,6 +1013,7 @@ function updateMoneyRequestDistance({
             iouReportNextStep: parentReportNextStep,
             delegateAccountID,
             isTrackIntentUser,
+            personalPolicyOutputCurrency,
         });
     }
     const {params, onyxData} = data;
@@ -1211,6 +1219,7 @@ function updateMoneyRequestDistanceRate({
     distanceOriginalPolicy,
     currentTransactionViolations: currentTransactionViolationsParam,
     isTrackIntentUser,
+    personalPolicyOutputCurrency,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1236,6 +1245,7 @@ function updateMoneyRequestDistanceRate({
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1274,6 +1284,7 @@ function updateMoneyRequestDistanceRate({
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
             currentTransactionViolations,
+            personalPolicyOutputCurrency,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -1297,6 +1308,7 @@ function updateMoneyRequestDistanceRate({
             distanceOriginalPolicy,
             violations: currentTransactionViolations,
             isTrackIntentUser,
+            personalPolicyOutputCurrency,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
@@ -1426,6 +1438,7 @@ type GetUpdateMoneyRequestParamsType = {
     delegateAccountID: number | undefined;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency?: string;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1469,6 +1482,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         delegateAccountID,
         distanceOriginalPolicy,
         isTrackIntentUser,
+        personalPolicyOutputCurrency,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -1555,6 +1569,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               isFromExpenseReport,
               isSplitTransaction,
               policy,
+              personalPolicyOutputCurrency,
           })
         : undefined;
 
@@ -2124,6 +2139,7 @@ function getUpdateTrackExpenseParams(
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>,
+    personalPolicyOutputCurrency?: string,
 ): UpdateMoneyRequestData<
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
@@ -2170,6 +2186,7 @@ function getUpdateTrackExpenseParams(
               transactionChanges,
               isFromExpenseReport: false,
               policy: policyForTransaction,
+              personalPolicyOutputCurrency,
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);

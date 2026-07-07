@@ -152,6 +152,7 @@ describe('PaymentUtils', () => {
             ownerBillingGracePeriodEnd: undefined,
             delegateEmail: undefined,
             isTrackIntentUser: false,
+            ownerLogin: undefined,
         };
 
         beforeEach(() => {

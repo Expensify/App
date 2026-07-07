@@ -386,6 +386,7 @@ function IOURequestStepDistanceOdometer({
                         odometerEnd: end,
                     },
                     policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack();
                 return;
@@ -419,6 +420,7 @@ function IOURequestStepDistanceOdometer({
                     recentWaypoints,
                     delegateAccountID,
                     isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
             Navigation.goBack();

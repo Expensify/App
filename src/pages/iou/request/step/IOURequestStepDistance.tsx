@@ -465,6 +465,7 @@ function IOURequestStepDistance({
                     originalSplitTransactionDraft,
                     {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
                     policy,
+                    personalPolicy?.outputCurrency,
                 );
                 navigateBackAfterSave();
                 return;
@@ -503,6 +504,7 @@ function IOURequestStepDistance({
                     delegateAccountID,
                     distanceOriginalPolicy,
                     isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
             transactionWasSaved.current = true;
@@ -548,6 +550,7 @@ function IOURequestStepDistance({
         delegateAccountID,
         distanceOriginalPolicy,
         isTrackIntentUser,
+        personalPolicy?.outputCurrency,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -577,7 +580,7 @@ function IOURequestStepDistance({
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
-            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy, personalPolicy?.outputCurrency);
             navigateBackAfterSave();
             return;
         }
@@ -616,6 +619,7 @@ function IOURequestStepDistance({
             recentWaypoints,
             distanceOriginalPolicy,
             isTrackIntentUser,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -653,6 +657,7 @@ function IOURequestStepDistance({
         delegateAccountID,
         distanceOriginalPolicy,
         isTrackIntentUser,
+        personalPolicy?.outputCurrency,
     ]);
 
     const renderItem = useCallback(
