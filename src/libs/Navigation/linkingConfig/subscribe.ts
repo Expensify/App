@@ -1,7 +1,6 @@
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import {getReportIDFromLink} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +80,9 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         // here makes it dispatch a NAVIGATE into TabNavigator, which doesn't exist in the PublicScreens
         // tree yet → "The action 'NAVIGATE' ... was not handled by any navigator", leaving the user stuck
         // on the sign-in screen. So skip the React Navigation dispatch for report deeplinks while signed out.
-        if (!sessionAuthToken && getReportIDFromLink(url)) {
+        // We match the report route with a lightweight path regex instead of getReportIDFromLink() to avoid the
+        // circular import ReportUtils -> linkingConfig -> subscribe -> ReportUtils that situchan flagged.
+        if (!sessionAuthToken && CONST.REGEX.REPORT_ID_FROM_PATH.test(url)) {
             return;
         }
         listener(url);
