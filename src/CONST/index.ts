@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {add as dateAdd} from 'date-fns';
-import {sub as dateSubtract} from 'date-fns/sub';
-import Config from 'react-native-config';
-import * as KeyCommand from 'react-native-key-command';
-import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
+
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import {
     ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
     DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
@@ -18,11 +14,22 @@ import {
 } from '@libs/Animation/animationTiming';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
+
+import type {ValueOf} from 'type-fest';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import {add as dateAdd} from 'date-fns';
+import {sub as dateSubtract} from 'date-fns/sub';
+import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
+
 import CI from './CI';
 import {LOCALES} from './LOCALES';
 
@@ -421,6 +428,8 @@ const CONST = {
     DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
 
+    GENERATED_LETTER_AVATAR_PATH: '/images/avatars/generated/letter/',
+
     DISPLAY_NAME: {
         // This value is consistent with the BE display name max length limit.
         MAX_LENGTH: 100,
@@ -491,6 +500,7 @@ const CONST = {
         INTACCT: 'Intacct',
         SAGE_INTACCT: 'Sage Intacct',
         CERTINIA: 'FinancialForce',
+        RILLET: 'Rillet',
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
     },
@@ -972,6 +982,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
@@ -1250,6 +1261,7 @@ const CONST = {
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    NOTIFICATIONS_ICON_URL: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
     DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
@@ -1362,6 +1374,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
+            `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1728,6 +1742,23 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
+                    COPY_OVERVIEW: 'POLICYCHANGELOG_COPY_OVERVIEW',
+                    COPY_EMPLOYEES: 'POLICYCHANGELOG_COPY_EMPLOYEES',
+                    COPY_REPORT_FIELDS: 'POLICYCHANGELOG_COPY_REPORT_FIELDS',
+                    COPY_ACCOUNTING: 'POLICYCHANGELOG_COPY_ACCOUNTING',
+                    COPY_RECEIPT_PARTNERS: 'POLICYCHANGELOG_COPY_RECEIPT_PARTNERS',
+                    COPY_HR: 'POLICYCHANGELOG_COPY_HR',
+                    COPY_CATEGORIES: 'POLICYCHANGELOG_COPY_CATEGORIES',
+                    COPY_TAGS: 'POLICYCHANGELOG_COPY_TAGS',
+                    COPY_TAXES: 'POLICYCHANGELOG_COPY_TAXES',
+                    COPY_TIME_TRACKING: 'POLICYCHANGELOG_COPY_TIME_TRACKING',
+                    COPY_WORKFLOWS: 'POLICYCHANGELOG_COPY_WORKFLOWS',
+                    COPY_RULES: 'POLICYCHANGELOG_COPY_RULES',
+                    COPY_CODING_RULES: 'POLICYCHANGELOG_COPY_CODING_RULES',
+                    COPY_DISTANCE: 'POLICYCHANGELOG_COPY_DISTANCE',
+                    COPY_PER_DIEM: 'POLICYCHANGELOG_COPY_PER_DIEM',
+                    COPY_INVOICES: 'POLICYCHANGELOG_COPY_INVOICES',
+                    COPY_TRAVEL: 'POLICYCHANGELOG_COPY_TRAVEL',
                 },
                 RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
                 RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
@@ -2102,10 +2133,10 @@ const CONST = {
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
-        SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
@@ -2356,9 +2387,6 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
-    },
-    HTTP_HEADER_NAMES: {
-        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -3330,6 +3358,34 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    RILLET_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        COMPANY_CARD: 'companyCard',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNTS: 'cardProgramAccounts',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+    },
+
+    RILLET_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -3706,6 +3762,11 @@ const CONST = {
         WARNING: 'warning',
         DURATION: 2000,
         DURATION_LONG: 3500,
+        // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
+        DURATION_WITH_ACTION: 6000,
+        // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
+        // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
+        OFFSCREEN_OFFSET: 255,
     },
 
     LOCALES,
@@ -3871,6 +3932,7 @@ const CONST = {
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
+            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -3919,6 +3981,60 @@ const CONST = {
             TAXES: 'Taxes',
             TRAVEL: 'Travel',
             UTILITIES: 'Utilities',
+        },
+        DEFAULT_MCC_GROUPS: {
+            airlines: {
+                category: 'Travel',
+                groupID: 'airlines',
+            },
+            commuter: {
+                category: 'Car',
+                groupID: 'commuter',
+            },
+            gas: {
+                category: 'Car',
+                groupID: 'gas',
+            },
+            goods: {
+                category: 'Materials',
+                groupID: 'goods',
+            },
+            groceries: {
+                category: 'Meals and Entertainment',
+                groupID: 'groceries',
+            },
+            hotel: {
+                category: 'Travel',
+                groupID: 'hotel',
+            },
+            mail: {
+                category: 'Office Supplies',
+                groupID: 'mail',
+            },
+            meals: {
+                category: 'Meals and Entertainment',
+                groupID: 'meals',
+            },
+            rental: {
+                category: 'Travel',
+                groupID: 'rental',
+            },
+            services: {
+                category: 'Professional Services',
+                groupID: 'services',
+            },
+            taxi: {
+                category: 'Travel',
+                groupID: 'taxi',
+            },
+            uncategorized: {
+                category: 'Other',
+                groupID: 'uncategorized',
+            },
+            utilities: {
+                category: 'Utilities',
+                groupID: 'utilities',
+            },
         },
         OWNERSHIP_ERRORS: {
             NO_BILLING_CARD: 'noBillingCard',
@@ -3985,6 +4101,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'financialforce',
+                RILLET: 'rillet',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4002,6 +4119,7 @@ const CONST = {
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
+                RILLET: 'rillet',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4013,6 +4131,7 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialforce: 'Certinia',
+                rillet: 'Rillet',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4023,7 +4142,7 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET] as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -4123,6 +4242,9 @@ const CONST = {
                 FINANCIAL_FORCE_SYNC_USERS: 'financialForceSyncUsers',
                 FINANCIAL_FORCE_SYNC_DIMENSIONS: 'financialForceSyncDimensions',
                 FINANCIAL_FORCE_SYNC_MARK_REIMBURSED: 'financialForceMarkAsReimbursed',
+                RILLET_SYNC_TITLE: 'rilletSyncTitle',
+                RILLET_SYNC_CONNECTION: 'rilletSyncConnection',
+                RILLET_SYNC_IMPORT_DATA: 'rilletSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -4189,6 +4311,7 @@ const CONST = {
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
         RATE_STATUS: {
@@ -4626,35 +4749,16 @@ const CONST = {
         },
     },
     EXPENSE_RULES: {
-        FIELDS: {
-            BILLABLE: 'billable',
-            CATEGORY: 'category',
-            DESCRIPTION: 'comment',
-            CREATE_REPORT: 'createReport',
-            MERCHANT: 'merchantToMatch',
-            RENAME_MERCHANT: 'merchant',
-            REIMBURSABLE: 'reimbursable',
-            REPORT: 'report',
-            TAG: 'tag',
-            TAX: 'tax',
-        },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
             DELETE: 'delete',
         },
     },
-    MERCHANT_RULES: {
-        FIELDS: {
-            BILLABLE: 'billable',
-            CATEGORY: 'category',
-            DESCRIPTION: 'comment',
-            MATCH_TYPE: 'matchType',
-            MERCHANT_TO_MATCH: 'merchantToMatch',
-            MERCHANT: 'merchant',
-            REIMBURSABLE: 'reimbursable',
-            TAG: 'tag',
-            TAX: 'tax',
-        },
+    REQUIRE_FIELDS_RULE_TYPES: {
+        REQUIRE_DESCRIPTION: 'requireDescription',
+        REQUIRE_ATTENDEES: 'requireAttendees',
+        REQUIRE_RECEIPTS_OVER: 'requireReceiptsOver',
+        REQUIRE_ITEMIZED_RECEIPTS_OVER: 'requireItemizedReceiptsOver',
     },
     SPEND_RULES: {
         BADGE_VARIANTS: {
@@ -4684,17 +4788,6 @@ const CONST = {
             SOFTWARE: 'software',
             TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
             TRAVEL_AGENCIES: 'travelAgencies',
-        },
-        FORM: {
-            FIELDS: {
-                CARD_IDS: 'cardIDs',
-                RESTRICTION_ACTION: 'restrictionAction',
-                MERCHANT_NAMES: 'merchantNames',
-                MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
-                CATEGORIES: 'categories',
-                MAX_AMOUNT: 'maxAmount',
-                CURRENCIES: 'currencies',
-            },
         },
         ACTION: {
             ALLOW: 'allow',
@@ -5809,6 +5902,8 @@ const CONST = {
             GENERAL: 'general',
             CARD_RESTRICTIONS: 'cardRestrictions',
             EXPENSE_DEFAULTS: 'expenseDefaults',
+            REQUIRE_FIELDS: 'requireFields',
+            FLAG_FOR_REVIEW: 'flagForReview',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -5925,6 +6020,7 @@ const CONST = {
 
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
+    SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -6080,6 +6176,7 @@ const CONST = {
         CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
         CONVERSION_SURCHARGE: 'conversionSurcharge',
         CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: 'customUnitRateOutOfDateRange',
         DUPLICATED_TRANSACTION: 'duplicatedTransaction',
         FIELD_REQUIRED: 'fieldRequired',
         FUTURE_DATE: 'futureDate',
@@ -6418,6 +6515,11 @@ const CONST = {
             CLEARED: 'cleared',
             FAILED: 'failed',
         },
+        PAID_STATUS: {
+            MARKED_AS_PAID: 'markedAsPaid',
+            WITHDRAWING: 'withdrawing',
+            CONFIRMED: 'confirmed',
+        },
         IS_VALUES: {
             READ: 'read',
             UNREAD: 'unread',
@@ -6511,6 +6613,8 @@ const CONST = {
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
+                    FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
+                    FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
@@ -6703,6 +6807,8 @@ const CONST = {
             DATE: 'date',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            FIRST_APPROVER: 'firstapprover',
+            FIRST_APPROVED: 'firstapproved',
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
@@ -6824,6 +6930,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWAL_STATUS: 'withdrawalStatus',
+            PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
             TITLE: 'title',
@@ -6901,6 +7008,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWAL_STATUS: 'withdrawal-status',
+            PAID_STATUS: 'paid-status',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -7221,6 +7329,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.description` as const,
                 icon: 'CertiniaSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.RILLET]: {
+                id: this.POLICY.CONNECTIONS.NAME.RILLET,
+                alias: 'rillet',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.rillet,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.description` as const,
+                icon: 'RilletSquare',
+            },
             approvals: {
                 id: 'approvals' as const,
                 alias: 'approvals' as const,
@@ -7503,6 +7619,7 @@ const CONST = {
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
+        HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
     },
 
     DEBUG: {
@@ -7779,6 +7896,13 @@ const CONST = {
         },
     },
 
+    TABLES: {
+        FILTER_TYPE: {
+            SINGLE_SELECT: 'singleSelect',
+            MULTI_SELECT: 'multiSelect',
+        },
+    },
+
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -7936,6 +8060,7 @@ const CONST = {
             TABLE_ROW: 'ExpenseRules-TableRow',
         },
         TABLE: {
+            FILTERS: 'Table-Filters',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
@@ -8002,7 +8127,7 @@ const CONST = {
             FLAG_AS_OFFENSIVE: 'ContextMenu-FlagAsOffensive',
             DOWNLOAD: 'ContextMenu-Download',
             COPY_ONYX_DATA: 'ContextMenu-CopyOnyxData',
-            COPY_AGENT_ZERO_REQUEST_ID: 'ContextMenu-CopyAgentZeroRequestID',
+            VIEW_AGENT_ZERO_TRACE: 'ContextMenu-ViewAgentZeroTrace',
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
@@ -8351,6 +8476,18 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
+                REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
+                REQUIRE_FIELDS_RULE_CATEGORY: 'WorkspaceRules-RequireFieldsRuleCategory',
+                REQUIRE_FIELDS_RULE_FIELD_TOGGLE: 'WorkspaceRules-RequireFieldsRuleFieldToggle',
+                FLAG_FOR_REVIEW_RULE_ITEM: 'WorkspaceRules-FlagForReviewRuleItem',
+                FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
+                FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
+                FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
+                FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
+                MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
+                MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
+                MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
@@ -8365,6 +8502,10 @@ const CONST = {
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
                 NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
+                NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND: 'WorkspaceRules-NewRuleMenuItem-RestrictCardSpend',
+                NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
+                NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
+                NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
@@ -8643,6 +8784,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Ask Concierge AI: charts, insights & more',
+                subtitle: 'Newsletter',
+                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
+                publishedDate: '2026-06-30',
+            },
+            {
                 title: 'AI agents, Concierge upgrades, and smarter card controls',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
@@ -8653,12 +8800,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
                 publishedDate: '2026-06-08',
-            },
-            {
-                title: 'Policy upload, card freeze, and bulk editing',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
-                publishedDate: '2026-05-22',
             },
         ],
     },

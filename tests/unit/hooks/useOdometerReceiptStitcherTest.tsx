@@ -1,7 +1,10 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import type useOdometerReceiptStitcherType from '@hooks/useOdometerReceiptStitcher';
 import type {UseOdometerReceiptStitcherArgs} from '@hooks/useOdometerReceiptStitcher';
+
 import type * as DeriveOdometerReceiptModule from '@libs/OdometerReceipt/deriveOdometerReceipt';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';

@@ -1,30 +1,35 @@
-import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+import {canMemberWrite, getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useNavigationState} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE>;
@@ -36,7 +41,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);
     const defaultApprover = getDefaultApprover(policy);
@@ -56,8 +61,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
 
-    const shouldShowNotFoundView = isAnyHRReadOnlyWorkflowMode(policy);
-    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
+    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const shouldShowNotFoundView = !canWriteApprovals || isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
@@ -232,6 +238,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsApproverPage"
@@ -248,6 +256,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
                 allowMultipleSelection={false}
                 onSelectApprover={toggleApprover}
+                shouldRequirePolicyAdmin={false}
             />
         </AccessOrNotFoundWrapper>
     );
