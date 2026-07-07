@@ -47,7 +47,7 @@ import Visibility from '@libs/Visibility';
 
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 
-import {useActionListContext} from '@pages/inbox/ActionListContext';
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
@@ -67,7 +67,7 @@ import {getStableReportSelector} from '@src/selectors/Report';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {FlatList, LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 /* eslint-disable rulesdir/prefer-early-return */
 import {useIsFocused, useRoute} from '@react-navigation/native';
@@ -206,16 +206,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const lastAction = visibleReportActions.at(-1);
 
-    const {scrollOffsetRef, registerListRef} = useActionListContext();
-
-    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
-    // layout effect so the ref is registered at commit — before any layout-time scroll handler
-    // reads it via `getListRef()` — rather than after paint.
-    const listRef = useRef<FlatList>(null);
-    useLayoutEffect(() => {
-        registerListRef(listRef);
-        return () => registerListRef(null);
-    }, [registerListRef]);
+    const {scrollOffsetRef} = useActionListContext();
+    const listRef = useActionListRef();
 
     const scrollingVerticalBottomOffset = useRef(0);
     const scrollingVerticalTopOffset = useRef(0);

@@ -44,7 +44,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
-import {useActionListContext} from '@pages/inbox/ActionListContext';
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
@@ -55,12 +55,12 @@ import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -170,16 +170,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {registerListRef, getScrollOffset} = useActionListContext();
-
-    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
-    // layout effect so the ref is registered at commit — before the list's `onLayout` fires and
-    // calls into `getListRef()` — rather than after paint, which could leave handlers reading null.
-    const listRef = useRef<FlatList>(null);
-    useLayoutEffect(() => {
-        registerListRef(listRef);
-        return () => registerListRef(null);
-    }, [registerListRef]);
+    const {getScrollOffset} = useActionListContext();
+    const listRef = useActionListRef();
 
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft} = useConciergeDraftActions();
