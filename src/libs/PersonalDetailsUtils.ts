@@ -14,6 +14,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
+import {getCountryCode} from './CountryUtils';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -607,7 +608,8 @@ function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<P
     }
     const currentAddress = getCurrentAddress(privatePersonalDetails);
     // `state` is only required for US addresses; countries without states (e.g. the UK) can have a complete address without it.
-    const isStateMissing = currentAddress?.country === CONST.COUNTRY.US && !currentAddress?.state;
+    // Normalize first so legacy data storing the full country name ("United States") is still recognized as US.
+    const isStateMissing = getCountryCode(currentAddress?.country) === CONST.COUNTRY.US && !currentAddress?.state;
     return !currentAddress?.street || !currentAddress?.city || isStateMissing || !currentAddress?.zip || !currentAddress?.country;
 }
 
