@@ -9719,6 +9719,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Kaart en de abonnementsopties hieronder.',
             collectBillingDescription: 'Collect-werkruimtes worden maandelijks per lid gefactureerd, zonder jaarlijkse verplichting.',
             pricing: 'Prijzen',
+            editSubscription: 'Abonnement bewerken',
         },
         cancelSubscription: {
             title: 'Abonnement opzeggen',

@@ -9915,6 +9915,7 @@ ${amount} para ${merchant} - ${date}`,
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
             collectBillingDescription: 'Los espacios de trabajo del plan Collect se facturan mensualmente por miembro, sin compromiso anual.',
             pricing: 'Precios',
+            editSubscription: 'Editar suscripción',
         },
         cancelSubscription: {
             title: 'Cancelar suscripción',
