@@ -128,6 +128,9 @@ type TransactionItemRowRBRDeferControlProps = {
     shouldDeferRBR?: boolean;
 };
 
+/** Window position of the hovered cell used to anchor the receipt preview beside the row. */
+type AnchorPosition = {top: number; left: number; width: number; height: number};
+
 /**
  * Data computed by the dispatcher and consumed by the Narrow variant.
  */
@@ -156,4 +159,11 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     isMarkAsDone: boolean;
 };
 
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {
+    AnchorPosition,
+    TransactionWithOptionalSearchFields,
+    TransactionItemRowProps,
+    TransactionItemRowRBRDeferControlProps,
+    TransactionItemRowNarrowComputedData,
+    TransactionItemRowWideComputedData,
+};

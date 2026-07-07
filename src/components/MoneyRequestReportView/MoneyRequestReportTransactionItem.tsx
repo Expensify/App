@@ -27,7 +27,7 @@ import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, Transac
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
@@ -141,7 +141,8 @@ function MoneyRequestReportTransactionItemBody({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isEditingCell} = useEditingCellState();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -165,6 +166,23 @@ function MoneyRequestReportTransactionItemBody({
             scrollToNewTransaction?.(pageY);
         });
     }, [scrollToNewTransaction, shouldBeHighlighted]);
+
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const handleMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleHoverIn = () => setShouldDisableHoverStyle(false);
 
     return (
         <OfflineWithFeedback
@@ -193,10 +211,12 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                onMouseDown={handleMouseDown}
+                onHoverIn={handleHoverIn}
                 onPressIn={() => {
-                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
                     if (canUseTouchScreen()) {
                         ControlSelection.block();
                     }
@@ -259,7 +279,9 @@ function MoneyRequestReportTransactionItemBody({
 type InlineEditValues = ReturnType<typeof useTransactionInlineEdit>;
 
 function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyRequestReportTransactionItemBodyProps, 'inlineEdit'>) {
-    const inlineEdit = useTransactionInlineEdit({transactionID: props.transaction.transactionID});
+    const inlineEdit = useTransactionInlineEdit({
+        transactionID: props.transaction.transactionID,
+    });
 
     return (
         <MoneyRequestReportTransactionItemBody
