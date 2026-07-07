@@ -20,6 +20,7 @@ import {
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
     isPaidGroupPolicy,
+    isPolicyAdmin,
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
