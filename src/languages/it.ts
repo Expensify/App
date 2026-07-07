@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -9,16 +19,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,6 +63,7 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -5511,23 +5512,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             enableNewAccountsDescription: 'I nuovi conti Rillet saranno disponibili come categorie.',
             dimensionsImport: 'Tutte le dimensioni Rillet vengono importate come tag',
             importDescription: 'Scegli quali configurazioni di codifica importare da Rillet.',
-            noVendorsFound: 'Nessun fornitore trovato',
-            noVendorsFoundDescription: 'Aggiungi fornitori in Rillet e sincronizza di nuovo la connessione',
-            noAccountsFound: 'Nessun conto trovato',
-            noAccountsFoundDescription: 'Aggiungi degli account in Rillet e sincronizza di nuovo la connessione',
-            exportDescription: 'Configura come i dati di Expensify vengono esportati in Rillet.',
-            exportReimbursable: {label: 'Esporta le spese rimborsabili come', values: {label: 'Fatture fornitori'}},
-            exportDate: {
-                label: 'Data fattura fornitore',
-                description: 'Usa questa data quando esporti i report su Rillet.',
-                values: {label: 'Data di invio', description: 'Data in cui il report è stato inviato per l’approvazione.'},
-            },
-            exportCompanyCard: {label: 'Esporta le spese della carta aziendale come', values: {label: 'Carte di credito'}},
-            defaultCompanyCardVendor: {
-                label: 'Fornitore predefinito della carta aziendale',
-                description: 'Scegli un fornitore Rillet predefinito per le spese che non vengono abbinate automaticamente.',
-            },
-            companyCardAccount: {label: 'Conto carta aziendale', description: 'Scegli dove esportare le transazioni delle carte aziendali.'},
         },
         type: {
             free: 'Gratis',

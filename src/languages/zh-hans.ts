@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -9,16 +19,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,6 +63,7 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -5349,16 +5350,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
             dimensionsImport: '所有 Rillet 维度将作为标签导入',
             importDescription: '选择要从 Rillet 导入的编码配置。',
-            noVendorsFound: '未找到供应商',
-            noVendorsFoundDescription: '请在 Rillet 中添加供应商，然后再次同步连接',
-            noAccountsFound: '未找到账户',
-            noAccountsFoundDescription: '请在 Rillet 中添加账户并重新同步连接',
-            exportDescription: '配置 Expensify 数据导出到 Rillet 的方式。',
-            exportReimbursable: {label: '将可报销费用导出为', values: {label: '供应商账单'}},
-            exportDate: {label: '供应商账单日期', description: '将报表导出到 Rillet 时使用此日期。', values: {label: '提交日期', description: '报表提交审批的日期。'}},
-            exportCompanyCard: {label: '导出公司卡费用为', values: {label: '信用卡'}},
-            defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
-            companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
         },
         type: {
             free: '免费',
