@@ -4,7 +4,6 @@ description: Learn how to create, edit, submit, and export expense reports—inc
 keywords: [expense reports, submit report, edit report, copilot, view collaborator reports, csv export, Expensify reports, report layout, report submission]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. 
 This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and understanding report statuses. It also covers how to view collaborator reports using Copilot access and exporting reports to CSV.
@@ -39,7 +38,7 @@ Expenses may be automatically added to a report if your Workspace has this setti
 3. Click **Add to Report**.
 4. Choose the destination report.
 
-**Note:** Only **Open** expenses can be moved. Expenses in **Processing**, **Approved**, **Reimbursed**, or **Closed** statuses cannot be moved.
+**Note:** Only **Draft** expenses can be moved. Expenses in **Outstanding**, **Approved**, **Paid**, or **Done** statuses cannot be moved.
 
 ## Create a New Report
 
@@ -142,7 +141,7 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
    - **Attach PDF** – Optional.
 3. Tap **Submit**.
 
-**Note:** The **CC** field is "sticky"—Expensify remembers previous entries. Remove them next time to stop future auto-CCs. 
+**Note:** The **CC** field is "sticky" — Expensify remembers previous entries. Remove them next time to stop future auto-CCs. 
 
 ## Submit via Guided Review (web-only)
 
@@ -155,13 +154,27 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
 
 **On Desktop:**
 1. Open the report.
-2. Click **Undo Submit**.
+2. Click **Retract**.
 
 **On Mobile:**
 1. Tap the report.
 2. Tap **Retract**.
 
 **Note:** Reports with **Instant Submit** cannot be fully retracted. Only individual expenses can be edited.
+
+## Delete an Open Report
+
+**On Desktop:**
+1. Click on the Reports tab.
+2. Select the checkbox next to the Open Report you wish to delete.
+3. Click on the red trash icon.
+
+**On Mobile:**
+1. Tap ☰ and go to **Reports**.
+2. Long-press the Open Report that you wish to delete.
+3. Select the **Delete** button.
+
+**Note:** Deleted expenses are moved to a Deleted folder and can be restored if needed.
 
 ---
 
@@ -198,23 +211,25 @@ When impactful changes are made to the report, such as changing an expense's rei
 
 Every report passes through several statuses. Here’s what they mean:
 
-- **Open** – In progress, not yet submitted. If also labeled **Rejected**, open the report to review comments and revise.
-- **Processing** – Submitted and awaiting approval.
+- **Draft** – In progress, not yet submitted. If also labeled **Rejected**, open the report to review comments and revise.
+- **Outstanding** – Submitted and awaiting approval.
 - **Approved** – Fully approved but not reimbursed.
-- **Reimbursed** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
-- **Closed** – Finalized and no longer editable.
+- **Paid** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
+- **Done** – Finalized and no longer editable.
+
+**Note:** A report will only move to the **Done** status if it's submitted on an **Individual workspace** or a **Group workspace** using the **Submit & Close** approval workflow.
 
 ## Finalized state by workflow
 
 - **Non-reimbursable** – Finalized at **Approved**.
-- **Reimbursable** – Finalized at **Reimbursed**.
-- **Mixed** – Finalized at **Reimbursed**, even if only some expenses are reimbursable.
+- **Reimbursable** – Finalized at **Paid**.
+- **Mixed** – Finalized at **Paid**, even if only some expenses are reimbursable.
 
 ---
 
 ## Reports Marked as Closed
 
-A report is automatically marked **Closed** under these conditions:
+A report is automatically marked as **Done** under these conditions:
 
 - **Individual Workspace** – Reports are closed by default after submission.  
 - **Group Workspace with Submit and Close Workflow** – Reports automatically close upon submission.  
@@ -256,25 +271,24 @@ You can export full reports for archiving or analysis.
    - **Default CSV** – Expensify’s built-in layout.
    - **Create new CSV export layout** – Customize your export format.
 
+---
+
 # FAQ
 
 ## Can I view my teammate's expense reports?
 
 Yes, if you have **Copilot access**. Ask your teammate to add you as a Copilot so you can view, edit, or submit their reports.
 
----
 
 ## Can I export an expense report as a spreadsheet?
 
 Yes! Open the report, click **Details**, then choose **Export to CSV**.
 
----
 
 ## How are credits or refunds displayed?
 
 They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
 
----
 
 ## What’s the difference between an expense, a receipt, and a report attachment?
 
@@ -282,7 +296,6 @@ They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
 - **Receipt** – Image attached to an expense.
 - **Attachment** – Additional files added at the bottom of the report (e.g., documents).
 
----
 
 ## What’s the difference between reports, invoices, and bills?
 
@@ -290,4 +303,14 @@ They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
 - **Invoice** – Sent between businesses to request payment.
 - **Bill** – Generated at the point of sale (e.g., in-store or service receipt).
 
-</div>
+## Have the names of the report states changed?
+
+Yes! Report states have changed to make it clearer where the report is currently in your approval workflow. 
+
+| Old name | New name 
+| -- | --
+| Open | Draft
+| Processing | Outstanding
+| Approved | Approved (no change)
+| Reimbursed | Paid
+| Closed | Done

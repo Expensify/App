@@ -1,13 +1,19 @@
-import React, {Fragment, useCallback, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatReportLastMessageText} from '@libs/ReportUtils';
-import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
+
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText} from 'react-native';
+
+import React, {Fragment, useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import type DisplayNamesProps from './types';
+
+import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
@@ -19,11 +25,12 @@ function DisplayNamesWithToolTip({
     textStyles = [],
     numberOfLines = 1,
     renderAdditionalText,
+    forwardedFSClass,
+    accessibilityLabel,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
-    // eslint-disable-next-line react-compiler/react-compiler
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**
@@ -59,10 +66,12 @@ function DisplayNamesWithToolTip({
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
+            accessibilityLabel={accessibilityLabel}
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
-            testID={DisplayNamesWithToolTip.displayName}
+            testID="DisplayNamesWithToolTip"
+            fsClass={forwardedFSClass}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -78,6 +87,7 @@ function DisplayNamesWithToolTip({
                               avatar={avatar}
                               textStyles={textStyles}
                               childRefs={childRefs}
+                              forwardedFSClass={forwardedFSClass}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}
@@ -95,7 +105,5 @@ function DisplayNamesWithToolTip({
         </Text>
     );
 }
-
-DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;

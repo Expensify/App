@@ -1,44 +1,34 @@
-import type {ValueOf} from 'type-fest';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-const {
-    CONCIERGE_LHN_GBR,
-    RENAME_SAVED_SEARCH,
-    BOTTOM_NAV_INBOX_TOOLTIP,
-    LHN_WORKSPACE_CHAT_TOOLTIP,
-    GLOBAL_CREATE_TOOLTIP,
-    SCAN_TEST_TOOLTIP,
-    SCAN_TEST_TOOLTIP_MANAGER,
-    SCAN_TEST_CONFIRMATION,
-    EXPENSE_REPORTS_FILTER,
-} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+import type {ValueOf} from 'type-fest';
 
-type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
+const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
+    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+
+type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
     isUserPolicyEmployee: boolean;
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
+    isUserInPaidPolicy: boolean;
 };
 
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: TranslationPaths;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
-    shouldRenderActionButtons?: boolean;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
-        content: [
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
-        ],
+        content: 'productTrainingTooltip.conciergeLHNGBR',
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
         priority: 1300,
@@ -47,92 +37,52 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
-        content: [
-            {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
-        ],
+        content: 'productTrainingTooltip.saveSearchTooltip',
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
-    [GLOBAL_CREATE_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
-        ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
-        name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1950,
-        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
-    },
-    [BOTTOM_NAV_INBOX_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
-        ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
-        name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 1700,
-        shouldShow: ({hasBeenAddedToNudgeMigration}) => hasBeenAddedToNudgeMigration,
-    },
-    [LHN_WORKSPACE_CHAT_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
-        ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
-        name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 1800,
-        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
-    },
-    [EXPENSE_REPORTS_FILTER]: {
-        content: [
-            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
-            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
-            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
-        name: EXPENSE_REPORTS_FILTER,
-        priority: 2000,
-        shouldShow: ({shouldUseNarrowLayout, isUserPolicyAdmin, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) =>
-            !shouldUseNarrowLayout && isUserPolicyAdmin && hasBeenAddedToNudgeMigration,
-    },
-    [SCAN_TEST_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
-        ],
-        onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
-        name: SCAN_TEST_TOOLTIP,
-        priority: 900,
+    [ACCOUNT_SWITCHER]: {
+        content: 'productTrainingTooltip.accountSwitcher',
+        onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
+        name: ACCOUNT_SWITCHER,
+        priority: 1600,
         shouldShow: () => true,
-        shouldRenderActionButtons: true,
     },
-    [SCAN_TEST_TOOLTIP_MANAGER]: {
-        content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
-        ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
-        name: SCAN_TEST_TOOLTIP_MANAGER,
+    [OUTSTANDING_FILTER]: {
+        content: 'productTrainingTooltip.outstandingFilter',
+        onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
+        name: OUTSTANDING_FILTER,
+        priority: 1925,
+        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
+    },
+    [SCAN_TEST_DRIVE_CONFIRMATION]: {
+        content: 'productTrainingTooltip.scanTestDriveTooltip',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
+        name: SCAN_TEST_DRIVE_CONFIRMATION,
+        priority: 1200,
+        shouldShow: () => true,
+    },
+    [GPS_TOOLTIP]: {
+        content: 'productTrainingTooltip.gpsTooltip',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GPS_TOOLTIP, isDismissedUsingCloseButton),
+        name: GPS_TOOLTIP,
+        priority: 800,
+        shouldShow: () => true,
+    },
+    [HAS_FILTER_NEGATION]: {
+        content: 'productTrainingTooltip.hasFilterNegation',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(HAS_FILTER_NEGATION, isDismissedUsingCloseButton),
+        name: HAS_FILTER_NEGATION,
         priority: 1000,
         shouldShow: () => true,
     },
-    [SCAN_TEST_CONFIRMATION]: {
-        content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part6', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
-        ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
-        name: SCAN_TEST_CONFIRMATION,
-        priority: 1100,
+    [MILEAGE_RATE_AUTO_UPDATED]: {
+        content: 'productTrainingTooltip.mileageRateAutoUpdated',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MILEAGE_RATE_AUTO_UPDATED, isDismissedUsingCloseButton),
+        name: MILEAGE_RATE_AUTO_UPDATED,
+        priority: 800,
         shouldShow: () => true,
     },
 };

@@ -1,15 +1,21 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type QBDSectionType = {
     description: string;
@@ -52,7 +58,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopImportPage.displayName}
+            displayName="QuickbooksDesktopImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbd.importDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -80,7 +86,5 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopImportPage.displayName = 'PolicyQuickbooksDesktopImportPage';
 
 export default withPolicyConnections(QuickbooksDesktopImportPage);

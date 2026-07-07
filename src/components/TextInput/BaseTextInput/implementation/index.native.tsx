@@ -1,13 +1,7 @@
-import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import {useSharedValue, withSpring} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -19,71 +13,91 @@ import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
+
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
-function BaseTextInput(
-    {
-        label = '',
-        /**
-         * To be able to function as either controlled or uncontrolled component we should not
-         * assign a default prop value for `value` or `defaultValue` props
-         */
-        value = undefined,
-        defaultValue = undefined,
-        placeholder = '',
-        errorText = '',
-        iconLeft = null,
-        icon = null,
-        textInputContainerStyles,
-        touchableInputWrapperStyle,
-        containerStyles,
-        inputStyle,
-        forceActiveLabel = false,
-        disableKeyboard = false,
-        autoGrow = false,
-        autoGrowExtraSpace = 0,
-        autoGrowHeight = false,
-        maxAutoGrowHeight,
-        hideFocusedState = false,
-        maxLength = undefined,
-        hint = '',
-        onInputChange = () => {},
-        multiline = false,
-        autoCorrect = true,
-        prefixCharacter = '',
-        suffixCharacter = '',
-        inputID,
-        type = 'default',
-        excludedMarkdownStyles = [],
-        shouldShowClearButton = false,
-        shouldHideClearButton = true,
-        prefixContainerStyle = [],
-        prefixStyle = [],
-        suffixContainerStyle = [],
-        suffixStyle = [],
-        contentWidth,
-        loadingSpinnerStyle,
-        uncontrolled,
-        placeholderTextColor,
-        onClearInput,
-        iconContainerStyle,
-        ...props
-    }: BaseTextInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
-    // For iOS, we don't need to measure the text input because it already has auto grow behavior
-    // See TextInputMeasurement.ios.tsx for more details
-    const isExternalAutoGrowMeasurement = getPlatform() !== CONST.PLATFORM.IOS && autoGrow;
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
+
+function BaseTextInput({
+    label = '',
+    /**
+     * To be able to function as either controlled or uncontrolled component we should not
+     * assign a default prop value for `value` or `defaultValue` props
+     */
+    value = undefined,
+    defaultValue = undefined,
+    placeholder = '',
+    errorText = '',
+    iconLeft = null,
+    icon = null,
+    textInputContainerStyles,
+    shouldApplyPaddingToContainer = true,
+    touchableInputWrapperStyle,
+    containerStyles,
+    inputStyle,
+    shouldUseFullInputHeight = false,
+    forceActiveLabel = false,
+    disableKeyboard = false,
+    autoGrow = false,
+    autoGrowExtraSpace = 0,
+    autoGrowMarginSide,
+    autoGrowHeight = false,
+    maxAutoGrowHeight,
+    hideFocusedState = false,
+    maxLength = undefined,
+    hint = '',
+    shouldRenderHintAsHTML = false,
+    onInputChange = () => {},
+    multiline = false,
+    shouldLabelStayOnSingleLine = false,
+    autoCorrect = true,
+    prefixCharacter = '',
+    suffixCharacter = '',
+    inputID,
+    type = 'default',
+    excludedMarkdownStyles = [],
+    shouldShowClearButton = false,
+    shouldHideClearButton = true,
+    prefixContainerStyle = [],
+    prefixStyle = [],
+    suffixContainerStyle = [],
+    suffixStyle = [],
+    contentWidth,
+    loadingSpinnerStyle,
+    uncontrolled,
+    placeholderTextColor,
+    onClearInput,
+    iconContainerStyle,
+    clearButtonStyle,
+    clearButtonIconSize,
+    shouldUseDefaultLineHeightForPrefix = true,
+    ref,
+    sentryLabel,
+    rightHandSideComponent,
+    shouldAllowFocusInLandscapeMode = false,
+    ...props
+}: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
@@ -91,9 +105,10 @@ function BaseTextInput(
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -108,19 +123,30 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
-    const [prefixCharacterPadding, setPrefixCharacterPadding] = useState(8);
+    const [prefixCharacterPadding, setPrefixCharacterPadding] = useState<number>(CONST.CHARACTER_WIDTH);
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const hasLabel = !!label?.length;
 
-    useHtmlPaste(input, undefined, isMarkdownEnabled);
+    useHtmlPaste(input, undefined, isMarkdownEnabled, maxLength);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
-            labelScale.set(withSpring(scale, {overshootClamping: false}));
-            labelTranslateY.set(withSpring(translateY, {overshootClamping: false}));
+            labelScale.set(
+                withTiming(scale, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+            labelTranslateY.set(
+                withTiming(translateY, {
+                    duration: 200,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
         },
         [labelScale, labelTranslateY],
     );
@@ -147,12 +173,12 @@ function BaseTextInput(
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (event: FocusEvent) => {
         inputProps.onFocus?.(event);
         setIsFocused(true);
     };
 
-    const onBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onBlur = (event: BlurEvent) => {
         inputProps.onBlur?.(event);
         setIsFocused(false);
     };
@@ -181,13 +207,16 @@ function BaseTextInput(
             const heightToFitEmojis = 1;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis : prevHeight));
+            const borderWidth = styles.textInputContainer.borderWidth * 2;
+            const labelPadding = hasLabel ? styles.textInputContainer.padding : 0;
+            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis - (labelPadding + borderWidth) : prevHeight));
         },
-        [autoGrowHeight, multiline],
+        [autoGrowHeight, multiline, styles.textInputContainer, hasLabel],
     );
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
@@ -220,7 +249,7 @@ function BaseTextInput(
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
-        const formattedValue = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
+        const formattedValue = isMultiline ? newValue : newValue.replaceAll('\n', ' ');
 
         onInputChange?.(formattedValue);
 
@@ -243,28 +272,46 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
-    const hasLabel = !!label?.length;
+    const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
+        !hasLabel && styles.pt0,
         textInputContainerStyles,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        isExternalAutoGrowMeasurement && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
+        !shouldApplyPaddingToContainer && styles.p0,
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
+        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
+        inputProps.disabled && styles.textInputDisabledContainer,
+        shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
+    // We extract the horizontal padding/border from the input container to get an accurate width.
+    // This is used by the TextInputMeasurement for autoGrow height calculation.
+    const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
+
+    const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
     // Height fix is needed only for Text single line inputs
-    const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
+    const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
+    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
+    const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
 
     return (
         <>
@@ -273,15 +320,20 @@ function BaseTextInput(
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
+                    accessible={false}
+                    sentryLabel={sentryLabel}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
-                    accessibilityLabel={label}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
-                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                            styles.autoGrowHeightInputContainer(
+                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
+                                variables.componentSizeLarge,
+                                typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
+                            ),
+                        isAutoGrowHeightMarkdown && {minHeight: variables.inputHeight},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -295,19 +347,17 @@ function BaseTextInput(
                         ]}
                     >
                         {hasLabel ? (
-                            <>
-                                {/* Adding this background to the label only for multiline text input,
-                to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
-                                <TextInputLabel
-                                    label={label}
-                                    labelTranslateY={labelTranslateY}
-                                    labelScale={labelScale}
-                                    for={inputProps.nativeID}
-                                />
-                            </>
+                            <TextInputLabel
+                                label={label}
+                                labelTranslateY={labelTranslateY}
+                                labelScale={labelScale}
+                                for={inputProps.nativeID}
+                                isMultiline={isMultiline}
+                                shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
+                            />
                         ) : null}
-                        <View style={[styles.textInputAndIconContainer(isMarkdownEnabled), isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        {hiddenLabel}
+                        <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
@@ -319,7 +369,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle, shouldApplyHeight && {height}]}>
                                     <Text
                                         onLayout={(event) => {
                                             if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
@@ -331,14 +381,16 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        shouldUseDefaultLineHeight={!!shouldUseDefaultLineHeightForPrefix && !shouldApplyHeight}
                                     >
                                         {prefixCharacter}
                                     </Text>
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
-                                    const baseTextInputRef = element as BaseTextInputRef | null;
+                                ref={(element: BaseTextInputRef | null): void => {
+                                    const baseTextInputRef = isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
+
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
@@ -346,17 +398,22 @@ function BaseTextInput(
                                         ref.current = baseTextInputRef;
                                     }
 
-                                    input.current = element;
+                                    const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
+                                    input.current = elementRef;
                                 }}
-                                // eslint-disable-next-line
                                 {...inputProps}
+                                autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
+                                accessibilityLabel={resolvedAccessibilityLabel}
+                                accessibilityLabelledBy={accessibilityLabelledBy}
+                                accessibilityValue={accessibilityValue}
+                                accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    !autoGrow && styles.flex1,
-                                    !autoGrow && styles.w100,
+                                    styles.flex1,
+                                    styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
@@ -385,11 +442,12 @@ function BaseTextInput(
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
-                                inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
+                                inputMode={!disableKeyboard ? isKeyboardType : CONST.INPUT_MODE.NONE}
                                 value={uncontrolled ? undefined : value}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                disableFullscreenUI
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -402,24 +460,31 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
                                 <TextInputClearButton
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
                                     }}
+                                    iconSize={clearButtonIconSize}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
-                            {inputProps.isLoading !== undefined && (
+                            {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
-                                    size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
+                            )}
+                            {/* Render rightHandSideComponent only when clear button is not shown
+                                This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
+                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
+                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={[styles.flex1, styles.textInputIconContainer]}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
@@ -427,13 +492,19 @@ function BaseTextInput(
                                     accessibilityLabel={translate('common.visible')}
                                 >
                                     <Icon
-                                        src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                        src={passwordHidden ? icons.Eye : icons.EyeDisabled}
                                         fill={theme.icon}
                                     />
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                        iconContainerStyle,
+                                    ]}
+                                >
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
@@ -447,6 +518,7 @@ function BaseTextInput(
                     <FormHelpMessage
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>
@@ -464,11 +536,10 @@ function BaseTextInput(
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
+                autoGrowMeasurementStyles={autoGrowMeasurementStyles}
             />
         </>
     );
 }
 
-BaseTextInput.displayName = 'BaseTextInput';
-
-export default forwardRef(BaseTextInput);
+export default BaseTextInput;

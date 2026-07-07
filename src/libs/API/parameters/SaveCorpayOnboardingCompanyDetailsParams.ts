@@ -21,6 +21,7 @@ type SaveCorpayOnboardingCompanyDetails = {
     purposeOfTransactionId: typeof CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID;
     tradeVolume: string;
     taxIDEINNumber: string;
+    businessTypeId?: string;
 };
 
 type SaveCorpayOnboardingCompanyDetailsParams = {

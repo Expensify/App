@@ -1,19 +1,23 @@
-import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {UpdateSageIntacctTaxSolutionID} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo} from 'react';
 
 type SageIntacctMappingsTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
@@ -32,14 +36,14 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
     const selectionOptions = useMemo<SelectorType[]>(() => {
         const mappingOptions: SelectorType[] = [];
         const sageIntacctTaxSolutionIDs = sageIntacctData?.taxSolutionIDs ?? [];
-        sageIntacctTaxSolutionIDs.forEach((taxSolutionID) => {
+        for (const taxSolutionID of sageIntacctTaxSolutionIDs) {
             mappingOptions.push({
                 value: taxSolutionID,
                 text: taxSolutionID,
                 keyForList: taxSolutionID,
                 isSelected: sageIntacctConfigTaxSolutionID === taxSolutionID,
             });
-        });
+        }
 
         return mappingOptions;
     }, [sageIntacctConfigTaxSolutionID, sageIntacctData?.taxSolutionIDs]);
@@ -57,9 +61,8 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctImportTaxMappingPage.displayName}
-            sections={[{data: selectionOptions}]}
-            listItem={RadioListItem}
+            displayName="SageIntacctImportTaxMappingPage"
+            data={selectionOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onSelectRow={updateMapping}
             initiallyFocusedOptionKey={selectionOptions.find((option) => option.isSelected)?.keyForList}
@@ -72,7 +75,5 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
         />
     );
 }
-
-SageIntacctImportTaxMappingPage.displayName = 'SageIntacctImportTaxMappingPage';
 
 export default SageIntacctImportTaxMappingPage;

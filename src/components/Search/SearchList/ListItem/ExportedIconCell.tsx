@@ -1,0 +1,158 @@
+import Avatar from '@components/Avatar';
+import Icon from '@components/Icon';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
+
+import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type ExportedIconCellProps = {
+    reportActions?: ReportAction[];
+};
+
+const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>([CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]);
+
+function ExportedIconCell({reportActions}: ExportedIconCellProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+
+    const actions = reportActions ?? [];
+    const icons = useMemoizedLazyExpensifyIcons([
+        'NetSuiteSquare',
+        'XeroSquare',
+        'IntacctSquare',
+        'QBOSquare',
+        'Table',
+        'TablePencil',
+        'ZenefitsSquare',
+        'BillComSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+    ]);
+
+    let isExportedToStandardTemplate = false;
+    let isExportedToCustomTemplate = false;
+    let isExportedToNetsuite = false;
+    let isExportedToXero = false;
+    let isExportedToIntacct = false;
+    let isExportedToQuickbooksOnline = false;
+    let isExportedToQuickbooksDesktop = false;
+    let isExportedToCertinia = false;
+    let isExportedToRillet = false;
+    let isExportedToBillCom = false;
+    let isExportedToZenefits = false;
+
+    for (const action of actions) {
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV) {
+            isExportedToStandardTemplate = true;
+        }
+
+        if (isExportedToIntegrationAction(action)) {
+            const message = getOriginalMessage(action);
+            const label = message?.label;
+            const type = message?.type;
+            const isStandardExportTemplate = !!label && STANDARD_EXPORT_TEMPLATE_LABELS.has(label);
+
+            if (type === CONST.EXPORT_TEMPLATE && isStandardExportTemplate) {
+                isExportedToStandardTemplate = true;
+            }
+
+            if (type === CONST.EXPORT_TEMPLATE && !isStandardExportTemplate) {
+                isExportedToCustomTemplate = true;
+            }
+            isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
+            isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
+            isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;
+            isExportedToQuickbooksDesktop = isExportedToQuickbooksDesktop || label === CONST.EXPORT_LABELS.QBD;
+            isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
+            isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
+            isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
+            isExportedToRillet = isExportedToRillet || label === CONST.EXPORT_LABELS.RILLET;
+            isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
+        }
+    }
+
+    return (
+        <View style={[styles.flexRow, styles.gap2]}>
+            {isExportedToStandardTemplate && (
+                <Icon
+                    src={icons.Table}
+                    fill={theme.icon}
+                    small
+                />
+            )}
+            {isExportedToCustomTemplate && (
+                <Icon
+                    src={icons.TablePencil}
+                    fill={theme.icon}
+                    small
+                />
+            )}
+            {isExportedToNetsuite && (
+                <Avatar
+                    source={icons.NetSuiteSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToXero && (
+                <Avatar
+                    source={icons.XeroSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToIntacct && (
+                <Avatar
+                    source={icons.IntacctSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {(isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && (
+                <Avatar
+                    source={icons.QBOSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToCertinia && (
+                <Avatar
+                    source={icons.CertiniaSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToRillet && (
+                <Avatar
+                    source={icons.RilletSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToBillCom && (
+                <Avatar
+                    source={icons.BillComSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToZenefits && (
+                <Avatar
+                    source={icons.ZenefitsSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+        </View>
+    );
+}
+
+export default ExportedIconCell;

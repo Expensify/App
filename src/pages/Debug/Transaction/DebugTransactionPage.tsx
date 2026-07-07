@@ -1,28 +1,35 @@
-import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
+import {getTagLists} from '@libs/PolicyUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import DebugTransactionViolations from './DebugTransactionViolations';
 
 type DebugTransactionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION>;
@@ -33,10 +40,10 @@ function DebugTransactionPage({
     },
 }: DebugTransactionPageProps) {
     const {translate} = useLocalize();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const styles = useThemeStyles();
 
@@ -46,16 +53,17 @@ function DebugTransactionPage({
                 formType={CONST.DEBUG.FORMS.TRANSACTION}
                 data={transaction}
                 policyID={report?.policyID}
-                policyHasEnabledTags={TagsOptionsListUtils.hasEnabledTags(policyTagLists)}
+                policyHasEnabledTags={hasEnabledTags(policyTagLists)}
                 onSave={(data) => {
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
                 }}
                 onDelete={() => {
-                    Navigation.goBack();
-                    // We need to wait for navigation animations to finish before deleting a transaction,
-                    // otherwise the user will see a not found page briefly.
-                    InteractionManager.runAfterInteractions(() => {
-                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                    Navigation.goBack(undefined, {
+                        // We need to wait for navigation animations to finish before deleting a transaction,
+                        // otherwise the user will see a not found page briefly.
+                        afterTransition: () => {
+                            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                        },
                     });
                 }}
                 validate={DebugUtils.validateTransactionDraftProperty}
@@ -94,8 +102,8 @@ function DebugTransactionPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugTransactionPage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugTransactionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -112,7 +120,5 @@ function DebugTransactionPage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionPage.displayName = 'DebugTransactionPage';
 
 export default DebugTransactionPage;

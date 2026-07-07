@@ -1,0 +1,156 @@
+diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
+index 3169c25..19acc49 100644
+--- a/node_modules/@sentry/core/build/cjs/utils/browser.js
++++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
+@@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
+
+ /**
+  * Given a child DOM element, returns a query-selector statement describing that
+- * and its ancestors
+- * e.g. [HTMLElement] => body > div > input#foo.btn[name=baz]
++ * and its ancestors, prefixed with data-sentry-label if found on ancestor
++ * e.g. [HTMLElement] => [data-sentry-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg
+  * @returns generated DOM path
+  */
+ function htmlTreeAsString(
+@@ -53,7 +53,47 @@ function htmlTreeAsString(
+       currentElem = currentElem.parentNode;
+     }
+
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++
++    // Search for data-sentry-label and data-tag="pressable" up to 15 levels
++    let labelElem = null;
++    let dataLabel = null;
++    let pressableElem = null;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
++      // @ts-expect-error WINDOW has HTMLElement
++      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (current.getAttribute('aria-disabled') === 'true') {
++          current = current.parentNode;
++          continue;
++        }
++        if (!dataLabel && current.dataset['sentryLabel']) {
++          dataLabel = current.dataset['sentryLabel'];
++          labelElem = current;
++        }
++        if (!pressableElem && current.dataset['tag'] === 'pressable') {
++          pressableElem = current;
++        }
++        if (dataLabel && pressableElem) break;
++      }
++      current = current.parentNode;
++    }
++
++    if (!dataLabel) {
++      return cssSelector;
++    }
++
++    // If the first active pressable and the first label are on the same element, the label alone identifies the interaction
++    if (pressableElem && labelElem === pressableElem) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++
++    // If the label was found within the 5-level CSS selector, return as is
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
+   } catch {
+     return '<unknown>';
+   }
+@@ -77,8 +117,12 @@ function _htmlElementAsString(el, keyAttrs) {
+
+   // @ts-expect-error WINDOW has HTMLElement
+   if (WINDOW.HTMLElement) {
+-    // If using the component name annotation plugin, this value may be available on the DOM node
+     if (elem instanceof HTMLElement && elem.dataset) {
++      // Check for data-sentry-label first - return in attribute format [data-sentry-label="value"]
++      if (elem.dataset['sentryLabel']) {
++        return `[data-sentry-label="${elem.dataset['sentryLabel']}"]`;
++      }
++      // If using the component name annotation plugin, this value may be available on the DOM node
+       if (elem.dataset['sentryComponent']) {
+         return elem.dataset['sentryComponent'];
+       }
+diff --git a/node_modules/@sentry/core/build/esm/utils/browser.js b/node_modules/@sentry/core/build/esm/utils/browser.js
+index 2ad52b0..796cac9 100644
+--- a/node_modules/@sentry/core/build/esm/utils/browser.js
++++ b/node_modules/@sentry/core/build/esm/utils/browser.js
+@@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
+
+ /**
+  * Given a child DOM element, returns a query-selector statement describing that
+- * and its ancestors
+- * e.g. [HTMLElement] => body > div > input#foo.btn[name=baz]
++ * and its ancestors, prefixed with data-sentry-label if found on ancestor
++ * e.g. [HTMLElement] => [data-sentry-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg
+  * @returns generated DOM path
+  */
+ function htmlTreeAsString(
+@@ -51,7 +51,47 @@ function htmlTreeAsString(
+       currentElem = currentElem.parentNode;
+     }
+
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++
++    // Search for data-sentry-label and data-tag="pressable" up to 15 levels
++    let labelElem = null;
++    let dataLabel = null;
++    let pressableElem = null;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
++      // @ts-expect-error WINDOW has HTMLElement
++      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (current.getAttribute('aria-disabled') === 'true') {
++          current = current.parentNode;
++          continue;
++        }
++        if (!dataLabel && current.dataset['sentryLabel']) {
++          dataLabel = current.dataset['sentryLabel'];
++          labelElem = current;
++        }
++        if (!pressableElem && current.dataset['tag'] === 'pressable') {
++          pressableElem = current;
++        }
++        if (dataLabel && pressableElem) break;
++      }
++      current = current.parentNode;
++    }
++
++    if (!dataLabel) {
++      return cssSelector;
++    }
++
++    // If the first active pressable and the first label are on the same element, the label alone identifies the interaction
++    if (pressableElem && labelElem === pressableElem) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++
++    // If the label was found within the 5-level CSS selector, return as is
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
+   } catch {
+     return '<unknown>';
+   }
+@@ -75,8 +115,12 @@ function _htmlElementAsString(el, keyAttrs) {
+
+   // @ts-expect-error WINDOW has HTMLElement
+   if (WINDOW.HTMLElement) {
+-    // If using the component name annotation plugin, this value may be available on the DOM node
+     if (elem instanceof HTMLElement && elem.dataset) {
++      // Check for data-sentry-label first - return in attribute format [data-sentry-label="value"]
++      if (elem.dataset['sentryLabel']) {
++        return `[data-sentry-label="${elem.dataset['sentryLabel']}"]`;
++      }
++      // If using the component name annotation plugin, this value may be available on the DOM node
+       if (elem.dataset['sentryComponent']) {
+         return elem.dataset['sentryComponent'];
+       }

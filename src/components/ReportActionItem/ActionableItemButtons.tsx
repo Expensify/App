@@ -1,24 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ActionableItem = {
     isPrimary?: boolean;
     key: string;
     onPress: () => void;
     text: string;
-    isMediumSized?: boolean;
     shouldUseLocalization?: boolean;
-    isDisabled?: boolean;
 };
 
 type ActionableItemButtonsProps = {
     items: ActionableItem[];
     layout?: 'horizontal' | 'vertical';
     shouldUseLocalization?: boolean;
+    primaryTextNumberOfLines?: number;
+    styles?: {
+        text?: StyleProp<TextStyle>;
+        button?: StyleProp<ViewStyle>;
+    };
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -26,23 +35,22 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], styles.gap2, styles.mt2]}>
+        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], props.wrapperStyle]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
                     onPress={item.onPress}
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
-                    small={!item.isMediumSized}
-                    medium={item.isMediumSized}
+                    medium
                     success={item.isPrimary}
-                    isDisabled={item.isDisabled}
+                    innerStyles={props.styles?.button}
+                    primaryTextNumberOfLines={props.primaryTextNumberOfLines}
+                    textStyles={props.styles?.text}
                 />
             ))}
         </View>
     );
 }
-
-ActionableItemButtons.displayName = 'ActionableItemButtons';
 
 export default ActionableItemButtons;
 export type {ActionableItem};

@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */
@@ -28,13 +33,14 @@ type BeneficialOwnersListProps = {
 };
 
 function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: BeneficialOwnersListProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const owners =
@@ -48,7 +54,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                     title={`${ownerData.firstName} ${ownerData.lastName}`}
                     description={`${ownerData.street}, ${ownerData.city}, ${ownerData.state} ${ownerData.zipCode}`}
                     wrapperStyle={[styles.ph5]}
-                    icon={FallbackAvatar}
+                    icon={icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
                         handleOwnerEdit(ownerKey);
@@ -100,7 +106,5 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
         </ScrollView>
     );
 }
-
-BeneficialOwnersList.displayName = 'BeneficialOwnersList';
 
 export default BeneficialOwnersList;

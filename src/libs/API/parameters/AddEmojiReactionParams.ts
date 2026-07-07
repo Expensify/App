@@ -4,7 +4,6 @@ type AddEmojiReactionParams = {
     emojiCode: string;
     reportActionID: string;
     createdAt: string;
-    useEmojiReactions: boolean;
 };
 
 export default AddEmojiReactionParams;

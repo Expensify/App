@@ -1,9 +1,11 @@
-import React from 'react';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+
 import type {ForwardedRef} from 'react';
+import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
+
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
-import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 
 type ScrollViewProps = RNScrollViewProps & {
     /** Whether to add bottom safe area padding to the content. */
@@ -11,19 +13,20 @@ type ScrollViewProps = RNScrollViewProps & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<RNScrollView>;
 };
 
-function ScrollView(
-    {
-        children,
-        scrollIndicatorInsets,
-        contentContainerStyle: contentContainerStyleProp,
-        addBottomSafeAreaPadding = false,
-        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
-        ...props
-    }: ScrollViewProps,
-    ref: ForwardedRef<RNScrollView>,
-) {
+function ScrollView({
+    children,
+    scrollIndicatorInsets,
+    contentContainerStyle: contentContainerStyleProp,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    ref,
+    ...props
+}: ScrollViewProps) {
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
@@ -39,7 +42,6 @@ function ScrollView(
             // See: https://github.com/Expensify/App/issues/31441
             contentContainerStyle={contentContainerStyle}
             scrollIndicatorInsets={scrollIndicatorInsets ?? {right: Number.MIN_VALUE}}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {children}
@@ -47,8 +49,6 @@ function ScrollView(
     );
 }
 
-ScrollView.displayName = 'ScrollView';
-
 export type {ScrollViewProps};
 
-export default React.forwardRef(ScrollView);
+export default ScrollView;

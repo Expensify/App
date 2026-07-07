@@ -1,13 +1,18 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getStyledTextArray from '@libs/GetStyledTextArray';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
+
+import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import Text from './Text';
 
@@ -164,8 +169,6 @@ function MentionSuggestions({
         />
     );
 }
-
-MentionSuggestions.displayName = 'MentionSuggestions';
 
 export default MentionSuggestions;
 

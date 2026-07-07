@@ -7,9 +7,9 @@ on:
 
 jobs:
   verifySignedCommits:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v4
+      - uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Verify signed commits
         uses: ./.github/actions/javascript/verifySignedCommits

@@ -1,9 +1,13 @@
-import type {ElementRef, ForwardedRef, RefObject} from 'react';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {Shortcut} from '@libs/KeyboardShortcut';
+
+import type CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {Shortcut} from '@libs/KeyboardShortcut';
-import type CONST from '@src/CONST';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
@@ -37,7 +41,9 @@ type RequiredAccessibilityLabel =
       };
 
 type PressableProps = RNPressableProps &
-    RequiredAccessibilityLabel & {
+    RequiredAccessibilityLabel &
+    ForwardedFSClassProps &
+    WithSentryLabel & {
         /**
          * onPress callback
          */
@@ -114,7 +120,7 @@ type PressableProps = RNPressableProps &
         /**
          * Specifies which component should be focused after interacting with this component
          */
-        nextFocusRef?: ElementRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
+        nextFocusRef?: ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
 
         /**
          * Specifies the accessibility label for the component
@@ -153,6 +159,11 @@ type PressableProps = RNPressableProps &
          * Whether the pressable is nested in another one.
          */
         isNested?: boolean;
+
+        /**
+         * Reference to the outer element.
+         */
+        ref?: PressableRef;
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;

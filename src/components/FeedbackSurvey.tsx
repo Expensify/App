@@ -1,27 +1,31 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
+
+import {clearDraftValues} from '@libs/actions/FormActions';
+
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {Choice} from './RadioButtons';
+
 import FixedFooter from './FixedFooter';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import RadioButtons from './RadioButtons';
-import type {Choice} from './RadioButtons';
 import Text from './Text';
 import TextInput from './TextInput';
 
 type FeedbackSurveyProps = {
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM;
+    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM;
 
     /** Title of the survey */
     title: string;
@@ -31,9 +35,6 @@ type FeedbackSurveyProps = {
 
     /** Callback to be called when the survey is submitted */
     onSubmit: (reason: FeedbackSurveyOptionID, note?: string) => void;
-
-    /** Styles for the option row element */
-    optionRowStyles?: StyleProp<ViewStyle>;
 
     /** Optional text to render over the submit button */
     footerText?: React.ReactNode;
@@ -48,7 +49,7 @@ type FeedbackSurveyProps = {
     enabledWhenOffline?: boolean;
 };
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draft, draftResults] = useOnyx(`${formID}Draft`);
@@ -73,7 +74,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         setReason(draft.reason);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
     }, [isLoadingDraft]);
 
     const handleOptionSelect = (value: string) => {
@@ -88,7 +89,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         onSubmit(draft.reason, draft.note?.trim());
-        FormActions.clearDraftValues(formID);
+        clearDraftValues(formID);
     };
 
     const handleSetNote = () => {
@@ -108,19 +109,20 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
             isSubmitButtonVisible={false}
             enabledWhenOffline={enabledWhenOffline}
         >
-            <View style={styles.mh5}>
-                <Text style={styles.textHeadline}>{title}</Text>
-                <Text style={[styles.mt1, styles.mb3, styles.textNormalThemeText]}>{description}</Text>
+            <View>
+                <View style={styles.mh5}>
+                    <Text style={styles.textHeadline}>{title}</Text>
+                    <Text style={[styles.mt1, styles.textNormalThemeText]}>{description}</Text>
+                </View>
                 <InputWrapper
                     InputComponent={RadioButtons}
                     inputID={INPUT_IDS.REASON}
                     items={options}
-                    radioButtonStyle={[styles.mb7, optionRowStyles]}
-                    onPress={handleOptionSelect}
+                    onSelect={handleOptionSelect}
                     shouldSaveDraft
                 />
                 {!!reason && (
-                    <>
+                    <View style={[styles.mh5, styles.mt4]}>
                         <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -131,10 +133,10 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                             onChangeText={handleSetNote}
                             shouldSaveDraft
                         />
-                    </>
+                    </View>
                 )}
             </View>
-            <FixedFooter>
+            <FixedFooter style={styles.pb0}>
                 {!!footerText && footerText}
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
@@ -149,7 +151,5 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         </FormProvider>
     );
 }
-
-FeedbackSurvey.displayName = 'FeedbackSurvey';
 
 export default FeedbackSurvey;

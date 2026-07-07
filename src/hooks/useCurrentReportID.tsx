@@ -1,36 +1,70 @@
-import type {NavigationState} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportIDFromLink} from '@libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-type CurrentReportIDContextValue = {
-    updateCurrentReportID: (state: NavigationState) => void;
+import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import React, {createContext, startTransition, useCallback, useContext, useMemo, useRef, useState} from 'react';
+
+type CurrentReportIDStateContextType = {
     currentReportID: string | undefined;
-    currentReportIDFromPath: string | undefined;
+    currentRHPReportID?: string | undefined;
+};
+
+type CurrentReportIDActionsContextType = {
+    updateCurrentReportID: (state: NavigationState) => void;
 };
 
 type CurrentReportIDContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
+    /** Optional callback invoked whenever `currentReportID` is explicitly updated.
+     * This is intended only for unit testing, to detect when the hook
+     * actually attempts to change the `currentReportID` value.
+     */
+    onSetCurrentReportID?: (reportID: string | undefined) => void;
 };
 
-const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
+/**
+ * Traverse the focused route at each level of the navigation state to find a reportID param.
+ * This handles modal navigators (e.g. RightModalNavigator > ExpenseReport) that carry a reportID
+ * in their screen params but are not part of the ReportsSplitNavigator hierarchy.
+ */
+function getFocusedRouteReportID(state: NavigationState | PartialState<NavigationState>): string | undefined {
+    const index = state.index ?? state.routes.length - 1;
+    const focusedRoute = state.routes[index];
+    if (!focusedRoute) {
+        return;
+    }
+    if (focusedRoute.params && 'reportID' in focusedRoute.params && typeof focusedRoute.params.reportID === 'string') {
+        return focusedRoute.params.reportID;
+    }
+    if (focusedRoute.state) {
+        return getFocusedRouteReportID(focusedRoute.state);
+    }
+}
+
+const defaultCurrentReportIDActionsContext: CurrentReportIDActionsContextType = {
+    updateCurrentReportID: () => {},
+};
+
+const CurrentReportIDStateContext = createContext<CurrentReportIDStateContextType>({currentReportID: undefined, currentRHPReportID: undefined});
+
+const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContextType>(defaultCurrentReportIDActionsContext);
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
+    const [currentRHPReportID, setCurrentRHPReportID] = useState<string | undefined>(undefined);
+    // Tracks the most recently requested reportID synchronously so the dedupe
+    // check below stays accurate even while a startTransition is pending.
+    const pendingReportIDRef = useRef<string | undefined>('');
 
     /**
-     * This function is used to update the currentReportID
+     * This function is used to update the currentReportID and currentRHPReportID
      * @param state root navigation state
      */
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
-            const reportID = Navigation.getTopmostReportId(state);
-
             /*
              * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
              * This helps prevent unnecessary re-renders.
@@ -39,32 +73,61 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
                 return;
             }
-            setCurrentReportID(reportID);
+
+            const reportID = Navigation.getTopmostReportId(state);
+
+            if (pendingReportIDRef.current !== reportID) {
+                if (pendingReportIDRef.current || reportID) {
+                    pendingReportIDRef.current = reportID;
+                    props.onSetCurrentReportID?.(reportID);
+                    // Mark the report ID update as a non-urgent transition so React can keep the
+                    // UI responsive to user input while the (potentially expensive) report screen
+                    // re-render is processed in the background.
+                    startTransition(() => {
+                        setCurrentReportID(reportID);
+                    });
+                }
+            }
+
+            const focusedTopRoute = state.routes[state.index];
+            const modalReportID = focusedTopRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && focusedTopRoute.state ? getFocusedRouteReportID(focusedTopRoute.state) : undefined;
+
+            if (currentRHPReportID !== modalReportID && (currentRHPReportID || modalReportID)) {
+                setCurrentRHPReportID(modalReportID);
+            }
         },
-        [setCurrentReportID],
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
+        [setCurrentReportID, setCurrentRHPReportID, currentRHPReportID],
     );
 
-    /**
-     * The context this component exposes to child components
-     * @returns currentReportID to share between central pane and LHN
-     */
-    const contextValue = useMemo(
-        (): CurrentReportIDContextValue => ({
+    const actionsContextValue = useMemo<CurrentReportIDActionsContextType>(
+        () => ({
             updateCurrentReportID,
-            currentReportID,
-            currentReportIDFromPath: lastAccessReportFromPath || undefined,
         }),
-        [updateCurrentReportID, currentReportID, lastAccessReportFromPath],
+        [updateCurrentReportID],
     );
 
-    return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
+    const stateContextValue = useMemo<CurrentReportIDStateContextType>(
+        () => ({
+            currentReportID,
+            currentRHPReportID,
+        }),
+        [currentReportID, currentRHPReportID],
+    );
+
+    return (
+        <CurrentReportIDStateContext.Provider value={stateContextValue}>
+            <CurrentReportIDActionsContext.Provider value={actionsContextValue}>{props.children}</CurrentReportIDActionsContext.Provider>
+        </CurrentReportIDStateContext.Provider>
+    );
 }
 
-CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
-
-export default function useCurrentReportID(): CurrentReportIDContextValue | null {
-    return useContext(CurrentReportIDContext);
+function useCurrentReportIDState() {
+    return useContext(CurrentReportIDStateContext);
 }
 
-export {CurrentReportIDContextProvider};
-export type {CurrentReportIDContextValue};
+function useCurrentReportIDActions() {
+    return useContext(CurrentReportIDActionsContext);
+}
+
+export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions};

@@ -1,6 +1,7 @@
+import CONST from '@src/CONST';
+
 import {useCallback, useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import CONST from '@src/CONST';
 
 /**
  * This hook tracks scroll events and emits a "scrolling" event when scrolling starts and ends.
@@ -11,9 +12,7 @@ const useScrollEventEmitter = () => {
 
     const triggerScrollEvent = useCallback(() => {
         const emitScrolling = (isScrolling: boolean) => {
-            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, {
-                isScrolling,
-            });
+            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, isScrolling);
         };
 
         // Start emitting the scrolling event when the scroll begins

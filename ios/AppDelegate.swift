@@ -9,54 +9,118 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-import ExpoModulesCore
 import Firebase
+internal import Expo
+import ActivityKit
+import AirshipFrameworkProxy
 
- 
+private enum BackupExclusionHelper {
+    private static func excludeDirectoryFromBackup(_ directoryPath: String?) {
+        guard let directoryPath, !directoryPath.isEmpty else {
+            return
+        }
+
+        var directoryURL = URL(fileURLWithPath: directoryPath, isDirectory: true)
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+
+        do {
+            try directoryURL.setResourceValues(resourceValues)
+        } catch {
+            NSLog("Failed to exclude \(directoryPath) from backup: \(error.localizedDescription)")
+        }
+    }
+
+    static func excludeAllAppDataFromBackup() {
+        // Covers all app data: Documents directory, Library directory, and the shared app group container.
+        let fileManager = FileManager.default
+        excludeDirectoryFromBackup(fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.path)
+        excludeDirectoryFromBackup(fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.path)
+        excludeDirectoryFromBackup(fileManager.containerURL(forSecurityApplicationGroupIdentifier: "group.com.expensify.new")?.path)
+    }
+}
+
 @main
 class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
+  var window: UIWindow?
+  var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
+  var reactNativeFactory: RCTReactNativeFactory?
+
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    self.moduleName = "NewExpensify"
-    self.dependencyProvider = RCTAppDependencyProvider()
-    self.initialProps = [:]
-    
+    // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
+    SentryNativeSDKManager.shared.initialize()
+
+    // Initialize certificate pinning before any networking starts (Iteration 1 - NewDot).
+    CertificatePinning.initialize()
+    BackupExclusionHelper.excludeAllAppDataFromBackup()
+
+    let appStartTimePreferencesKey = "AppStartTime"
+    UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
+    let delegate = ReactNativeDelegate()
+    let factory = ExpoReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+
+    reactNativeDelegate = delegate
+    reactNativeFactory = factory
+
+    window = UIWindow(frame: UIScreen.main.bounds)
+    factory.startReactNative(
+      withModuleName: "NewExpensify",
+      in: window,
+      launchOptions: launchOptions
+    )
     // Configure firebase
     FirebaseApp.configure()
-    
+
     // Force the app to LTR mode.
     RCTI18nUtil.sharedInstance().allowRTL(false)
     RCTI18nUtil.sharedInstance().forceRTL(false)
-    
+
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    
-    if let rootView = self.window.rootViewController?.view as? RCTRootView {
+
+    if let rootView = self.window?.rootViewController?.view as? RCTRootView {
         RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView) // <- initialization using the storyboard file name
     }
-    
+
     // Define UNUserNotificationCenter
     let center = UNUserNotificationCenter.current()
     center.delegate = self
-    
-    // Start the "js_load" custom performance tracing metric. This timer is
-    // stopped by a native module in the JS so we can measure total time starting
-    // in the native layer and ending in the JS layer.
-    RCTStartupTimer.start()
-    
+
     if !UserDefaults.standard.bool(forKey: "isFirstRunComplete") {
         UIApplication.shared.applicationIconBadgeNumber = 0
         UserDefaults.standard.set(true, forKey: "isFirstRunComplete")
     }
 
     RNBackgroundTaskManager.setup()
- 
+
+    // Register GPS trip Live Activity with Airship
+    if #available(iOS 16.1, *) {
+        try? LiveActivityManager.shared.setup { configurator in
+            await configurator.register(
+                forType: Activity<GpsTripAttributes>.self,
+                airshipNameExtractor: nil
+            )
+        }
+    }
+
     return true
   }
-  
-  
+
+
+  override func applicationWillTerminate(_ application: UIApplication) {
+    if #available(iOS 16.2, *) {
+        for activity in Activity<GpsTripAttributes>.activities {
+            Task.detached {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+    }
+  }
+
   override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
       return RCTLinkingManager.application(application, open: url, options: options)
   }
-  
+
   override func application(_ application: UIApplication,
                    continue userActivity: NSUserActivity,
                    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
@@ -64,19 +128,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
                                            continue: userActivity,
                                            restorationHandler: restorationHandler)
   }
- 
-  override func sourceURL(for bridge: RCTBridge) -> URL? {
-    return self.bundleURL()
-  }
- 
-  override func bundleURL() -> URL? {
-#if DEBUG
-    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
-#else
-    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-#endif
-  }
-  
+
   // This methods is needed to support the hardware keyboard shortcuts
   func keyCommands() -> [Any]? {
     return HardwareShortcuts.sharedInstance().keyCommands()
@@ -85,4 +137,19 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   func handleKeyCommand(_ keyCommand: UIKeyCommand) {
       HardwareShortcuts.sharedInstance().handleKeyCommand(keyCommand)
   }
+}
+
+class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
+  override func sourceURL(for bridge: RCTBridge) -> URL? {
+    return self.bundleURL()
+  }
+
+  override func bundleURL() -> URL? {
+#if DEBUG
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+#else
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+#endif
+  }
+
 }

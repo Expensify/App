@@ -1,6 +1,7 @@
+import type {ValueOf} from 'type-fest';
+
 import fs from 'fs';
 import yaml from 'js-yaml';
-import type {ValueOf} from 'type-fest';
 
 type Article = {
     href: string;
@@ -12,6 +13,7 @@ type Section = {
     href: string;
     title: string;
     articles?: Article[];
+    sections?: Section[];
 };
 
 type Hub = {
@@ -41,7 +43,11 @@ const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8')
 const platformNames = {
     expensifyClassic: 'expensify-classic',
     newExpensify: 'new-expensify',
+    travel: 'travel',
 } as const;
+
+// Words that should be fully uppercased in auto-generated titles (e.g. "ai" -> "AI")
+const ACRONYMS = new Set(['ai']);
 
 /**
  * @param str - The string to convert to title case
@@ -50,8 +56,12 @@ function toTitleCase(str: string): string {
     return str
         .split(' ')
         .map((word, index) => {
-            if (index !== 0 && (word.toLowerCase() === 'a' || word.toLowerCase() === 'the' || word.toLowerCase() === 'and')) {
-                return word.toLowerCase();
+            const lowerWord = word.toLowerCase();
+            if (ACRONYMS.has(lowerWord)) {
+                return word.toUpperCase();
+            }
+            if (index !== 0 && (lowerWord === 'a' || lowerWord === 'the' || lowerWord === 'and')) {
+                return lowerWord;
             }
             return word.charAt(0).toUpperCase() + word.substring(1);
         })
@@ -60,6 +70,7 @@ function toTitleCase(str: string): string {
 
 /**
  * @param filename - The name of the file
+ * @param order - Optional order from front matter
  */
 function getArticleObj(filename: string, order?: number): Article {
     const href = filename.replace('.md', '');
@@ -93,56 +104,103 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
 }
 
 function getOrderFromArticleFrontMatter(path: string): number | undefined {
-    const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
-    if (!frontmatter) {
-        return;
+    try {
+        const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
+        if (!frontmatter) {
+            return undefined;
+        }
+        const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
+        return frontmatterObject.order as number | undefined;
+    } catch {
+        return undefined;
     }
-    const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-    return frontmatterObject.order as number | undefined;
+}
+
+/**
+ * Build a section from a directory path, with optional parent path for nested href
+ */
+function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
+    const sectionName = sectionPath.split('/').pop() ?? sectionPath;
+    const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
+    const articles: Article[] = [];
+    const childSections: Section[] = [];
+    const href = parentHref ? `${parentHref}/${sectionName}` : sectionName;
+
+    for (const entry of fs.readdirSync(fullPath)) {
+        const entryPath = `${fullPath}/${entry}`;
+        if (entry.endsWith('.md')) {
+            const order = getOrderFromArticleFrontMatter(entryPath);
+            articles.push(getArticleObj(entry, order));
+        } else if (fs.statSync(entryPath).isDirectory()) {
+            childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
+        }
+    }
+
+    // Articles are displayed in the order stored here, so sort by the optional `order` front matter.
+    // The sort is stable, so articles without an `order` keep their relative position and fall after ordered ones.
+    articles.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
+
+    const section: Section = {
+        href,
+        title: toTitleCase(sectionName.replaceAll('-', ' ')),
+        ...(articles.length > 0 && {articles}),
+        ...(childSections.length > 0 && {sections: childSections}),
+    };
+    return section;
+}
+
+/**
+ * Flatten sections for lookup by full path (e.g. netsuite/troubleshooting/connection-errors)
+ */
+function flattenSections(sections: Section[]): Section[] {
+    const result: Section[] = [];
+    for (const s of sections) {
+        result.push(s);
+        if (s.sections?.length) {
+            result.push(...flattenSections(s.sections));
+        }
+    }
+    return result;
 }
 
 /**
  * Add articles and sections to hubs
  * @param hubs - The hubs inside docs/articles/ for a platform
  * @param platformName - Expensify Classic or New Expensify
- * @param routeHubs - The hubs insude docs/data/_routes.yml for a platform
+ * @param routeHubs - The hubs inside docs/data/_routes.yml for a platform
  */
 function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof platformNames>, routeHubs: Hub[]) {
-    hubs.forEach((hub) => {
-        // Iterate through each directory in articles
-        fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`).forEach((fileOrFolder) => {
-            // If the directory content is a markdown file, then it is an article
+    for (const hub of hubs) {
+        const basePath = `${docsDir}/articles/${platformName}/${hub}`;
+
+        for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
                 const articleObj = getArticleObj(fileOrFolder);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
-                return;
+                continue;
             }
 
-            // For readability, we will use the term section to refer to subfolders
-            const section = fileOrFolder;
-            const articles: Article[] = [];
+            const sectionPath = fileOrFolder;
+            const section = buildSection(platformName, hub, sectionPath, '');
+            pushOrCreateEntry(routeHubs, hub, 'sections', section);
+        }
 
-            // Each subfolder will be a section containing articles
-            fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`).forEach((subArticle) => {
-                const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
-                articles.push(getArticleObj(subArticle, order));
-            });
-
-            pushOrCreateEntry(routeHubs, hub, 'sections', {
-                href: section,
-                title: toTitleCase(section.replaceAll('-', ' ')),
-                articles,
-            });
-        });
-    });
+        // Add flat section list for nested section page lookup
+        const hubObj = routeHubs.find((obj) => obj.href === hub);
+        if (hubObj?.sections?.length) {
+            (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
+        }
+    }
 }
 
 function run() {
     const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
     const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
+    const travelArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.travel}`);
 
     const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
     const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
+    const travelRoute = routes.platforms.find((platform) => platform.href === platformNames.travel);
 
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute?.hubs.length) {
         console.error(warnMessage(platformNames.expensifyClassic));
@@ -154,8 +212,14 @@ function run() {
         process.exit(1);
     }
 
+    if (travelArticleHubs.length !== travelRoute?.hubs.length) {
+        console.error(warnMessage(platformNames.travel));
+        process.exit(1);
+    }
+
     createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
     createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
+    createHubsWithArticles(travelArticleHubs, platformNames.travel, travelRoute.hubs);
 
     // Convert the object to YAML and write it to the file
     let yamlString = yaml.dump(routes);

@@ -4,7 +4,6 @@ description: How to export expenses and reports using custom reports, PDF files,
 keywords: [Expensify Classic, export expense reports]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify offers multiple ways to export your expenses and reports:
 - **Export as a PDF**
@@ -127,9 +126,11 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | Expenses Count | Is the number of total expenses on the report of this specific expense.|
 | {report:expensescount} | Would output 10 assuming that there were 10 expenses on the given report for this expense.|
 | Workspace Name | Is the name of the workspace applied to the report.|
-| {report:policyname} | Would output Sales assuming that the given report was under a workspace named Sales.|
+| {report:workspaceName} | Would output Sales assuming that the given report was under a workspace named Sales.|
+| {report:policyName} | Same as the workspace name. Policy is an older term for workspace.|
 | Status | Is the current state of the report when it was exported.|
-| {report:status} | Would output Approved assuming that the report has been approved and not yet reimbursed.|
+| {report:status} | Outputs the current report status using the historical labels (Open, Processing, Approved, Reimbursed or Closed).|
+| {report:displaystatus} | Outputs the current report status (Draft, Outstanding, Approved, Paid, or Done). |
 | Custom Fields | |
 | {report:submit:from:customfield1} | Would output the custom field 1 entry associated with the user who submitted the report. If John Smith’s Custom Field 1 contains 100, then this formula would output 100.|
 | {report:submit:from:customfield2} | Would output the custom field 2 entry associated with the user who submitted the report. If John Smith’s Custom Field 2 contains 1234, then this formula would output 1234. |
@@ -205,6 +206,8 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {expense:card} | Manual/Cash Expenses — would output Cash assuming the expense was manually entered using either the website or the mobile app.|
 | {expense:card} | Bank Card Expenses — would output user@company.com – 1234 assuming the expense was imported from a credit card feed.|
 | | Note - If you do not have access to the card that the expense was created on 'Unknown' will be displayed.  If cards are assigned to users under Domain, then you'll need to be a Domain Admin to export the card number.|
+| Card feed program | |
+| {expense:feedcountry} | Would output the card program for the expense. Outputs `TRAVEL_US` for Consolidated Travel Billing card expenses and `US` for regular Expensify Card expenses. Outputs an empty string for non-card expenses.|
 | Expense ID | |
 | {expense:id} | Would output the unique number associated with each individual expense "4294967579".|
 | Reimbursable state | |
@@ -299,4 +302,3 @@ Excel may automatically remove leading zeros. To prevent this:
 2. Select your CSV file.
 3. In step 3, set relevant columns to **Text format**.
 
-</div>

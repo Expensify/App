@@ -1,14 +1,15 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
-/**
- * @jest-environment node
- */
-import * as core from '@actions/core';
 import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
 import type CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
+
 import asMutable from '@src/types/utils/asMutable';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+/**
+ * @jest-environment node
+ */
+import * as core from '@actions/core';
 
 type Workflow = {
     workflow_id: string;
@@ -68,7 +69,7 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             actions: {
                 ...(GithubUtils.internalOctokit as unknown as typeof GithubUtils.octokit.actions),
@@ -77,7 +78,7 @@ beforeAll(() => {
         },
     };
 
-    GithubUtils.internalOctokit = moctokit as InternalOctokit;
+    GithubUtils.internalOctokit = mockOctokit as InternalOctokit;
 });
 
 beforeEach(() => {

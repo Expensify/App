@@ -1,8 +1,10 @@
-import type {ReactNode} from 'react';
-import type React from 'react';
-import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {BoundsObserver} from '@react-ng/bounds-observer';
+import type {ForwardedRef, ReactNode} from 'react';
+import type React from 'react';
+import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 
 type SharedTooltipProps = {
     /** The text to display in the tooltip. If text is omitted, only children will be rendered. */
@@ -21,6 +23,9 @@ type SharedTooltipProps = {
 
     /** Number of pixels to set max-width on tooltip  */
     maxWidth?: number;
+
+    /** Minimum width for a tooltip */
+    minWidth?: number;
 
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent?: () => ReactNode;
@@ -45,6 +50,9 @@ type SharedTooltipProps = {
 
     /** Callback when tooltip is clicked */
     onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
+    /** Whether to compute horizontal shift for native */
+    computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {
@@ -78,6 +86,12 @@ type TooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
+
+        /** Whether the current screen or component is actively focused via navigation */
+        isFocused?: boolean;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<BoundsObserver>;
     };
 
 type EducationalTooltipProps = ChildrenProps &
@@ -85,11 +99,16 @@ type EducationalTooltipProps = ChildrenProps &
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
 
+        /** Whether the tooltip content should be visible. When omitted, matches shouldRender. */
+        shouldDisplayTooltip?: boolean;
+
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;
 
         /** Whether the tooltip should hide during scrolling */
         shouldHideOnScroll?: boolean;
+
+        uniqueID?: string;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {

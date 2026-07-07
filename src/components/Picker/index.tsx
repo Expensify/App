@@ -1,9 +1,10 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import BasePicker from './BasePicker';
-import type {AdditionalPickerEvents, BasePickerHandle, BasePickerProps, OnChange, OnMouseDown} from './types';
+import React from 'react';
 
-function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: ForwardedRef<BasePickerHandle>) {
+import type {AdditionalPickerEvents, BasePickerProps, OnChange, OnMouseDown} from './types';
+
+import BasePicker from './BasePicker';
+
+function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
     const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<TPickerValue>): AdditionalPickerEvents => ({
         onMouseDown,
         onChange: (e) => {
@@ -18,7 +19,6 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
 
     return (
         <BasePicker<TPickerValue>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Forward the ref to Picker, as we implement imperative methods there
             ref={ref}
@@ -32,4 +32,4 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
     );
 }
 
-export default forwardRef(Picker);
+export default Picker;

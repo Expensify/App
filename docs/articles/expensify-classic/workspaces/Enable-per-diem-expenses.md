@@ -1,9 +1,8 @@
 ---
 title: Enable per diem expenses
-description: Allow employees to add per diem expenses
-keywords: [Expensify Classic, per diem]
+description: Learn how to enable per diem expenses and import daily allowance rates for meals, lodging, and travel in an Expensify Classic workspace.
+keywords: [Expensify Classic, per diem, per diem rates, enable per diem, daily allowance, meal allowance, travel allowance, fixed daily rate, per diem setup, configure per diem, import per diem rates, business travel expenses, lodging allowance]
 ---
-<div id="expensify-classic" markdown="1">
 
 A Workspace Admin must first enable per diem expenses and set the per diem rates for Workspace Members to submit per diem expenses. 
 
@@ -28,4 +27,3 @@ Below are some example templates to reference:
 - [Finland rates]({{site.url}}/assets/Files/Finland-per-diem.csv)
 - [South Africa single rates]({{site.url}}/assets/Files/South-Africa-per-diem.csv)
 
-</div>

@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -45,7 +48,7 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
                         // eslint-disable-next-line react/no-array-index-key
                         key={`email-${index}`}
                         href={`mailto:${email}`}
-                        style={styles.link}
+                        style={styles.emailLink}
                     >
                         {email}
                     </TextLink>,
@@ -58,7 +61,5 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
         </Text>
     );
 }
-
-AutoEmailLink.displayName = 'AutoEmailLink';
 
 export default AutoEmailLink;

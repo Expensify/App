@@ -1,23 +1,33 @@
-import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import Text from '@components/Text';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useOnyx from '@hooks/useOnyx';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
-import {saveUnknownUserDetails} from '@libs/actions/Share';
+import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
-import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const defaultListOptions = {
     userToInvite: null,
@@ -33,85 +43,130 @@ function ShareTab() {
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const sortedActions = useSortedActions();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const personalDetails = usePersonalDetails();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {options, areOptionsInitialized} = useOptionsList();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const {options: listOptions, isLoading} = useFilteredOptions({
+        enabled: didScreenTransitionEnd,
+        betas: betas ?? [],
+        isSearching: !!debouncedTextInputValue.trim(),
+    });
+    const areOptionsInitialized = !isLoading;
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
-    const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return defaultListOptions;
-        }
-        return getSearchOptions(options, betas ?? [], false);
-    }, [areOptionsInitialized, betas, options]);
+    const searchOptions = areOptionsInitialized
+        ? getSearchOptions({
+              options: listOptions ?? {reports: [], personalDetails: []},
+              draftComments,
+              betas: betas ?? [],
+              isUsedInChatFinder: false,
+              includeReadOnly: false,
+              searchQuery: textInputValue,
+              maxResults: 20,
+              includeUserToInvite: true,
+              countryCode,
+              loginList,
+              visibleReportActionsData,
+              currentUserAccountID,
+              currentUserEmail,
+              policyCollection: allPolicies,
+              personalDetails,
+              sortedActions,
+              conciergeReportID,
+              isTrackIntentUser,
+          }).options
+        : defaultListOptions;
 
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
-
-    const recentReportsOptions = useMemo(() => {
-        if (textInputValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
-        }
-        const filteredOptions = filterOptions(textInputValue);
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
+    let recentReportsOptions: OptionData[];
+    if (textInputValue.trim() === '') {
+        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
+    } else {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredOptions.userToInvite) {
-            reportOptions.push(filteredOptions.userToInvite);
+        if (searchOptions.userToInvite) {
+            reportOptions.push(searchOptions.userToInvite);
         }
-        return reportOptions.slice(0, 20);
-    }, [filterOptions, searchOptions.recentReports, textInputValue]);
+        recentReportsOptions = reportOptions.slice(0, 20);
+    }
 
+    const trimmedDebouncedTextInputValue = debouncedTextInputValue.trim();
     useEffect(() => {
-        searchInServer(debouncedTextInputValue.trim());
-    }, [debouncedTextInputValue]);
+        searchInServer(trimmedDebouncedTextInputValue);
+    }, [trimmedDebouncedTextInputValue]);
 
-    const styledRecentReports = recentReportsOptions.map((item) => ({
+    const styledRecentReports = recentReportsOptions.map((item, index) => ({
         ...item,
         pressableStyle: styles.br2,
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
+        keyForList: `${item.reportID}-${index}`,
+        isSelected: item.reportID === selectedReportID,
+        canShowSeveralIndicators: true,
     }));
 
-    const [sections, header] = useMemo(() => {
-        const newSections = [];
-        newSections.push({title: textInputValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false);
-        return [newSections, headerMessage];
-    }, [textInputValue, styledRecentReports, translate]);
+    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
         const accountID = item?.accountID;
         if (accountID && !reportID) {
             saveUnknownUserDetails(item);
-            const optimisticReport = getOptimisticChatReport(accountID);
+            const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
             reportID = optimisticReport.reportID;
 
+            setSelectedReportID(reportID);
             saveReportDraft(reportID, optimisticReport).then(() => {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
+            clearUnknownUserDetails();
+            setSelectedReportID(reportID);
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };
 
+    const textInputOptions = {
+        value: textInputValue,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: offlineMessage,
+        onChangeText: setTextInputValue,
+        headerMessage: header,
+    };
+
+    const customListHeader =
+        textInputValue.trim() === '' ? (
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
+            </View>
+        ) : undefined;
+
     return (
         <SelectionList
-            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-            textInputValue={textInputValue}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputHint={offlineMessage}
-            onChangeText={setTextInputValue}
-            headerMessage={header}
-            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+            data={areOptionsInitialized ? styledRecentReports : (CONST.EMPTY_ARRAY as unknown as never[])}
+            customListHeaderContent={customListHeader}
+            textInputOptions={textInputOptions}
+            style={{listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}}
             ListItem={InviteMemberListItem}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}

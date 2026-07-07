@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Clear Personal Details draft
@@ -15,8 +16,4 @@ function setPersonalDetails(firstName: string, lastName: string) {
     Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName, lastName});
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    clearPersonalDetailsDraft,
-    setPersonalDetails,
-};
+export {clearPersonalDetailsDraft, setPersonalDetails};

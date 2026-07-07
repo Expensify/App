@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
 
 type CustomStylesForChildrenContextType = StyleProp<ViewStyle & TextStyle> | null;
 
@@ -14,8 +15,6 @@ function CustomStylesForChildrenProvider({children, style}: CustomStylesForChild
 
     return <CustomStylesForChildrenContext.Provider value={value}>{children}</CustomStylesForChildrenContext.Provider>;
 }
-
-CustomStylesForChildrenProvider.displayName = 'CustomStylesForChildrenProvider';
 
 export default CustomStylesForChildrenProvider;
 export {CustomStylesForChildrenContext};

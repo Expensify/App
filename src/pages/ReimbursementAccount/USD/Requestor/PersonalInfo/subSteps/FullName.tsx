@@ -1,16 +1,20 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
 
-function FullName({onNext, onMove, isEditing}: SubStepProps) {
+function FullName({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -33,15 +37,15 @@ function FullName({onNext, onMove, isEditing}: SubStepProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('personalInfoStep.enterYourLegalFirstAndLast')}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
             defaultValues={defaultValues}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-FullName.displayName = 'FullName';
 
 export default FullName;

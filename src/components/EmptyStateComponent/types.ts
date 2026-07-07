@@ -1,48 +1,46 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
-import type CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
-type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type Button = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean};
+type HeaderMedia = IconAsset;
+type EmptyStateButton = {
+    buttonText?: string;
+    buttonAction?: () => void;
+    success?: boolean;
+    icon?: IconAsset;
+    isDisabled?: boolean;
+    style?: StyleProp<ViewStyle>;
+    innerStyles?: StyleProp<ViewStyle>;
+    hoverStyles?: StyleProp<ViewStyle>;
+    dropDownOptions?: Array<
+        DropdownOption<
+            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_EXISTING_EXPENSE: 'addExistingExpense'}>
+        >
+    >;
+};
 
-type SharedProps<T> = {
-    SkeletonComponent?: ValidSkeletons;
+type EmptyStateComponentProps = {
+    headerMedia: IconAsset;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
+    subtitleStyles?: StyleProp<TextStyle>;
     children?: React.ReactNode;
-    buttons?: Button[];
+    buttons?: EmptyStateButton[];
     containerStyles?: StyleProp<ViewStyle>;
     cardStyles?: StyleProp<ViewStyle>;
     cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
-    headerMediaType: T;
+    foregroundStyles?: StyleProp<ViewStyle>;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
-    lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
+    subtitleText?: React.ReactNode;
 };
 
-type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
-    headerMedia: HeaderMedia;
-};
+type GenericEmptyStateComponentProps = EmptyStateComponentProps;
 
-type VideoProps = MediaType<string, 'video'>;
-type IllustrationProps = MediaType<IconAsset, 'illustration'>;
-type AnimationProps = MediaType<DotLottieAnimation, 'animation'>;
-
-type EmptyStateComponentProps = VideoProps | IllustrationProps | AnimationProps;
-
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
-
-export type {EmptyStateComponentProps, VideoLoadedEventType};
+export type {EmptyStateComponentProps, EmptyStateButton, GenericEmptyStateComponentProps, HeaderMedia};

@@ -1,6 +1,8 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 
 type OnboardingWrapperProps = {
@@ -17,7 +19,5 @@ function OnboardingWrapper({children}: OnboardingWrapperProps) {
         </FocusTrapForScreens>
     );
 }
-
-OnboardingWrapper.displayName = 'OnboardingWrapper';
 
 export default OnboardingWrapper;

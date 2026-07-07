@@ -1,38 +1,50 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setPolicyCategoryGLCode} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 
-type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GL_CODE>;
+import React, {useCallback} from 'react';
+
+type EditCategoryPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE>;
 
 function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
+    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const categoryName = route.params.categoryName;
     const glCode = policyCategories?.[categoryName]?.['GL Code'];
     const {inputCallbackRef} = useAutoFocusInput();
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE;
+    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -40,10 +52,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             const value = values[INPUT_IDS.GL_CODE];
 
             if (value.length > CONST.MAX_LENGTH_256) {
-                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.MAX_LENGTH_256,
-                });
+                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -55,13 +64,15 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                setPolicyCategoryGLCode(policyID, categoryName, newGLCode);
+                setPolicyCategoryGLCode(policyID, categoryName, newGLCode, policyCategories);
             }
             Navigation.goBack(
-                isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
+                isQuickSettingsFlow
+                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
+                    : workspaceBackPath,
             );
         },
-        [categoryName, glCode, policyID, isQuickSettingsFlow, backTo],
+        [glCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories, workspaceBackPath],
     );
 
     return (
@@ -73,7 +84,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryGLCodePage.displayName}
+                testID="CategoryGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -81,8 +92,11 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                     onBackButtonPress={() =>
                         Navigation.goBack(
                             isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
-                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
+                                ? createDynamicRoute(
+                                      DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.categoryName),
+                                      ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo),
+                                  )
+                                : workspaceBackPath,
                         )
                     }
                 />
@@ -110,7 +124,5 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryGLCodePage.displayName = 'CategoryGLCodePage';
 
 export default CategoryGLCodePage;

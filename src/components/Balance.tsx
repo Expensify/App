@@ -1,7 +1,12 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
 import Text from './Text';
 
 type BalanceProps = {
@@ -10,12 +15,11 @@ type BalanceProps = {
 };
 
 function Balance({textStyles, balance}: BalanceProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const formattedBalance = CurrencyUtils.convertToDisplayString(balance);
+    const formattedBalance = convertToDisplayString(balance, CONST.CURRENCY.USD);
 
     return <Text style={[styles.textHeadline, styles.textXXXLarge, textStyles]}>{formattedBalance}</Text>;
 }
-
-Balance.displayName = 'Balance';
 
 export default Balance;

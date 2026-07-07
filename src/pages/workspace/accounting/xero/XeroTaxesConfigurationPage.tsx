@@ -1,15 +1,21 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as Xero from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -20,7 +26,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroTaxesConfigurationPage.displayName}
+            displayName="XeroTaxesConfigurationPage"
             headerTitle="workspace.accounting.taxes"
             title="workspace.xero.taxesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -41,7 +47,5 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-XeroTaxesConfigurationPage.displayName = 'XeroTaxesConfigurationPage';
 
 export default withPolicyConnections(XeroTaxesConfigurationPage);

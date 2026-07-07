@@ -1,12 +1,16 @@
-import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
-export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account:
@@ -14,16 +18,16 @@ export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './e
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  */
-function setBankAccountSubStep(subStep: BankAccountSubStep | null): Promise<void | void[]> {
+function setBankAccountSubStep(subStep: ReimbursementAccountSubStep | null): Promise<void | void[]> {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
-}
-
-function setBankAccountState(state: string): Promise<void | void[]> {
-    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {state}});
 }
 
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
+}
+
+function updateReimbursementAccount(achData: Partial<ACHData>) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
 }
 
 function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementAccountForm>) {
@@ -33,6 +37,10 @@ function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementA
 
 function clearReimbursementAccountDraft() {
     Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
+}
+
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
 }
 
 /**
@@ -49,6 +57,24 @@ function cancelResetBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
 }
 
+/**
+ *  Sets pressed option during connecting reimbursement account
+ */
+function setReimbursementAccountOptionPressed(optionPressed: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, optionPressed);
+}
+
+/**
+ * Clear validation messages from reimbursement account
+ */
+function resetReimbursementAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        errors: null,
+        pendingAction: null,
+        errorFields: null,
+    });
+}
+
 export {
     resetUSDBankAccount,
     resetNonUSDBankAccount,
@@ -57,6 +83,9 @@ export {
     updateReimbursementAccountDraft,
     requestResetBankAccount,
     cancelResetBankAccount,
+    clearReimbursementAccount,
     clearReimbursementAccountDraft,
-    setBankAccountState,
+    setReimbursementAccountOptionPressed,
+    updateReimbursementAccount,
+    resetReimbursementAccount,
 };

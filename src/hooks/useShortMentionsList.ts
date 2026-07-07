@@ -1,9 +1,10 @@
-import {useMemo} from 'react';
-import {usePersonalDetails} from '@components/OnyxProvider';
-import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
-const getMention = (mention: string) => `@${mention}`;
+import {getEmailDomain, isDomainPublic} from '@libs/LoginUtils';
+
+import {useMemo} from 'react';
+
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 /**
  * This hook returns data to be used with short mentions in LiveMarkdown/Composer.
@@ -15,24 +16,30 @@ export default function useShortMentionsList() {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const mentionsList = useMemo(() => {
+    const availableLoginsList = useMemo(() => {
         if (!personalDetails) {
             return [];
         }
 
+        const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
+        const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
+
         return Object.values(personalDetails)
             .map((personalDetail) => {
-                if (!personalDetail?.login) {
+                if (!personalDetail?.login || isCurrentUserPublicDomain) {
                     return;
                 }
 
+                const personalDetailDomain = getEmailDomain(personalDetail.login);
+                const isPersonalDetailPublicDomain = isDomainPublic(personalDetailDomain);
+
                 // If the emails are not in the same private domain, we don't want to highlight them
-                if (!areEmailsFromSamePrivateDomain(personalDetail.login, currentUserPersonalDetails.login ?? '')) {
+                if (isPersonalDetailPublicDomain || personalDetailDomain !== currentUserDomain) {
                     return;
                 }
 
                 const [username] = personalDetail.login.split('@');
-                return username ? getMention(username) : undefined;
+                return username;
             })
             .filter((login): login is string => !!login);
     }, [currentUserPersonalDetails.login, personalDetails]);
@@ -44,8 +51,8 @@ export default function useShortMentionsList() {
         }
 
         const [baseName] = currentUserPersonalDetails.login.split('@');
-        return [baseName, currentUserPersonalDetails.login].map(getMention);
+        return [baseName, currentUserPersonalDetails.login];
     }, [currentUserPersonalDetails.login]);
 
-    return {mentionsList, currentUserMentions};
+    return {availableLoginsList, currentUserMentions};
 }

@@ -1,19 +1,27 @@
-import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websocket-react-native';
-import {Pusher} from '@pusher/pusher-websocket-react-native';
-import isObject from 'lodash/isObject';
-import {InteractionManager} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import {authenticatePusher} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TYPE from './EventType';
-import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEventName, SocketEventCallback, SocketEventName, States} from './types';
+
+import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websocket-react-native';
+import type {ValueOf} from 'type-fest';
+
+import {Pusher} from '@pusher/pusher-websocket-react-native';
+import * as Sentry from '@sentry/react-native';
+import isObject from 'lodash/isObject';
+import Onyx from 'react-native-onyx';
+
+import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEventName, PusherSubscription, SocketEventCallback, SocketEventName, States} from './types';
 import type PusherModule from './types';
 
+import TYPE from './EventType';
+
 let shouldForceOffline = false;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -32,14 +40,18 @@ let initPromise = new Promise<void>((resolve) => {
     resolveInitPromise = resolve;
 });
 
-const eventsBoundToChannels = new Map<string, Map<PusherEventName, (eventData: EventData<PusherEventName>) => void>>();
+type BoundCallback = (eventData: EventData<PusherEventName>) => void;
+
+const eventsBoundToChannels = new Map<string, Map<PusherEventName, Set<BoundCallback>>>();
 let channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
 
 /**
  * Trigger each of the socket event callbacks with the event information
  */
 function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
-    socketEventCallbacks.forEach((cb) => cb(eventName, data));
+    for (const cb of socketEventCallbacks) {
+        cb(eventName, data);
+    }
 }
 
 /**
@@ -89,11 +101,49 @@ function getChannel(channelName: string): PusherChannel | undefined {
 }
 
 /**
- * Binds an event callback to a channel + eventName
+ * Parses JSON data that may be single or double-encoded
+ * This handles cases where the backend sometimes sends double-encoded JSON
+ * Reference issue: https://github.com/Expensify/App/issues/60332
  */
-function bindEventToChannel<EventName extends PusherEventName>(channel: string, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
+function parseEventData<EventName extends PusherEventName>(eventData: EventData<EventName>): EventData<EventName> | null {
+    if (isObject(eventData)) {
+        return eventData;
+    }
+
+    if (typeof eventData !== 'string') {
+        Log.alert('[Pusher] Event data is neither object nor string', {eventData});
+        return null;
+    }
+
+    try {
+        const firstParse = JSON.parse(eventData) as EventData<EventName> | string;
+
+        // If result is still a string, it was double-encoded - parse again
+        if (typeof firstParse === 'string') {
+            return JSON.parse(firstParse) as EventData<EventName>;
+        }
+
+        return firstParse;
+    } catch (error) {
+        Log.alert('[Pusher] Failed to parse event data', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            eventData,
+        });
+        return null;
+    }
+}
+
+/**
+ * Binds an event callback to a channel + eventName.
+ * Returns the wrapped callback so it can be individually unbound later.
+ */
+function bindEventToChannel<EventName extends PusherEventName>(
+    channel: string,
+    eventName?: EventName,
+    eventCallback: (data: EventData<EventName>) => void = () => {},
+): BoundCallback | undefined {
     if (!eventName) {
-        return;
+        return undefined;
     }
 
     const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
@@ -103,11 +153,9 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: string, 
             return;
         }
 
-        let data: EventData<EventName>;
-        try {
-            data = isObject(eventData) ? eventData : (JSON.parse(eventData) as EventData<EventName>);
-        } catch (err) {
-            Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
+        const data = parseEventData(eventData);
+        if (!data) {
+            // Error already logged in parseEventData
             return;
         }
         if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
@@ -157,69 +205,150 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: string, 
     if (!eventsBoundToChannels.has(channel)) {
         eventsBoundToChannels.set(channel, new Map());
     }
+    const eventMap = eventsBoundToChannels.get(channel);
+    if (!eventMap?.has(eventName)) {
+        eventMap?.set(eventName, new Set());
+    }
+    const boundCb = callback as BoundCallback;
+    eventMap?.get(eventName)?.add(boundCb);
 
-    eventsBoundToChannels.get(channel)?.set(eventName, callback as (eventData: EventData<PusherEventName>) => void);
+    return boundCb;
 }
 
 /**
- * Subscribe to a channel and an event
+ * Subscribe to a channel and an event.
+ * Returns a PusherSubscription — a Promise (for backward-compatible .catch()/.then())
+ * with an .unsubscribe() method that removes only this specific callback.
  */
 function subscribe<EventName extends PusherEventName>(
     channelName: string,
     eventName?: EventName,
     eventCallback: (data: EventData<EventName>) => void = () => {},
     onResubscribe = () => {},
-): Promise<void> {
-    return initPromise.then(
+): PusherSubscription {
+    let wrappedCb: BoundCallback | undefined;
+    let disposed = false;
+
+    const promise = initPromise.then(
         () =>
-            new Promise((resolve, reject) => {
-                InteractionManager.runAfterInteractions(() => {
-                    // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
-                    if (!socket) {
-                        throw new Error(`[Pusher] instance not found. Pusher.subscribe()
-            most likely has been called before Pusher.init()`);
-                    }
+            new Promise<void>((resolve, reject) => {
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        if (disposed) {
+                            resolve();
+                            return;
+                        }
 
-                    Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
+                        // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+                        if (!socket) {
+                            const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
 
-                    if (!channels[channelName]) {
-                        channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBING;
-                        socket.subscribe({
-                            channelName,
-                            onEvent: (event) => {
-                                const callback = eventsBoundToChannels.get(event.channelName)?.get(event.eventName);
-                                callback?.(event.data as EventData<PusherEventName>);
-                            },
-                            onSubscriptionSucceeded: () => {
-                                channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
-                                bindEventToChannel(channelName, eventName, eventCallback);
-                                resolve();
-                                // When subscribing for the first time we register a success callback that can be
-                                // called multiple times when the subscription succeeds again in the future
-                                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                                // not fire on the first subscription_succeeded event.
-                                onResubscribe();
-                            },
-                            onSubscriptionError: (name: string, message: string) => {
-                                delete channels[channelName];
-                                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                                    channelName,
-                                    message,
-                                });
-                                reject(message);
-                            },
-                        });
-                    } else {
-                        bindEventToChannel(channelName, eventName, eventCallback);
-                        resolve();
-                    }
+                            if (__DEV__) {
+                                // TransitionTracker isolates callback errors, so reject explicitly instead of relying on a thrown scheduler callback to reject this Promise.
+                                reject(error);
+                                return;
+                            }
+
+                            // In production, report to Sentry without crashing the app.
+                            // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
+                            // teardown) before this deferred TransitionTracker callback runs.
+                            Sentry.captureException(error, {
+                                tags: {source: 'Pusher.subscribe'},
+                                extra: {channelName, eventName},
+                            });
+                            Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
+                            resolve();
+                            return;
+                        }
+
+                        Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
+
+                        if (!channels[channelName]) {
+                            channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBING;
+                            socket.subscribe({
+                                channelName,
+                                onEvent: (event) => {
+                                    const callbacks = eventsBoundToChannels.get(event.channelName)?.get(event.eventName);
+                                    if (callbacks) {
+                                        for (const cb of callbacks) {
+                                            cb(event.data as EventData<PusherEventName>);
+                                        }
+                                    }
+                                },
+                                onSubscriptionSucceeded: () => {
+                                    channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
+                                    if (!disposed) {
+                                        wrappedCb = bindEventToChannel(channelName, eventName, eventCallback);
+                                    } else {
+                                        // Handle was disposed mid-handshake — clean up the channel
+                                        // if no other subscribers have bound callbacks to it
+                                        const eventMap = eventsBoundToChannels.get(channelName);
+                                        if (!eventMap || eventMap.size === 0) {
+                                            eventsBoundToChannels.delete(channelName);
+                                            delete channels[channelName];
+                                            socket?.unsubscribe({channelName});
+                                        }
+                                    }
+                                    resolve();
+                                    // When subscribing for the first time we register a success callback that can be
+                                    // called multiple times when the subscription succeeds again in the future
+                                    // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
+                                    // not fire on the first subscription_succeeded event.
+                                    onResubscribe();
+                                },
+                                onSubscriptionError: (name: string, message: string) => {
+                                    delete channels[channelName];
+                                    Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                                        channelName,
+                                        message,
+                                    });
+                                    reject(message);
+                                },
+                            });
+                        } else {
+                            if (!disposed) {
+                                wrappedCb = bindEventToChannel(channelName, eventName, eventCallback);
+                            }
+                            resolve();
+                        }
+                    },
                 });
             }),
     );
+
+    return Object.assign(promise, {
+        unsubscribe: () => {
+            disposed = true;
+            if (!wrappedCb || !eventName) {
+                return;
+            }
+
+            // 1. Remove this specific callback from tracking
+            const eventMap = eventsBoundToChannels.get(channelName);
+            const callbacks = eventMap?.get(eventName);
+            callbacks?.delete(wrappedCb);
+
+            // 2. If last callback for this event, remove the event
+            if (callbacks?.size === 0) {
+                eventMap?.delete(eventName);
+            }
+
+            // 3. If last event on this channel, unsubscribe entirely
+            if (eventMap?.size === 0) {
+                eventsBoundToChannels.delete(channelName);
+                delete channels[channelName];
+                socket?.unsubscribe({channelName});
+            }
+
+            wrappedCb = undefined;
+        },
+    });
 }
 
 /**
- * Unsubscribe from a channel and optionally a specific event
+ * Unsubscribe from a channel and optionally a specific event.
+ * This removes ALL callbacks for the given event (or all events on the channel).
+ * For per-callback removal, use the .unsubscribe() method on the PusherSubscription handle.
  */
 function unsubscribe(channelName: string, eventName: PusherEventName = '') {
     const channel = getChannel(channelName);
@@ -299,7 +428,7 @@ function registerSocketEventCallback(cb: SocketEventCallback) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialization has occurred, ignoring.');
         return;
     }
 

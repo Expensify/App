@@ -1,17 +1,21 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {SafeString} from 'expensify-common';
+import React from 'react';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-type LegalNameUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
+type LegalNameUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
 
 function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: LegalNameUBOProps) {
     const {translate} = useLocalize();
@@ -22,8 +26,8 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
     const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as keyof FormOnyxValues;
     const stepFields = [firstNameInputID, lastNameInputID];
     const defaultValues = {
-        firstName: String(reimbursementAccountDraft?.[firstNameInputID] ?? ''),
-        lastName: String(reimbursementAccountDraft?.[lastNameInputID] ?? ''),
+        firstName: SafeString(reimbursementAccountDraft?.[firstNameInputID]),
+        lastName: SafeString(reimbursementAccountDraft?.[lastNameInputID]),
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -39,6 +43,7 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('beneficialOwnerInfoStep.enterLegalFirstAndLastName')}
+            formSubtitle={translate('beneficialOwnerInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             firstNameInputID={firstNameInputID}
@@ -47,7 +52,5 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
         />
     );
 }
-
-LegalNameUBO.displayName = 'LegalNameUBO';
 
 export default LegalNameUBO;

@@ -1,12 +1,20 @@
-import React, {useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
+
 import mergeRefs from '@libs/mergeRefs';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useRef} from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
 
@@ -55,6 +63,7 @@ type MenuItemListProps = {
 function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
+    const isFocused = useIsFocused();
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -84,7 +93,6 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
 
     return (
         // ref is accessed for MenuItem's ref initialization
-        // eslint-disable-next-line react-compiler/react-compiler
         menuItems.map(({key, ref, ...menuItemProps}) => (
             <OfflineWithFeedback
                 key={key ?? menuItemProps.title}
@@ -97,22 +105,21 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     key={key ?? menuItemProps.title}
                     wrapperStyle={wrapperStyle}
                     onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
                     ref={mergeRefs(ref, popoverAnchor)}
                     shouldBlockSelection={!!menuItemProps.link}
                     icon={icon}
                     iconWidth={iconWidth}
                     iconHeight={iconHeight}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                    isFocused={isFocused}
                 />
             </OfflineWithFeedback>
         ))
     );
 }
-
-MenuItemList.displayName = 'MenuItemList';
 
 export type {MenuItemWithLink};
 export default MenuItemList;

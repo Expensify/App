@@ -38,6 +38,14 @@ const esEmojis: EmojisList = {
         name: 'cara_ligeramente_sonriente',
         keywords: ['cara', 'sonrisa', 'cara sonriendo ligeramente'],
     },
+    '🙂‍↔️': {
+        name: 'cabeza_negando',
+        keywords: ['cabeza moviéndose horizontalmente', 'negar', 'no', 'cabeza negando'],
+    },
+    '🙂‍↕️': {
+        name: 'cabeza_asintiendo',
+        keywords: ['asentir', 'cabeza moviéndose verticalmente', 'sí', 'cabeza asintiendo'],
+    },
     '🙃': {
         name: 'cara_boca_arriba',
         keywords: ['cara', 'revés', 'cara al revés'],
@@ -226,6 +234,10 @@ const esEmojis: EmojisList = {
         name: 'durmiendo',
         keywords: ['cara', 'dormido', 'sueño', 'zzz', 'cara durmiendo'],
     },
+    '🫩': {
+        name: 'cara_con_ojeras',
+        keywords: ['agotado', 'agotamiento', 'cansado', 'cansancio', 'cara', 'extenuación', 'extenuado', 'ojeras', 'ojos', 'sueño', 'cara con ojeras'],
+    },
     '😷': {
         name: 'máscara',
         keywords: ['cara', 'enfermo', 'malo', 'máscara', 'cara con mascarilla médica'],
@@ -345,6 +357,10 @@ const esEmojis: EmojisList = {
     '😨': {
         name: 'temeroso',
         keywords: ['asustado', 'cara', 'miedo', 'miedoso', 'cara asustada'],
+    },
+    '🫪': {
+        name: 'cara_deformada',
+        keywords: ['ansiedad', 'conmocionado', 'hinchado', 'pánico', 'sorprendido', 'vulnerable', 'cara deformada'],
     },
     '😰': {
         name: 'sudor_frío',
@@ -641,6 +657,10 @@ const esEmojis: EmojisList = {
     '💨': {
         name: 'guión',
         keywords: ['carrera', 'cómic', 'correr', 'humo', 'salir corriendo'],
+    },
+    '🫯': {
+        name: 'nube_de_pelea',
+        keywords: ['alboroto', 'altercado', 'bronca', 'desacuerdo', 'discusión', 'lucha', 'pelea', 'nube de pelea'],
     },
     '🕳️': {
         name: 'agujero',
@@ -1583,6 +1603,10 @@ const esEmojis: EmojisList = {
         name: 'trol',
         keywords: ['trol', 'mítico', 'criatura', 'fantasía'],
     },
+    '🫈': {
+        name: 'criatura_peluda',
+        keywords: ['bigfoot', 'bosque', 'críptido', 'gigante', 'monstruo', 'peludo', 'sasquatch', 'yeti', 'criatura peluda'],
+    },
     '🧞': {
         name: 'genio',
         keywords: ['lámpara', 'genio'],
@@ -1643,6 +1667,18 @@ const esEmojis: EmojisList = {
         name: 'mujer_caminando',
         keywords: ['andar', 'caminata', 'marcha', 'mujer', 'mujer caminando'],
     },
+    '🚶‍➡️': {
+        name: 'persona_caminando_hacia_la_derecha',
+        keywords: ['andar', 'caminando', 'caminar', 'derecha', 'hacia', 'la', 'persona caminando', 'persona caminando: hacia la derecha'],
+    },
+    '🚶‍♀️‍➡️': {
+        name: 'mujer_caminando_hacia_la_derecha',
+        keywords: ['andar', 'caminata', 'derecha', 'hacia', 'la', 'marcha', 'mujer', 'mujer caminando', 'mujer caminando: hacia la derecha'],
+    },
+    '🚶‍♂️‍➡️': {
+        name: 'hombre_caminando_hacia_la_derecha',
+        keywords: ['andar', 'caminata', 'derecha', 'hacia', 'hombre', 'hombre caminando', 'la', 'marcha', 'hombre caminando: hacia la derecha'],
+    },
     '🧍': {
         name: 'persona_de_pie',
         keywords: ['de pie', 'levantada', 'levantado', 'levantarse', 'persona de pie'],
@@ -1667,6 +1703,18 @@ const esEmojis: EmojisList = {
         name: 'mujer_de_rodillas',
         keywords: ['arrodillada', 'arrodillarse', 'de rodillas', 'mujer', 'mujer de rodillas'],
     },
+    '🧎‍➡️': {
+        name: 'persona_de_rodillas_hacia_la_derecha',
+        keywords: ['arrodillada', 'arrodillado', 'arrodillarse', 'de rodillas', 'derecha', 'hacia', 'la', 'persona de rodillas', 'persona de rodillas: hacia la derecha'],
+    },
+    '🧎‍♀️‍➡️': {
+        name: 'mujer_de_rodillas_hacia_la_derecha',
+        keywords: ['arrodillada', 'arrodillarse', 'de rodillas', 'derecha', 'hacia', 'la', 'mujer', 'mujer de rodillas', 'mujer de rodillas: hacia la derecha'],
+    },
+    '🧎‍♂️‍➡️': {
+        name: 'hombre_de_rodillas_hacia_la_derecha',
+        keywords: ['arrodillado', 'arrodillarse', 'de rodillas', 'derecha', 'hacia', 'hombre', 'hombre de rodillas', 'la', 'hombre de rodillas: hacia la derecha'],
+    },
     '🧑‍🦯': {
         name: 'persona_con_bastón',
         keywords: ['accesibilidad', 'ciego', 'invidente', 'persona con bastón'],
@@ -1678,6 +1726,18 @@ const esEmojis: EmojisList = {
     '👩‍🦯': {
         name: 'mujer_con_bastón',
         keywords: ['accesibilidad', 'bastón', 'ciega', 'invidente', 'mujer', 'mujer con bastón'],
+    },
+    '🧑‍🦯‍➡️': {
+        name: 'persona_con_bastón_hacia_la_derecha',
+        keywords: ['accesibilidad', 'ciego', 'derecha', 'hacia', 'invidente', 'la', 'persona con bastón', 'persona con bastón: hacia la derecha'],
+    },
+    '👨‍🦯‍➡️': {
+        name: 'hombre_con_bastón_hacia_la_derecha',
+        keywords: ['accesibilidad', 'bastón', 'ciego', 'derecha', 'hacia', 'hombre', 'hombre con bastón', 'invidente', 'la', 'hombre con bastón: hacia la derecha'],
+    },
+    '👩‍🦯‍➡️': {
+        name: 'mujer_con_bastón_hacia_la_derecha',
+        keywords: ['accesibilidad', 'bastón', 'ciega', 'derecha', 'hacia', 'invidente', 'la', 'mujer', 'mujer con bastón', 'mujer con bastón: hacia la derecha'],
     },
     '🧑‍🦼': {
         name: 'persona_en_silla_de_ruedas_eléctrica',
@@ -1691,6 +1751,18 @@ const esEmojis: EmojisList = {
         name: 'mujer_en_silla_de_ruedas_eléctrica',
         keywords: ['accesibilidad', 'mujer', 'silla de ruedas', 'mujer en silla de ruedas eléctrica'],
     },
+    '🧑‍🦼‍➡️': {
+        name: 'persona_en_silla_de_ruedas_eléctrica_hacia_la_derecha',
+        keywords: ['accesibilidad', 'derecha', 'hacia', 'la', 'persona en silla de ruedas eléctrica', 'silla de ruedas', 'persona en silla de ruedas eléctrica: hacia la derecha'],
+    },
+    '👨‍🦼‍➡️': {
+        name: 'hombre_en_silla_de_ruedas_eléctrica_hacia_la_derecha',
+        keywords: ['accesibilidad', 'derecha', 'hacia', 'hombre', 'hombre en silla de ruedas eléctrica', 'la', 'silla de ruedas', 'hombre en silla de ruedas eléctrica: hacia la derecha'],
+    },
+    '👩‍🦼‍➡️': {
+        name: 'mujer_en_silla_de_ruedas_eléctrica_hacia_la_derecha',
+        keywords: ['accesibilidad', 'derecha', 'hacia', 'la', 'mujer', 'mujer en silla de ruedas eléctrica', 'silla de ruedas', 'mujer en silla de ruedas eléctrica: hacia la derecha'],
+    },
     '🧑‍🦽': {
         name: 'persona_en_silla_de_ruedas_manual',
         keywords: ['accesibilidad', 'silla de ruedas', 'persona en silla de ruedas manual'],
@@ -1702,6 +1774,18 @@ const esEmojis: EmojisList = {
     '👩‍🦽': {
         name: 'mujer_en_silla_de_ruedas_manual',
         keywords: ['accesibilidad', 'mujer', 'silla de ruedas', 'mujer en silla de ruedas manual'],
+    },
+    '🧑‍🦽‍➡️': {
+        name: 'persona_en_silla_de_ruedas_manual_hacia_la_derecha',
+        keywords: ['accesibilidad', 'derecha', 'hacia', 'la', 'persona en silla de ruedas manual', 'silla de ruedas', 'persona en silla de ruedas manual: hacia la derecha'],
+    },
+    '👨‍🦽‍➡️': {
+        name: 'hombre_en_silla_de_ruedas_manual_hacia_la_derecha',
+        keywords: ['accesibilidad', 'derecha', 'hacia', 'hombre', 'hombre en silla de ruedas manual', 'la', 'silla de ruedas', 'hombre en silla de ruedas manual: hacia la derecha'],
+    },
+    '👩‍🦽‍➡️': {
+        name: 'mujer_en_silla_de_ruedas_manual_hacia_la_derecha',
+        keywords: ['accesibilidad', 'derecha', 'hacia', 'la', 'mujer', 'mujer en silla de ruedas manual', 'silla de ruedas', 'mujer en silla de ruedas manual: hacia la derecha'],
     },
     '🏃': {
         name: 'corredor',
@@ -1715,6 +1799,18 @@ const esEmojis: EmojisList = {
         name: 'mujer_corriendo',
         keywords: ['carrera', 'correr', 'mujer', 'maratón', 'mujer corriendo'],
     },
+    '🏃‍➡️': {
+        name: 'persona_corriendo_hacia_la_derecha',
+        keywords: ['carrera', 'deporte', 'derecha', 'hacia', 'la', 'maratón', 'persona corriendo', 'persona corriendo: hacia la derecha'],
+    },
+    '🏃‍♀️‍➡️': {
+        name: 'mujer_corriendo_hacia_la_derecha',
+        keywords: ['carrera', 'correr', 'derecha', 'hacia', 'la', 'maratón', 'mujer', 'mujer corriendo', 'mujer corriendo: hacia la derecha'],
+    },
+    '🏃‍♂️‍➡️': {
+        name: 'hombre_corriendo_hacia_la_derecha',
+        keywords: ['carrera', 'correr', 'derecha', 'hacia', 'hombre', 'hombre corriendo', 'la', 'maratón', 'hombre corriendo: hacia la derecha'],
+    },
     '💃': {
         name: 'bailarín',
         keywords: ['bailar', 'mujer', 'mujer bailando'],
@@ -1722,6 +1818,10 @@ const esEmojis: EmojisList = {
     '🕺': {
         name: 'hombre_bailando',
         keywords: ['bailar', 'hombre', 'hombre bailando'],
+    },
+    '🧑‍🩰': {
+        name: 'bailarina_de_ballet',
+        keywords: ['bailarina', 'bailarín', 'ballet', 'bailarina de ballet'],
     },
     '🕴️': {
         name: 'hombre_de_negocios_levitando',
@@ -2107,6 +2207,22 @@ const esEmojis: EmojisList = {
         name: 'mujer_niña_niña',
         keywords: ['familia', 'mujer', 'niña'],
     },
+    '🧑‍🧒': {
+        name: 'familia_adulto_niño',
+        keywords: ['adulto', 'familia', 'niño', 'familia: adulto, niño'],
+    },
+    '🧑‍🧒‍🧒': {
+        name: 'familia_adulto_niño_niño',
+        keywords: ['adulto', 'familia', 'niño', 'familia: adulto, niño, niño'],
+    },
+    '🧑‍🧑‍🧒': {
+        name: 'familia_adulto_adulto_niño',
+        keywords: ['adulto', 'familia', 'niño', 'familia: adulto, adulto, niño'],
+    },
+    '🧑‍🧑‍🧒‍🧒': {
+        name: 'familia_adulto_adulto_niño_niño',
+        keywords: ['adulto', 'familia', 'niño', 'familia: adulto, adulto, niño, niño'],
+    },
     '🗣️': {
         name: 'silueta_de_cabeza_parlante',
         keywords: ['cabeza', 'cara', 'hablar', 'silueta', 'cabeza parlante'],
@@ -2126,6 +2242,10 @@ const esEmojis: EmojisList = {
     '👣': {
         name: 'huellas',
         keywords: ['huellas', 'pies', 'huellas de pies'],
+    },
+    '🫆': {
+        name: 'huella_dactilar',
+        keywords: ['delito', 'detective', 'forense', 'huella', 'huella digital', 'identidad', 'misterio', 'rastro', 'seguridad', 'huella dactilar'],
     },
     '🐵': {
         name: 'cara_de_mono',
@@ -2435,6 +2555,10 @@ const esEmojis: EmojisList = {
         name: 'pájaro',
         keywords: ['ave', 'pajarillo', 'pájaro'],
     },
+    '🐦‍🔥': {
+        name: 'fénix',
+        keywords: ['ave de fuego', 'ave fénix', 'fantasía', 'reencarnación', 'renacer', 'fénix'],
+    },
     '🐧': {
         name: 'pingüino',
         keywords: ['ave', 'pingüino'],
@@ -2522,6 +2646,10 @@ const esEmojis: EmojisList = {
     '🐋': {
         name: 'ballena2',
         keywords: ['cachalote', 'cetáceo', 'ballena'],
+    },
+    '🫍': {
+        name: 'orca',
+        keywords: ['ballena', 'mar', 'marino', 'océano', 'orca'],
     },
     '🐬': {
         name: 'delfín',
@@ -2687,6 +2815,10 @@ const esEmojis: EmojisList = {
         name: 'árbol_caduco',
         keywords: ['árbol', 'caducifolio', 'hoja caduca', 'árbol de hoja caduca'],
     },
+    '🪾': {
+        name: 'árbol_sin_hojas',
+        keywords: ['deshojado', 'estéril', 'invierno', 'madera', 'muerto', 'ramas', 'sequía', 'sin hojas', 'tronco', 'árbol', 'árbol sin hojas'],
+    },
     '🌴': {
         name: 'palmera',
         keywords: ['árbol', 'árbol de palma', 'palmera'],
@@ -2750,6 +2882,10 @@ const esEmojis: EmojisList = {
     '🍋': {
         name: 'limón',
         keywords: ['cítrico', 'citrón', 'fruta', 'limón'],
+    },
+    '🍋‍🟩': {
+        name: 'lima',
+        keywords: ['cítrico', 'fruta', 'tropical', 'lima'],
     },
     '🍌': {
         name: 'plátano',
@@ -2858,6 +2994,14 @@ const esEmojis: EmojisList = {
     '🍄': {
         name: 'seta',
         keywords: ['hongo', 'seta', 'champiñón'],
+    },
+    '🍄‍🟫': {
+        name: 'champiñón_marrón',
+        keywords: ['comida', 'hongo', 'naturaleza', 'seta', 'vegetal', 'champiñón marrón'],
+    },
+    '🫜': {
+        name: 'túberculo_comestible',
+        keywords: ['chirivía', 'comida', 'ensalada', 'huerto', 'nabo', 'raíz', 'remolacha', 'rábano', 'vegetariano', 'verdura', 'túberculo comestible'],
     },
     '🥜': {
         name: 'cacahuetes',
@@ -3306,6 +3450,10 @@ const esEmojis: EmojisList = {
     '🌋': {
         name: 'volcán',
         keywords: ['erupción', 'erupción volcánica', 'volcán'],
+    },
+    '🛘': {
+        name: 'desprendimiento',
+        keywords: ['alud', 'avalancha', 'desastre', 'montaña', 'peligro', 'rocas', 'terremoto', 'desprendimiento'],
     },
     '🗻': {
         name: 'monte_fuji',
@@ -4771,6 +4919,14 @@ const esEmojis: EmojisList = {
         name: 'violín',
         keywords: ['instrumento', 'instrumento musical', 'música', 'violín'],
     },
+    '🪊': {
+        name: 'trombón',
+        keywords: ['instrumento', 'jazz', 'metal', 'música', 'triste', 'viento', 'trombón'],
+    },
+    '🪉': {
+        name: 'arpa',
+        keywords: ['amor', 'cupido', 'harpa', 'instrumento', 'música', 'orquesta', 'arpa'],
+    },
     '🪈': {
         name: 'flauta',
         keywords: ['flauta', 'música', 'instrumento', 'viento'],
@@ -5002,6 +5158,10 @@ const esEmojis: EmojisList = {
     '💰': {
         name: 'bolsa_de_dinero',
         keywords: ['bolsa', 'bolsa de dólares', 'dinero', 'bolsa de dinero'],
+    },
+    '🪎': {
+        name: 'cofre_de_tesoro',
+        keywords: ['botín', 'dinero', 'joyas', 'objetos de valor', 'oro', 'piedras preciosas', 'plata', 'premio', 'riqueza', 'cofre de tesoro'],
     },
     '🪙': {
         name: 'moneda',
@@ -5322,6 +5482,14 @@ const esEmojis: EmojisList = {
     '⛓️': {
         name: 'cadenas',
         keywords: ['cadena', 'cadenas'],
+    },
+    '⛓️‍💥': {
+        name: 'cadena_rota',
+        keywords: ['cadena', 'esposas', 'libertad', 'romper', 'rotura', 'cadena rota'],
+    },
+    '🪏': {
+        name: 'pala',
+        keywords: ['agujero', 'cavar', 'enterrar', 'excavar', 'hoyo', 'huerto', 'nieve', 'planta', 'pala'],
     },
     '🪝': {
         name: 'gancho',
@@ -5995,6 +6163,10 @@ const esEmojis: EmojisList = {
         name: 'tridente',
         keywords: ['ancla', 'emblema', 'tridente', 'emblema de tridente'],
     },
+    '🫟': {
+        name: 'salpicadura',
+        keywords: ['gotear', 'líquido', 'mancha', 'manchar', 'pintura', 'salpicar', 'tinta', 'salpicadura'],
+    },
     '📛': {
         name: 'chapa_identificativa',
         keywords: ['etiqueta', 'nombre', 'etiqueta identificativa'],
@@ -6642,6 +6814,10 @@ const esEmojis: EmojisList = {
     '🇨🇵': {
         name: 'bandera-cp',
         keywords: ['Bandera', 'bandera-cp'],
+    },
+    '🇨🇶': {
+        name: 'bandera_sark',
+        keywords: ['CQ', 'bandera', 'Bandera: Sark'],
     },
     '🇨🇷': {
         name: 'costa_rica',
@@ -7482,6 +7658,10 @@ const esEmojis: EmojisList = {
     '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
         name: 'gales',
         keywords: ['bandera', 'bandera-gales'],
+    },
+    '\uE100': {
+        name: 'crear-global',
+        keywords: ['fab', 'flotante', 'acción', 'botón', 'verde', 'más'],
     },
 };
 

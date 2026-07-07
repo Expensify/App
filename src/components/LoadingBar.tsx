@@ -1,7 +1,9 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React, {useEffect} from 'react';
 import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 
 type LoadingBarProps = {
     // Whether or not to show the loading bar
@@ -16,7 +18,6 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
 
     useEffect(() => {
         if (shouldShow) {
-            // eslint-disable-next-line react-compiler/react-compiler
             left.set(0);
             width.set(0);
             opacity.set(withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
@@ -59,7 +60,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             );
         }
         // we want to update only when shouldShow changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShow]);
 
     const animatedIndicatorStyle = useAnimatedStyle(() => ({
@@ -77,7 +78,5 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         </Animated.View>
     );
 }
-
-LoadingBar.displayName = 'ProgressBar';
 
 export default LoadingBar;

@@ -1,8 +1,11 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type SpacerViewProps = {
     /**
@@ -38,12 +41,10 @@ function SpacerView({shouldShow, style}: SpacerViewProps) {
         marginVertical.set(values.marginVertical);
         borderBottomWidth.set(values.borderBottomWidth);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
     }, [shouldShow, prevShouldShow]);
 
     return <Animated.View style={[animatedStyles, style]} />;
 }
-
-SpacerView.displayName = 'SpacerView';
 
 export default SpacerView;

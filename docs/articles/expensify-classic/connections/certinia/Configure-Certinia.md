@@ -3,7 +3,6 @@ title: Configure Certinia
 description: Learn how to configure Certinia's export, coding, and advanced settings in Expensify.
 keywords: [Certinia, export settings, coding, advanced settings, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
 After connecting Certinia with Expensify, navigate to **Settings > Workspaces > [Workspace Name] > Accounting > Certinia > Configure** to set up export, coding, and advanced settings.
 
@@ -107,4 +106,3 @@ Reports are mapped as follows:
 - **Description**: Report URL.  
 - **Approver**: Expensify report approver.  
 
-</div>

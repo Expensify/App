@@ -1,142 +1,183 @@
-import Onyx from 'react-native-onyx';
 import {PromotedActions} from '@components/PromotedActionsBar';
-import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import {navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, Transaction} from '@src/types/onyx';
-import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomTransaction from '../utils/collections/transaction';
-import {getGlobalFetchMock} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import ROUTES from '@src/ROUTES';
 
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+jest.mock('@userActions/Report', () => ({
+    navigateToAndOpenReport: jest.fn(),
+    navigateToAndOpenReportWithAccountIDs: jest.fn(),
+    joinRoom: jest.fn(),
+}));
 
-const mockedIsSearchTopmostFullScreenRoute = isSearchTopmostFullScreenRoute as jest.MockedFunction<typeof isSearchTopmostFullScreenRoute>;
+jest.mock('@userActions/Session', () => ({
+    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
+}));
 
-OnyxUpdateManager();
-describe('PromotedActionsBar', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-    });
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModal: jest.fn(),
+}));
 
+const mockNavigateToAndOpenReport = jest.mocked(navigateToAndOpenReport);
+const mockNavigateToAndOpenReportWithAccountIDs = jest.mocked(navigateToAndOpenReportWithAccountIDs);
+const mockNavigation = jest.mocked(Navigation);
+
+describe('PromotedActions.message', () => {
     beforeEach(() => {
-        global.fetch = getGlobalFetchMock();
-        mockedIsSearchTopmostFullScreenRoute.mockReset();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        jest.clearAllMocks();
     });
 
-    describe('hold', () => {
-        it('should not optimistically update the search snapshot if the topmost central pane is not search', async () => {
-            // Given a held transaction
-            const IOUReportID = '1';
-            const IOUTransactionID = '2';
-            const searchHash = 2;
-            const reportAction: ReportAction<'IOU'> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    amount: 100,
-                    currency: 'USD',
-                    type: 'create',
-                    IOUReportID,
-                    IOUTransactionID,
-                },
-                message: [],
-                previousMessage: [],
-            };
-            const transaction: Transaction = {
-                ...createRandomTransaction(Number(IOUTransactionID)),
-                comment: {
-                    hold: '1',
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
-                reportID: IOUReportID,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, transaction);
-
-            // When the user unheld the transaction not from the search central pane
-            PromotedActions.hold({
-                isTextHold: false,
-                reportAction,
-                reportID: '1',
-                isDelegateAccessRestricted: false,
-                setIsNoDelegateAccessMenuVisible: () => {},
-                currentSearchHash: searchHash,
-            }).onSelected();
-
-            await waitForBatchedUpdates();
-
-            // Then the search snapshot should not be updated optimistically
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-                    callback: (snapshot) => {
-                        Onyx.disconnect(connection);
-                        expect(snapshot).toBeUndefined();
-                        resolve();
-                    },
-                });
-            });
+    it('should pass introSelected to navigateToAndOpenReport when login is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const action = PromotedActions.message({
+            login: 'test@example.com',
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected,
+            isSelfTourViewed: false,
+            betas: undefined,
         });
 
-        it('should optimistically update the search snapshot if the topmost central pane is search', async () => {
-            // Given a held transaction
-            const IOUReportID = '1';
-            const IOUTransactionID = '2';
-            const searchHash = 2;
-            const reportAction: ReportAction<'IOU'> = {
-                ...createRandomReportAction(0),
-                childReportID: '3',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    amount: 100,
-                    currency: 'USD',
-                    type: 'create',
-                    IOUReportID,
-                    IOUTransactionID,
-                },
-                message: [],
-                previousMessage: [],
-            };
-            const transaction: Transaction = {
-                ...createRandomTransaction(Number(IOUTransactionID)),
-                comment: {
-                    hold: '1',
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
-                reportID: IOUReportID,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, transaction);
+        action.onSelected();
 
-            // When the user unheld the transaction from the search central pane
-            mockedIsSearchTopmostFullScreenRoute.mockReturnValueOnce(true);
-            PromotedActions.hold({
-                isTextHold: false,
-                reportAction,
-                reportID: '1',
-                isDelegateAccessRestricted: false,
-                setIsNoDelegateAccessMenuVisible: () => {},
-                currentSearchHash: searchHash,
-            }).onSelected();
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, false, true);
+    });
 
-            await waitForBatchedUpdates();
-
-            // Then the search snapshot should be updated optimistically
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-                    callback: (snapshot) => {
-                        Onyx.disconnect(connection);
-                        expect(snapshot).not.toBeUndefined();
-                        resolve();
-                    },
-                });
-            });
+    it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const action = PromotedActions.message({
+            accountID: 42,
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected,
+            isSelfTourViewed: false,
+            betas: undefined,
         });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, {}, true);
+    });
+
+    it('should pass undefined introSelected when not provided', () => {
+        const action = PromotedActions.message({
+            accountID: 42,
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected: undefined,
+            isSelfTourViewed: undefined,
+            betas: undefined,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, {}, true);
+    });
+
+    it('should navigate to report directly when reportID is provided', () => {
+        const action = PromotedActions.message({
+            reportID: 'report123',
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected: undefined,
+            isSelfTourViewed: undefined,
+            betas: undefined,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReport).not.toHaveBeenCalled();
+        expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('report123'));
+    });
+
+    it('should prefer login over accountID when both are provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const action = PromotedActions.message({
+            accountID: 42,
+            personalDetails: {},
+            login: 'test@example.com',
+            currentUserAccountID: 1,
+            introSelected,
+            isSelfTourViewed: false,
+            betas: undefined,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, false, true);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
+    });
+
+    it('should pass betas to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const betas = [CONST.BETAS.ALL];
+        const action = PromotedActions.message({
+            accountID: 42,
+            personalDetails: {},
+            currentUserAccountID: 1,
+            introSelected,
+            isSelfTourViewed: false,
+            betas,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, betas, {}, true);
+    });
+
+    it('should call navigateToAndOpenReportWithAccountIDs with isSelfTourViewed=true when self tour has been viewed and accountID is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const action = PromotedActions.message({
+            accountID: 42,
+            currentUserAccountID: 1,
+            introSelected,
+            isSelfTourViewed: true,
+            betas: undefined,
+            personalDetails: {},
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, {}, true);
+    });
+
+    it('should pass betas to navigateToAndOpenReport when login is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const betas = [CONST.BETAS.ALL];
+        const action = PromotedActions.message({
+            login: 'test@example.com',
+            currentUserAccountID: 1,
+            introSelected,
+            personalDetails: {},
+            isSelfTourViewed: false,
+            betas,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, betas, false, true);
+    });
+
+    it('should prefer reportID for self profile message action', () => {
+        const action = PromotedActions.message({
+            reportID: 'selfReport123',
+            accountID: 1,
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected: undefined,
+            isSelfTourViewed: undefined,
+            betas: undefined,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('selfReport123'));
+        expect(mockNavigateToAndOpenReport).not.toHaveBeenCalled();
+        expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
     });
 });

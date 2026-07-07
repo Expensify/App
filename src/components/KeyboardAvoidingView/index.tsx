@@ -1,7 +1,10 @@
-import React, {useMemo} from 'react';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import BaseKeyboardAvoidingView from './BaseKeyboardAvoidingView';
+
+import React, {useMemo} from 'react';
+
 import type {KeyboardAvoidingViewProps} from './types';
+
+import BaseKeyboardAvoidingView from './BaseKeyboardAvoidingView';
 
 function KeyboardAvoidingView({shouldOffsetBottomSafeAreaPadding = false, keyboardVerticalOffset: keyboardVerticalOffsetProp, ...restProps}: KeyboardAvoidingViewProps) {
     const {paddingBottom} = useSafeAreaPaddings(true);
@@ -13,13 +16,10 @@ function KeyboardAvoidingView({shouldOffsetBottomSafeAreaPadding = false, keyboa
 
     return (
         <BaseKeyboardAvoidingView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             keyboardVerticalOffset={keyboardVerticalOffset}
         />
     );
 }
-
-KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 
 export default KeyboardAvoidingView;

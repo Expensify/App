@@ -1,13 +1,17 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type DateOfBirthProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+import {SafeString} from 'expensify-common';
+import React from 'react';
+
+type DateOfBirthProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
 const {DOB, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
@@ -16,7 +20,7 @@ function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, owner
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${PREFIX}_${ownerBeingModifiedID}_${DOB}` as const;
-    const dobDefaultValue = String(reimbursementAccountDraft?.[dobInputID] ?? '');
+    const dobDefaultValue = SafeString(reimbursementAccountDraft?.[dobInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourDOB' : 'ownershipInfoStep.whatsTheOwnersDOB');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -39,7 +43,5 @@ function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, owner
         />
     );
 }
-
-DateOfBirth.displayName = 'DateOfBirth';
 
 export default DateOfBirth;

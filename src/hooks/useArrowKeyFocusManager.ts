@@ -1,13 +1,24 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
+
+import {useEffect, useEffectEvent, useState} from 'react';
+
 import useKeyboardShortcut from './useKeyboardShortcut';
 import usePrevious from './usePrevious';
 
 type Config = {
     maxIndex: number;
-    onFocusedIndexChange?: (index: number) => void;
+    /**
+     * Optional callback fired whenever `focusedIndex` changes. The hook itself never
+     * scrolls — any scroll reaction must live in this callback. `shouldScrollHint` is a
+     * hint forwarded from whoever wrote the new index; it is only ever set in the same
+     * commit that writes a new `index`, and is never updated on its own. If you need to
+     * scroll without changing the focused index, call the underlying list's
+     * `scrollToIndex` directly rather than going through this hook.
+     */
+    onFocusedIndexChange?: (index: number, shouldScrollHint: boolean) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
+    captureOnInputs?: boolean;
     shouldExcludeTextAreaNodes?: boolean;
     isActive?: boolean;
     itemsPerRow?: number;
@@ -16,14 +27,18 @@ type Config = {
     allowNegativeIndexes?: boolean;
     isFocused?: boolean;
     setHasKeyBeenPressed?: () => void;
+    onArrowUpDownCallback?: () => void;
 };
 
-type UseArrowKeyFocusManager = [number, (index: number) => void];
+/**
+ * The setter's optional `shouldScrollHint` flag (default `false`) is forwarded as the
+ * second argument to `onFocusedIndexChange`; it is not a direct scroll control.
+ * Same-index writes are dropped — see the comment on `setFocusedIndexExternal` for why.
+ */
+type UseArrowKeyFocusManager = [number, (index: number, shouldScrollHint?: boolean) => void];
 
 /**
- * A hook that makes it easy to use the arrow keys to manage focus of items in a list
- *
- * Recommendation: To ensure stability, wrap the `onFocusedIndexChange` function with the useCallback hook before using it with this hook.
+ * A hook that makes it easy to use the arrow keys to manage focus of items in a list.
  *
  * @param config.maxIndex – typically the number of items in your list
  * @param [config.onFocusedIndexChange] – optional callback to execute when focusedIndex changes
@@ -44,6 +59,7 @@ export default function useArrowKeyFocusManager({
     // The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
     // Hence the use of CONST.EMPTY_ARRAY.
     disabledIndexes = CONST.EMPTY_ARRAY,
+    captureOnInputs = true,
     shouldExcludeTextAreaNodes = true,
     isActive,
     itemsPerRow,
@@ -52,40 +68,55 @@ export default function useArrowKeyFocusManager({
     allowNegativeIndexes = false,
     isFocused = true,
     setHasKeyBeenPressed,
+    onArrowUpDownCallback = () => {},
 }: Config): UseArrowKeyFocusManager {
-    const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    const [focusState, setFocusState] = useState({index: initialFocusedIndex, shouldScrollHint: false});
+    const {index: focusedIndex, shouldScrollHint} = focusState;
     const prevIsFocusedIndex = usePrevious(focusedIndex);
-    const arrowConfig = useMemo(
-        () => ({
-            excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
-            isActive,
-        }),
-        [isActive, shouldExcludeTextAreaNodes],
-    );
 
-    const horizontalArrowConfig = useMemo(
-        () => ({
-            excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
-            isActive: isActive && allowHorizontalArrowKeys,
-        }),
-        [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys],
-    );
+    /*
+     * Same-index bail-out example path: after an arrow-key commit, `useSyncFocus`'s
+     * layout effect (`src/hooks/useSyncFocus/useSyncFocusImplementation.ts`) calls
+     * `el.focus()`, the browser fires a synchronous `focus` event, and the `onFocus`
+     * handler in `src/components/SelectionList/ListItem/ListItemRenderer.tsx` re-enters
+     * this setter with the same index and no hint.
+     */
+    const setFocusedIndexExternal = (index: number, shouldScrollHintArg = false) => {
+        setFocusState((prev) => (prev.index === index ? prev : {index, shouldScrollHint: shouldScrollHintArg}));
+    };
+
+    const setFocusedIndexInternal = (updater: (prev: number) => number) => {
+        setFocusState((prev) => ({index: updater(prev.index), shouldScrollHint: true}));
+    };
+
+    const arrowConfig = {
+        excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
+        isActive,
+        captureOnInputs,
+    };
+
+    const horizontalArrowConfig = {
+        excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
+        isActive: isActive && allowHorizontalArrowKeys,
+        captureOnInputs,
+    };
+
+    const onFocusedIndexChangeEvent = useEffectEvent(onFocusedIndexChange);
 
     useEffect(() => {
         if (prevIsFocusedIndex === focusedIndex) {
             return;
         }
-        onFocusedIndexChange(focusedIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [focusedIndex, prevIsFocusedIndex]);
+        onFocusedIndexChangeEvent(focusedIndex, shouldScrollHint);
+    }, [focusedIndex, prevIsFocusedIndex, shouldScrollHint]);
 
-    const arrowUpCallback = useCallback(() => {
+    const arrowUpCallback = () => {
         if (maxIndex < 0 || !isFocused) {
             return;
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
         setHasKeyBeenPressed?.();
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
             let newFocusedIndex = currentFocusedIndex;
 
@@ -107,11 +138,12 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setHasKeyBeenPressed]);
+        onArrowUpDownCallback();
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
-    const arrowDownCallback = useCallback(() => {
+    const arrowDownCallback = () => {
         if (maxIndex < 0 || !isFocused) {
             return;
         }
@@ -119,7 +151,7 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             let currentFocusedIndex = -1;
 
             if (actualIndex === -1) {
@@ -153,18 +185,19 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setHasKeyBeenPressed]);
+        onArrowUpDownCallback();
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 
-    const arrowLeftCallback = useCallback(() => {
+    const arrowLeftCallback = () => {
         if (maxIndex < 0 || !allowHorizontalArrowKeys) {
             return;
         }
 
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
 
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
@@ -179,18 +212,18 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, horizontalArrowConfig);
 
-    const arrowRightCallback = useCallback(() => {
+    const arrowRightCallback = () => {
         if (maxIndex < 0 || !allowHorizontalArrowKeys) {
             return;
         }
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
@@ -205,10 +238,10 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, horizontalArrowConfig);
 
-    // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
-    return [focusedIndex, setFocusedIndex];
+    // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndexExternal is only exposed in case you want to reset focusedIndex or focus a specific item
+    return [focusedIndex, setFocusedIndexExternal];
 }

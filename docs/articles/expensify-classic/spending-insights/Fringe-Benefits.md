@@ -4,7 +4,6 @@ description: How to track your Fringe Benefits
 keywords: [Expensify Classic, fringe benefits, payroll code]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 If you need to track and report expense data for **Fringe Benefits Tax (FBT)**, Expensify offers a workflow to capture the required information and export it to a spreadsheet.  
 
@@ -68,4 +67,3 @@ If your expenses have multiple coding levels, your report might include:
 
 For more details, visit our [Custom Templates guide](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates).  
 
-</div>

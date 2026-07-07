@@ -1,30 +1,30 @@
-import React, {useCallback, useEffect} from 'react';
-import type {ReactNode} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import useMapMarkers from '@hooks/useMapMarkers';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as MapboxToken from '@userActions/MapboxToken';
+
+import getArrayDepth from '@libs/getArrayDepth';
+import {getWaypointIndex} from '@libs/TransactionUtils';
+
+import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type IconAsset from '@src/types/utils/IconAsset';
-import DistanceMapView from './DistanceMapView';
-import * as Expensicons from './Icon/Expensicons';
-import ImageSVG from './ImageSVG';
+import type {Transaction} from '@src/types/onyx';
+
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
+
 import type {WayPoint} from './MapView/MapViewTypes';
+
+import DistanceMapView from './DistanceMapView';
 import PendingMapView from './MapView/PendingMapView';
 
-type ConfirmedRoutePropsOnyxProps = {
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
-};
-
-type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
+type ConfirmedRouteProps = {
     /** Transaction that stores the distance expense data */
     transaction: OnyxEntry<Transaction>;
 
@@ -40,69 +40,51 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
 
     /** Whether the map is interactive or not */
     interactive?: boolean;
+
+    /** Whether it should display the compass on the map */
+    shouldDisplayCompass?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
+function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const getMapMarkerIconComponent = useMapMarkers();
 
-    const getMarkerComponent = useCallback(
-        (icon: IconAsset): ReactNode => (
-            <ImageSVG
-                src={icon}
-                width={CONST.MAP_MARKER_SIZE}
-                height={CONST.MAP_MARKER_SIZE}
-                fill={theme.icon}
-            />
-        ),
-        [theme],
-    );
-
-    const getWaypointMarkers = useCallback(
-        (waypointsData: WaypointCollection): WayPoint[] => {
-            const numberOfWaypoints = Object.keys(waypointsData).length;
-            const lastWaypointIndex = numberOfWaypoints - 1;
-
-            return Object.entries(waypointsData)
-                .map(([key, waypoint]) => {
-                    if (!waypoint?.lat || !waypoint?.lng) {
-                        return;
-                    }
-
-                    const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent: IconAsset;
-                    if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
-                    } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
-                    } else {
-                        MarkerComponent = Expensicons.DotIndicator;
-                    }
-
-                    return {
-                        id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
-                    };
-                })
-                .filter((waypoint): waypoint is WayPoint => !!waypoint);
-        },
-        [getMarkerComponent],
-    );
-
-    const waypointMarkers = getWaypointMarkers(waypoints);
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
     useEffect(() => {
-        MapboxToken.init();
-        return MapboxToken.stop;
+        initMapboxToken();
+        return stopMapboxToken;
     }, []);
 
-    const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
+    const lastWaypointIndex = Object.keys(waypoints).length - 1;
+    const waypointMarkers: WayPoint[] = [];
+    for (const [key, waypoint] of Object.entries(waypoints)) {
+        if (!waypoint?.lat || !waypoint?.lng) {
+            continue;
+        }
+
+        const index = getWaypointIndex(key);
+        let markerType: MapMarkerType = 'WAYPOINT';
+        if (index === 0) {
+            markerType = 'START_WAYPOINT';
+        } else if (index === lastWaypointIndex) {
+            markerType = 'STOP_WAYPOINT';
+        }
+
+        waypointMarkers.push({
+            id: `${waypoint.lng},${waypoint.lat},${index}`,
+            coordinate: [waypoint.lng, waypoint.lat] as const,
+            markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
+        });
+    }
+
+    const hasCoordinates = getArrayDepth(coordinates) === 3 ? !!coordinates.flat().length : !!coordinates.length;
+    const shouldDisplayMap = !requireRouteToDisplayMap || hasCoordinates;
 
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView
@@ -119,6 +101,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
             requireRouteToDisplayMap={requireRouteToDisplayMap}
+            shouldDisplayCurrentLocation={false}
+            shouldDisplayCompass={shouldDisplayCompass}
         />
     ) : (
         <PendingMapView
@@ -128,10 +112,4 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     );
 }
 
-export default withOnyx<ConfirmedRouteProps, ConfirmedRoutePropsOnyxProps>({
-    mapboxAccessToken: {
-        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    },
-})(ConfirmedRoute);
-
-ConfirmedRoute.displayName = 'ConfirmedRoute';
+export default ConfirmedRoute;

@@ -1,9 +1,12 @@
-import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import CONST from '@src/CONST';
+
+import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+
+import type {EventCallbackError, SocketEventName, States} from './Pusher/types';
+
 import {authenticatePusher} from './actions/Session';
 import Log from './Log';
 import Pusher from './Pusher';
-import type {EventCallbackError, SocketEventName, States} from './Pusher/types';
 
 function init() {
     /**
@@ -44,7 +47,7 @@ function init() {
                         // It's not clear why some errors are wrapped in a WebSocketError type - this error could mean different things depending on the contents.
                         Log.hmmm('[PusherConnectionManager] WebSocketError', {error});
                     } else {
-                        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});
+                        Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} [PusherConnectionManager] Unknown error event`, {error});
                     }
                 }
                 break;

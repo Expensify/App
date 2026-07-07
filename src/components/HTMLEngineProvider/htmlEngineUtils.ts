@@ -1,3 +1,5 @@
+import variables from '@styles/variables';
+
 import type {TNode} from 'react-native-render-html';
 
 type Predicate = (node: TNode) => boolean;
@@ -44,6 +46,19 @@ function isChildOfNode(tnode: TNode, predicate: Predicate): boolean {
 }
 
 /**
+ * Check if a node is a child of a specific tag name by traversing up the parent chain.
+ */
+function isChildOfTagName(tnode: TNode, tagName: string): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === tagName) {
+        return true;
+    }
+    return isChildOfTagName(tnode.parent, tagName);
+}
+
+/**
  * Check if there is an ancestor node with name 'comment'.
  * Finding node with name 'comment' flags that we are rendering a comment.
  */
@@ -56,11 +71,11 @@ function isChildOfComment(tnode: TNode): boolean {
  * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
  */
 function isChildOfH1(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'h1');
 }
 
 function isChildOfTaskTitle(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'task-title');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'task-title');
 }
 
 /**
@@ -71,4 +86,92 @@ function isDeletedNode(tnode: TNode): boolean {
     return 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle};
+/**
+ * @returns Whether the node is a child of RBR
+ */
+function isChildOfRBR(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'rbr');
+}
+
+function getFontSizeOfRBRChild(tnode: TNode): number {
+    if (!tnode.parent) {
+        return 0;
+    }
+    if (tnode.parent.tagName === 'rbr' && tnode.parent.attributes?.issmall !== undefined) {
+        return variables.fontSizeSmall;
+    }
+    if (tnode.parent.tagName === 'rbr' && tnode.parent.attributes?.issmall === undefined) {
+        return variables.fontSizeLabel;
+    }
+    return 0;
+}
+
+/**
+ * @returns Whether the node is a child of muted-text-label
+ */
+function isChildOfMutedTextLabel(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'muted-text-label');
+}
+
+function isChildOfLabelText(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'label-text');
+}
+
+/**
+ * @returns Whether the node is a child of muted-text-xs
+ */
+function isChildOfMutedTextXS(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'muted-text-xs');
+}
+
+/**
+ * @returns Whether the node is a child of muted-text-micro
+ */
+function isChildOfMutedTextMicro(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'muted-text-micro');
+}
+
+/**
+ * @returns Whether the node is a child of alert-text
+ */
+function isChildOfAlertText(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'alert-text');
+}
+
+/**
+ * Recursively collects the raw text contents of a code block so it can be copied to the clipboard,
+ * preserving the original line breaks and whitespace.
+ */
+function getCodeBlockText(tnode: TNode): string {
+    // Newlines inside a code block are rendered as void `<br>` tags, which carry no `data`.
+    // Emit a newline for them so the copied text keeps its original formatting.
+    if (tnode.tagName === 'br') {
+        return '\n';
+    }
+
+    if ('data' in tnode && typeof tnode.data === 'string') {
+        return tnode.data;
+    }
+
+    if (!tnode.children) {
+        return '';
+    }
+
+    return tnode.children.map(getCodeBlockText).join('');
+}
+
+export {
+    computeEmbeddedMaxWidth,
+    isChildOfComment,
+    isChildOfH1,
+    isDeletedNode,
+    isChildOfTaskTitle,
+    isChildOfRBR,
+    getFontSizeOfRBRChild,
+    isChildOfMutedTextLabel,
+    isChildOfLabelText,
+    isChildOfMutedTextXS,
+    isChildOfMutedTextMicro,
+    isChildOfAlertText,
+    getCodeBlockText,
+};

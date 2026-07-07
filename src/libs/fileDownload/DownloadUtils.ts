@@ -1,9 +1,13 @@
 import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import * as Link from '@userActions/Link';
+
 import CONST from '@src/CONST';
-import {appendTimeToFileName, getFileName} from './FileUtils';
+
 import type {FileDownload} from './types';
+
+import {appendTimeToFileName, getFileName} from './FileUtils';
 
 const createDownloadLink = (href: string, fileName: string) => {
     // creating anchor tag to initiate download
@@ -12,7 +16,6 @@ const createDownloadLink = (href: string, fileName: string) => {
     link.href = href;
     link.style.display = 'none';
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
     link.download = fileName;
 
     // Append to html link element page
@@ -27,10 +30,23 @@ const createDownloadLink = (href: string, fileName: string) => {
 };
 
 /**
- * The function downloads an attachment on web/desktop platforms.
+ * The function downloads an attachment on web platforms.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get', onDownloadFailed?: () => void) => {
+const fetchFileDownload: FileDownload = (
+    translate,
+    url,
+    fileName,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    successMessage = '',
+    shouldOpenExternalLink = false,
+    formData = undefined,
+    requestType = 'get',
+    onDownloadFailed?: () => void,
+    // `shouldUnlink` is part of the cross-platform FileDownload signature but has no meaning on web, so it is intentionally unused here.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    shouldUnlink = false,
+    appendTimestamp = true,
+) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
 
     const isApiUrl = resolvedUrl.startsWith(ApiUtils.getApiRoot());
@@ -64,7 +80,8 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
         .then((blob) => {
             // Create blob link to download
             const href = URL.createObjectURL(new Blob([blob]));
-            const completeFileName = appendTimeToFileName(fileName ?? getFileName(url));
+            const resolvedFileName = fileName ?? getFileName(url);
+            const completeFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             createDownloadLink(href, completeFileName);
         })
         .catch(() => {

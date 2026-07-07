@@ -1,27 +1,50 @@
-import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import React from 'react';
+
 type SelectDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE>;
+
+function DelegateRoleSelectionListHeader() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <>
+                {translate('delegate.accessLevelDescription')}{' '}
+                <TextLink
+                    style={[styles.link]}
+                    href={CONST.COPILOT_HELP_URL}
+                >
+                    {translate('common.learnMore')}
+                </TextLink>
+                .
+            </>
+        </Text>
+    );
+}
 
 function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
 
-    const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
         text: translate('delegate.role', {role}),
@@ -33,7 +56,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={SelectDelegateRolePage.displayName}
+            testID="SelectDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -41,37 +64,22 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_ADD_DELEGATE)}
                 />
                 <SelectionList
-                    isAlternateTextMultilineSupported
-                    alternateTextNumberOfLines={4}
-                    initiallyFocusedOptionKey={roleOptions.find((role) => role.isSelected)?.keyForList}
+                    alternateNumberOfSupportedLines={4}
+                    initiallyFocusedItemKey={roleOptions.find((role) => role.isSelected)?.keyForList}
                     shouldUpdateFocusedIndex
-                    headerContent={
-                        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <>
-                                {translate('delegate.accessLevelDescription')}{' '}
-                                <TextLink
-                                    style={[styles.link]}
-                                    href={CONST.COPILOT_HELP_URL}
-                                >
-                                    {translate('common.learnMore')}
-                                </TextLink>
-                            </>
-                        </Text>
-                    }
+                    customListHeader={<DelegateRoleSelectionListHeader />}
                     onSelectRow={(option) => {
                         Navigation.setParams({
                             role: option.value,
                         });
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                     }}
-                    sections={[{data: roleOptions}]}
-                    ListItem={RadioListItem}
+                    data={roleOptions}
+                    ListItem={SingleSelectListItem}
                 />
             </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
-
-SelectDelegateRolePage.displayName = 'SelectDelegateRolePage';
 
 export default SelectDelegateRolePage;

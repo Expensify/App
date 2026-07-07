@@ -1,9 +1,9 @@
-import type {ChangeEvent, Component, ReactElement} from 'react';
-import type {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
+import type {ChangeEvent, ForwardedRef, ReactElement} from 'react';
+import type {HostInstance, MeasureLayoutOnSuccessCallback, StyleProp, ViewStyle} from 'react-native';
 
 type MeasureLayoutOnFailCallback = () => void;
 
-type RelativeToNativeComponentRef = (Component<unknown> & Readonly<NativeMethods>) | number;
+type RelativeToNativeComponentRef = HostInstance | number;
 
 type BasePickerHandle = {
     focus: () => void;
@@ -44,6 +44,9 @@ type PickerPlaceholder = {
 type BasePickerProps<TPickerValue> = {
     /** BasePicker label */
     label?: string | null;
+
+    /** Accessibility label for screen readers */
+    accessibilityLabel?: string;
 
     /** Should the picker appear disabled? */
     isDisabled?: boolean;
@@ -98,6 +101,9 @@ type BasePickerProps<TPickerValue> = {
 
     /** Hint text that appears below the picker */
     hintText?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BasePickerHandle>;
 };
 
-export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
+export type {BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

@@ -1,10 +1,13 @@
-import TaskManager from '@expensify/react-native-background-task';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
+
+import TaskManager from '@expensify/react-native-background-task';
 
 const BACKGROUND_FETCH_TASK = 'FLUSH-SEQUENTIAL-QUEUE-BACKGROUND-FETCH';
 
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, () => {
     Log.info('BackgroundTask', true, `Executing ${BACKGROUND_FETCH_TASK} background task at ${new Date().toISOString()}`);
     flush();
+})?.catch((error: unknown) => {
+    Log.warn(`[BackgroundTask] Failed to define ${BACKGROUND_FETCH_TASK}: ${String(error)}`);
 });

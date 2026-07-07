@@ -1,24 +1,30 @@
-import {useEffect} from 'react';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+
 import Navigation from '@libs/Navigation/Navigation';
+
+import getQuickbooksDesktopSetupEntryRoute from '@pages/workspace/accounting/qbd/utils';
+
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {useEffect} from 'react';
+
 import type {ConnectToQuickbooksDesktopFlowProps} from './types';
 
 function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFlowProps) {
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
 
     useEffect(() => {
-        if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID));
-        } else {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID));
+        if (hasReusablePoliciesConnectedToQBD) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID));
+            return;
         }
-    }, [isSmallScreenWidth, policyID]);
+        Navigation.navigate(getQuickbooksDesktopSetupEntryRoute(policyID));
+        // Runs once on mount — re-running when hasReusablePoliciesConnectedToQBD changes mid-flow would interrupt an in-progress setup.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return null;
 }
-
-ConnectToQuickbooksDesktopFlow.displayName = 'ConnectToQuickbooksDesktopFlow';
 
 export default ConnectToQuickbooksDesktopFlow;

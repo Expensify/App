@@ -1,63 +1,122 @@
-import React from 'react';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isTravelCard} from '@libs/CardUtils';
+import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransaction, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-// If the transaction is cash, it has the type CONST.EXPENSE.TYPE.CASH_CARD_NAME.
-// If there is no credit card name, it means it couldn't be a card transaction,
-// so we assume it's cash. Any other type is treated as a card transaction.
-// same in getTypeText
-
-const getTypeIcon = (type?: string) => {
+const getTypeIcon = (
+    icons: Record<'Car' | 'CreditCard' | 'CreditCardLock' | 'CreditCardWithPlane' | 'ExpensifyCard' | 'Cash' | 'Clock' | 'CalendarSolid', IconAsset>,
+    type?: string,
+    isExpensifyCard?: boolean,
+    isManagedCard?: boolean,
+    isTravelInvoicingCard?: boolean,
+) => {
     switch (type) {
-        case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
-            return Expensicons.Cash;
-        case undefined:
-            return Expensicons.Cash;
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            // Travel invoicing cards are technically Expensify-issued (bank === EXPENSIFY_CARD.BANK), so this branch must come before the isExpensifyCard branch.
+            if (isTravelInvoicingCard) {
+                return icons.CreditCardWithPlane;
+            }
+            if (isExpensifyCard) {
+                return icons.ExpensifyCard;
+            }
+            if (isManagedCard) {
+                return icons.CreditCardLock;
+            }
+            return icons.CreditCard;
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return icons.Car;
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return icons.Clock;
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return icons.CalendarSolid;
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
-            return Expensicons.CreditCard;
-    }
-};
-
-const getTypeText = (type?: string): TranslationPaths => {
-    switch (type) {
-        case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
-            return 'iou.cash';
-        case undefined:
-            return 'iou.cash';
-        default:
-            return 'iou.card';
+            return icons.Cash;
     }
 };
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (transactionItem.cardID ? cardList?.[transactionItem.cardID] : undefined)});
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.cardName);
-    const typeText = getTypeText(transactionItem.cardName);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Car',
+        'CreditCard',
+        'CreditCardLock',
+        'CreditCardWithPlane',
+        'CreditCardWithPlaneHourglass',
+        'ExpensifyCard',
+        'ExpensifyCardHourglass',
+        'Cash',
+        'Clock',
+        'CalendarSolid',
+    ]);
+    const type = getTransactionType(transactionItem, card);
+    const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
+    const isManagedCard = isManagedCardTransaction(transactionItem);
+    const isTravelInvoicingCard = isTravelCard(card);
+    const isPendingExpensifyCardTransaction = isExpensifyCard && isPending(transactionItem);
+    const pendingIcon = isTravelInvoicingCard ? expensifyIcons.CreditCardWithPlaneHourglass : expensifyIcons.ExpensifyCardHourglass;
+    const typeIcon = isPendingExpensifyCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
+    const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
     const styles = useThemeStyles();
+
+    const getTooltipText = () => {
+        if (isPendingExpensifyCardTransaction) {
+            return translate('iou.pending');
+        }
+        if (isTravelInvoicingCard) {
+            return translate('cardTransactions.travelCard');
+        }
+        if (isExpensifyCard) {
+            return translate('cardTransactions.expensifyCard');
+        }
+        if (isManagedCard) {
+            return translate('cardTransactions.companyCard');
+        }
+        if (type === CONST.SEARCH.TRANSACTION_TYPE.CARD) {
+            return translate('cardTransactions.personalCard');
+        }
+        return translate(typeText);
+    };
 
     return shouldUseNarrowLayout ? (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={translate(typeText)}
-            style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
+            style={[styles.mutedNormalTextLabel, styles.pre, styles.justifyContentCenter, styles.flexShrink0]}
         />
     ) : (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={20}
-            width={20}
-        />
+        <Tooltip text={getTooltipText()}>
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={variables.iconSizeSmall}
+                    width={variables.iconSizeSmall}
+                />
+            </View>
+        </Tooltip>
     );
 }
 
-TypeCell.displayName = 'TypeCell';
 export default TypeCell;

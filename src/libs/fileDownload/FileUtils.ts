@@ -1,32 +1,40 @@
-import {Str} from 'expensify-common';
-import {Alert, Linking, Platform} from 'react-native';
-import ImageSize from 'react-native-image-size';
-import type {TupleToUnion} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import {Alert, Linking, Platform} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import ImageSize from 'react-native-image-size';
+
+import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
+
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
-import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
  * @param successMessage
  */
-function showSuccessAlert(successMessage?: string) {
+function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string) {
     Alert.alert(
-        translateLocal('fileDownload.success.title'),
-        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        translate('fileDownload.success.title'),
+        // successMessage can be an empty string and we want to default to `Localize.translate('fileDownload.success.message')`
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        successMessage || translateLocal('fileDownload.success.message'),
+        successMessage || translate('fileDownload.success.message'),
         [
             {
-                text: translateLocal('common.ok'),
+                text: translate('common.ok'),
                 style: 'cancel',
             },
         ],
@@ -37,10 +45,10 @@ function showSuccessAlert(successMessage?: string) {
 /**
  * Show alert on attachment download error
  */
-function showGeneralErrorAlert() {
-    Alert.alert(translateLocal('fileDownload.generalError.title'), translateLocal('fileDownload.generalError.message'), [
+function showGeneralErrorAlert(translate: LocalizedTranslate) {
+    Alert.alert(translate('fileDownload.generalError.title'), translate('fileDownload.generalError.message'), [
         {
-            text: translateLocal('common.cancel'),
+            text: translate('common.cancel'),
             style: 'cancel',
         },
     ]);
@@ -49,14 +57,14 @@ function showGeneralErrorAlert() {
 /**
  * Show alert on attachment download permissions error
  */
-function showPermissionErrorAlert() {
-    Alert.alert(translateLocal('fileDownload.permissionError.title'), translateLocal('fileDownload.permissionError.message'), [
+function showPermissionErrorAlert(translate: LocalizedTranslate) {
+    Alert.alert(translate('fileDownload.permissionError.title'), translate('fileDownload.permissionError.message'), [
         {
-            text: translateLocal('common.cancel'),
+            text: translate('common.cancel'),
             style: 'cancel',
         },
         {
-            text: translateLocal('common.settings'),
+            text: translate('common.settings'),
             onPress: () => {
                 Linking.openSettings();
             },
@@ -67,17 +75,17 @@ function showPermissionErrorAlert() {
 /**
  * Inform the users when they need to grant camera access and guide them to settings
  */
-function showCameraPermissionsAlert() {
+function showCameraPermissionsAlert(translate: LocalizedTranslate) {
     Alert.alert(
-        translateLocal('attachmentPicker.cameraPermissionRequired'),
-        translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+        translate('attachmentPicker.cameraPermissionRequired'),
+        translate('attachmentPicker.expensifyDoesNotHaveAccessToCamera'),
         [
             {
-                text: translateLocal('common.cancel'),
+                text: translate('common.cancel'),
                 style: 'cancel',
             },
             {
-                text: translateLocal('common.settings'),
+                text: translate('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
                     // In the case of ios, the App reloads when we update camera permission from settings
@@ -106,7 +114,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -151,21 +159,94 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
 };
 
 /**
+ * Returns the MIME type for a given file extension.
+ * Falls back to 'application/octet-stream' for unrecognized extensions.
+ */
+function getMimeType(fileExtension: string): string {
+    const ext = fileExtension.toLowerCase();
+    const MIME_TYPES: Record<string, string> = {
+        txt: CONST.SHARE_FILE_MIMETYPE.TEXT,
+        csv: CONST.SHARE_FILE_MIMETYPE.CSV,
+        pdf: CONST.SHARE_FILE_MIMETYPE.PDF,
+        html: CONST.SHARE_FILE_MIMETYPE.HTML,
+        xml: CONST.SHARE_FILE_MIMETYPE.XML,
+        zip: CONST.SHARE_FILE_MIMETYPE.ZIP,
+    };
+    return MIME_TYPES[ext] ?? 'application/octet-stream';
+}
+
+/**
+ * Derives an image MIME type from a file URI or filename.
+ * Returns undefined for unrecognized extensions so callers can apply their own fallback.
+ */
+function getMimeTypeFromUri(uri: string): string | undefined {
+    const {fileExtension} = splitExtensionFromFileName(uri.split('/').pop() ?? uri);
+    const ext = fileExtension.toLowerCase();
+    const IMAGE_EXTENSION_TO_MIME: Record<string, string> = {
+        jpg: CONST.SHARE_FILE_MIMETYPE.JPEG,
+        jpeg: CONST.SHARE_FILE_MIMETYPE.JPEG,
+        png: CONST.SHARE_FILE_MIMETYPE.PNG,
+        heic: CONST.SHARE_FILE_MIMETYPE.HEIC,
+        heif: CONST.SHARE_FILE_MIMETYPE.HEIF,
+        webp: CONST.SHARE_FILE_MIMETYPE.WEBP,
+        gif: CONST.SHARE_FILE_MIMETYPE.GIF,
+        tif: CONST.SHARE_FILE_MIMETYPE.TIF,
+        tiff: CONST.SHARE_FILE_MIMETYPE.TIFF,
+    };
+    return ext ? IMAGE_EXTENSION_TO_MIME[ext] : undefined;
+}
+
+/**
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
-    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
+    return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
+}
+
+/**
+ * Builds a standardized export filename: `expensify_<exportName>_<uniqueID>.<extension>`.
+ * The export name is sanitized and the whole name is lowercased so it is safe and consistent
+ * to use as a filename, and the unique id keeps filenames distinct without relying on a timestamp.
+ */
+function getExportFileName(exportName: string, uniqueID: string, extension = 'csv'): string {
+    return `expensify_${cleanFileName(exportName)}_${uniqueID}.${extension}`.toLowerCase();
 }
 
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
-    // Replace illegal characters before trying to download the attachment.
-    newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
-    if (file.fileExtension) {
-        newFileName += `.${file.fileExtension}`;
+
+    const fileNameWithoutExtension = file.fileName;
+    const fileExtension = file.fileExtension;
+
+    const time = DateUtils.getDBTime();
+    const timeSuffix = `-${time}`;
+
+    const lengthSafeFileNameWithoutExtension =
+        Platform.OS === 'android' ? truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength: timeSuffix.length}) : fileNameWithoutExtension;
+
+    let newFileName = `${lengthSafeFileNameWithoutExtension}${timeSuffix}`;
+
+    // Replace all illegal characters before trying to download the attachment.
+    newFileName = newFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    if (fileExtension) {
+        newFileName += `.${fileExtension}`;
     }
     return newFileName;
+}
+
+const ANDROID_SAFE_FILE_NAME_LENGTH = 70;
+
+/**
+ * Truncates the file name to a safe length on Android
+ * @param params - An object containing:
+ *   @param params.fileNameWithoutExtension - The file name without the extension
+ *   @param params.fileSuffixLength - The length of the file suffix
+ * @returns The truncated file name
+ */
+function truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength}: {fileNameWithoutExtension: string; fileSuffixLength: number}): string {
+    const safeFileNameLengthWithoutSuffix = ANDROID_SAFE_FILE_NAME_LENGTH - fileSuffixLength;
+
+    return fileNameWithoutExtension.substring(0, safeFileNameLengthWithoutSuffix);
 }
 
 /**
@@ -252,6 +333,54 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
+/**
+ * Converts a file-like input to a data URL string.
+ * Accepts either a `FileObject` (including `File`) or a URI string and returns
+ * a base64 data URL payload suitable for persisted storage.
+ */
+function convertFileObjectOrUriToBase64DataURL(fileObjectOrUri: FileObject | string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const source = typeof fileObjectOrUri === 'string' ? fileObjectOrUri : fileObjectOrUri.uri;
+        if (!source && !(typeof File !== 'undefined' && fileObjectOrUri instanceof File)) {
+            reject(new Error('No valid source to convert to base64'));
+            return;
+        }
+
+        if (source?.startsWith('data:')) {
+            resolve(source);
+            return;
+        }
+
+        const convertBlobToDataURL = (blob: Blob) => {
+            if (typeof FileReader === 'undefined') {
+                reject(new Error('FileReader is not available'));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                    return;
+                }
+                reject(new Error('Failed to convert blob to base64'));
+            };
+            reader.onerror = () => reject(new Error('Failed to read blob as base64'));
+            reader.readAsDataURL(blob);
+        };
+
+        if (typeof File !== 'undefined' && fileObjectOrUri instanceof File) {
+            convertBlobToDataURL(fileObjectOrUri);
+            return;
+        }
+
+        fetch(source ?? '')
+            .then((response) => response.blob())
+            .then((blob) => convertBlobToDataURL(blob))
+            .catch((error) => reject(error));
+    });
+}
+
 function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
     if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
@@ -272,20 +401,138 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
 
 /** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
 function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
-    return fetch(fileUri)
-        .then((file) => file.arrayBuffer())
-        .then((arrayBuffer) => {
-            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
+    const MAGIC_BYTES_NEEDED = 16;
 
-            const hexString = Array.from(uintArray)
-                .map((b) => b.toString(16).padStart(2, '0'))
-                .join('');
+    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
+        return Promise.resolve(false);
+    }
 
-            return hexString;
-        })
-        .then((hexSignature) => {
-            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
+    const cleanUri = fileUri.replace('file://', '');
+
+    if (Platform.OS === 'ios') {
+        return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {
+            const base64CharsNeeded = Math.ceil((MAGIC_BYTES_NEEDED * 4) / 3);
+            const base64Data = fullBase64Data.substring(0, base64CharsNeeded);
+            if (!base64Data) {
+                return false;
+            }
+
+            try {
+                const binaryString = atob(base64Data);
+
+                const startOffset = 4;
+                const bytesToRead = 12;
+                const endOffset = startOffset + bytesToRead;
+
+                if (binaryString.length < endOffset) {
+                    return false;
+                }
+
+                const bytes = new Uint8Array(bytesToRead);
+                for (let i = 0; i < bytesToRead; i++) {
+                    bytes[i] = binaryString.charCodeAt(startOffset + i);
+                }
+
+                const hex = Array.from(bytes)
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                const result = formatSignatures.some((signature) => hex.startsWith(signature));
+                return result;
+            } catch (e) {
+                return false;
+            }
         });
+    }
+
+    return new Promise<boolean>((resolve) => {
+        ReactNativeBlobUtil.fs
+            .readStream(cleanUri, 'base64', 64, 0)
+            .then((stream: ReactNativeBlobUtilReadStream) => {
+                let base64Data = '';
+                let hasEnoughData = false;
+
+                const processData = () => {
+                    if (!base64Data) {
+                        resolve(false);
+                        return;
+                    }
+
+                    try {
+                        const binaryString = atob(base64Data);
+
+                        const startOffset = 4;
+                        const bytesToRead = 12;
+                        const endOffset = startOffset + bytesToRead;
+
+                        if (binaryString.length < endOffset) {
+                            resolve(false);
+                            return;
+                        }
+
+                        const bytes = new Uint8Array(bytesToRead);
+                        for (let i = 0; i < bytesToRead; i++) {
+                            bytes[i] = binaryString.charCodeAt(startOffset + i);
+                        }
+
+                        const hex = Array.from(bytes)
+                            .map((b) => b.toString(16).padStart(2, '0'))
+                            .join('');
+
+                        const result = formatSignatures.some((signature) => hex.startsWith(signature));
+                        resolve(result);
+                    } catch (e) {
+                        resolve(false);
+                    }
+                };
+
+                stream.onData((chunk: string | number[]) => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+
+                    try {
+                        let chunkStr: string;
+                        if (Array.isArray(chunk)) {
+                            chunkStr = chunk.map((code) => String.fromCharCode(code)).join('');
+                        } else {
+                            chunkStr = chunk;
+                        }
+                        base64Data += chunkStr;
+
+                        const decodedByteCount = Math.floor((base64Data.length * 3) / 4);
+                        if (decodedByteCount >= MAGIC_BYTES_NEEDED) {
+                            hasEnoughData = true;
+                            processData();
+                        }
+                    } catch (e) {
+                        if (!hasEnoughData) {
+                            hasEnoughData = true;
+                            resolve(false);
+                        }
+                    }
+                });
+
+                stream.onError(() => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+                    hasEnoughData = true;
+                    resolve(false);
+                });
+
+                stream.onEnd(() => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+                    hasEnoughData = true;
+                    processData();
+                });
+
+                stream.open();
+            })
+            .catch(() => resolve(false));
+    });
 }
 
 function isLocalFile(receiptUri?: string | number): boolean {
@@ -318,20 +565,94 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
-const getImageDimensionsAfterResize = (file: FileObject) =>
-    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
-        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
-        const newWidth = Math.max(1, width * scaleFactor);
-        const newHeight = Math.max(1, height * scaleFactor);
+/**
+ * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
+ * This bypasses browser Image API which may downsample large images on mobile browsers.
+ */
 
-        return {width: newWidth, height: newHeight};
+const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const arr = new Uint8Array(reader.result as ArrayBuffer);
+
+            // Check for JPEG (starts with 0xFF 0xD8)
+            if (arr[0] === 0xff && arr[1] === 0xd8) {
+                let offset = 2;
+                while (offset < arr.length) {
+                    if (arr[offset] !== 0xff) {
+                        break;
+                    }
+                    const marker = arr[offset + 1];
+                    // SOF0 (0xC0), SOF1 (0xC1), SOF2 (0xC2) contain dimensions
+                    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+                        // eslint-disable-next-line no-bitwise
+                        const height = (arr[offset + 5] << 8) | arr[offset + 6];
+                        // eslint-disable-next-line no-bitwise
+                        const width = (arr[offset + 7] << 8) | arr[offset + 8];
+                        resolve({width, height});
+                        return;
+                    }
+                    // eslint-disable-next-line no-bitwise
+                    const segmentLength = (arr[offset + 2] << 8) | arr[offset + 3];
+                    offset += 2 + segmentLength;
+                }
+            }
+
+            // Check for PNG (starts with 0x89 0x50 0x4E 0x47)
+            if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47) {
+                // PNG IHDR chunk is at offset 16, dimensions are at offset 16+4=20
+                // eslint-disable-next-line no-bitwise
+                const width = (arr[16] << 24) | (arr[17] << 16) | (arr[18] << 8) | arr[19];
+                // eslint-disable-next-line no-bitwise
+                const height = (arr[20] << 24) | (arr[21] << 16) | (arr[22] << 8) | arr[23];
+                resolve({width, height});
+                return;
+            }
+
+            resolve(null);
+        };
+        reader.onerror = () => resolve(null);
+        // Read first 64KB which should be enough for headers
+        reader.readAsArrayBuffer(blob.slice(0, 65536));
     });
+};
 
-const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        return Promise.resolve(file);
+/**
+ * Calculates the scaled dimensions for an image, throwing if the image exceeds the max pixel count.
+ */
+const calculateScaledDimensions = (width: number, height: number): {width: number; height: number} => {
+    const totalPixels = width * height;
+
+    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
+
+    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+    const newWidth = Math.max(1, width * scaleFactor);
+    const newHeight = Math.max(1, height * scaleFactor);
+
+    return {width: newWidth, height: newHeight};
+};
+
+const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: number; height: number}> => {
+    // For blob URLs (web), read dimensions directly from file header to avoid
+    // Android Chrome's Image API downsampling which returns incorrect dimensions
+    if (file.uri?.startsWith('blob:')) {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        const headerDimensions = await getImageDimensionsFromFileHeader(blob);
+
+        if (headerDimensions) {
+            return calculateScaledDimensions(headerDimensions.width, headerDimensions.height);
+        }
+
+        const {width, height} = await ImageSize.getSize(file.uri ?? '');
+        return calculateScaledDimensions(width, height);
+    }
+
+    const {width, height} = await ImageSize.getSize(file.uri ?? '');
+    return calculateScaledDimensions(width, height);
 };
 
 const createFile = (file: File): FileObject => {
@@ -346,6 +667,15 @@ const createFile = (file: File): FileObject => {
         type: file.type,
         lastModified: file.lastModified,
     });
+};
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file)
+        .then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}))
+        .then((result) => createFile(result));
 };
 
 const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
@@ -378,18 +708,246 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
         });
 };
 
+const isValidReceiptExtension = (file: FileObject) => {
+    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+    );
+};
+
+const hasHeicOrHeifExtension = (file: FileObject) => {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
+};
+
+/**
+ * Normalizes a file-like object specifically for Android clipboard image pasting,
+ * where limited file metadata is available (e.g., only a URI).
+ * If the object is already a File or contains a size, it is returned as-is.
+ * Otherwise, it attempts to fetch the file via its URI and reconstruct a File
+ * with full metadata (name, size, type).
+ */
+const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
+    if (file instanceof File || file instanceof Blob) {
+        return file;
+    }
+
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+    const isNativePlatform = isAndroidNative || isIOSNative;
+
+    if (!isNativePlatform || 'size' in file) {
+        return file;
+    }
+
+    if (typeof file.uri !== 'string') {
+        return file;
+    }
+
+    const response = await fetch(file.uri);
+    const blob = await response.blob();
+    const name = file.name ?? 'unknown';
+    const type = file.type ?? blob.type ?? 'application/octet-stream';
+    return new File([blob], name, {type});
+};
+
+type FileValidationError = {
+    error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
+    isValidatingMultipleFiles?: boolean;
+    fileType?: string;
+};
+
+type GetFileValidationErrorTextOptions = {
+    isValidatingReceipt?: boolean;
+};
+
+const getFileValidationErrorText = (
+    translate: LocalizedTranslate,
+    validationError: FileValidationError | null,
+    options: GetFileValidationErrorTextOptions = {},
+): {
+    title: string;
+    reason: string;
+} => {
+    if (!validationError) {
+        return {
+            title: '',
+            reason: '',
+        };
+    }
+    const maxSize = options.isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (validationError.isValidatingMultipleFiles) {
+        switch (validationError.error) {
+            case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
+                return {
+                    title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                    reason: translate('attachmentPicker.unsupportedFileType', validationError.fileType ?? ''),
+                };
+            case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
+                return {
+                    title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                    reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
+                };
+            case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+                return {
+                    title: translate('attachmentPicker.attachmentError'),
+                    reason: translate('attachmentPicker.folderNotAllowedMessage'),
+                };
+            case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+                return {
+                    title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                    reason: translate('attachmentPicker.maxFileLimitExceeded'),
+                };
+            default:
+                break;
+        }
+    }
+
+    switch (validationError.error) {
+        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
+            return {
+                title: translate('attachmentPicker.wrongFileType'),
+                reason: translate('attachmentPicker.notAllowedExtension'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
+            return {
+                title: translate('attachmentPicker.attachmentTooLarge'),
+                reason: options.isValidatingReceipt ? translate('attachmentPicker.sizeExceededWithLimit', maxSize / 1024 / 1024) : translate('attachmentPicker.sizeExceeded'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
+            return {
+                title: translate('attachmentPicker.attachmentTooSmall'),
+                reason: translate('attachmentPicker.sizeNotMet'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.protectedPDFNotSupported'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.imageDimensionsTooLarge'),
+            };
+        default:
+            break;
+    }
+
+    return {
+        title: translate('attachmentPicker.attachmentError'),
+        reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+    };
+};
+
+const MAX_CANVAS_SIZE = 4096;
+const JPEG_QUALITY = 0.85;
+
+/**
+ * Canvas fallback for converting HEIC to JPEG in web browsers
+ */
+const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
+    if (typeof createImageBitmap === 'undefined') {
+        return Promise.reject(new Error('Canvas fallback not supported in this browser'));
+    }
+
+    return createImageBitmap(blob).then((imageBitmap) => {
+        const canvas = document.createElement('canvas');
+
+        const scale = Math.min(1, MAX_CANVAS_SIZE / Math.max(imageBitmap.width, imageBitmap.height));
+
+        canvas.width = Math.floor(imageBitmap.width * scale);
+        canvas.height = Math.floor(imageBitmap.height * scale);
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Could not get canvas context');
+        }
+
+        ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+
+        return new Promise<File>((resolve, reject) => {
+            canvas.toBlob(
+                (convertedBlob) => {
+                    if (!convertedBlob) {
+                        reject(new Error('Canvas conversion failed - returned null blob'));
+                        return;
+                    }
+
+                    const jpegFileName = fileName.replaceAll(/\.(heic|heif)$/gi, '.jpg');
+                    const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
+                    resolve(jpegFile);
+                },
+                CONST.IMAGE_FILE_FORMAT.JPEG,
+                JPEG_QUALITY,
+            );
+        });
+    });
+};
+
+function getFileWithUri(file: File) {
+    const newFile = file;
+    newFile.uri = URL.createObjectURL(newFile);
+    return newFile as FileObject;
+}
+
+function getFilesFromClipboardEvent(event: DragEvent) {
+    const files = event.dataTransfer?.files;
+    if (!files || files?.length === 0) {
+        return [];
+    }
+
+    return Array.from(files).map((file) => getFileWithUri(file));
+}
+
+function cleanFileObject(fileObject: FileObject): FileObject {
+    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
+        return fileObject.getAsFile() as FileObject;
+    }
+
+    return fileObject;
+}
+
+function cleanFileObjectName(fileObject: FileObject): FileObject {
+    if (fileObject instanceof File) {
+        const cleanName = cleanFileName(fileObject.name);
+        if (fileObject.name !== cleanName) {
+            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const inputSource = URL.createObjectURL(updatedFile);
+            updatedFile.uri = inputSource;
+            return updatedFile;
+        }
+        if (!fileObject.uri) {
+            const inputSource = URL.createObjectURL(fileObject);
+            // eslint-disable-next-line no-param-reassign
+            fileObject.uri = inputSource;
+        }
+    }
+    return fileObject;
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
+    getMimeType,
     getFileName,
     getFileType,
     cleanFileName,
+    getExportFileName,
     appendTimeToFileName,
+    ANDROID_SAFE_FILE_NAME_LENGTH,
+    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
+    convertFileObjectOrUriToBase64DataURL,
     isLocalFile,
     validateImageForCorruption,
     isImage,
@@ -400,4 +958,15 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
+    normalizeFileObject,
+    getMimeTypeFromUri,
+    isValidReceiptExtension,
+    getFileValidationErrorText,
+    hasHeicOrHeifExtension,
+    canvasFallback,
+    getFilesFromClipboardEvent,
+    cleanFileObject,
+    cleanFileObjectName,
+    JPEG_QUALITY,
 };
+export type {FileValidationError};

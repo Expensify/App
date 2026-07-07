@@ -3,7 +3,6 @@ title: Configure Netsuite
 description: Configure NetSuite's export, coding, and advanced settings. 
 keywords: [Expensify Classic, NetSuite settings, configure NetSuite]
 ---
-<div id="expensify-classic" markdown="1">
 
 Correctly configuring NetSuite settings in Expensify ensures seamless integration between your expense management and accounting processes, saving time and reducing manual errors. Aligning your workspace settings with NetSuite’s financial structure can automate data syncs, simplify reporting, and improve overall financial accuracy.
 
@@ -56,7 +55,7 @@ The three options for the date your report will export with are:
 
 This dictates when reimbursable expenses will be exported, according to your preferred accounting method:
 - Accrual: Out-of-pocket expenses will be exported immediately when the report is final approved
-- Cash: Out-of-pocket expenses will be exported when paid via Expensify or marked as reimbursed
+- Cash: Out-of-pocket expenses will be exported when paid via Expensify or marked as paid
 
 ## Export Settings for Reimbursable Expenses 
 
@@ -437,7 +436,7 @@ To access this setting:
 
 ## Exporting an Invoice to NetSuite
 
-Invoices will be automatically sent to NetSuite when they are in the **Processing** or **Paid** status. This ensures you always have an up-to-date record of unpaid and paid invoices.
+Invoices will be automatically sent to NetSuite when they are in the **Outstanding** or **Paid** status. This ensures you always have an up-to-date record of unpaid and paid invoices.
 
 If you have Auto Sync disabled, you'll need to export your invoices, along with your expense reports, manually. Follow these three simple steps:
 1. Filter Invoices: From your Reports page, use filters to find the invoices you want to export.
@@ -467,11 +466,11 @@ Here's how you can send them to us:
 
 ## How does Auto Sync work with reimbursed reports? 
 
-If a report is reimbursed via ACH or marked as reimbursed in Expensify and then exported to NetSuite, the report is automatically marked as paid in NetSuite during the next sync.
+If a report is reimbursed via ACH or marked as paid in Expensify and then exported to NetSuite, the report is automatically marked as paid in NetSuite during the next sync.
 
-If a report is exported to NetSuite and then marked as paid in NetSuite, the report is automatically marked as reimbursed in Expensify during the next sync. 
+If a report is exported to NetSuite and then marked as paid in NetSuite, the report is automatically marked as paid in Expensify during the next sync. 
 
-## If I enable Auto Sync, what happens to existing approved and reimbursed reports? 
+## If I enable Auto Sync, what happens to existing approved and paid reports? 
 
 If you previously had Auto Sync disabled but want to allow that feature to be used going forward, you can safely turn it on without affecting existing reports. Auto Sync will only take effect for reports created after enabling that feature.
 
@@ -499,4 +498,3 @@ If you have confirmed that your categories are set as Expense Categories in NetS
 - **Custom Segment**: A custom classification field similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financial. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
 - **Custom List**: A static dropdown of predefined values used for simple selections, like **Preferred Contact Method.** Custom Lists are lightweight and don't support complex relationships or GL impacts.
 
-</div>

@@ -5,7 +5,9 @@ type ExportSearchItemsToCSVParams = {
     jsonQuery: SearchQueryString;
     reportIDList: string[];
     transactionIDList: string[];
-    policyIDs: string[];
+    isBasicExport: boolean;
+    exportColumnLabels: string;
+    exportName: string;
 };
 
 export default ExportSearchItemsToCSVParams;

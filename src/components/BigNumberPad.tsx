@@ -1,11 +1,14 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
-import * as Expensicons from './Icon/Expensicons';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -29,11 +32,12 @@ const padNumbers = [
 ] as const;
 
 function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView', isLongPressDisabled = false}: BigNumberPadProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const numberPressedRef = useRef(numberPressed);
 
     useEffect(() => {
@@ -63,10 +67,10 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
             style={[styles.flexColumn, styles.w100]}
             id={id}
         >
-            {padNumbers.map((row) => (
+            {padNumbers.map((row, index) => (
                 <View
                     key={`NumberPadRow-${row[0]}`}
-                    style={[styles.flexRow, styles.mt3]}
+                    style={[styles.flexRow, index === 0 && isInLandscapeMode ? undefined : styles.mt3]}
                 >
                     {row.map((column, columnIndex) => {
                         // Adding margin between buttons except first column to
@@ -76,12 +80,13 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                         return (
                             <Button
                                 key={column}
-                                medium={isExtraSmallScreenHeight}
-                                large={!isExtraSmallScreenHeight}
+                                small={isInLandscapeMode}
+                                medium={isExtraSmallScreenHeight && !isInLandscapeMode}
+                                large={!isExtraSmallScreenHeight && !isInLandscapeMode}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? undefined : toLocaleDigit(column)}
-                                icon={column === '<' ? Expensicons.BackArrow : undefined}
+                                icon={column === '<' ? icons.BackArrow : undefined}
                                 onLongPress={() => handleLongPress(column)}
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}
@@ -106,7 +111,5 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
         </View>
     );
 }
-
-BigNumberPad.displayName = 'BigNumberPad';
 
 export default BigNumberPad;

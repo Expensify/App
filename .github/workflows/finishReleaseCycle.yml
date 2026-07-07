@@ -4,17 +4,16 @@ on:
   issues:
     types: [closed]
 
-# The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
+# The updateProduction and createNewDeployChecklist jobs are executed when a deploy checklist is closed.
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
     outputs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -76,6 +75,7 @@ jobs:
   # Update the production branch to trigger the production deploy.
   updateProduction:
     needs: validate
+    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
@@ -84,7 +84,7 @@ jobs:
   # Remove DeployBlockerCash label from issues that had it since we just deployed production
   cleanupDeployBlockers:
     needs: updateProduction
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - run: |
           gh issue list \

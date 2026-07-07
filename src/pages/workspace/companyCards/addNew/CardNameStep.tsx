@@ -1,5 +1,3 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -7,15 +5,22 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
+
+import React from 'react';
 
 function CardNameStep() {
     const {translate} = useLocalize();
@@ -24,10 +29,12 @@ function CardNameStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-        const length = values.cardTitle.length;
-        if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
+        if (values.cardTitle) {
+            const {isValid, byteLength} = isValidInputLength(values.cardTitle, CONST.STANDARD_LENGTH_LIMIT);
+            if (!isValid) {
+                addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
+            }
         }
         return errors;
     };
@@ -48,7 +55,7 @@ function CardNameStep() {
 
     return (
         <ScreenWrapper
-            testID={CardNameStep.displayName}
+            testID="CardNameStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -67,6 +74,7 @@ function CardNameStep() {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
+                shouldPreventDefaultFocusOnPressSubmit
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -81,7 +89,5 @@ function CardNameStep() {
         </ScreenWrapper>
     );
 }
-
-CardNameStep.displayName = 'CardNameStep';
 
 export default CardNameStep;

@@ -1,17 +1,24 @@
-import React from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import * as Illustrations from '@components/Icon/Illustrations';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function DisabledPage() {
+    const illustrations = useMemoizedLazyIllustrations(['LockOpen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -21,7 +28,7 @@ function DisabledPage() {
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
             <BlockingView
-                icon={Illustrations.LockOpen}
+                icon={illustrations.LockOpen}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('twoFactorAuth.disabled')}
@@ -38,7 +45,5 @@ function DisabledPage() {
         </TwoFactorAuthWrapper>
     );
 }
-
-DisabledPage.displayName = 'DisabledPage';
 
 export default DisabledPage;

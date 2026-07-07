@@ -1,32 +1,47 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChatAndDeleteReport} from '@libs/actions/Report';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import DebugReportActions from './DebugReportActions';
 
 type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
@@ -51,23 +66,69 @@ function DebugReportPage({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const {isOffline} = useNetwork();
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
+    const [reportAttributes] = useOnyx(
+        ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+        {
+            selector: reportAttributesSelector,
+        },
+        [reportAttributesSelector],
+    );
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
+    const isReportArchived = useReportIsArchived(reportID);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
             return [];
         }
 
-        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
-        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+        const hasViolations = !!shouldDisplayViolations;
+        const {reason: reasonGBR, reportAction: reportActionGBR} =
+            DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, isReportArchived) ?? {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} =
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                report,
+                chatReport,
+                reportActions,
+                transactions,
+                transactionViolations,
+                hasViolations,
+                reportAttributes?.reportErrors ?? {},
+                isOffline,
+                isReportArchived,
+            ) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
+            report,
+            chatReport,
+            betas,
+            doesReportHaveViolations: shouldDisplayViolations,
+            hasRBR,
+            isReportArchived,
+            isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+            draftComment,
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID,
+            conciergeReportID,
+        });
 
         return [
             {
@@ -112,7 +173,25 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate]);
+    }, [
+        report,
+        transactionViolations,
+        currentUserLogin,
+        currentUserAccountID,
+        isReportArchived,
+        chatReport,
+        reportActions,
+        transactions,
+        reportAttributes?.reportErrors,
+        isOffline,
+        betas,
+        priorityMode,
+        draftComment,
+        translate,
+        conciergeReportID,
+    ]);
+
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -123,13 +202,28 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(
+                        reportID,
+                        conciergeReportID,
+                        currentUserAccountID,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        reportOwnerPersonalDetail,
+                        currentUserPersonalDetail,
+                        conciergePersonalDetail,
+                        true,
+                        true,
+                    );
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {metadata?.map(({title, subtitle, message, action}) => (
-                        <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}>
+                        <View
+                            key={title}
+                            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}
+                        >
                             <View style={[styles.flexRow, styles.justifyContentBetween]}>
                                 <Text style={styles.h4}>{title}</Text>
                                 <Text>{subtitle}</Text>
@@ -148,7 +242,7 @@ function DebugReportPage({
                         onPress={() => {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                         }}
-                        icon={Expensicons.Eye}
+                        icon={icons.Eye}
                     />
                     {!!transactionID && (
                         <Button
@@ -180,6 +274,15 @@ function DebugReportPage({
             theme.cardBG,
             transactionID,
             translate,
+            icons.Eye,
+            currentUserAccountID,
+            conciergeReportID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+            reportOwnerPersonalDetail,
+            currentUserPersonalDetail,
+            conciergePersonalDetail,
         ],
     );
 
@@ -213,8 +316,8 @@ function DebugReportPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugReportPage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugReportPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -231,7 +334,5 @@ function DebugReportPage({
         </ScreenWrapper>
     );
 }
-
-DebugReportPage.displayName = 'DebugReportPage';
 
 export default DebugReportPage;

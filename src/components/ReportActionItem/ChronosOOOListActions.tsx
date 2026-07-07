@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
+
 import {removeEvent} from '@userActions/Chronos';
+
 import type CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ChronosOOOListActionsProps = {
     /** The ID of the report */
@@ -22,7 +27,7 @@ type ChronosOOOListActionsProps = {
 function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
     const styles = useThemeStyles();
 
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
 
     const events = getOriginalMessage(action)?.events ?? [];
 
@@ -38,8 +43,8 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
         <OfflineWithFeedback pendingAction={action.pendingAction}>
             <View style={styles.chatItemMessage}>
                 {events.map((event) => {
-                    const start = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.start?.date ?? '');
-                    const end = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.end?.date ?? '');
+                    const start = getLocalDateFromDatetime(event?.start?.date ?? '');
+                    const end = getLocalDateFromDatetime(event?.end?.date ?? '');
                     return (
                         <View
                             key={event.id}
@@ -47,16 +52,13 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                         >
                             <Text style={styles.flexShrink1}>
                                 {event.lengthInDays > 0
-                                    ? translate('chronos.oooEventSummaryFullDay', {
-                                          summary: event.summary,
-                                          dayCount: event.lengthInDays,
-                                          date: DateUtils.formatToLongDateWithWeekday(end),
-                                      })
-                                    : translate('chronos.oooEventSummaryPartialDay', {
-                                          summary: event.summary,
-                                          timePeriod: `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
-                                          date: DateUtils.formatToLongDateWithWeekday(end),
-                                      })}
+                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end))
+                                    : translate(
+                                          'chronos.oooEventSummaryPartialDay',
+                                          event.summary,
+                                          `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
+                                          DateUtils.formatToLongDateWithWeekday(end),
+                                      )}
                             </Text>
                             <Button
                                 small
@@ -72,7 +74,5 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
         </OfflineWithFeedback>
     );
 }
-
-ChronosOOOListActions.displayName = 'ChronosOOOListActions';
 
 export default ChronosOOOListActions;

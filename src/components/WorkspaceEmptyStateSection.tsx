@@ -1,9 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 
@@ -50,7 +55,12 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
 
             <View style={[styles.w100, styles.pt5]}>
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mh1, styles.flexShrink1]}>
-                    <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{title}</Text>
+                    <Text
+                        style={[styles.textHeadline, styles.emptyCardSectionTitle]}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {title}
+                    </Text>
                 </View>
 
                 {(!!subtitle || !!subtitleComponent) && (
@@ -62,6 +72,5 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
         </View>
     );
 }
-WorkspaceEmptyStateSection.displayName = 'WorkspaceEmptyStateSection';
 
 export default WorkspaceEmptyStateSection;

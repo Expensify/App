@@ -1,16 +1,19 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
-import {translateLocal} from '@libs/Localize';
-import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsContext';
-import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@components/ConfirmedRoute.tsx');
+import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 describe('CarouselItem', () => {
     beforeAll(() => {
@@ -19,10 +22,10 @@ describe('CarouselItem', () => {
     it('should hide flagged attachments initially', async () => {
         // Given a CarouselItem component with a valid attributes
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <PlaybackContextProvider>
-                        <ReportAttachmentsProvider>
+                        <AttachmentModalContextProvider>
                             <CarouselItem
                                 item={{
                                     reportActionID: '1',
@@ -32,12 +35,12 @@ describe('CarouselItem', () => {
                                 }}
                                 isFocused
                             />
-                        </ReportAttachmentsProvider>
+                        </AttachmentModalContextProvider>
                     </PlaybackContextProvider>
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then initially the attachment should be hidden so the reveal button should be displayed.
         expect(screen.getByTestId('moderationButton')).toHaveTextContent(translateLocal('moderation.revealMessage'));

@@ -1,18 +1,25 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
 
@@ -23,40 +30,45 @@ function ReportVirtualCardFraudConfirmationPage({
 }: ReportVirtualCardFraudConfirmationPageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed']);
+    const [physicalCardForm] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const isCardTerminatedWithoutReplacement = !!physicalCardForm?.cardTerminatedWithoutReplacement;
+    const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
 
     const close = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [cardID]);
+        if (isCardTerminatedWithoutReplacement) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+    }, [cardID, isCardTerminatedWithoutReplacement]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ReportVirtualCardFraudConfirmationPage.displayName}
+            testID="ReportVirtualCardFraudConfirmationPage"
             offlineIndicatorStyle={themeStyles.mtAuto}
         >
             <HeaderWithBackButton
                 title={translate('reportFraudConfirmationPage.title')}
                 onBackButtonPress={close}
             />
-
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                <View style={[themeStyles.justifyContentCenter, themeStyles.flex1]}>
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1, themeStyles.gap2]}>
+                <ScrollView contentContainerStyle={[themeStyles.flexGrow1, themeStyles.justifyContentCenter]}>
                     <ImageSVG
                         contentFit="contain"
-                        src={Expensicons.MagnifyingGlassSpyMouthClosed}
+                        src={expensifyIcons.MagnifyingGlassSpyMouthClosed}
                         style={themeStyles.alignSelfCenter}
                         width={184}
                         height={290}
                     />
 
                     <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>{translate('reportFraudConfirmationPage.title')}</Text>
-                    <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
-                        {translate('reportFraudConfirmationPage.description')}
-                    </Text>
-                </View>
-
+                    <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>{translate(description)}</Text>
+                </ScrollView>
                 <Button
                     text={translate('reportFraudConfirmationPage.buttonText')}
                     onPress={close}
@@ -68,7 +80,5 @@ function ReportVirtualCardFraudConfirmationPage({
         </ScreenWrapper>
     );
 }
-
-ReportVirtualCardFraudConfirmationPage.displayName = 'ReportVirtualCardFraudConfirmationPage';
 
 export default ReportVirtualCardFraudConfirmationPage;

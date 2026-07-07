@@ -1,39 +1,28 @@
-import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {isMobile} from '@libs/Browser';
+
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
+import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
-// eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
+
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
-import {defaultStyles} from '..';
+
+// eslint-disable-next-line no-restricted-imports
+import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
+
+import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
+
 import type {ThemeStyles} from '..';
-import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
-import getCardStyles from './cardStyles';
-import containerComposeStyles from './containerComposeStyles';
-import createModalStyleUtils from './generators/ModalStyleUtils';
-import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
-import createTooltipStyleUtils from './generators/TooltipStyleUtils';
-import getContextMenuItemStyles from './getContextMenuItemStyles';
-import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
-import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
-import getNavigationBarType from './getNavigationBarType/index';
-import getNavigationModalCardStyle from './getNavigationModalCardStyles';
-import getSafeAreaInsets from './getSafeAreaInsets';
-import getSignInBgStyles from './getSignInBgStyles';
-import {compactContentContainerStyles} from './optionRowStyles';
-import positioning from './positioning';
-import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
-import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -42,6 +31,7 @@ import type {
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
+    ButtonVariantStyles,
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
@@ -49,26 +39,42 @@ import type {
     TextColorStyle,
 } from './types';
 
-const workspaceColorOptions: SVGAvatarColorStyle[] = [
-    {backgroundColor: colors.blue200, fill: colors.blue700},
-    {backgroundColor: colors.blue400, fill: colors.blue800},
-    {backgroundColor: colors.blue700, fill: colors.blue200},
-    {backgroundColor: colors.green200, fill: colors.green700},
-    {backgroundColor: colors.green400, fill: colors.green800},
-    {backgroundColor: colors.green700, fill: colors.green200},
-    {backgroundColor: colors.yellow200, fill: colors.yellow700},
-    {backgroundColor: colors.yellow400, fill: colors.yellow800},
-    {backgroundColor: colors.yellow700, fill: colors.yellow200},
-    {backgroundColor: colors.tangerine200, fill: colors.tangerine700},
-    {backgroundColor: colors.tangerine400, fill: colors.tangerine800},
-    {backgroundColor: colors.tangerine700, fill: colors.tangerine400},
-    {backgroundColor: colors.pink200, fill: colors.pink700},
-    {backgroundColor: colors.pink400, fill: colors.pink800},
-    {backgroundColor: colors.pink700, fill: colors.pink200},
-    {backgroundColor: colors.ice200, fill: colors.ice700},
-    {backgroundColor: colors.ice400, fill: colors.ice800},
-    {backgroundColor: colors.ice700, fill: colors.ice200},
-];
+import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
+import getCardStyles from './cardStyles';
+import containerComposeStyles from './containerComposeStyles';
+import createModalStyleUtils from './generators/ModalStyleUtils';
+import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
+import createTooltipStyleUtils from './generators/TooltipStyleUtils';
+import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getHiddenChatContentStyle from './getHiddenChatContentStyle';
+import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
+import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
+import getNavigationBarType from './getNavigationBarType/index';
+import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
+import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
+import {compactContentContainerStyles} from './optionRowStyles';
+import positioning from './positioning';
+import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
+import splitPercentageInputStyles from './splitPercentageInputStyles';
+
+type GetReportTableColumnStylesParams = {
+    isDateColumnWide?: boolean;
+    isAmountColumnWide?: boolean;
+    isTaxAmountColumnWide?: boolean;
+    isSubmittedColumnWide?: boolean;
+    isApprovedColumnWide?: boolean;
+    isPostedColumnWide?: boolean;
+    isExportedColumnWide?: boolean;
+    shouldRemoveTotalColumnFlex?: boolean;
+    isWithdrawnColumnWide?: boolean;
+    isActionColumnWide?: boolean;
+};
+
+const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({backgroundColor, fill: fillColor}));
+
+const DEFAULT_WORKSPACE_COLOR = {backgroundColor: colors.blue400, fill: colors.blue700};
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
     [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow800, color: colors.yellow400, titleColor: colors.yellow500},
@@ -94,11 +100,12 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
-    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
@@ -114,9 +121,11 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.avatarSizeMediumLarge,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
+    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
 };
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -127,6 +136,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.fontSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
 };
@@ -138,7 +148,9 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
+    [CONST.AVATAR_SIZE.HEADER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: 3,
     [CONST.AVATAR_SIZE.X_LARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
@@ -245,7 +257,7 @@ function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
 }
 
 /**
- * Get Bordersize of Avatar based on avatar size
+ * Get border size of Avatar based on avatar size
  */
 function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
     return {
@@ -276,11 +288,34 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 }
 
 /**
+ * Returns the avatar subscript icon container styles
+ */
+function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): ViewStyle {
+    const borderWidth = 2;
+
+    // The width of the container is the width of the icon + 2x border width (left and right)
+    const containerWidth = iconWidth + 2 * borderWidth;
+    // The height of the container is the height of the icon + 2x border width (top and bottom)
+    const containerHeight = iconHeight + 2 * borderWidth;
+
+    return {
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        borderWidth,
+        borderRadius: 2 + borderWidth,
+        width: containerWidth,
+        height: containerHeight,
+    };
+}
+
+/**
  * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
-    return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
+    return workspaceColorOptions.at(colorHash) ?? DEFAULT_WORKSPACE_COLOR;
 }
 
 /**
@@ -368,36 +403,36 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
     return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
-function getZoomSizingStyle(
-    isZoomed: boolean,
-    imgWidth: number,
-    imgHeight: number,
-    zoomScale: number,
-    containerHeight: number,
-    containerWidth: number,
-    isLoading: boolean,
-): ViewStyle | undefined {
+type GetZoomSizingStyleParams = {
+    isZoomed: boolean;
+    imageSize: Dimensions;
+    containerSize: Dimensions;
+    zoomScale: number;
+    isLoading: boolean;
+};
+
+function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLoading}: GetZoomSizingStyleParams): ViewStyle | undefined {
     // Hide image until finished loading to prevent showing preview with wrong dimensions
-    if (isLoading || imgWidth === 0 || imgHeight === 0) {
+    if (isLoading || imageSize.width === 0 || imageSize.height === 0) {
         return undefined;
     }
-    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
-    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
+    const top = `${Math.max((containerSize.height - imageSize.height) / 2, 0)}px`;
+    const left = `${Math.max((containerSize.width - imageSize.width) / 2, 0)}px`;
 
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
             return {
-                height: `${imgHeight * zoomScale}px`,
-                width: `${imgWidth * zoomScale}px`,
+                height: `${imageSize.height * zoomScale}px`,
+                width: `${imageSize.width * zoomScale}px`,
             };
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${imgHeight}px`,
-            width: `${imgWidth}px`,
+            height: `${imageSize.height}px`,
+            width: `${imageSize.width}px`,
             top,
             left,
         };
@@ -406,8 +441,8 @@ function getZoomSizingStyle(
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
-            height: `${imgHeight}px`,
-            width: `${imgWidth}px`,
+            height: `${imageSize.height}px`,
+            width: `${imageSize.width}px`,
             top,
             left,
         };
@@ -415,11 +450,11 @@ function getZoomSizingStyle(
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px`;
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px`;
+    const scaledTop = `${Math.max((containerSize.height - imageSize.height * zoomScale) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerSize.width - imageSize.width * zoomScale) / 2, 0)}px`;
     return {
-        height: `${imgHeight * zoomScale}px`,
-        width: `${imgWidth * zoomScale}px`,
+        height: `${imageSize.height * zoomScale}px`,
+        width: `${imageSize.width * zoomScale}px`,
         top: scaledTop,
         left: scaledLeft,
     };
@@ -462,6 +497,16 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+    if (isInLandscapeMode && aspectRatio) {
+        return {aspectRatio, height: '100%', maxWidth: '100%'};
+    }
+    if (aspectRatio) {
+        return {aspectRatio, minWidth: '100%', minHeight: '100%'};
+    }
+    return {flex: 1};
+}
+
 /**
  * Returns a style for text color
  */
@@ -474,7 +519,7 @@ function getTextColorStyle(color: string): TextColorStyle {
 /**
  * Returns a style with the specified borderColor
  */
-function getBorderColorStyle(borderColor: string): ViewStyle {
+function getBorderColorStyle(borderColor: ColorValue): ViewStyle {
     return {
         borderColor,
     };
@@ -509,6 +554,15 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
+function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height' | 'width' | 'maxWidth' | 'maxHeight'> {
+    return {
+        width: '100%',
+        height: '100%',
+        maxWidth: width,
+        maxHeight: height,
+    };
+}
+
 function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
@@ -516,10 +570,20 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(
+    extraSmall: boolean,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    width: number,
+    height: number,
+    isButtonIcon: boolean,
+): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
+        case extraSmall:
+            return {width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall, height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall};
         case small:
-            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
         case medium:
             return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
@@ -530,37 +594,52 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
     }
 }
 
-function getButtonStyleWithIcon(
-    styles: ThemeStyles,
-    small: boolean,
-    medium: boolean,
-    large: boolean,
-    hasIcon?: boolean,
-    hasText?: boolean,
-    shouldShowRightIcon?: boolean,
-): ViewStyle | undefined {
-    const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
-    switch (true) {
-        case small: {
-            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
-            return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        case medium: {
-            const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
-            return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        case large: {
-            const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
-            return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        default: {
-            if (hasIcon && !hasText) {
-                return {...styles.buttonMedium, ...styles.ph0};
-            }
+function getButtonSizeStyle(styles: ThemeStyles, size: ButtonSizeValue): ViewStyle | undefined {
+    const sizeStyleMap: Record<ButtonSizeValue, ViewStyle> = {
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmall,
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmall,
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMedium,
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLarge,
+    };
+    return size ? sizeStyleMap[size] : undefined;
+}
 
-            return undefined;
-        }
+function getButtonPaddingStyle(styles: ThemeStyles, size: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
+    const hasSymmetricIcons = !!hasIcon === !!shouldShowRightIcon;
+    if (hasSymmetricIcons) {
+        return undefined;
     }
+
+    if (!hasText) {
+        return styles.ph0;
+    }
+
+    const horizontalPaddingBySize: Record<ButtonSizeValue, ViewStyle> = {
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: hasIcon ? styles.pl2 : styles.pr2,
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: hasIcon ? styles.pl2 : styles.pr2,
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: hasIcon ? styles.pl3 : styles.pr3,
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: hasIcon ? styles.pl4 : styles.pr4,
+    };
+    return horizontalPaddingBySize[size];
+}
+
+function getButtonStyleWithIcon(styles: ThemeStyles, size: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): StyleProp<ViewStyle> {
+    const buttonSizeStyle = getButtonSizeStyle(styles, size);
+    const buttonPaddingStyle = getButtonPaddingStyle(styles, size, hasIcon, hasText, shouldShowRightIcon);
+    return [buttonSizeStyle, buttonPaddingStyle];
+}
+
+function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
+    return {
+        normal: {
+            success: styles.buttonSuccess,
+            danger: styles.buttonDanger,
+        },
+        disabled: {
+            success: [styles.buttonOpacityDisabled],
+            danger: [styles.buttonOpacityDisabled],
+        },
+    };
 }
 
 type MarginPaddingValue = ViewStyle['marginTop' | 'marginBottom' | 'paddingTop' | 'paddingBottom'];
@@ -606,7 +685,7 @@ function getModalPaddingStyles({
 
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? modalContainerStyle.paddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? (modalContainerStyle.paddingTop ?? 0) : safeAreaPaddingBottom;
     return {
         marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
         marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
@@ -669,9 +748,9 @@ function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallb
  */
 function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
     let finalStyles: T[] = [];
-    allStyles.forEach((style) => {
+    for (const style of allStyles) {
         finalStyles = finalStyles.concat(parseStyleAsArray(style));
-    });
+    }
     return finalStyles;
 }
 
@@ -694,6 +773,24 @@ function getPaddingRight(paddingRight: number): ViewStyle {
 }
 
 /**
+ * Extract horizontal padding and border widths from a flattened style object,
+ * respecting RN precedence (specific → horizontal → all).
+ */
+function getTextInputMeasurementStyles(style: ViewStyle): TextStyle {
+    const paddingLeft = style.paddingLeft ?? style.paddingHorizontal ?? style.padding;
+    const paddingRight = style.paddingRight ?? style.paddingHorizontal ?? style.padding;
+    const borderLeftWidth = style.borderLeftWidth ?? style.borderWidth;
+    const borderRightWidth = style.borderRightWidth ?? style.borderWidth;
+
+    return {
+        ...(paddingLeft && {paddingLeft}),
+        ...(paddingRight && {paddingRight}),
+        ...(borderLeftWidth && {borderLeftWidth}),
+        ...(borderRightWidth && {borderRightWidth}),
+    };
+}
+
+/**
  * Get variable padding-bottom as style
  */
 function getPaddingBottom(paddingBottom: number): ViewStyle {
@@ -703,11 +800,27 @@ function getPaddingBottom(paddingBottom: number): ViewStyle {
 }
 
 /**
+ * Get vertical padding diff from provided styles (paddingTop - paddingBottom)
+ */
+function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): number {
+    const flatStyle = StyleSheet.flatten(textInputContainerStyles);
+
+    // Safely extract padding values only if they are numbers
+    const getNumericPadding = (paddingValue: string | number | Animated.AnimatedNode | null | undefined): number => {
+        return typeof paddingValue === 'number' ? paddingValue : 0;
+    };
+
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    return paddingTop - paddingBottom;
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    const heightsIphonesWithNotches = [812, 896, 844, 926];
-    return heightsIphonesWithNotches.includes(windowHeight) || heightsIphonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = new Set([812, 896, 844, 926]);
+    return heightsIPhonesWithNotches.has(windowHeight) || heightsIPhonesWithNotches.has(windowWidth);
 }
 
 /**
@@ -762,6 +875,7 @@ type AvatarBorderStyleParams = {
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
     isActive?: boolean;
+    customPressedBorderColor?: string;
 };
 
 function getHorizontalStackedAvatarBorderStyle({
@@ -771,6 +885,7 @@ function getHorizontalStackedAvatarBorderStyle({
     isInReportAction = false,
     shouldUseCardBackground = false,
     isActive = false,
+    customPressedBorderColor,
 }: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
@@ -783,6 +898,9 @@ function getHorizontalStackedAvatarBorderStyle({
 
     if (isPressed) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
+        if (customPressedBorderColor) {
+            borderColor = customPressedBorderColor;
+        }
     }
 
     return {borderColor};
@@ -791,9 +909,9 @@ function getHorizontalStackedAvatarBorderStyle({
 /**
  * Get computed avatar styles based on position and border size
  */
-function getHorizontalStackedAvatarStyle(index: number, overlapSize: number): ViewStyle {
+function getHorizontalStackedAvatarStyle(index: number, overlapSize: number, firstAvatarMarginLeft = 0): ViewStyle {
     return {
-        marginLeft: index > 0 ? -overlapSize : 0,
+        marginLeft: index > 0 ? -overlapSize : firstAvatarMarginLeft,
         zIndex: index + 2,
     };
 }
@@ -814,7 +932,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
     if (isSmallScreenWidth) {
         return {
             position: 'absolute',
@@ -945,8 +1063,10 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     };
 
     if (windowHeight) {
-        // dimensions of content above the emoji picker list
-        const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        // dimensions of content above and below the emoji picker list
+        const dimensions = isRenderingShortcutRow
+            ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT
+            : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT;
         const maxHeight = windowHeight - dimensions;
         return {
             ...style,
@@ -997,11 +1117,22 @@ function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * Returns the text container styles for menu items depending on if the menu item container is in compact mode or not
  */
-function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): ViewStyle {
+function getMenuItemTextContainerStyle(compactMode: boolean): ViewStyle {
     return {
-        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+        minHeight: compactMode ? 20 : variables.componentSizeNormal,
+    };
+}
+
+/**
+ * Returns the style for a menu item's icon based on of the container is in compact mode or not
+ */
+function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
+    return {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: compactMode ? 20 : variables.componentSizeNormal,
     };
 }
 
@@ -1013,9 +1144,9 @@ function getColorStyle(color: string): TextColorStyle {
 }
 
 /**
- * Returns the checkbox pressable style
+ * Returns the selection button pressable style
  */
-function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
+function getSelectionButtonPressableStyle(borderRadius = 6): ViewStyle {
     return {
         justifyContent: 'center',
         alignItems: 'center',
@@ -1024,7 +1155,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
 }
 
 /**
- * Returns style object for the dropbutton height
+ * Returns style object for the drop button height
  */
 function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
@@ -1036,6 +1167,12 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
         return {
             height: variables.componentSizeSmall,
+        };
+    }
+
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL) {
+        return {
+            height: variables.componentSizeXSmall,
         };
     }
 
@@ -1102,6 +1239,35 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
         fontSize: baseFontSize - toSubtract,
         lineHeight: baseLineHeight - toSubtract,
     };
+}
+
+/**
+ * Returns fitting fontSize value for the money request amount input
+ * to prevent large amounts from overflowing on small screens.
+ */
+function getAmountInputFontSize(amountLength: number): TextStyle {
+    // Display Zoom ("Larger Text") shrinks the logical window width (e.g. ~320pt vs ~390pt normal).
+    // Accessibility large-text increases PixelRatio.getFontScale() above 1.
+    // Both cases reduce available space, so we compute a combined scale factor and apply it to
+    // both the base font size and the minimum font size.
+    const {width: windowWidth} = RNDimensions.get('window');
+    const referenceWidth = 390;
+    const displayZoomFactor = Math.min(1, windowWidth / referenceWidth);
+    const accessibilityFontScale = PixelRatio.getFontScale();
+    const accessibilityFactor = accessibilityFontScale > 1 ? 1 / accessibilityFontScale : 1;
+    const scaleFactor = Math.min(displayZoomFactor, accessibilityFactor);
+
+    const baseFontSize = Math.round(variables.iouAmountTextSizeLarge * scaleFactor);
+    const minFontSize = Math.max(14, Math.round(20 * scaleFactor));
+    const maxLengthBeforeScaling = 10;
+    const reductionPerChar = 2;
+
+    if (amountLength <= maxLengthBeforeScaling) {
+        return {fontSize: baseFontSize};
+    }
+
+    const reduction = Math.min((amountLength - maxLengthBeforeScaling) * reductionPerChar, baseFontSize - minFontSize);
+    return {fontSize: Math.max(baseFontSize - reduction, minFontSize)};
 }
 
 /**
@@ -1181,12 +1347,30 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
     return {};
 }
 
+/**
+ * In SettlementButton, when the list exceeds a certain number of items,
+ * we don't want to apply padding to the container. Instead, we want only
+ * the first last item to have spacing to create the effect of having more items in the list.
+ */
+function getOptionMargin(itemIndex: number, itemsLen: number) {
+    if (itemIndex === itemsLen && itemsLen >= 5) {
+        return {marginBottom: 16};
+    }
+
+    if (itemIndex === 0 && itemsLen >= 5) {
+        return {marginTop: 16};
+    }
+
+    return {};
+}
+
 const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
+    getAmountInputFontSize,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1194,12 +1378,15 @@ const staticStyleUtils = {
     getAvatarExtraFontSizeStyle,
     getAvatarSize,
     getAvatarWidthStyle,
+    getAvatarSubscriptIconContainerStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
+    getCameraViewfinderStyle,
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,
+    getVerticalPaddingDiffFromStyle,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1214,7 +1401,7 @@ const staticStyleUtils = {
     getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
-    getCheckboxPressableStyle,
+    getSelectionButtonPressableStyle,
     getComposeTextAreaPadding,
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
@@ -1229,6 +1416,7 @@ const staticStyleUtils = {
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,
+    getMenuItemIconStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
@@ -1239,6 +1427,7 @@ const staticStyleUtils = {
     getTextColorStyle,
     getTransparentColor,
     getWidthAndHeightStyle,
+    getPDFViewStyle,
     getWidthStyle,
     getWrappingStyle,
     getZoomSizingStyle,
@@ -1250,17 +1439,23 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
-    getSignInBgStyles,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getButtonSizeStyle,
+    getButtonPaddingStyle,
+    getButtonVariantStyles,
     getCharacterWidth,
     getAmountWidth,
     getBorderRadiusStyle,
+    getTextInputMeasurementStyles,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
     getNavigationBarType,
+    getSuccessReportCardLostIllustrationStyle,
+    getOptionMargin,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1272,6 +1467,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
     getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
     getContainerComposeStyles: () => containerComposeStyles(styles),
+    getHiddenChatContentStyle: () => getHiddenChatContentStyle(styles),
 
     /**
      * Gets styles for AutoCompleteSuggestion row
@@ -1314,16 +1510,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...styles.overflowHidden,
             // maxHeight is not of the input only but the of the whole input container
             // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
+            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
         };
     },
 
     /*
      * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
      */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number, marginSide?: 'left' | 'right'): ViewStyle => {
         if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
+            const marginKey = marginSide === 'left' ? 'marginLeft' : 'marginRight';
+            return {[marginKey]: -extraSpace, width: width + extraSpace};
         }
         return {width};
     },
@@ -1334,7 +1531,21 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
+    },
+
+    /**
+     * Computes styles for the text input icon container.
+     * Applies horizontal padding if requested, and sets the top margin based on padding difference.
+     */
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, verticalPaddingDiff = 0): ViewStyle => {
+        const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
+        return {
+            ...paddingStyle,
+            marginTop: -(verticalPaddingDiff / 2),
+            height: '100%',
+            justifyContent: 'center',
+        };
     },
 
     /**
@@ -1353,25 +1564,34 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate a style for the background color of the Badge
      */
-    getBadgeColorStyle: (isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle => {
+    getBadgeColorStyle: (isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false, isStrong = false): ViewStyle => {
         if (isSuccess) {
             if (isAdHoc) {
                 return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
             }
-            return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+            if (isStrong) {
+                return isPressed ? styles.badgeSuccessStrongPressed : styles.badgeSuccessStrong;
+            }
+            return styles.badgeSuccess;
         }
         if (isError) {
-            return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+            if (isStrong) {
+                return isPressed ? styles.badgeDangerStrongPressed : styles.badgeDangerStrong;
+            }
+            return styles.badgeDanger;
         }
         return {};
     },
 
-    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+    getIconColorStyle: (isSuccess: boolean, isError: boolean, isStrong = false): string => {
+        if (isStrong) {
+            return theme.icon;
+        }
         if (isSuccess) {
-            return theme.iconSuccessFill;
+            return theme.badgeSuccessText;
         }
         if (isError) {
-            return theme.iconDangerFill;
+            return theme.badgeDangerText;
         }
         return theme.icon;
     },
@@ -1409,17 +1629,18 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
-     * Returns the checkbox container style
+     * Returns the selection button container style
      */
-    getCheckboxContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
+    getSelectionButtonContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
-        borderColor: theme.borderLighter,
+        borderColor: theme.bordersBold,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius,
+        margin: 2,
     }),
 
     /**
@@ -1458,10 +1679,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Get the styles of the text next to dot indicators
      */
-    getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text}),
+    getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedbackText, color: styles.formError.color} : {...styles.offlineFeedbackText}),
 
     getEmojiReactionBubbleStyle: (isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle => {
-        let backgroundColor = theme.border;
+        let backgroundColor = theme.buttonDefaultBG;
 
         if (isHovered) {
             backgroundColor = theme.buttonHoveredBG;
@@ -1517,7 +1738,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
      * Generate fill color of an icon based on its state.
@@ -1618,35 +1839,176 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
+    getSearchTableRowBorderStyle: (isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        borderRadius: 0,
+        borderBottomWidth: isLastItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.tableBottomRadius : {}),
+    }),
+
+    getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        borderRadius: 0,
+        borderWidth: isFirstItem ? 0 : 1,
+        borderColor: theme.transparent,
+        borderTopColor: isSelected ? theme.buttonHoveredBG : theme.border,
+
+        ...(isLastItem ? styles.tableBottomRadius : {}),
+    }),
+
+    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
+        minHeight: variables.tableRowHeight,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        borderBottomWidth: isLastItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.tableBottomRadius : {}),
+        ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
+        ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
+    }),
+
+    getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
+        ...styles.borderBottom,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+    }),
+
+    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
+
+    getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
+        const {
+            isSubmittedColumnWide,
+            isApprovedColumnWide,
+            isPostedColumnWide,
+            isExportedColumnWide,
+            isDateColumnWide,
+            isTaxAmountColumnWide,
+            isAmountColumnWide,
+            shouldRemoveTotalColumnFlex,
+            isWithdrawnColumnWide,
+            isActionColumnWide,
+        } = options;
+
         let columnWidth;
         switch (columnName) {
-            case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
-            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+            case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52);
+            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
-            case CONST.SEARCH.TABLE_COLUMNS.FROM:
-            case CONST.SEARCH.TABLE_COLUMNS.TO:
-                columnWidth = styles.flex1;
+            case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+                // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
+                columnWidth = {...getWidthStyle(variables.w102)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
+                columnWidth = {...getWidthStyle(isWithdrawnColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
             case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-                columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w16), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                columnWidth = {...getWidthStyle(variables.w80)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.MCC:
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+                columnWidth = {...getWidthStyle(variables.w92)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+                columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+                columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+                columnWidth = {...getWidthStyle(variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+            case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            case CONST.SEARCH.TABLE_COLUMNS.IN:
+            case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             default:
                 columnWidth = styles.flex1;
         }
@@ -1666,7 +2028,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         switch (size) {
             case CONST.AVATAR_SIZE.SMALL:
-                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.SMALLER:
                 containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
@@ -1676,6 +2038,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.AVATAR_SIZE.LARGE:
                 containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+                break;
+            case CONST.AVATAR_SIZE.X_LARGE:
+                containerStyles = [styles.emptyAvatarXLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
@@ -1700,7 +2065,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return {};
         }
 
-        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+        const composerLineHeight = variables.lineHeightXLarge ?? 0;
 
         return {
             maxHeight: maxLines * composerLineHeight,
@@ -1714,13 +2079,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
-    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...(isSelected && styles.checkedContainer),
-        ...(isSelected && styles.borderColorFocus),
-        ...(isDisabled && styles.cursorDisabled),
-        ...(isDisabled && styles.buttonOpacityDisabled),
-    }),
-
     /**
      * When adding a new prefix character, adjust this method to add expected character width.
      * This is because character width isn't known before it's rendered to the screen, and once it's rendered,
@@ -1731,13 +2089,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getCharacterPadding: (prefix: string): number => {
         let padding = 0;
-        prefix.split('').forEach((char) => {
+        for (const char of prefix.split('')) {
             if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
                 padding += 11;
             } else {
                 padding += 8;
             }
-        });
+        }
 
         return padding;
     },
@@ -1767,19 +2125,231 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
-
     getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
-        keys.reduce((styleobj: Nullable<K>, key) => {
+        keys.reduce((styleObj: Nullable<K>, key) => {
             // eslint-disable-next-line no-param-reassign
-            styleobj[key] = null;
-            return styleobj;
+            styleObj[key] = null;
+            return styleObj;
         }, {} as Nullable<K>) as K,
+    getScrollableFeatureTrainingModalStyles: (
+        insets: EdgeInsets,
+        isKeyboardOpen = false,
+    ): {
+        style?: ViewStyle;
+        containerStyle?: ViewStyle;
+    } => {
+        const {paddingBottom: safeAreaPaddingBottom} = getPlatformSafeAreaPadding(insets);
+        // When keyboard is open and we want to disregard safeAreaPaddingBottom.
+        const paddingBottom = getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, !isKeyboardOpen);
+        // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
+        return {
+            style: isMobileChrome()
+                ? {
+                      maxHeight: '100dvh',
+                  }
+                : {},
+            containerStyle: {paddingBottom},
+        };
+    },
+
+    /**
+     * Returns a single crop view style by key. Use this from useAnimatedStyle to avoid building all 14 styles per frame.
+     * @param params - Object containing dynamic crop values (same as getCropViewStyles)
+     * @param key - Which style to return
+     */
+    getCropViewStyle: (
+        key:
+            | 'cornerVisual'
+            | 'border'
+            | 'cornerTopLeft'
+            | 'cornerTopRight'
+            | 'cornerBottomLeft'
+            | 'cornerBottomRight'
+            | 'edgeTop'
+            | 'edgeBottom'
+            | 'edgeLeft'
+            | 'edgeRight'
+            | 'overlayTop'
+            | 'overlayBottom'
+            | 'overlayLeft'
+            | 'overlayRight',
+        params?: {
+            cropX?: number;
+            cropY?: number;
+            cropWidth?: number;
+            cropHeight?: number;
+            imageLeft?: number;
+            imageTop?: number;
+            imgDisplayWidth?: number;
+            cropLeft?: number;
+            cropRight?: number;
+            cropTop?: number;
+            cropBottom?: number;
+            imageRight?: number;
+            imageBottom?: number;
+        },
+    ) => {
+        'worklet';
+
+        const {
+            cropX = 0,
+            cropY = 0,
+            cropWidth = 0,
+            cropHeight = 0,
+            imageLeft = 0,
+            imageTop = 0,
+            imgDisplayWidth = 0,
+            cropLeft = 0,
+            cropRight = 0,
+            cropTop = 0,
+            cropBottom = 0,
+            imageRight = 0,
+            imageBottom = 0,
+        } = params ?? {};
+
+        switch (key) {
+            case 'cornerVisual':
+                return {
+                    position: 'absolute' as const,
+                    left: (variables.cornerTapTargetSize - variables.cornerHandleSize) / 2,
+                    top: (variables.cornerTapTargetSize - variables.cornerHandleSize) / 2,
+                    width: variables.cornerHandleSize,
+                    height: variables.cornerHandleSize,
+                    borderRadius: variables.cornerHandleSize / 2,
+                    backgroundColor: theme.success,
+                };
+            case 'border':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX,
+                    top: cropY,
+                    width: cropWidth,
+                    height: cropHeight,
+                    borderWidth: variables.cropBorderWidth,
+                    borderColor: theme.success,
+                };
+            case 'cornerTopLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX - variables.cornerTapTargetSize / 2,
+                    top: cropY - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNwseResize,
+                };
+            case 'cornerTopRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX + cropWidth - variables.cornerTapTargetSize / 2,
+                    top: cropY - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNeswResize,
+                };
+            case 'cornerBottomLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX - variables.cornerTapTargetSize / 2,
+                    top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNeswResize,
+                };
+            case 'cornerBottomRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX + cropWidth - variables.cornerTapTargetSize / 2,
+                    top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNwseResize,
+                };
+            case 'edgeTop':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX,
+                    top: cropY - variables.edgeHandleTapTargetThickness / 2,
+                    width: cropWidth,
+                    height: variables.edgeHandleTapTargetThickness,
+                    ...styles.cursorNsResize,
+                };
+            case 'edgeBottom':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX,
+                    top: cropY + cropHeight - variables.edgeHandleTapTargetThickness / 2,
+                    width: cropWidth,
+                    height: variables.edgeHandleTapTargetThickness,
+                    ...styles.cursorNsResize,
+                };
+            case 'edgeLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX - variables.edgeHandleTapTargetThickness / 2,
+                    top: cropY,
+                    width: variables.edgeHandleTapTargetThickness,
+                    height: cropHeight,
+                    ...styles.cursorEwResize,
+                };
+            case 'edgeRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX + cropWidth - variables.edgeHandleTapTargetThickness / 2,
+                    top: cropY,
+                    width: variables.edgeHandleTapTargetThickness,
+                    height: cropHeight,
+                    ...styles.cursorEwResize,
+                };
+            case 'overlayTop':
+                return {
+                    ...styles.pAbsolute,
+                    left: imageLeft,
+                    top: imageTop,
+                    width: imgDisplayWidth,
+                    height: Math.max(0, cropTop - imageTop),
+                    backgroundColor: theme.transparentWhite,
+                };
+            case 'overlayBottom':
+                return {
+                    ...styles.pAbsolute,
+                    left: imageLeft,
+                    top: cropBottom,
+                    width: imgDisplayWidth,
+                    height: Math.max(0, imageBottom - cropBottom),
+                    backgroundColor: theme.transparentWhite,
+                };
+            case 'overlayLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: imageLeft,
+                    top: cropTop,
+                    width: Math.max(0, cropLeft - imageLeft),
+                    height: cropHeight,
+                    backgroundColor: theme.transparentWhite,
+                };
+            case 'overlayRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropRight,
+                    top: cropTop,
+                    width: Math.max(0, imageRight - cropRight),
+                    height: cropHeight,
+                    backgroundColor: theme.transparentWhite,
+                };
+            default:
+                return {};
+        }
+    },
+
+    getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        overflow: 'visible',
+        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
+        paddingBottom: safeAreaPaddingBottom,
+        backgroundColor: theme.appBG,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
-const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
-
 export default createStyleUtils;
-export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};

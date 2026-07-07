@@ -1,21 +1,25 @@
-import type {ForwardedRef} from 'react';
-import React from 'react';
-import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {modifyRoomName} from '@libs/RoomNameInputUtils';
+
 import CONST from '@src/CONST';
+
+import type {TextInputChangeEvent} from 'react-native';
+
+import React from 'react';
+
 import type RoomNameInputProps from './types';
 
-function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ref, ...props}: RoomNameInputProps) {
     const {translate} = useLocalize();
 
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+    const setModifiedRoomName = (event: TextInputChangeEvent) => {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
@@ -30,7 +34,6 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
 
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             disabled={disabled}
@@ -49,6 +52,4 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
     );
 }
 
-RoomNameInput.displayName = 'RoomNameInput';
-
-export default React.forwardRef(RoomNameInput);
+export default RoomNameInput;

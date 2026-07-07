@@ -1,32 +1,40 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type * as Navigation from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
-import type {ReactElement} from 'react';
-import React from 'react';
+
 import ComposeProviders from '@components/ComposeProviders';
+import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
-import {EnvironmentProvider} from '@components/withEnvironment';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+
 import DateUtils from '@libs/DateUtils';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
-import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
-import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+
+import ReportActionItemSingle from '@pages/inbox/report/ReportActionItemSingle';
+import SidebarLinksData from '@pages/inbox/sidebar/SidebarLinksData';
+
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type * as Navigation from '@react-navigation/native';
+import type {ReactElement} from 'react';
+
+import React from 'react';
+
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
-    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar?: boolean;
-
     /** Report for this action */
     report: Report;
 
     /** All the data of the action */
     reportAction: ReportAction;
+
+    /** Optional children rendered inside the wrapping View (used to probe styling around children). */
+    children?: ReactElement;
 };
 
 type MockedSidebarLinksProps = {
@@ -136,12 +144,12 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 
     const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
 
-    adminIDs.forEach((id) => {
+    for (const id of adminIDs) {
         participants[id] = {
             notificationPreference: 'always',
             role: CONST.REPORT.ROLE.ADMIN,
         };
-    });
+    }
 
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -276,7 +284,7 @@ function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor
 
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/*
              * Only required to make unit tests work, since we
              * explicitly pass the currentReportID in LHNTestUtils
@@ -286,7 +294,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * So this is a work around to have currentReportID available
              * only in testing environment.
              *  */}
-            <SidebarOrderedReportIDsContextProvider currentReportIDForTests={currentReportID}>
+            <SidebarOrderedReportsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
                     insets={{
                         top: 0,
@@ -295,7 +303,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         bottom: 0,
                     }}
                 />
-            </SidebarOrderedReportIDsContextProvider>
+            </SidebarOrderedReportsContextProvider>
         </ComposeProviders>
     );
 }
@@ -333,32 +341,33 @@ function internalRender(component: ReactElement) {
     }
 }
 
-function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction}: MockedReportActionItemSingleProps) {
+function MockedReportActionItemSingle({report, reportAction, children}: MockedReportActionItemSingleProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
                 showHeader
-                shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
-                hasBeenFlagged={false}
                 iouReport={undefined}
                 isHovered={false}
-            />
+            >
+                {children}
+            </ReportActionItemSingle>
         </ComposeProviders>
     );
 }
 
-function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report?: Report, reportAction?: ReportAction) {
+function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction, children?: ReactElement) {
     const currentReport = report ?? getFakeReport();
     const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
     internalRender(
         <MockedReportActionItemSingle
-            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
             report={currentReport}
             reportAction={currentReportAction}
-        />,
+        >
+            {children}
+        </MockedReportActionItemSingle>,
     );
 }
 
@@ -370,7 +379,6 @@ export {
     getFakeReportAction,
     MockedSidebarLinks,
     getDefaultRenderedReportActionItemSingle,
-    MockedReportActionItemSingle,
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,

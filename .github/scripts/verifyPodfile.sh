@@ -64,7 +64,7 @@ if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modu
 fi
 
 # Retrieve a list of podspec paths from react-native config
-if ! read_lines_into_array PODSPEC_PATHS < <(npx rnef config -p ios | jq --raw-output '.dependencies[].platforms.ios.podspecPath | select ( . != null)'); then
+if ! read_lines_into_array PODSPEC_PATHS < <(npx rock config -p ios | jq --raw-output '.dependencies[].platforms.ios.podspecPath | select ( . != null)'); then
   error "Error: could not parse podspec paths from react-native config command"
   cleanupAndExit 1
 fi
@@ -73,7 +73,7 @@ PODSPECS=$(./.github/scripts/printPodspec.rb "${PODSPEC_PATHS[@]}")
 
 # Format a list of Pods based on the output of the config command
 if ! FORMATTED_PODS=$( \
-  jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$(./.github/scripts/removeInvalidJson.rb "${PODSPECS}")" \
+  jq --raw-output 'map((.name + " (" + .version + ")")) | .[]' <<< "$(./.github/scripts/parseAndCollectJSONs.rb "${PODSPECS}")" \
 ); then
   error "Error: could not parse podspecs at paths parsed from react-native config"
   cleanupAndExit 1

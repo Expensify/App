@@ -8,18 +8,24 @@ type TravelSettings = {
 
     /** Whether the user is setup for staging travelDot */
     testAccount?: boolean;
+
+    /** The last travel signup request time */
+    lastTravelSignupRequestTime?: string;
 };
 
 /** Model of workspace travel information to connect with Spotnana */
 type WorkspaceTravelSettings = {
-    /** The UUID that spotnana provides us when we create a “company” in their system */
-    spotnanaCompanyID: string;
+    /** The UUID that spotnana provides us when we create a "company" in their system. Absent until the workspace is provisioned. */
+    spotnanaCompanyID?: string;
 
-    /** The UUID of the associated Spotnana Entity */
-    associatedTravelDomainAccountID: string;
+    /** The UUID of the associated Spotnana Entity. Absent until the workspace is provisioned. */
+    associatedTravelDomainAccountID?: string;
 
-    /** Indicates whether an admin of the workspace accepted Spotnana Terms and Conditions */
-    hasAcceptedTerms: boolean;
+    /** Indicates whether an admin of the workspace accepted Spotnana Terms and Conditions. Absent until the workspace is provisioned. */
+    hasAcceptedTerms?: boolean;
+
+    /** Whether to automatically add trip names to expense descriptions during travel */
+    autoAddTripName?: boolean;
 };
 
 export type {TravelSettings, WorkspaceTravelSettings};

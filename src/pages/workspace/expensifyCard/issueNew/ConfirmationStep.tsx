@@ -1,72 +1,119 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useBeforeRemove from '@hooks/useBeforeRemove';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+
+import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type ConfirmationStepProps = {
     /** ID of the policy that the card will be issued under */
-    policyID: string | undefined;
+    policyID: string;
 
-    /** Route to navigate to */
-    backTo?: Route;
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const validateError = getLatestErrorMessageField(issueNewCard);
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const defaultFundID = useDefaultFundID(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const {cardRules} = useExpensifyCardRules(policyID);
+
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
-    const defaultFundID = useDefaultFundID(policyID);
+    const hasApprovalError = !!policy?.errorFields?.approvalMode;
+    const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
+    const areRulesEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
+    const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
+    const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
+    const personalDetails = usePersonalDetails();
+
+    const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
+    const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
     const submitButton = useRef<View>(null);
 
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
-
     useEffect(() => {
         submitButton.current?.focus();
-        resetValidateActionCodeSent();
-    }, []);
+        clearIssueNewCardError(policyID);
+    }, [policyID]);
 
     useEffect(() => {
-        if (!isSuccessful) {
+        if (!policyID) {
             return;
         }
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-        clearIssueNewCardFlow(policyID);
-    }, [backTo, policyID, isSuccessful]);
 
-    const submit = (validateCode: string) => {
-        issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
-    };
+        if (isSuccessful) {
+            Navigation.closeRHPFlow();
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
+            clearIssueNewCardFlow(policyID);
+            return;
+        }
 
-    const errorMessage = getLatestErrorMessage(issueNewCard);
+        const hasError = !!getLatestErrorMessage(issueNewCard);
+        if (hasError) {
+            const errorMessage = getLatestErrorMessage(issueNewCard);
+
+            // Redirect to the magic code page when there is an error with the user's validateCode authentication
+            if (errorMessage.toLowerCase().includes('request a new code')) {
+                clearIssueNewCardError(policyID);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
+            }
+        }
+    }, [issueNewCard, isSuccessful, policyID]);
+
+    const handleIssueCard = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
+        if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
+            // Attempt to issue directly without magic code when user has extended access
+            // If this fails, the effect above will redirect to the magic code page
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
+        } else {
+            // Navigate to magic code page
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
+        }
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
+
+    const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
@@ -78,16 +125,57 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
 
+    const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
+    const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
+
+    const expirationDateTitle =
+        data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
+
+    const shouldShowExpirationDate = !isPhysicalCard;
+
+    const cardRuleRestrictionsTitle = (() => {
+        if (!data?.spendRuleEnabled) {
+            return '';
+        }
+
+        const fields: string[] = [];
+        const spendRuleOption = data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const isCopyingExistingRule = spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const spendRuleForm = isCopyingExistingRule ? cardRules.find((rule) => rule.ruleID === data.spendRuleID)?.formValues : data?.spendRuleValue;
+
+        if (spendRuleForm?.categories?.length) {
+            fields.push(translate('workspace.rules.spendRules.categories'));
+        }
+
+        if (spendRuleForm?.maxAmount) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.maxAmount') : translate('workspace.rules.spendRules.maxAmount').toLowerCase();
+            fields.push(translation);
+        }
+
+        if (spendRuleForm?.merchantNames?.length) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.merchants') : translate('workspace.rules.spendRules.merchants').toLowerCase();
+            fields.push(translation);
+        }
+
+        if (spendRuleForm?.currencies?.length) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.currencies') : translate('workspace.rules.spendRules.currencies').toLowerCase();
+            fields.push(translation);
+        }
+
+        return fields.join(', ');
+    })();
+
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={5}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <ScrollView
                 style={styles.pt0}
@@ -95,11 +183,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
-                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
+                    interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
                 <MenuItemWithTopDescription
@@ -110,9 +199,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limit')}
-                    title={convertToShortDisplayString(data?.limit)}
+                    title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
-                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limitType')}
@@ -120,8 +209,24 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
+                {!!expirationDateTitle && shouldShowExpirationDate && (
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.card.issueNewCard.expirationDate')}
+                        title={expirationDateTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
+                    />
+                )}
+                {isSpendRuleApplied && areRulesEnabled && (
+                    <MenuItemWithTopDescription
+                        description={translate('common.restrictions')}
+                        title={cardRuleRestrictionsTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
+                    />
+                )}
                 <MenuItemWithTopDescription
-                    description={translate('workspace.card.issueNewCard.name')}
+                    description={translate('workspace.card.issueNewCard.cardName')}
                     title={data?.cardTitle}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
@@ -131,31 +236,16 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                         buttonRef={submitButton}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
-                        isDisabled={isOffline}
+                        isDisabled={isOffline || shouldDisableSubmitButton}
+                        isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={() => setIsValidateCodeActionModalVisible(true)}
+                        onSubmit={handleIssueCard}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
             </ScrollView>
-            {!!issueNewCard && (
-                <ValidateCodeActionModal
-                    handleSubmitForm={submit}
-                    isLoading={issueNewCard?.isLoading}
-                    sendValidateCode={requestValidateCodeAction}
-                    validateCodeActionErrorField="createAdminIssuedVirtualCard"
-                    validateError={validateError}
-                    clearError={() => clearIssueNewCardError(policyID)}
-                    onClose={() => setIsValidateCodeActionModalVisible(false)}
-                    isVisible={isValidateCodeActionModalVisible}
-                    title={translate('cardPage.validateCardTitle')}
-                    descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
-                />
-            )}
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

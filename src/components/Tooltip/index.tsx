@@ -1,22 +1,15 @@
 import React from 'react';
-import BaseTooltip from './BaseTooltip';
+
 import type {TooltipExtendedProps} from './types';
+
+import BaseTooltip from './BaseTooltip';
 
 function Tooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
     if (!shouldRender) {
         return children;
     }
 
-    return (
-        <BaseTooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        >
-            {children}
-        </BaseTooltip>
-    );
+    return <BaseTooltip {...props}>{children}</BaseTooltip>;
 }
-
-Tooltip.displayName = 'Tooltip';
 
 export default Tooltip;

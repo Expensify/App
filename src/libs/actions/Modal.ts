@@ -1,10 +1,11 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ModalType from '@src/types/utils/ModalType';
 
+import Onyx from 'react-native-onyx';
+
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 
-let onModalClose: null | (() => void);
+let onModalClose: null | (() => void | Promise<void>);
 let isNavigate: undefined | boolean;
 let shouldCloseAll: boolean | undefined;
 
@@ -25,33 +26,39 @@ function setCloseModal(onClose: () => void) {
 }
 
 /**
- * Close topmost modal
+ * Close the topmost or a specific modal based on an offset from the top
  */
-function closeTop() {
+function closeTop(topModalOffset?: number) {
     if (closeModals.length === 0) {
         return;
     }
+
+    // Add bounds to the offset to ensure it's not out of bounds and use topmost modal by default.
+    const startFromTopMostModal = topModalOffset === undefined ? -1 : Math.max(Math.min(-topModalOffset - 1, -1), -closeModals.length);
+
+    const modalCloseCallback = closeModals.splice(startFromTopMostModal, 1).at(0);
+
     if (onModalClose) {
-        closeModals[closeModals.length - 1](isNavigate);
-        closeModals.pop();
+        modalCloseCallback?.(isNavigate);
         return;
     }
-    closeModals[closeModals.length - 1]();
-    closeModals.pop();
+    modalCloseCallback?.();
 }
 
 /**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void, isNavigating = true, shouldCloseAllModals = false) {
+function close(onModalCloseCallback?: () => void | Promise<void>, isNavigating = true, shouldCloseAllModals = false, topModalOffset = 0) {
     if (closeModals.length === 0) {
-        onModalCloseCallback();
+        onModalCloseCallback?.();
         return;
     }
-    onModalClose = onModalCloseCallback;
+    if (onModalCloseCallback) {
+        onModalClose = onModalCloseCallback;
+    }
     shouldCloseAll = shouldCloseAllModals;
     isNavigate = isNavigating;
-    closeTop();
+    closeTop(topModalOffset);
 }
 
 function onModalDidClose() {
@@ -75,7 +82,7 @@ function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
 }
 
 /**
- * Allows other parts of the app to set whether modals should be dismissable using the Escape key
+ * Allows other parts of the app to set whether modals should be dismissible using the Escape key
  */
 function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape});

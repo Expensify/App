@@ -1,18 +1,19 @@
-import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+
+import type {ComponentType, ReactElement} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type WithToggleVisibilityViewProps = {
     /** Whether the content is visible. */
     isVisible?: boolean;
 };
 
-export default function withToggleVisibilityView<TProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: TProps & WithToggleVisibilityViewProps & RefAttributes<TRef>) => ReactElement | null {
-    function WithToggleVisibilityView({isVisible = false, ...rest}: WithToggleVisibilityViewProps, ref: ForwardedRef<TRef>) {
+export default function withToggleVisibilityView<TProps>(WrappedComponent: ComponentType<TProps>): (props: TProps & WithToggleVisibilityViewProps) => ReactElement | null {
+    function WithToggleVisibilityView({isVisible = false, ...rest}: WithToggleVisibilityViewProps) {
         const styles = useThemeStyles();
         return (
             <View
@@ -20,9 +21,7 @@ export default function withToggleVisibilityView<TProps, TRef>(
                 collapsable={false}
             >
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(rest as TProps)}
-                    ref={ref}
                     isVisible={isVisible}
                 />
             </View>
@@ -30,7 +29,8 @@ export default function withToggleVisibilityView<TProps, TRef>(
     }
 
     WithToggleVisibilityView.displayName = `WithToggleVisibilityViewWithRef(${getComponentDisplayName(WrappedComponent)})`;
-    return React.forwardRef(WithToggleVisibilityView);
+
+    return WithToggleVisibilityView;
 }
 
 export type {WithToggleVisibilityViewProps};

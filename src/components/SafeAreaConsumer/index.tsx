@@ -1,7 +1,9 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import useStyleUtils from '@hooks/useStyleUtils';
+
 import type SafeAreaConsumerProps from './types';
 
 /**
@@ -27,7 +29,5 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
         </SafeAreaInsetsContext.Consumer>
     );
 }
-
-SafeAreaConsumer.displayName = 'SafeAreaConsumer';
 
 export default SafeAreaConsumer;

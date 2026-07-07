@@ -1,11 +1,15 @@
-import React, {memo, useContext, useMemo} from 'react';
+import {useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {memo, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import useThemeStyles from '@hooks/useThemeStyles';
-import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
+
 import type AttachmentViewPdfProps from './types';
+
+import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 
 // If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the touch will most probably be a tap.
 // If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
@@ -13,7 +17,7 @@ const SCROLL_THRESHOLD = 10;
 
 function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const styles = useThemeStyles();
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const carouselPagerState = useAttachmentCarouselPagerState();
     const scale = useSharedValue(1);
 
     // Reanimated freezes all objects captured in the closure of a worklet.
@@ -23,7 +27,7 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     // frozen, which combined with Reanimated using strict mode since 3.6.0 was resulting in errors.
     // Without strict mode, it would just silently fail.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#description
-    const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
+    const isScrollEnabled = carouselPagerState === null ? undefined : carouselPagerState.isScrollEnabled;
 
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
@@ -41,7 +45,6 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
                 if (translateX > translateY && translateX > SCROLL_THRESHOLD && allowEnablingScroll) {
-                    // eslint-disable-next-line react-compiler/react-compiler
                     isScrollEnabled.set(true);
                 } else if (translateY > SCROLL_THRESHOLD) {
                     isScrollEnabled.set(false);
@@ -63,7 +66,6 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const Content = useMemo(
         () => (
             <BaseAttachmentViewPdf
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onScaleChanged={(newScale) => {
                     // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
@@ -81,7 +83,7 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
             collapsable={false}
             style={styles.flex1}
         >
-            {attachmentCarouselPagerContext === null ? (
+            {carouselPagerState === null ? (
                 Content
             ) : (
                 <GestureDetector gesture={Pan}>

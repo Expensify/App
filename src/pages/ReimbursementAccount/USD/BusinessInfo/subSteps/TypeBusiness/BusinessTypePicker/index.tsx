@@ -1,12 +1,18 @@
-import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import BusinessTypeSelectorModal from './BusinessTypeSelectorModal';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import type {BusinessTypeItemType, IncorporationType} from './types';
+
+import BusinessTypeSelectorModal from './BusinessTypeSelectorModal';
 
 type BusinessTypePickerProps = {
     /** Error text to display */
@@ -79,7 +85,5 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
         </View>
     );
 }
-
-BusinessTypePicker.displayName = 'BusinessTypePicker';
 
 export default BusinessTypePicker;

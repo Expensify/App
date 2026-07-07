@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -34,6 +36,9 @@ type DelegateErrors = {
 
     /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegator keyed by email */
+    removeDelegator?: Record<string, OnyxCommon.Errors>;
 
     /** Errors while connecting as a delegate keyed by email */
     connect?: Record<string, OnyxCommon.Errors>;
@@ -80,9 +85,6 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
-
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 
@@ -94,6 +96,9 @@ type Account = {
 
     /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
     needsTwoFactorAuthSetup?: boolean;
+
+    /** Whether the account 2FA setup is in progress, driven by the frontend */
+    twoFactorAuthSetupInProgress?: boolean;
 
     /** Whether the account is validated */
     validated?: boolean;
@@ -109,6 +114,12 @@ type Account = {
 
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
+
+    /** The account ID of the partner manager */
+    partnerManagerAccountID?: number;
+
+    /** The email of the partner manager */
+    partnerManagerEmail?: string;
 
     /** The message to be displayed when code requested */
     message?: string;
@@ -202,23 +213,17 @@ type Account = {
         errors: OnyxCommon.Errors;
     };
 
-    /// All of the fields/attributes after this comment are currently being migrated from the User model into this Account model
-    /// Please do not use any of it until the list of action tasks in the table at https://github.com/Expensify/App/issues/59277#issuecomment-2818283478 is fully completed
-
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
-
-    /** Whether we should use the staging version of the secure API server */
-    shouldUseStagingServer?: boolean;
 
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
 
+    /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
+    isFromInternalDomain?: boolean;
+
     /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;
-
-    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
-    isCheckingDomain?: boolean;
 
     /** Whether or not the user has lounge access */
     hasLoungeAccess?: boolean;
@@ -229,11 +234,20 @@ type Account = {
     /** Whether the user is an Expensify Guide */
     isGuide?: boolean;
 
-    /** Whether the debug mode is currently enabled */
-    isDebugModeEnabled?: boolean;
-
-    /** If user has accesible policies on a private domain */
+    /** If user has accessible policies on a private domain */
     hasAccessibleDomainPolicies?: boolean;
+
+    /** Errors for lock account */
+    lockAccount?: {
+        /** API errors when locking an account */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Epoch timestamp (in milliseconds) until which extended access is valid without requiring validateCode */
+    validateCodeExtendedAccessExpires?: number;
+
+    /** List of registered multifactor authentication public keys. Empty if the user had set up at some point but they have since been revoked. Undefined if the user had never set it up to begin with. */
+    multifactorAuthenticationPublicKeyIDs?: string[];
 };
 
 export default Account;

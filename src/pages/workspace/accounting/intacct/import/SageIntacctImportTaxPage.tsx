@@ -1,23 +1,28 @@
-import React from 'react';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearSageIntacctErrorField, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type SageIntacctImportTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT_TAX>;
 
@@ -35,7 +40,7 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctImportTaxPage.displayName}
+            displayName="SageIntacctImportTaxPage"
             headerTitleAlreadyTranslated={translate('common.tax')}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -78,7 +83,5 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctImportTaxPage.displayName = 'SageIntacctImportTaxPage';
 
 export default SageIntacctImportTaxPage;

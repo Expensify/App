@@ -1,16 +1,23 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {formatPhoneNumber} from './LocalePhoneNumber';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
+import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
 
 type FirstAndLastName = {
@@ -18,13 +25,12 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        personalDetails = Object.values(val ?? {});
+        const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
@@ -39,25 +45,13 @@ let hiddenTranslation = '';
 let youTranslation = '';
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     callback: (value) => {
-        if (!value) {
+        if (value ?? true) {
             return;
         }
         hiddenTranslation = translateLocal('common.hidden');
         youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
-let defaultCountry = '';
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        defaultCountry = value;
     },
 });
 
@@ -77,10 +71,10 @@ function getDisplayNameOrDefault(
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
-        displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+        displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
-    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // If the displayName is not set by the user, the backend sets the displayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
     if (Str.isSMSLogin(login)) {
         if (displayName === login) {
@@ -108,8 +102,69 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-
     return shouldFallbackToHidden ? hiddenTranslation : '';
+}
+
+function temporaryGetDisplayNameOrDefault({
+    passedPersonalDetails,
+    defaultValue = '',
+    shouldFallbackToHidden = true,
+    shouldAddCurrentUserPostfix = false,
+    youAfterTranslation,
+    translate,
+}: {
+    passedPersonalDetails?: Partial<PersonalDetails> | null;
+    defaultValue?: string;
+    shouldFallbackToHidden?: boolean;
+    shouldAddCurrentUserPostfix?: boolean;
+    youAfterTranslation?: string;
+    translate: LocalizedTranslate;
+}): string {
+    const temporaryHiddenTranslation = translate('common.hidden');
+    const temporaryYouTranslation = translate('common.you').toLowerCase();
+    let displayName = passedPersonalDetails?.displayName ?? '';
+
+    let login = passedPersonalDetails?.login ?? '';
+
+    // If the displayName starts with the merged account prefix, remove it.
+    if (regexMergedAccount.test(displayName)) {
+        // Remove the merged account prefix from the displayName.
+        displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    }
+
+    // If the displayName is not set by the user, the backend sets the displayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (Str.isSMSLogin(login)) {
+        if (displayName === login) {
+            displayName = Str.removeSMSDomain(displayName);
+        }
+        login = Str.removeSMSDomain(login);
+    }
+
+    if (shouldAddCurrentUserPostfix && !!displayName) {
+        displayName = `${displayName} (${youAfterTranslation ?? temporaryYouTranslation})`;
+    }
+
+    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        displayName = CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
+    if (displayName) {
+        return displayName;
+    }
+
+    if (defaultValue) {
+        return defaultValue;
+    }
+
+    if (login) {
+        return login;
+    }
+    return shouldFallbackToHidden ? temporaryHiddenTranslation : '';
+}
+
+function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
 }
 
 /**
@@ -126,7 +181,7 @@ function getPersonalDetailsByIDs({
     personalDetailsParam = allPersonalDetails,
 }: {
     accountIDs: number[];
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
     shouldChangeUserDisplayName?: boolean;
     personalDetailsParam?: Partial<PersonalDetailsList>;
 }): PersonalDetails[] {
@@ -148,8 +203,72 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+    if (!accountIDs) {
+        return [];
+    }
+
+    const result: PersonalDetails[] = [];
+    for (const accountID of accountIDs) {
+        const detail = getPersonalDetailsByID(accountID, personalDetails);
+        if (!detail) {
+            continue;
+        }
+
+        result.push(detail);
+    }
+    return result;
+}
+
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined> | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return (
+        accountIDs?.reduce((acc, accountID) => {
+            if (!accountID) {
+                return acc;
+            }
+            const detail = personalDetails?.[accountID];
+            if (!detail) {
+                return acc;
+            }
+            acc[accountID] = detail;
+            return acc;
+        }, {} as PersonalDetailsList) ?? {}
+    );
+}
+
+/**
+ * Build a personal details list scoped to the given participant accountIDs. A participant that is missing from the
+ * source list stays missing (mapped to `null`) so optimistic-account detection keeps the same semantics as the full list.
+ */
+function getParticipantsPersonalDetails(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    const result: PersonalDetailsList = {};
+    for (const accountID of accountIDs) {
+        result[accountID] = personalDetails?.[accountID] ?? null;
+    }
+    return result;
+}
+
+function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
+    if (accountID === currentUserAccountID) {
+        return translate('common.you');
+    }
+    return displayName;
+}
+
+function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
+    if (!email) {
+        return undefined;
+    }
     return emailToPersonalDetailsCache[email.toLowerCase()];
+}
+
+/**
+ * Returns the accountID for a login only when it exists in personal details.
+ * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
+ */
+function getKnownAccountIDByLogin(login: string | undefined): number | undefined {
+    const accountID = getPersonalDetailByEmail(login)?.accountID;
+    return accountID !== undefined ? Number(accountID) : undefined;
 }
 
 /**
@@ -160,7 +279,7 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
+        const currentDetail = getPersonalDetailByEmail(login);
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(generateAccountID(login));
@@ -171,45 +290,42 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-/**
- * Given an accountID, find the associated personal detail and return related login.
- *
- * @param accountID User accountID
- * @returns Login according to passed accountID
- */
-function getLoginByAccountID(accountID: number): string | undefined {
-    return allPersonalDetails?.[accountID]?.login;
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+    return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
 /**
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): string[] {
-    return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentLogin = getLoginByAccountID(accountID);
-        if (currentLogin) {
-            foundLogins.push(currentLogin);
-        }
-        return foundLogins;
-    }, []);
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+    return (
+        accountIDs?.reduce((foundLogins: string[], accountID) => {
+            const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
+            if (currentLogin) {
+                foundLogins.push(currentLogin);
+            }
+            return foundLogins;
+        }, []) ?? []
+    );
 }
 
 /**
  * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
+function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[], personalDetailsList: OnyxEntry<PersonalDetailsList>) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
-    logins.forEach((login, index) => {
+    for (const [index, login] of logins.entries()) {
         const accountID = accountIDs.at(index) ?? -1;
-        if (isEmptyObject(allPersonalDetails?.[accountID])) {
+        if (isEmptyObject(personalDetailsList?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
         }
-    });
+    }
 
     return {newAccountIDs, newLogins};
 }
@@ -218,15 +334,20 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
  * They will have an "optimistic" accountID that must be cleaned up later.
  */
-function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAccountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+function getPersonalDetailsOnyxDataForOptimisticUsers(
+    newLogins: string[],
+    newAccountIDs: number[],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
-    newLogins.forEach((login, index) => {
+    for (const [index, login] of newLogins.entries()) {
         const accountID = newAccountIDs.at(index) ?? -1;
         personalDetailsNew[accountID] = {
             login,
             accountID,
+            avatar: getDefaultAvatarURL({accountID, accountEmail: login}),
             displayName: formatPhoneNumber(login),
             isOptimisticPersonalDetail: true,
         };
@@ -236,9 +357,9 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
          * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
          */
         personalDetailsCleanup[accountID] = null;
-    });
+    }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -246,7 +367,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -303,6 +424,27 @@ function getCurrentAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDeta
 }
 
 /**
+ * Builds a PersonalDetailsForm snapshot from Onyx private details,
+ * optionally layering draft values on top so in-progress edits win.
+ */
+function getPrivatePersonalDetailsFormValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, draftValues?: PersonalDetailsForm | null): PersonalDetailsForm {
+    const address = getCurrentAddress(privatePersonalDetails);
+    const [street1, street2] = getStreetLines(address?.street);
+    return {
+        [INPUT_IDS.LEGAL_FIRST_NAME]: draftValues?.[INPUT_IDS.LEGAL_FIRST_NAME] ?? privatePersonalDetails?.legalFirstName ?? '',
+        [INPUT_IDS.LEGAL_LAST_NAME]: draftValues?.[INPUT_IDS.LEGAL_LAST_NAME] ?? privatePersonalDetails?.legalLastName ?? '',
+        [INPUT_IDS.DATE_OF_BIRTH]: draftValues?.[INPUT_IDS.DATE_OF_BIRTH] ?? privatePersonalDetails?.dob ?? '',
+        [INPUT_IDS.PHONE_NUMBER]: draftValues?.[INPUT_IDS.PHONE_NUMBER] ?? privatePersonalDetails?.phoneNumber ?? '',
+        [INPUT_IDS.ADDRESS_LINE_1]: draftValues?.[INPUT_IDS.ADDRESS_LINE_1] ?? street1 ?? '',
+        [INPUT_IDS.ADDRESS_LINE_2]: draftValues?.[INPUT_IDS.ADDRESS_LINE_2] ?? address?.street2 ?? street2 ?? '',
+        [INPUT_IDS.CITY]: draftValues?.[INPUT_IDS.CITY] ?? address?.city ?? '',
+        [INPUT_IDS.STATE]: draftValues?.[INPUT_IDS.STATE] ?? address?.state ?? '',
+        [INPUT_IDS.ZIP_POST_CODE]: draftValues?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
+        [INPUT_IDS.COUNTRY]: draftValues?.[INPUT_IDS.COUNTRY] ?? address?.country ?? '',
+    };
+}
+
+/**
  * Formats an address object into an easily readable string
  *
  * @param privatePersonalDetails - details object
@@ -315,14 +457,14 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
 
     // Remove the last comma of the address
-    return formattedAddress.trim().replace(/,$/, '');
+    return formattedAddress.trim().replaceAll(/,$/g, '');
 }
 
 /**
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
         return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
@@ -333,7 +475,11 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
+function createDisplayName(
+    login: string,
+    passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = formatPhoneNumber(login);
@@ -357,7 +503,7 @@ function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDe
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     if (firstName || lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
     }
@@ -381,23 +527,12 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
-/**
- * Whether personal details is empty
- */
-function isPersonalDetailsEmpty() {
-    return !personalDetails.length;
-}
-
-function getPersonalDetailsLength() {
-    return personalDetails.length;
-}
-
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
-        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
+        return userDetails[nameToDisplay] ? Str.removeSMSDomain(userDetails[nameToDisplay]) : Str.removeSMSDomain(userDetails.login ?? '');
     }
-    return email;
+    return Str.removeSMSDomain(email);
 }
 
 const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {
@@ -416,10 +551,6 @@ const getShortMentionIfFound = (displayText: string, userAccountID: string, curr
     return displayText.split('@').at(0);
 };
 
-function getDefaultCountry() {
-    return defaultCountry;
-}
-
 /**
  * Gets the phone number to display for SMS logins
  */
@@ -436,26 +567,84 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
     return login ? Str.removeSMSDomain(login) : '';
 };
 
+/**
+ * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
+ * This is useful when you need to look up personal details by accountID multiple times
+ * to avoid O(n) .find() calls in loops.
+ */
+function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
+    const map: Record<number, PersonalDetails> = {};
+    for (const detail of details) {
+        map[detail.accountID] = detail;
+    }
+    return map;
+}
+
+/**
+ * Checks whether any personal details are missing
+ */
+function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return (
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0
+    );
+}
+
+/**
+ * Checks whether the personal details required for Expensify Card flows (ship + reveal)
+ * are missing. Stricter than {@link arePersonalDetailsMissing}: also requires individual
+ * address sub-fields (street, city, zip, country) that the backend asserts on those
+ * commands. Without this, a user whose `addresses[0]` exists but has empty fields would
+ * skip the missing-details prompt and hit a backend error on submit.
+ */
+function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (arePersonalDetailsMissing(privatePersonalDetails)) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+}
+
+/**
+ * Checks if the user has a legal first and last name.
+ */
+function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
+}
+
 export {
-    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
+    getPersonalDetailsByID,
     getPersonalDetailsByIDs,
+    newGetPersonalDetailsByIDs,
+    getParticipantsPersonalDetails,
+    getPersonalDetailsListByIDs,
+    getDisplayNameOrYou,
     getPersonalDetailByEmail,
+    getKnownAccountIDByLogin,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,
+    getPrivatePersonalDetailsFormValues,
     getStreetLines,
     getEffectiveDisplayName,
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    getPersonalDetailsLength,
     getUserNameByEmail,
     getShortMentionIfFound,
-    getDefaultCountry,
     getLoginByAccountID,
     getPhoneNumber,
+    arePersonalDetailsMissing,
+    areAddressAndPersonalDetailsMissing,
+    areTravelPersonalDetailsMissing,
+    createPersonalDetailsLookupByAccountID,
+    temporaryGetDisplayNameOrDefault,
 };

@@ -1,7 +1,9 @@
 import React from 'react';
 import {Linking} from 'react-native';
-import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
+
 import type {AnchorForCommentsOnlyProps} from './types';
+
+import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 
 function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForCommentsOnlyProps) {
     const onLinkPress = () => {
@@ -14,14 +16,11 @@ function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForComments
 
     return (
         <BaseAnchorForCommentsOnly
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             href={href}
             onPress={onLinkPress}
         />
     );
 }
-
-AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
 export default AnchorForCommentsOnly;

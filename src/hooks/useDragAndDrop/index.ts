@@ -1,6 +1,8 @@
+import {usePopoverActions} from '@components/PopoverProvider';
+
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {PopoverContext} from '@components/PopoverProvider';
+import {useCallback, useEffect, useRef, useState} from 'react';
+
 import type UseDragAndDrop from './types';
 
 const COPY_DROP_EFFECT = 'copy';
@@ -13,22 +15,47 @@ const DROP_EVENT = 'drop';
 /**
  * @param dropZone – ref to the dropZone component
  */
-const useDragAndDrop: UseDragAndDrop = ({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) => {
+const useDragAndDrop: UseDragAndDrop = ({
+    dropZone,
+    onDrop = () => {},
+    shouldAllowDrop = true,
+    isDisabled = false,
+    shouldAcceptDrop = () => true,
+    shouldHandleDragEvent = true,
+    shouldStopPropagation = true,
+}) => {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const {close: closePopover} = useContext(PopoverContext);
+    const {close: closePopover} = usePopoverActions();
 
-    const enterTarget = useRef<EventTarget | null>(null);
+    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Reset drag state when the screen loses focus or becomes disabled
+    const isActive = isFocused && !isDisabled;
+    const [prevIsActive, setPrevIsActive] = useState(isActive);
+    if (isActive !== prevIsActive) {
+        setPrevIsActive(isActive);
+        if (!isActive) {
+            setIsDraggingOver(false);
+        }
+    }
 
     useEffect(() => {
         if (isFocused && !isDisabled) {
             return;
         }
-        setIsDraggingOver(false);
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+            debounceTimeoutRef.current = null;
+        }
     }, [isFocused, isDisabled]);
 
     const handleDragEvent = useCallback(
         (event: DragEvent) => {
+            if (!shouldHandleDragEvent) {
+                return;
+            }
+
             const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
 
             if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
@@ -44,7 +71,7 @@ const useDragAndDrop: UseDragAndDrop = ({dropZone, onDrop = () => {}, shouldAllo
                 event.dataTransfer.effectAllowed = effect;
             }
         },
-        [shouldAllowDrop, shouldAcceptDrop, closePopover],
+        [shouldHandleDragEvent, shouldAllowDrop, shouldAcceptDrop, closePopover],
     );
 
     /**
@@ -57,30 +84,29 @@ const useDragAndDrop: UseDragAndDrop = ({dropZone, onDrop = () => {}, shouldAllo
             }
 
             event.preventDefault();
-            event.stopPropagation();
+            if (shouldStopPropagation) {
+                event.stopPropagation();
+            }
+
+            // Clear any existing debounce timeout
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+                debounceTimeoutRef.current = null;
+            }
 
             switch (event.type) {
                 case DRAG_OVER_EVENT:
-                    handleDragEvent(event);
-                    break;
                 case DRAG_ENTER_EVENT:
                     handleDragEvent(event);
-                    enterTarget.current = event.target;
-                    if (isDraggingOver) {
-                        return;
+                    if (!isDraggingOver) {
+                        setIsDraggingOver(true);
                     }
-                    setIsDraggingOver(true);
                     break;
                 case DRAG_LEAVE_EVENT:
-                    if (!isDraggingOver) {
-                        return;
-                    }
-                    // This is necessary because dragging over children will cause dragleave to execute on the parent.
-                    if (enterTarget.current !== event.target) {
-                        return;
-                    }
-
-                    setIsDraggingOver(false);
+                    // Add small debounce to prevent rapid flickering
+                    debounceTimeoutRef.current = setTimeout(() => {
+                        setIsDraggingOver(false);
+                    }, 50);
                     break;
                 case DROP_EVENT:
                     setIsDraggingOver(false);
@@ -90,7 +116,7 @@ const useDragAndDrop: UseDragAndDrop = ({dropZone, onDrop = () => {}, shouldAllo
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, isDraggingOver, onDrop, handleDragEvent],
+        [isFocused, isDisabled, shouldAcceptDrop, shouldStopPropagation, handleDragEvent, isDraggingOver, onDrop],
     );
 
     useEffect(() => {

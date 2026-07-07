@@ -1,11 +1,13 @@
-import {differenceInDays} from 'date-fns';
-import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {differenceInDays} from 'date-fns';
+
+import useOnyx from './useOnyx';
+
 function useHasTeam2025Pricing(): boolean {
-    const [firstPolicyDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE, {canBeMissing: true});
-    const [hasManualTeam2025Pricing] = useOnyx(ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING, {canBeMissing: true});
+    const [firstPolicyDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE);
+    const [hasManualTeam2025Pricing] = useOnyx(ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING);
 
     if (hasManualTeam2025Pricing) {
         return true;

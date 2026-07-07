@@ -1,6 +1,8 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {StyleProp, TextStyle} from 'react-native';
 
-type TextWithTooltipProps = {
+type TextWithTooltipProps = ForwardedFSClassProps & {
     /** The text to display */
     text: string;
 
@@ -12,6 +14,9 @@ type TextWithTooltipProps = {
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;
+
+    /** TestID of the Text component */
+    testID?: string;
 };
 
 export default TextWithTooltipProps;

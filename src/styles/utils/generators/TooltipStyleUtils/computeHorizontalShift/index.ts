@@ -1,5 +1,7 @@
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
+
 import variables from '@styles/variables';
+
 import type {ComputeHorizontalShift} from './types';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
@@ -14,8 +16,14 @@ const GUTTER_WIDTH = variables.gutterWidth;
  *                           and the left edge of the wrapped component.
  * @param tooltipWidth - The width of the tooltip itself.
  */
-const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth) => {
+const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth, tooltipWrapperLeft, tooltipWrapperWidth) => {
     const tooltipRightEdge = tooltipLeftEdge + tooltipWidth;
+    const tooltipWrapperRight = tooltipWrapperLeft + tooltipWrapperWidth;
+
+    if (tooltipWrapperLeft < 0 || tooltipWrapperRight > windowWidth) {
+        return 0;
+    }
+
     if (tooltipLeftEdge < GUTTER_WIDTH) {
         // Tooltip is in left gutter, shift right by a multiple of four.
         return roundToNearestMultipleOfFour(GUTTER_WIDTH - tooltipLeftEdge);

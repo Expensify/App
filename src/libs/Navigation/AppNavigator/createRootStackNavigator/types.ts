@@ -1,32 +1,63 @@
-import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
-import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
+
+import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 
 type RootStackNavigatorActionType =
     | {
-          type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
           payload: {
-              policyID: string | undefined;
+              isVisible: boolean;
+          };
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
+          payload: {
+              isVisible: boolean;
+          };
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
+          payload: {
+              isVisible: boolean;
+              modalId: string;
           };
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
       }
     | {
-          type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+          payload: {route: Route};
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
+          payload: {expectedRouteName: string};
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
           payload: {
-              policyID: string;
-              screenName: WorkspaceScreenName;
+              name: string;
+              params: {
+                  screen: string;
+                  params: Record<string, unknown>;
+              };
           };
       };
 
-type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
-    type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
 };
 
-type SwitchPolicyIdActionType = RootStackNavigatorActionType & {
-    type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
+type ToggleMfaModalNavigatorWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
 };
+
+type ToggleModalWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
+};
+
+type PreloadActionType = RootStackNavigatorAction & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD};
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
 
@@ -36,19 +67,30 @@ type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 };
 
-type RootStackNavigatorRouterOptions = StackRouterOptions;
+type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+    payload: {route: Route};
+};
 
-type SearchFullscreenNavigatorRouterOptions = StackRouterOptions;
+type RemoveFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
+    payload: {expectedRouteName: string};
+};
+
+type RootStackNavigatorRouterOptions = StackRouterOptions;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
 export type {
-    OpenWorkspaceSplitActionType,
-    SwitchPolicyIdActionType,
     PushActionType,
     ReplaceActionType,
     DismissModalActionType,
+    PreloadActionType,
+    ReplaceFullscreenUnderRHPActionType,
+    RemoveFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
-    SearchFullscreenNavigatorRouterOptions,
+    ToggleSidePanelWithHistoryActionType,
+    ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
 };

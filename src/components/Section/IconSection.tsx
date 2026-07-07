@@ -1,10 +1,15 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type IconSectionProps = {
     icon?: IconAsset;
@@ -31,7 +36,5 @@ function IconSection({icon, iconContainerStyles, width = variables.menuIconSize,
         </View>
     );
 }
-
-IconSection.displayName = 'IconSection';
 
 export default IconSection;

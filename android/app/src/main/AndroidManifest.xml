@@ -5,10 +5,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
     <!-- android:hardwareAccelerated is essential for Android performance: https://developer.android.com/topic/performance/hardware-accel -->
     <application
@@ -17,6 +21,7 @@
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:resizeableActivity="false"
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
@@ -25,6 +30,12 @@
         <service
             android:name="com.expensify.reactnativebackgroundtask.BackgroundJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
+        <service
+            android:name=".GpsTripService"
+            android:foregroundServiceType="location"
+            android:stopWithTask="false"
             android:exported="false" />
 
         <activity
@@ -62,6 +73,7 @@
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/workspaces"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
@@ -85,6 +97,7 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/workspaces"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>
@@ -154,8 +167,14 @@
             </intent-filter>
         </activity>
 
+        <activity
+                android:name="com.plaid.internal.link.LinkActivity"
+                android:launchMode="singleTask"
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+                tools:replace="android:launchMode"/>
+
         <meta-data
-            android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
+            android:name="com.urbanairship.plugin.extender"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
 
         <meta-data

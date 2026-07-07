@@ -1,9 +1,20 @@
 import {render, screen} from '@testing-library/react-native';
+
 import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
+
 import StringUtils from '@libs/StringUtils';
 import {getTripReservationCode} from '@libs/TripReservationUtils';
+
 import HotelTripDetails from '@pages/Travel/HotelTripDetails';
+
 import CONST from '@src/CONST';
+
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({
+        didScreenTransitionEnd: true, // or false, depending on your desired behavior
+    }),
+}));
 
 const mockReservationData = {
     reservation: {
@@ -37,6 +48,7 @@ const mockReservationData = {
     transactionID: '2101152939974863962',
     reportID: '8884312680252586',
     reservationIndex: 0,
+    sequenceIndex: 0,
 };
 
 describe('ReservationAddressTest', () => {
@@ -46,7 +58,7 @@ describe('ReservationAddressTest', () => {
                 reservation={mockReservationData.reservation}
                 transactionID={mockReservationData.transactionID}
                 tripRoomReportID={mockReservationData.reportID}
-                reservationIndex={mockReservationData.reservationIndex}
+                sequenceIndex={mockReservationData.sequenceIndex}
             />,
         );
 

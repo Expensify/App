@@ -1,10 +1,15 @@
-import type {Meta, StoryFn} from '@storybook/react';
-import React from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type {CheckboxWithLabelProps} from '@components/CheckboxWithLabel';
 import Text from '@components/Text';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
+
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
+
+const defaultStyles = styles(defaultTheme);
 
 type CheckboxWithLabelStory = StoryFn<typeof CheckboxWithLabel>;
 
@@ -19,7 +24,6 @@ const story: Meta<typeof CheckboxWithLabel> = {
 };
 
 function Template(props: CheckboxWithLabelProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <CheckboxWithLabel {...props} />;
 }
 

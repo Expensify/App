@@ -1,14 +1,9 @@
 ## Proposal
 
-### Please re-state the problem that we are trying to solve in this issue.
-
 ### What is the root cause of that problem?
 
 ### What changes do you think we should make in order to solve the problem?
 <!-- DO NOT POST CODE DIFFS -->
-
-### What specific scenarios should we cover in automated tests to prevent reintroducing this issue in the future?
-<!-- Clearly describe the different test cases you recommend adding or updating. Explain how they will ensure the problem is fully covered and that any future changes do not cause a regression. Consider edge cases, input variations, and typical user interactions that could trigger this issue. To get guidance on how to write tests, refer to the [README.md](https://github.com/Expensify/App/blob/main/tests/README.md) in the tests folder. -->
 
 ### What alternative solutions did you explore? (Optional)
 

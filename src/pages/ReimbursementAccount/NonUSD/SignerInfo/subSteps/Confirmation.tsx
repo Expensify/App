@@ -1,14 +1,19 @@
-import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
-import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
+import useOnyx from '@hooks/useOnyx';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
+import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type ConfirmationProps = SubStepProps;
+import React, {useMemo} from 'react';
+
+type ConfirmationProps = SubPageProps;
 
 const {OWNS_MORE_THAN_25_PERCENT} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -22,9 +27,8 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
-    const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
+    const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
 
     const summaryItems = [
         {
@@ -59,7 +63,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && values.proofOfDirectors.length > 0) {
+    if (isDocumentNeededStatus.isProofOfDirectorsNeeded && values.proofOfDirectors.length > 0) {
         summaryItems.push({
             title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),
@@ -123,7 +127,5 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         />
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

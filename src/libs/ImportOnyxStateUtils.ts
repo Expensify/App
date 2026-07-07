@@ -1,17 +1,18 @@
-import cloneDeep from 'lodash/cloneDeep';
+import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type OnyxState from '@src/types/onyx/OnyxState';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import type {UnknownRecord} from 'type-fest';
-import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import cloneDeep from 'lodash/cloneDeep';
+
 import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
+import {isRecord} from './ObjectUtils';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME];
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && !Array.isArray(value) && value !== null;
-}
+const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME, ...Object.values(ONYXKEYS.DERIVED)];
 
 function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
     const dataCopy = cloneDeep(data);
@@ -42,24 +43,24 @@ function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unkno
 function cleanAndTransformState<T>(state: string): T {
     const parsedState = JSON.parse(state) as UnknownRecord;
 
-    Object.keys(parsedState).forEach((key) => {
+    for (const key of Object.keys(parsedState)) {
         const shouldOmit = keysToOmit.some((onyxKey) => key.startsWith(onyxKey));
 
         if (shouldOmit) {
             delete parsedState[key];
         }
-    });
+    }
 
     const transformedState = transformNumericKeysToArray(parsedState) as T;
     return transformedState;
 }
 
-function importState(transformedState: OnyxValues): Promise<void> {
+function importState(transformedState: OnyxState): Promise<void> {
     const collectionKeys = [...new Set(Object.values(ONYXKEYS.COLLECTION))];
     const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, CollectionDataSet<OnyxCollectionKey>>();
     const regularState: Partial<Record<OnyxKey, OnyxEntry<OnyxKey>>> = {};
 
-    Object.entries(transformedState).forEach(([entryKey, entryValue]) => {
+    for (const [entryKey, entryValue] of Object.entries(transformedState)) {
         const key = entryKey as OnyxKey;
         const value = entryValue as NonNullable<OnyxEntry<OnyxKey>>;
 
@@ -71,14 +72,14 @@ function importState(transformedState: OnyxValues): Promise<void> {
 
             const collection = collectionsMap.get(collectionKey);
             if (!collection) {
-                return;
+                continue;
             }
 
             collection[key as OnyxCollectionKey] = value;
         } else {
             regularState[key] = value;
         }
-    });
+    }
 
     return clearOnyxStateBeforeImport()
         .then(() => importOnyxCollectionState(collectionsMap))

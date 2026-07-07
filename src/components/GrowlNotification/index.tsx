@@ -1,147 +1,66 @@
+import {setIsReady} from '@libs/Growl';
+import type {GrowlAction, GrowlRef, GrowlType} from '@libs/Growl';
+
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
-import {View} from 'react-native';
-import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useSharedValue, withSpring} from 'react-native-reanimated';
-import type {SvgProps} from 'react-native-svg';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Pressables from '@components/Pressable';
-import Text from '@components/Text';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as Growl from '@libs/Growl';
-import type {GrowlRef} from '@libs/Growl';
-import CONST from '@src/CONST';
-import GrowlNotificationContainer from './GrowlNotificationContainer';
 
-const INACTIVE_POSITION_Y = -255;
+import React, {useEffect, useImperativeHandle, useState} from 'react';
 
-const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
+import GrowlNotificationContent from './GrowlNotificationContent';
 
-function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
-    const translateY = useSharedValue(INACTIVE_POSITION_Y);
-    const [bodyText, setBodyText] = useState('');
-    const [type, setType] = useState('success');
-    const [duration, setDuration] = useState<number>();
-    const theme = useTheme();
-    const styles = useThemeStyles();
+type GrowlContent = {
+    bodyText: string;
+    type: GrowlType;
+    duration: number;
+    action?: GrowlAction;
 
-    type GrowlIconTypes = Record<
-        /** String representing the growl type, all type strings
-         *  for growl notifications are stored in CONST.GROWL
-         */
-        string,
-        {
-            /** Expensicon for the page */
-            icon: React.FC<SvgProps>;
+    /** Bumped on every show() call so identical-args re-shows still remount and re-trigger the growl. */
+    nonce: number;
+};
 
-            /** Color for the icon (should be from theme) */
-            iconColor: string;
-        }
-    >;
+type GrowlNotificationProps = {
+    /** Reference to outer element */
+    ref?: ForwardedRef<GrowlRef>;
+};
 
-    const types: GrowlIconTypes = {
-        [CONST.GROWL.SUCCESS]: {
-            icon: Expensicons.Checkmark,
-            iconColor: theme.success,
-        },
-        [CONST.GROWL.ERROR]: {
-            icon: Expensicons.Exclamation,
-            iconColor: theme.danger,
-        },
-        [CONST.GROWL.WARNING]: {
-            icon: Expensicons.Exclamation,
-            iconColor: theme.warning,
-        },
+/**
+ * Outer growl shell. Intentionally does NOT subscribe to navigation/theme/responsive contexts —
+ * those live in GrowlNotificationContent, which is mounted only while a growl is visible.
+ * This keeps the shell from re-rendering on every screen change, focus change, etc.
+ */
+function GrowlNotification({ref}: GrowlNotificationProps) {
+    const [content, setContent] = useState<GrowlContent | null>(null);
+
+    const show = (text: string, growlType: GrowlType, duration: number, action?: GrowlAction) => {
+        setContent((prev) => ({bodyText: text, type: growlType, duration, action, nonce: (prev?.nonce ?? 0) + 1}));
     };
 
-    /**
-     * Show the growl notification
-     *
-     * @param {String} bodyText
-     * @param {String} type
-     * @param {Number} duration
-     */
-    const show = useCallback((text: string, growlType: string, growlDuration: number) => {
-        setBodyText(text);
-        setType(growlType);
-        setDuration(growlDuration);
-    }, []);
-
-    /**
-     * Animate growl notification
-     *
-     * @param {Number} val
-     */
-    const fling = useCallback(
-        (val = INACTIVE_POSITION_Y) => {
-            'worklet';
-
-            translateY.set(
-                withSpring(val, {
-                    overshootClamping: false,
-                }),
-            );
-        },
-        [translateY],
-    );
-
-    useImperativeHandle(
-        ref,
-        () => ({
-            show,
-        }),
-        [show],
-    );
+    useImperativeHandle(ref, () => ({show}), [show]);
 
     useEffect(() => {
-        Growl.setIsReady();
+        setIsReady();
     }, []);
 
-    useEffect(() => {
-        if (!duration) {
-            return;
-        }
+    // Nonce-guarded: a stale dismiss (e.g. a slide-out completion callback from a previous
+    // growl that was replaced mid-animation) must not clear a newer growl.
+    const handleDismissed = (dismissedNonce: number) => {
+        setContent((prev) => (prev?.nonce === dismissedNonce ? null : prev));
+    };
 
-        fling(0);
-        setTimeout(() => {
-            fling();
-            setDuration(undefined);
-        }, duration);
-    }, [duration, fling]);
-
-    // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
-    // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
-    const flingGesture = Gesture.Fling()
-        .direction(Directions.UP)
-        .runOnJS(true)
-        .onStart(() => {
-            fling();
-        });
+    if (!content) {
+        return null;
+    }
 
     return (
-        <View style={[styles.growlNotificationWrapper]}>
-            <GrowlNotificationContainer translateY={translateY}>
-                <PressableWithoutFeedback
-                    accessibilityLabel={bodyText}
-                    onPress={() => fling()}
-                >
-                    <GestureDetector gesture={flingGesture}>
-                        <View style={styles.growlNotificationBox}>
-                            <Icon
-                                src={types[type].icon}
-                                fill={types[type].iconColor}
-                            />
-                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
-                        </View>
-                    </GestureDetector>
-                </PressableWithoutFeedback>
-            </GrowlNotificationContainer>
-        </View>
+        <GrowlNotificationContent
+            key={content.nonce}
+            bodyText={content.bodyText}
+            type={content.type}
+            duration={content.duration}
+            action={content.action}
+            nonce={content.nonce}
+            onDismissed={handleDismissed}
+        />
     );
 }
 
-GrowlNotification.displayName = 'GrowlNotification';
-
-export default forwardRef(GrowlNotification);
+export default GrowlNotification;

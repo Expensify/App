@@ -1,4 +1,5 @@
-import Onyx from 'react-native-onyx';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
 import * as AppImport from '@userActions/App';
@@ -8,8 +9,14 @@ import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/ut
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
 import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@userActions/OnyxUpdates');
 jest.mock('@userActions/App');
@@ -22,15 +29,20 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
-const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock;
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock<any>;
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
-const update2 = OnyxUpdateMockUtils.createUpdate(2);
+const update2: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(2);
 const pendingUpdateUpTo2 = OnyxUpdateMockUtils.createPendingUpdate(2);
 
-const update3 = OnyxUpdateMockUtils.createUpdate(3);
+const update3: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(3);
 const pendingUpdateUpTo3 = OnyxUpdateMockUtils.createPendingUpdate(3);
 const offsetUpdate3 = OnyxUpdateMockUtils.createUpdate(3, undefined, 1);
 
@@ -43,6 +55,10 @@ const update8 = OnyxUpdateMockUtils.createUpdate(8);
 describe('OnyxUpdateManager', () => {
     let lastUpdateIDAppliedToClient = 1;
     beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
         Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => (lastUpdateIDAppliedToClient = value ?? 1),
@@ -56,6 +72,10 @@ describe('OnyxUpdateManager', () => {
         ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
         OnyxUpdateManager.resetDeferralLogicVariables();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should fetch missing Onyx updates once, defer updates and apply after missing updates', () => {
@@ -387,6 +407,88 @@ describe('OnyxUpdateManager', () => {
 
             // There are no deferred updates, so this should only be called once for the pending update.
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it('should not re-fetch missing updates when a duplicate arrives while a fetch is already in flight', async () => {
+        // Fire a duplicate mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The mid-cycle duplicate must be coalesced, not fire its own GetMissingOnyxMessages.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+        });
+    });
+
+    it('should resume the SequentialQueue exactly once when a duplicate arrives while a fetch is already in flight', async () => {
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
+
+        // Fire a duplicate mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        // queryPromise resolves on the first finalize, so drain microtasks first: a leaked second fetch would attach a second finalize and resume the queue again.
+        return OnyxUpdateManager.queryPromise.then(waitForBatchedUpdates).then(() => {
+            expect(unpauseSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it('should defer and later fetch a brand-new update that arrives while a fetch is already in flight', async () => {
+        // Fire a brand-new (higher) update mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The new update must not fire its own parallel GetMissingOnyxMessages, but must still be fetched in order and applied (client reaches 7).
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(3);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(3, 5, 6);
+            expect(lastUpdateIDAppliedToClient).toBe(7);
+        });
+    });
+
+    it('should apply an update that arrives mid-reconnect instead of dropping it when the queue is finalized', async () => {
+        // First-ever reliable update: the client has never applied one, so the gap-handler takes the full-reconnect branch.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 0);
+
+        const reconnectSpy = jest.spyOn(App, 'finalReconnectAppAfterActivatingReliableUpdates').mockImplementation(async () => {
+            // The reconnect response advances the client to update 2.
+            await OnyxUpdates.apply(update2);
+            await waitForBatchedUpdates();
+
+            // A concurrent Pusher update lands while the reconnect promise is still in flight (after the client advanced to 2, before finalize).
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        });
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update2);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The mid-reconnect update must be applied in order, not cleared away by finalizeUpdatesAndResumeQueue (client reaches 3).
+            expect(lastUpdateIDAppliedToClient).toBe(3);
+
+            // It is contiguous with the reconnect response, so it must not trigger a redundant GetMissingOnyxMessages.
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+
+            reconnectSpy.mockRestore();
         });
     });
 

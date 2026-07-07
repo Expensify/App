@@ -1,23 +1,32 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {OnboardingPurpose} from '@src/CONST';
 
-function getNavatticURL(environment: ValueOf<typeof CONST.ENVIRONMENT>, introSelected?: OnboardingPurpose) {
-    const adminTourURL = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.NAVATTIC.ADMIN_TOUR_PRODUCTION : CONST.NAVATTIC.ADMIN_TOUR_STAGING;
-    const employeeTourURL = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.NAVATTIC.EMPLOYEE_TOUR_PRODUCTION : CONST.NAVATTIC.EMPLOYEE_TOUR_STAGING;
-    return introSelected === CONST.SELECTABLE_ONBOARDING_CHOICES.MANAGE_TEAM ? adminTourURL : employeeTourURL;
-}
+import type {OnyxEntry} from 'react-native-onyx';
 
-function getTestDriveURL(environment: ValueOf<typeof CONST.ENVIRONMENT>, shouldUseNarrowLayout: boolean) {
-    if (shouldUseNarrowLayout) {
-        return environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.STORYLANE.ADMIN_TOUR_MOBILE_PRODUCTION : CONST.STORYLANE.ADMIN_TOUR_MOBILE_STAGING;
+import type {IntroSelected} from './actions/Report';
+
+import isTrackOnboardingChoice from './OnboardingUtils';
+
+function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected: OnyxEntry<IntroSelected>, isUserPolicyAdmin: boolean): string {
+    if (introSelected) {
+        if (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE) {
+            return shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_TOUR_MOBILE : CONST.STORYLANE.EMPLOYEE_TOUR;
+        }
+
+        if (isTrackOnboardingChoice(introSelected?.choice)) {
+            return shouldUseNarrowLayout ? CONST.STORYLANE.TRACK_WORKSPACE_TOUR_MOBILE : CONST.STORYLANE.TRACK_WORKSPACE_TOUR;
+        }
+
+        return shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_TOUR_MOBILE : CONST.STORYLANE.ADMIN_TOUR;
     }
 
-    return environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.STORYLANE.ADMIN_TOUR_PRODUCTION : CONST.STORYLANE.ADMIN_TOUR_STAGING;
+    // Migrated users don't have the introSelected NVP, so we must check if they are an Admin of any Workspace in order
+    // to show the Admin demo.
+    if (isUserPolicyAdmin) {
+        return shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_TOUR_MOBILE : CONST.STORYLANE.ADMIN_TOUR;
+    }
+
+    return shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_TOUR_MOBILE : CONST.STORYLANE.EMPLOYEE_TOUR;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    getNavatticURL,
-    getTestDriveURL,
-};
+// eslint-disable-next-line import/prefer-default-export
+export {getTestDriveURL};

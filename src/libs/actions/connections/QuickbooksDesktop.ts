@@ -1,24 +1,28 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
+    UpdateQuickbooksDesktopAccountingMethodParams,
     UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams,
     UpdateQuickbooksDesktopExpensesExportDestinationTypeParams,
     UpdateQuickbooksDesktopGenericTypeParams,
 } from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']['export']>>(
     policyID: string,
     configUpdate: TConfigUpdate,
     configCurrentData: Partial<TConfigUpdate>,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -36,7 +40,7 @@ function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate ex
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -56,7 +60,7 @@ function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate ex
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -85,11 +89,15 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
@@ -109,11 +117,12 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
@@ -133,7 +142,7 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -169,7 +178,7 @@ function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName ext
     settingValue: Partial<Connections['quickbooksDesktop']['config']['mappings'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['mappings'][TSettingName]>,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -193,7 +202,7 @@ function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName ext
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -217,7 +226,7 @@ function buildOnyxDataForQuickbooksDesktopMappingsConfiguration<TSettingName ext
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -250,7 +259,7 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     settingValue: Partial<Connections['quickbooksDesktop']['config'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksDesktop']['config'][TSettingName]>,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -272,7 +281,7 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -294,7 +303,7 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -421,10 +430,13 @@ function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends Connec
 }
 
 function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['classes']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksDesktopMappingsConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
@@ -435,10 +447,13 @@ function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['q
 }
 
 function updateQuickbooksDesktopSyncCustomers<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['customers']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksDesktopMappingsConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
@@ -471,7 +486,7 @@ function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connecti
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
-        settingValue,
+        settingValue: settingValue ?? '',
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
@@ -507,6 +522,22 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopTravelInvoicingPayableAccount(
+    policyID: string,
+    settingValue: string,
+    oldSettingValue?: Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID'],
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+}
+
 function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -533,11 +564,27 @@ function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quic
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopAccountingMethod<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['accountingMethod']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopAccountingMethodParams = {
+        policyID,
+        accountingMethod: settingValue,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopAutoSync,
+    updateQuickbooksDesktopAccountingMethod,
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopNonReimbursableBillDefaultVendor,
+    updateQuickbooksDesktopTravelInvoicingPayableAccount,
     updateQuickbooksDesktopShouldAutoCreateVendor,
     updateQuickbooksDesktopNonReimbursableExpensesAccount,
     updateQuickbooksDesktopExpensesExportDestination,

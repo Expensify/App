@@ -1,15 +1,22 @@
+import {setOnboardingErrorMessage} from '@userActions/Welcome';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import BaseOnboardingWorkEmail from './BaseOnboardingWorkEmail';
+
 import type {OnboardingWorkEmailProps} from './types';
+
+import BaseOnboardingWorkEmail from './BaseOnboardingWorkEmail';
 
 function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
     // To block android native back button behavior
     useFocusEffect(
         useCallback(() => {
             // Return true to indicate that the back button press is handled here
-            const backAction = () => true;
+            const backAction = () => {
+                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                return true;
+            };
 
             const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
@@ -19,12 +26,9 @@ function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
     return (
         <BaseOnboardingWorkEmail
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
 }
-
-OnboardingWorkEmail.displayName = 'OnboardingWorkEmail';
 
 export default OnboardingWorkEmail;

@@ -1,17 +1,23 @@
-import React, {useEffect} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect} from 'react';
 
 type QBOSectionType = {
     description: string;
@@ -73,7 +79,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksImportPage.displayName}
+            displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -100,7 +106,5 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksImportPage.displayName = 'QuickbooksImportPage';
 
 export default withPolicyConnections(QuickbooksImportPage);

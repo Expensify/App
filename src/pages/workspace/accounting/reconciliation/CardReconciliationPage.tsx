@@ -1,76 +1,144 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+
+import useEnvironment from '@hooks/useEnvironment';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import {getCardSettings, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {toggleContinuousReconciliation} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
+
+import type {TupleToUnion} from 'type-fest';
+
+import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
+
+type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
+
+type FullySetUpCardSetting = {
+    key: string;
+    cardSetting: ExpensifyCardSettings;
+};
 
 function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-
-    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
-    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
-
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = policy?.id;
+    const allCardSettings = useExpensifyCardFeeds(policyID);
+    const {environmentURL} = useEnvironment();
+
+    const fullySetUpCardSetting = useMemo(() => {
+        const entries = Object.entries(allCardSettings ?? {});
+        const initialValue: FullySetUpCardSetting = {
+            key: '',
+            cardSetting: {
+                monthlySettlementDate: new Date(),
+                isMonthlySettlementAllowed: false,
+                paymentBankAccountID: CONST.DEFAULT_NUMBER_ID,
+            },
+        };
+
+        return entries.reduce<FullySetUpCardSetting>((acc, [key, cardSetting]) => {
+            if (cardSetting && isExpensifyCardFullySetUp(policy, cardSetting)) {
+                return {
+                    key,
+                    cardSetting,
+                };
+            }
+            return acc;
+        }, initialValue);
+    }, [allCardSettings, policy]);
+
+    const domainID = fullySetUpCardSetting.key.split('_').at(-1);
+    const effectiveDomainID = Number(domainID ?? workspaceAccountID);
+
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
+        selector: isExpensifyCardContinuousReconciliationEnabledSelector,
+    });
+    const [continuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${effectiveDomainID}`);
+    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
+    const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
+
+    const resolvedCardSettings = getCardSettings(fullySetUpCardSetting.cardSetting);
+    const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
     const {connection} = route.params;
-    const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
+    const connectionName = getConnectionNameFromRouteParam(connection) as AccountingConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = isExpensifyCardFullySetUp(policy, cardSettings);
+    const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
+
+    const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName);
+    const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
-        toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
+        toggleContinuousReconciliation(effectiveDomainID, value, connectionName, currentConnectionName);
         if (value) {
-            Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path));
         }
     };
 
-    const navigateToAdvancedSettings = useCallback(() => {
+    const accountingAdvancedSettingsLink = useMemo(() => {
+        if (!policyID) {
+            return '';
+        }
+
         switch (connection) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
-                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
-                break;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
-                break;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
-                break;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
-                break;
+                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
             default:
-                break;
+                return '';
         }
-    }, [connection, policyID]);
+    }, [connection, policyID, environmentURL]);
+
+    const fetchPolicyAccountingData = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+        openPolicyAccountingPage(policyID);
+    }, [policyID]);
+
+    useEffect(() => {
+        if (continuousReconciliation !== undefined) {
+            return;
+        }
+        fetchPolicyAccountingData();
+    }, [continuousReconciliation, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -81,7 +149,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={CardReconciliationPage.displayName}
+                testID="CardReconciliationPage"
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
                 <ScrollView
@@ -95,37 +163,37 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
                         disabled={!autoSync}
-                        isActive={!!isContinuousReconciliationOn}
+                        isActive={!!continuousReconciliation}
                         onToggle={handleToggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}
+                        pendingAction={continuousReconciliationPendingAction}
                     />
                     {!autoSync && (
-                        <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.mt2]}>
-                            {translate('workspace.accounting.enableContinuousReconciliation')}
-                            <TextLink
-                                style={styles.fontSizeLabel}
-                                onPress={navigateToAdvancedSettings}
-                            >
-                                {translate('workspace.accounting.autoSync').toLowerCase()}
-                            </TextLink>{' '}
-                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}
-                        </Text>
+                        <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
+                            <RenderHTML
+                                html={translate(
+                                    'workspace.accounting.enableContinuousReconciliation',
+                                    accountingAdvancedSettingsLink,
+                                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                                )}
+                            />
+                        </View>
                     )}
-                    {!!paymentBankAccountID && !!isContinuousReconciliationOn && (
-                        <MenuItemWithTopDescription
-                            style={styles.mt5}
-                            title={bankAccountTitle}
-                            description={translate('workspace.accounting.reconciliationAccount')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
-                        />
-                    )}
+                    <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
+                        {!!paymentBankAccountID && !!continuousReconciliation && (
+                            <MenuItemWithTopDescription
+                                style={styles.mt5}
+                                title={bankAccountTitle}
+                                description={translate('workspace.accounting.reconciliationAccount')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
+                            />
+                        )}
+                    </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-CardReconciliationPage.displayName = 'CardReconciliationPage';
 
 export default withPolicyConnections(CardReconciliationPage);

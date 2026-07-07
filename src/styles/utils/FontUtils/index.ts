@@ -6,7 +6,7 @@ import fontWeight from './fontWeight';
 const FontUtils = {
     fontFamily: {
         /**
-         * Set of font families that can either have fallback fonts (if web / desktop) or not (if native).
+         * Set of font families that can either have fallback fonts (if web) or not (if native).
          */
         platform: fontFamily,
 
@@ -16,7 +16,7 @@ const FontUtils = {
         single: singleFontFamily,
 
         /**
-         * Set of font families that include fallback fonts, normally used on web / desktop platforms.
+         * Set of font families that include fallback fonts, normally used on web platform.
          */
         multi: multiFontFamily,
     },

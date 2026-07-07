@@ -1,14 +1,17 @@
-import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddressStep from '@components/SubStepForms/AddressStep';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type NameProps = SubStepProps;
+import React, {useMemo, useState} from 'react';
+
+type NameProps = SubPageProps;
 
 const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
@@ -16,13 +19,12 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const countryInputKey = COUNTRY;
     const inputKeys = {
         street: STREET,
         city: CITY,
         state: STATE,
         zipCode: ZIP_CODE,
-        country: countryInputKey,
+        country: COUNTRY,
     } as const;
 
     const defaultValues = {
@@ -39,14 +41,15 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     const [shouldDisplayStateSelector, setShouldDisplayStateSelector] = useState<boolean>(
         defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '',
     );
+    const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues.country === CONST.COUNTRY.US);
 
     const stepFieldsWithState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
+        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, inputKeys.country],
+        [inputKeys.country, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
     );
     const stepFieldsWithoutState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.street, inputKeys.zipCode],
+        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, inputKeys.country],
+        [inputKeys.country, inputKeys.city, inputKeys.street, inputKeys.zipCode],
     );
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
@@ -56,6 +59,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             return;
         }
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
+        setShouldValidateZipCodeFormat(country === CONST.COUNTRY.US);
     };
 
     const handleNextStep = () => {
@@ -81,7 +85,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={formTitle}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}
@@ -89,10 +93,9 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             onCountryChange={handleCountryChange}
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
+            shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
         />
     );
 }
-
-Address.displayName = 'Address';
 
 export default Address;

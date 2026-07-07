@@ -1,15 +1,22 @@
-import {useEffect} from 'react';
 import BootSplash from '@libs/BootSplash';
+
+import {useCallback, useEffect} from 'react';
+
 import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
 
-function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashScreenHiderReturnType {
-    useEffect(() => {
+function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): SplashScreenHiderReturnType {
+    const hide = useCallback(() => {
         BootSplash.hide().then(() => onHide());
     }, [onHide]);
 
+    useEffect(() => {
+        if (!shouldHideSplash) {
+            return;
+        }
+        hide();
+    }, [shouldHideSplash, hide]);
+
     return null;
 }
-
-SplashScreenHider.displayName = 'SplashScreenHider';
 
 export default SplashScreenHider;

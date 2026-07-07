@@ -1,12 +1,16 @@
-import {useCallback, useMemo} from 'react';
-import type {TupleToUnion} from 'type-fest';
+import {isHardViolationOrRateDateWarning} from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import type {TransactionViolation, ViolationName} from '@src/types/onyx';
+
+import type {TupleToUnion} from 'type-fest';
+
+import {useCallback, useMemo} from 'react';
 
 /**
  * Names of Fields where violations can occur.
  */
-const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'customUnitRateID', 'none'] as const;
+const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'attendees', 'customUnitRateID', 'vendor', 'waypoints', 'none'] as const;
 
 type ViolationField = TupleToUnion<typeof validationFields>;
 
@@ -21,25 +25,31 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     categoryOutOfPolicy: () => 'category',
     conversionSurcharge: () => 'amount',
     customUnitOutOfPolicy: () => 'customUnitRateID',
+    customUnitRateOutOfDateRange: () => 'customUnitRateID',
     duplicatedTransaction: () => 'merchant',
     fieldRequired: () => 'merchant',
     futureDate: () => 'date',
+    inactiveVendor: () => 'vendor',
     invoiceMarkup: () => 'amount',
     maxAge: () => 'date',
     missingCategory: () => 'category',
     missingComment: () => 'comment',
+    missingAttendees: () => 'attendees',
     missingTag: () => 'tag',
     modifiedAmount: () => 'amount',
     modifiedDate: () => 'date',
+    increasedDistance: () => 'waypoints',
     nonExpensiworksExpense: () => 'merchant',
     overAutoApprovalLimit: () => 'amount',
     overCategoryLimit: () => 'amount',
     overLimit: () => 'amount',
+    overTripLimit: () => 'amount',
     overLimitAttendee: () => 'amount',
     perDayLimit: () => 'amount',
     prohibitedExpense: () => 'receipt',
     receiptNotSmartScanned: () => 'receipt',
     receiptRequired: () => 'receipt',
+    itemizedReceiptRequired: () => 'receipt',
     customRules: (violation) => {
         if (!violation?.data?.field) {
             return 'receipt';
@@ -58,6 +68,8 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     taxRequired: () => 'tax',
     hold: () => 'none',
     receiptGeneratedWithAI: () => 'receipt',
+    companyCardRequired: () => 'none',
+    noRoute: () => 'waypoints',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
@@ -70,7 +82,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => {
             if (shouldShowOnlyViolations) {
-                return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+                return isHardViolationOrRateDateWarning(violation);
             }
             return true;
         });
@@ -89,7 +101,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
             const currentViolations = violationsByField.get(field) ?? [];
             const firstViolation = currentViolations.at(0);
 
-            // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
+            // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
             if (firstViolation?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
                 return currentViolations

@@ -1,17 +1,18 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     clearSageIntacctErrorField,
     clearSageIntacctPendingField,
@@ -24,11 +25,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import DimensionTypeSelector from './DimensionTypeSelector';
 
 type SageIntacctEditUserDimensionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
@@ -36,14 +42,14 @@ type SageIntacctEditUserDimensionsPageProps = PlatformStackScreenProps<SettingsN
 function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimensionsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const editedUserDimensionName: string = route.params.dimensionName;
-    const policy = usePolicy(route.params.policyID);
-    const policyID: string = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
@@ -64,10 +70,11 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
         },
         [editedUserDimensionName, translate, userDimensions],
     );
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctEditUserDimensionsPage.displayName}
+            displayName="SageIntacctEditUserDimensionsPage"
             headerTitleAlreadyTranslated={editedUserDimensionName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -127,31 +134,29 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                     <View style={[styles.mhn5]}>
                         <MenuItem
                             title={translate('common.remove')}
-                            icon={Expensicons.Trashcan}
-                            onPress={() => setIsDeleteModalOpen(true)}
+                            icon={icons.Trashcan}
+                            onPress={() => {
+                                showConfirmModal({
+                                    title: translate('workspace.intacct.removeDimension'),
+                                    prompt: translate('workspace.intacct.removeDimensionPrompt'),
+                                    confirmText: translate('common.remove'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                    shouldEnableNewFocusManagement: true,
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
+                                    Navigation.goBack();
+                                });
+                            }}
                         />
                     </View>
                 </OfflineWithFeedback>
-                <ConfirmModal
-                    title={translate('workspace.intacct.removeDimension')}
-                    isVisible={isDeleteModalOpen}
-                    onConfirm={() => {
-                        setIsDeleteModalOpen(false);
-                        removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
-                        Navigation.goBack();
-                    }}
-                    onCancel={() => setIsDeleteModalOpen(false)}
-                    prompt={translate('workspace.intacct.removeDimensionPrompt')}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                    shouldEnableNewFocusManagement
-                />
             </FormProvider>
         </ConnectionLayout>
     );
 }
-
-SageIntacctEditUserDimensionsPage.displayName = 'SageIntacctEditUserDimensionsPage';
 
 export default SageIntacctEditUserDimensionsPage;

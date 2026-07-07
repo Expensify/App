@@ -1,7 +1,10 @@
-import {addDays, differenceInDays, differenceInMinutes, startOfDay} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getTimeDifferenceIntervals} from '@libs/PerDiemRequestUtils';
+
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {addDays, differenceInDays, differenceInMinutes, startOfDay} from 'date-fns';
 
 describe('getTimeDifferenceIntervals', () => {
     const createMockTransaction = (startDate: string, endDate: string): OnyxEntry<Transaction> =>
@@ -16,7 +19,7 @@ describe('getTimeDifferenceIntervals', () => {
                     },
                 },
             },
-        } as OnyxEntry<Transaction>);
+        }) as OnyxEntry<Transaction>;
 
     it('calculates hours for same-day transactions', () => {
         // Given a transaction that starts and ends on the same day

@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
-import type {Meta, StoryFn} from '@storybook/react';
-import React from 'react';
-import Onyx from 'react-native-onyx';
 import type {EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {OnyxMergeCollectionInput} from 'react-native-onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type EReceiptStory = StoryFn<typeof EReceipt>;
 
@@ -35,6 +38,7 @@ const transactionData = {
         amount: 1000,
         currency: 'USD',
         cardID: 5,
+        cardName: 'Expensify Test Card',
         merchant: 'United Airlines',
         mccGroup: 'Commuter',
         created: '2023-07-24 13:46:20',
@@ -151,12 +155,12 @@ const transactionData = {
         created: '2023-01-11 13:46:20',
         hasEReceipt: true,
     },
-} as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+} as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
 Onyx.merge('cardList', {
-    4: {bank: 'Expensify Card', lastFourPAN: '1000'},
-    5: {bank: 'Expensify Card', lastFourPAN: '4444'},
+    4: {cardName: 'Test Card', lastFourPAN: '1000', fundID: '123'},
+    5: {bank: 'Expensify Card', lastFourPAN: '4444', fundID: '456'},
 });
 
 /**
@@ -170,7 +174,6 @@ const story: Meta<typeof EReceipt> = {
 };
 
 function Template(props: EReceiptProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <EReceipt {...props} />;
 }
 

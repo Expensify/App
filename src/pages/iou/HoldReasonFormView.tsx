@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -7,13 +5,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type HoldReasonFormViewProps = {
     /** Submit function for submitting form */
@@ -24,9 +28,15 @@ type HoldReasonFormViewProps = {
 
     /** Link to previous page */
     backTo: Route;
+
+    /** Number of expenses being held (defaults to 1) */
+    expenseCount?: number;
+
+    /** Whether the current user is the submitter of the expense */
+    isSubmitter?: boolean;
 };
 
-function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProps) {
+function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSubmitter = true}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -35,22 +45,22 @@ function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProp
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={HoldReasonFormView.displayName}
+            testID="HoldReasonFormView"
         >
             <HeaderWithBackButton
-                title={translate('iou.holdExpense')}
+                title={translate('iou.holdExpense', {count: expenseCount})}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"
-                submitButtonText={translate('iou.holdExpense')}
+                submitButtonText={translate('iou.holdExpense', {count: expenseCount})}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <Text style={styles.mb6}>{translate('iou.explainHold')}</Text>
+                <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -67,7 +77,5 @@ function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProp
         </ScreenWrapper>
     );
 }
-
-HoldReasonFormView.displayName = 'HoldReasonFormViewProps';
 
 export default HoldReasonFormView;

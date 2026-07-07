@@ -1,6 +1,3 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,21 +5,31 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {editPerDiemRateDestination} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspacePerDiemForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type EditPerDiemDestinationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION>;
 
@@ -49,7 +56,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             if (!destinationTrimmed) {
                 errors.destination = translate('common.error.fieldRequired');
             } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.destination = translate('common.error.characterLimitExceedCounter', {length: destinationTrimmed.length, limit: CONST.MAX_LENGTH_256});
+                errors.destination = translate('common.error.characterLimitExceedCounter', destinationTrimmed.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -78,7 +85,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditPerDiemDestinationPage.displayName}
+                testID="EditPerDiemDestinationPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -96,9 +103,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>
-                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>
-                            {translate('workspace.perDiem.editDestinationSubtitle', {destination: selectedRate?.name ?? ''})}
-                        </Text>
+                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')}</Text>
                     </View>
                     <InputWrapper
                         ref={inputCallbackRef}
@@ -114,7 +119,5 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditPerDiemDestinationPage.displayName = 'EditPerDiemDestinationPage';
 
 export default EditPerDiemDestinationPage;

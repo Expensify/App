@@ -1,11 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {SignInPageLayoutProps} from './types';
 
 type SignInHeroCopyProps = Pick<SignInPageLayoutProps, 'customHeadline' | 'customHeroBody'>;
@@ -24,6 +30,7 @@ function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
                     isMediumScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium),
                     isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
                 ]}
+                accessibilityRole={CONST.ROLE.HEADER}
             >
                 {customHeadline ?? translate('login.hero.header')}
             </Text>
@@ -31,7 +38,5 @@ function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
         </View>
     );
 }
-
-SignInHeroCopy.displayName = 'SignInHeroCopy';
 
 export default SignInHeroCopy;

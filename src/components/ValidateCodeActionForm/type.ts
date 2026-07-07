@@ -1,7 +1,9 @@
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import type {ForwardedRef, ReactNode} from 'react';
 import type {TextStyle} from 'react-native';
-import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionFormProps = {
     /** Primary description of the modal */
@@ -37,9 +39,6 @@ type ValidateCodeActionFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** Ref for validate code form */
-    forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
-
     /** Whether to show the skip button */
     shouldShowSkipButton?: boolean;
 
@@ -51,6 +50,9 @@ type ValidateCodeActionFormProps = {
 
     /** Skip the call to sendValidateCode fn on initial render */
     shouldSkipInitialValidation?: boolean;
+
+    /** Ref for validate code form */
+    ref?: ForwardedRef<ValidateCodeFormHandle>;
 };
 
 // eslint-disable-next-line import/prefer-default-export

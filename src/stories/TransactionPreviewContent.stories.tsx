@@ -1,14 +1,19 @@
-import type {InputType} from '@storybook/csf';
-import type {Meta, StoryFn} from '@storybook/react';
-import React from 'react';
-import {View} from 'react-native';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import type {TransactionPreviewContentProps} from '@components/ReportActionItem/TransactionPreview/types';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {InputType} from 'storybook/internal/csf';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
@@ -27,7 +32,7 @@ const modifiedTransaction = ({category, tag, merchant = '', amount = 1000, hold 
         hold: hold ? 'true' : undefined,
     },
 });
-const iouReportWithModifiedType = (type: string) => ({...iouReportR14932, type});
+const iouReportWithModifiedType = (type: ValueOf<typeof CONST.REPORT.TYPE>) => ({...iouReportR14932, type});
 const actionWithModifiedPendingAction = (pendingAction: PendingAction) => ({...actionR14932, pendingAction});
 
 const disabledProperties = [
@@ -62,7 +67,7 @@ const generateArgTypes = (mapping: Record<string, unknown>): InputType => ({
 /* eslint-disable @typescript-eslint/naming-convention */
 const transactionsMap = {
     'No Merchant': modifiedTransaction({}),
-    Food: modifiedTransaction({category: 'Food', tag: 'Yummm', merchant: 'Burgers'}),
+    Food: modifiedTransaction({category: 'Food', tag: 'Yum', merchant: 'Burgers'}),
     Grocery: modifiedTransaction({category: 'Shopping', tag: 'Tesco', merchant: 'Supermarket'}),
     Cars: modifiedTransaction({category: 'Porsche', tag: 'Car shop', merchant: 'Merchant'}),
     'Too Long': modifiedTransaction({category: veryLongString, tag: veryLongString, merchant: veryLongString, amount: veryBigNumber}),
@@ -102,7 +107,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         isHovered: false,
         chatReport: chatReportR14932,
         personalDetails,
-        iouReport: iouReportR14932,
+        report: iouReportR14932,
         transaction: transactionR14932,
         violations: [],
         offlineWithFeedbackOnClose(): void {},
@@ -118,7 +123,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
     },
     argTypes: {
         ...disabledProperties,
-        iouReport: generateArgTypes(iouReportMap),
+        report: generateArgTypes(iouReportMap),
         transaction: generateArgTypes(transactionsMap),
         violations: generateArgTypes(violationsMap),
         action: generateArgTypes(actionMap),
@@ -130,7 +135,6 @@ function Template(props: TransactionPreviewContentProps) {
         <ThemeProvider theme={CONST.THEME.LIGHT}>
             <ThemeStylesProvider>
                 <View style={{flexDirection: 'row'}}>
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <TransactionPreviewContent {...props} />
                 </View>
             </ThemeStylesProvider>
@@ -147,7 +151,7 @@ const KeepButtonCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const DeletedKeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
-const KeepButtonIOURBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
+const KeepButtonIOURbrCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 
 const storiesTransactionData = {category: 'Grocery stores', tag: 'Food', merchant: 'Acme'};
 
@@ -177,9 +181,9 @@ KeepButtonSplitRBRCategoriesAndTag.args = {
     isBillSplit: true,
 };
 
-KeepButtonIOURBRCategoriesAndTag.args = {
+KeepButtonIOURbrCategoriesAndTag.args = {
     ...KeepButtonRBRCategoriesAndTag.args,
-    iouReport: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
+    report: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
 };
 
 DeletedKeepButtonSplitRBRCategoriesAndTag.args = {
@@ -194,7 +198,7 @@ export {
     CategoriesAndTag,
     KeepButtonCategoriesAndTag,
     KeepButtonRBRCategoriesAndTag,
-    KeepButtonIOURBRCategoriesAndTag,
+    KeepButtonIOURbrCategoriesAndTag,
     KeepButtonSplitRBRCategoriesAndTag,
     DeletedKeepButtonSplitRBRCategoriesAndTag,
 };

@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ReactElement, ReactNode} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import Text from './Text';
 
 type MoneyRequestHeaderStatusBarProps = {
@@ -26,8 +29,6 @@ function MoneyRequestHeaderStatusBar({icon, description, shouldStyleFlexGrow = t
         </View>
     );
 }
-
-MoneyRequestHeaderStatusBar.displayName = 'MoneyRequestHeaderStatusBar';
 
 export default MoneyRequestHeaderStatusBar;
 

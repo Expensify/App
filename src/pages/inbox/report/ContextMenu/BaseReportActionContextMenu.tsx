@@ -1,0 +1,494 @@
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
+import CompactMenuContext from '@components/CompactMenuContext';
+import ContextMenuItem from '@components/ContextMenuItem';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useEnvironment from '@hooks/useEnvironment';
+import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {
+    getLinkedTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    isActionOfType,
+    isDeletedAction,
+    withDEWRoutedActionsObject,
+} from '@libs/ReportActionsUtils';
+import {
+    chatIncludesChronosWithID,
+    getHarvestOriginalReportID,
+    getSourceIDFromReportAction,
+    isArchivedNonExpenseReport,
+    isHarvestCreatedExpenseReport,
+    isUnread,
+    isInvoiceReport as ReportUtilsIsInvoiceReport,
+    isMoneyRequest as ReportUtilsIsMoneyRequest,
+    isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
+    isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
+} from '@libs/ReportUtils';
+
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {deepEqual} from 'fast-equals';
+import React, {memo, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
+import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
+
+import ContextMenuActions from './ContextMenuActions';
+import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
+
+type BaseReportActionContextMenuProps = {
+    /** The ID of the report this report action is attached to. */
+    reportID: string | undefined;
+
+    /** The ID of the report action this context menu is attached to. */
+    reportActionID: string | undefined;
+
+    /** The ID of the original report from which the given reportAction is first created. */
+    originalReportID: string | undefined;
+
+    /**
+     * If true, this component will be a small, row-oriented menu that displays icons but not text.
+     * If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
+     */
+    isMini?: boolean;
+
+    /** Controls the visibility of this component. */
+    isVisible?: boolean;
+
+    /** The copy selection. */
+    selection?: string;
+
+    /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
+    type?: ContextMenuType;
+
+    /** Target node which is the target of ContentMenu */
+    anchor?: RefObject<ContextMenuAnchor>;
+
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
+    isThreadReportParentAction?: boolean;
+
+    /** Content Ref */
+    contentRef?: RefObject<View | null>;
+
+    /** Function to check if context menu is active */
+    checkIfContextMenuActive?: () => void;
+
+    /** List of disabled actions */
+    disabledActions?: ContextMenuAction[];
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
+
+    /** Whether to add bottom safe area padding for edge-to-edge modal content */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+};
+
+function BaseReportActionContextMenu({
+    type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+    anchor,
+    contentRef,
+    isMini = false,
+    isVisible = false,
+    isThreadReportParentAction = false,
+    selection = '',
+    reportActionID,
+    reportID,
+    originalReportID,
+    checkIfContextMenuActive,
+    disabledActions = [],
+    setIsEmojiPickerActive,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
+}: BaseReportActionContextMenuProps) {
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Bell',
+        'Bug',
+        'ChatBubbleReply',
+        'ChatBubbleUnread',
+        'Checkmark',
+        'Concierge',
+        'Copy',
+        'Download',
+        'Exit',
+        'Eye',
+        'Flag',
+        'LinkCopy',
+        'Mail',
+        'Pencil',
+        'Pin',
+        'Stopwatch',
+        'ThreeDots',
+        'Trashcan',
+    ]);
+    const StyleUtils = useStyleUtils();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
+    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
+    const {isOffline} = useNetwork();
+    const {isProduction, isDevelopment, environment} = useEnvironment();
+    const isStaging = environment === CONST.ENVIRONMENT.STAGING;
+    const threeDotRef = useRef<View>(null);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: withDEWRoutedActionsObject,
+    });
+    const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+        selector: withDEWRoutedActionsObject,
+    });
+
+    const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
+        if (isEmptyObject(originalReportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
+            return;
+        }
+        return originalReportActions[reportActionID];
+    }, [originalReportActions, reportActionID]);
+    const transactionID = getLinkedTransactionID(reportAction);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const unapprovedOriginalID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)
+        ? getOriginalMessage(reportAction)?.originalID
+        : undefined;
+    const originalReportOfUnapprovedTransaction = useReportOrReportDraft(unapprovedOriginalID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
+    // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions, isOffline);
+    const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
+    const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const policyID = report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`);
+
+    const sourceID = getSourceIDFromReportAction(reportAction);
+
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
+    const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction?.childReportID}`);
+    const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`);
+    const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const transactionThreadReportID = useMemo(
+        () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
+        [paginatedReportActions, isOffline, childReport, childChatReport],
+    );
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+
+    const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
+    const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
+
+    const requestParentReportAction = useMemo(() => {
+        if (isMoneyRequestReport || isInvoiceReport) {
+            if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
+                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
+            }
+            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
+                return undefined;
+            }
+            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+        }
+        return parentReportAction;
+    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, transactionThreadReportID, childReportActions]);
+
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const isChildReportArchived = useReportIsArchived(childReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
+    const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
+    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetails = usePersonalDetails();
+    const reportAttributes = useReportAttributes();
+    const delegateAccountID = useDelegateAccountID();
+
+    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+
+    const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
+    const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
+    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
+
+    const areHoldRequirementsMet =
+        !isInvoiceReport &&
+        isMoneyRequestOrReport &&
+        !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
+
+    const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
+    const isChronosReport = chatIncludesChronosWithID(originalReportID);
+    const isPinnedChat = !!report?.isPinned;
+    const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived);
+    const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
+    const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+
+    let filteredContextMenuActions = ContextMenuActions.filter(
+        (contextAction) =>
+            !disabledActions.includes(contextAction) &&
+            contextAction.shouldShow({
+                type,
+                reportAction,
+                childReportActions,
+                isArchivedRoom,
+                betas,
+                menuTarget: anchor,
+                isChronosReport,
+                reportID,
+                isPinnedChat,
+                isUnreadChat,
+                isThreadReportParentAction,
+                isOffline: !!isOffline,
+                isMini,
+                isProduction,
+                isDevelopment,
+                isStaging,
+                moneyRequestReport,
+                moneyRequestAction,
+                moneyRequestPolicy,
+                areHoldRequirementsMet,
+                isDebugModeEnabled,
+                iouTransaction,
+                transactions,
+                isHarvestReport,
+                currentUserAccountID: currentUserPersonalDetails?.accountID,
+            }),
+    );
+
+    if (isMini) {
+        const menuAction = filteredContextMenuActions.at(-1);
+        const otherActions = filteredContextMenuActions.slice(0, -1);
+        if (otherActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS && menuAction) {
+            filteredContextMenuActions = otherActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1);
+            filteredContextMenuActions.push(menuAction);
+        } else {
+            filteredContextMenuActions = otherActions;
+        }
+    }
+
+    // Context menu actions that are not rendered as menu items are excluded from arrow navigation
+    const nonMenuItemActionIndexes = filteredContextMenuActions.map((contextAction, index) =>
+        'renderContent' in contextAction && typeof contextAction.renderContent === 'function' ? index : undefined,
+    );
+    const disabledIndexes = nonMenuItemActionIndexes.filter((index): index is number => index !== undefined);
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        disabledIndexes,
+        maxIndex: filteredContextMenuActions.length - 1,
+        isActive: shouldEnableArrowNavigation,
+    });
+
+    /**
+     * Checks if user is anonymous. If true and the action doesn't accept for anonymous user, hides the context menu and
+     * shows the sign in modal. Else, executes the callback.
+     */
+    const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
+        if (isAnonymousUser() && !isAnonymousAction) {
+            hideContextMenu(false, () => {
+                signOutAndRedirectToSignIn();
+            });
+        } else {
+            callback();
+        }
+    };
+
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            event,
+            selection,
+            contextMenuAnchor: anchorRef?.current as ViewType | RNText | null,
+            report: {
+                reportID,
+                originalReportID,
+            },
+            reportAction: {
+                reportActionID: reportAction?.reportActionID,
+                isThreadReportParentAction,
+            },
+            callbacks: {
+                onShow: checkIfContextMenuActive,
+                onHide: () => {
+                    checkIfContextMenuActive?.();
+                    setShouldKeepOpen(false);
+                },
+            },
+            disabledOptions: filteredContextMenuActions,
+            shouldCloseOnTarget: true,
+            isOverflowMenu: true,
+        });
+    };
+
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
+
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
+
+    return (
+        (isVisible || shouldKeepOpen || !isMini) && (
+            <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
+                <CompactMenuContext.Provider value>
+                    <View
+                        ref={contentRef}
+                        style={bottomSafeAreaPaddingStyle}
+                    >
+                        {filteredContextMenuActions.map((contextAction, index) => {
+                            const closePopup = !isMini;
+                            const payload: ContextMenuActionPayload = {
+                                reportActions,
+                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                                reportAction: (reportAction ?? null) as ReportAction,
+                                reportID,
+                                originalReportID,
+                                report,
+                                selection,
+                                close: () => setShouldKeepOpen(false),
+                                transitionActionSheetState,
+                                openContextMenu: () => setShouldKeepOpen(true),
+                                interceptAnonymousUser,
+                                openOverflowMenu,
+                                setIsEmojiPickerActive,
+                                personalDetails,
+                                isHarvestReport,
+                                moneyRequestAction,
+                                card,
+                                originalReport,
+                                isTryNewDotNVPDismissed,
+                                isTrackIntentUser,
+                                childReport,
+                                movedFromReport,
+                                movedToReport,
+                                getLocalDateFromDatetime,
+                                policy,
+                                policyTags,
+                                translate,
+                                harvestReport,
+                                harvestReportOriginalID,
+                                introSelected,
+                                isSelfTourViewed,
+                                betas,
+                                isDelegateAccessRestricted,
+                                showDelegateNoAccessModal,
+                                currentUserAccountID: currentUserPersonalDetails?.accountID,
+                                currentUserPersonalDetails,
+                                encryptedAuthToken,
+                                iouTransaction,
+                                iouTransactionViolations,
+                                bankAccountList,
+                                isOffline,
+                                conciergeReportID,
+                                delegateAccountID,
+                                reportAttributes,
+                                originalReportOfUnapprovedTransaction,
+                            };
+
+                            if ('renderContent' in contextAction) {
+                                return contextAction.renderContent(closePopup, payload);
+                            }
+
+                            const {textTranslateKey} = contextAction;
+                            const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                            const text =
+                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
+                            const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
+                            const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
+                            const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
+
+                            return (
+                                <ContextMenuItem
+                                    buttonRef={isMenuAction ? threeDotRef : {current: null}}
+                                    icon={icons[contextAction.icon]}
+                                    text={text ?? ''}
+                                    successIcon={successIcon}
+                                    successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
+                                    isMini={isMini}
+                                    key={contextAction.textTranslateKey}
+                                    onPress={(event) =>
+                                        interceptAnonymousUser(
+                                            () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
+                                            contextAction.isAnonymousAction,
+                                        )
+                                    }
+                                    description={contextAction.getDescription?.(selection) ?? ''}
+                                    isAnonymousAction={contextAction.isAnonymousAction}
+                                    isFocused={focusedIndex === index}
+                                    shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                                    onFocus={() => setFocusedIndex(index)}
+                                    onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
+                                    disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                    shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                    sentryLabel={contextAction.sentryLabel}
+                                />
+                            );
+                        })}
+                    </View>
+                </CompactMenuContext.Provider>
+            </FocusTrapForModal>
+        )
+    );
+}
+
+export default memo(BaseReportActionContextMenu, deepEqual);
+
+export type {BaseReportActionContextMenuProps};

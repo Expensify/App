@@ -427,7 +427,7 @@ const TIMEZONES = [
  * The timezones supported in browser and on native devices differ, so we must map each timezone to its supported equivalent.
  * Data sourced from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
  */
-const timezoneBackwardMap: Record<string, TupleToUnion<typeof TIMEZONES>> = {
+const timezoneBackwardToNewMap: Record<string, TupleToUnion<typeof TIMEZONES>> = {
     'Africa/Asmera': 'Africa/Nairobi',
     'Africa/Timbuktu': 'Africa/Abidjan',
     'America/Argentina/ComodRivadavia': 'America/Argentina/Catamarca',
@@ -564,6 +564,11 @@ const timezoneBackwardMap: Record<string, TupleToUnion<typeof TIMEZONES>> = {
     WET: 'Europe/Lisbon',
 };
 
-export {timezoneBackwardMap};
+const timezoneNewToBackwardMap = Object.fromEntries(Object.entries(timezoneBackwardToNewMap).map(([oldTimezone, newTimezone]) => [newTimezone, oldTimezone])) as Record<
+    TupleToUnion<typeof TIMEZONES>,
+    string
+>;
+
+export {timezoneBackwardToNewMap, timezoneNewToBackwardMap};
 
 export default TIMEZONES;

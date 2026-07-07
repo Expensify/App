@@ -1,11 +1,20 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
+
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
+
 import type {StatusBarStyle} from '@styles/index';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {isClosingReactNativeAppSelector} from '@selectors/HybridApp';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {interpolateColor, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+import {useCustomStatusBarAndBackgroundActions, useCustomStatusBarAndBackgroundState} from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 
@@ -16,11 +25,15 @@ type CustomStatusBarAndBackgroundProps = {
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isRootStatusBarEnabled} = useCustomStatusBarAndBackgroundState();
+    const {setRootStatusBarEnabled} = useCustomStatusBarAndBackgroundActions();
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
+    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isClosingReactNativeAppSelector});
 
-    const isDisabled = !isNested && !isRootStatusBarEnabled;
+    // Include `closingReactNativeApp` to disable the StatusBar when switching from HybridApp to OldDot,
+    // preventing unexpected status bar blinking during the transition
+    const isDisabled = (!isNested && !isRootStatusBarEnabled) || closingReactNativeApp;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
@@ -52,7 +65,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 return;
             }
             const backgroundColor = interpolateColor(statusBarAnimation.get(), [0, 1], [prevStatusBarBackgroundColor.get(), statusBarBackgroundColor.get()]);
-            runOnJS(updateStatusBarAppearance)({backgroundColor});
+            scheduleOnRN(updateStatusBarAppearance, {backgroundColor});
         },
     );
 
@@ -83,9 +96,12 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 const pageTheme = theme.PAGE_THEMES[currentRoute.name];
 
                 newStatusBarStyle = pageTheme.statusBarStyle;
-
                 const backgroundColorFromRoute =
-                    currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
+                    currentRoute?.params &&
+                    typeof currentRoute?.params === 'object' &&
+                    'backgroundColor' in currentRoute.params &&
+                    typeof currentRoute.params.backgroundColor === 'string' &&
+                    currentRoute.params.backgroundColor;
 
                 // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -177,7 +193,5 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
     return <StatusBar />;
 }
-
-CustomStatusBarAndBackground.displayName = 'CustomStatusBarAndBackground';
 
 export default CustomStatusBarAndBackground;

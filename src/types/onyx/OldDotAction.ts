@@ -1,14 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {
-    ChangeFieldParams,
-    DelegateSubmitParams,
-    ExportedToIntegrationParams,
-    IntegrationsMessageParams,
-    MarkReimbursedFromIntegrationParams,
-    ShareParams,
-    UnshareParams,
-} from '@src/languages/params';
+import type {ChangeFieldParams, ExportedToIntegrationParams, IntegrationsMessageParams, MarkReimbursedFromIntegrationParams, ShareParams, UnshareParams} from '@src/languages/params';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  *
@@ -35,20 +28,6 @@ type OriginalMessageChangeField = {
 //      */
 //     originalMessage: ChangeTypeParams & Record<string, unknown>;
 // };
-
-/**
- *
- */
-type OriginalMessageDelegateSubmit = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT;
-    /**
-     *
-     */
-    originalMessage: DelegateSubmitParams & Record<string, unknown>;
-};
 
 /**
  *
@@ -163,6 +142,16 @@ type OriginalMessageOutdatedBankAccount = {
 /**
  *
  */
+type ReimbursementACHBounceOriginalMessage = {
+    /**
+     *
+     */
+    returnReason?: string;
+};
+
+/**
+ *
+ */
 type OriginalMessageReimbursementACHBounce = {
     /**
      *
@@ -171,7 +160,7 @@ type OriginalMessageReimbursementACHBounce = {
     /**
      *
      */
-    originalMessage: Record<string, unknown>;
+    originalMessage: Record<string, unknown> & ReimbursementACHBounceOriginalMessage;
 };
 
 /**
@@ -307,10 +296,6 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: OriginalMessageExportedToCSV;
     /**
      *
@@ -373,31 +358,7 @@ type OldDotOriginalMessageMap = {
 /**
  *
  */
-type OldDotLegacyMessage = {
-    /**
-     *
-     */
-    html?: string;
-    /**
-     *
-     */
-    text?: string;
-};
-
-/**
- *
- */
-type OldDotLegacyAction = {
-    /**
-     *
-     */
-    message: OldDotLegacyMessage[] | OldDotLegacyMessage;
-};
-
-/**
- *
- */
 type OldDotAction = ValueOf<OldDotOriginalMessageMap>;
 
 export default OldDotAction;
-export type {OldDotLegacyAction, OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};
+export type {OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};

@@ -1,177 +1,232 @@
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {NavigationProp, NavigationState} from '@react-navigation/native';
+import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type InputType = 'markdown' | 'mask' | 'default';
-type CustomBaseTextInputProps = {
-    /** Input label */
-    label?: string;
+type CustomBaseTextInputProps = ForwardedFSClassProps &
+    WithSentryLabel & {
+        /** Input label */
+        label?: string;
 
-    /** Name attribute for the input */
-    name?: string;
+        /** Name attribute for the input */
+        name?: string;
 
-    /** Input value */
-    value?: string;
+        /** Input value */
+        value?: string;
 
-    /** Default value - used for non controlled inputs */
-    defaultValue?: string;
+        /** Default value - used for non controlled inputs */
+        defaultValue?: string;
 
-    /** Input value placeholder */
-    placeholder?: string;
+        /** Input value placeholder */
+        placeholder?: string;
 
-    /** Error text to display */
-    errorText?: string;
+        /** Error text to display */
+        errorText?: string;
 
-    /** Icon to display in right side of text input */
-    icon?: IconAsset | null;
+        /** Icon to display in right side of text input */
+        icon?: IconAsset | null;
 
-    /** Icon to display in left side of text input */
-    iconLeft?: IconAsset | null;
+        /** Icon to display in left side of text input */
+        iconLeft?: IconAsset | null;
 
-    /** Customize the TextInput container */
-    textInputContainerStyles?: StyleProp<ViewStyle>;
+        /** Whether to include padding to the icon container */
+        includeIconPadding?: boolean;
 
-    /** Customizes the touchable wrapper of the TextInput component */
-    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+        /** Customize the TextInput container */
+        textInputContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Customize the main container */
-    containerStyles?: StyleProp<ViewStyle>;
+        /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+        shouldApplyPaddingToContainer?: boolean;
 
-    /** input style */
-    inputStyle?: StyleProp<TextStyle>;
+        /** Customizes the touchable wrapper of the TextInput component */
+        touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** If present, this prop forces the label to remain in a position where it will not collide with input text */
-    forceActiveLabel?: boolean;
+        /** Customize the main container */
+        containerStyles?: StyleProp<ViewStyle>;
 
-    /** Should the input auto focus? */
-    autoFocus?: boolean;
+        /** input style */
+        inputStyle?: StyleProp<TextStyle>;
 
-    /** Disable the virtual keyboard  */
-    disableKeyboard?: boolean;
+        /** If present, this prop forces the label to remain in a position where it will not collide with input text */
+        forceActiveLabel?: boolean;
 
-    /**
-     *   input container length based on the entered text.
-     */
-    autoGrow?: boolean;
+        /** Should the input auto focus? */
+        autoFocus?: boolean;
 
-    /** If autoGrow is enabled, this reserves extra space for incoming characters to prevent flickering on native platforms. */
-    autoGrowExtraSpace?: number;
+        /** Disable the virtual keyboard  */
+        disableKeyboard?: boolean;
 
-    /**
-     * Auto grow input container height based on the entered text
-     */
-    autoGrowHeight?: boolean;
+        /**
+         *   input container length based on the entered text.
+         */
+        autoGrow?: boolean;
 
-    /**
-     * Maximum height for autoGrowHeight input
-     */
-    maxAutoGrowHeight?: number;
+        /** If autoGrow is enabled, this reserves extra space for incoming characters to prevent flickering on native platforms. */
+        autoGrowExtraSpace?: number;
 
-    /** Hide the focus styles on TextInput */
-    hideFocusedState?: boolean;
+        /**
+         * Specifies the side ('left' or 'right') where the autoGrow margin should be applied.
+         * This determines which side of the input container will expand when autoGrow is enabled.
+         */
+        autoGrowMarginSide?: 'left' | 'right';
 
-    /** Hint text to display below the TextInput */
-    hint?: string;
+        /**
+         * Auto grow input container height based on the entered text
+         */
+        autoGrowHeight?: boolean;
 
-    /** Prefix character */
-    prefixCharacter?: string;
+        /**
+         * Maximum height for autoGrowHeight input
+         */
+        maxAutoGrowHeight?: number;
 
-    /** Suffix character */
-    suffixCharacter?: string;
+        /** Hide the focus styles on TextInput */
+        hideFocusedState?: boolean;
 
-    /** Whether autoCorrect functionality should enable  */
-    autoCorrect?: boolean;
+        /** Hint text to display below the TextInput */
+        hint?: string;
 
-    /** Form props */
-    /** The ID used to uniquely identify the input in a Form */
-    inputID?: string;
+        /** Whether the hint should be rendered as HTML */
+        shouldRenderHintAsHTML?: boolean;
 
-    /** Saves a draft of the input value when used in a form */
-    shouldSaveDraft?: boolean;
+        /** Prefix character */
+        prefixCharacter?: string;
 
-    /** Callback to update the value on Form when input is used in the Form component. */
-    onInputChange?: (value: string) => void;
+        /** Suffix character */
+        suffixCharacter?: string;
 
-    /** Indicate whether input is multiline */
-    multiline?: boolean;
+        /** Whether autoCorrect functionality should enable  */
+        autoCorrect?: boolean;
 
-    /** Set the default value to the input if there is a valid saved value */
-    shouldUseDefaultValue?: boolean;
+        /** Form props */
+        /** The ID used to uniquely identify the input in a Form */
+        inputID?: string;
 
-    /** Indicate whether or not the input should prevent swipe actions in tabs */
-    shouldInterceptSwipe?: boolean;
+        /** Saves a draft of the input value when used in a form */
+        shouldSaveDraft?: boolean;
 
-    /** Should there be an error displayed */
-    hasError?: boolean;
+        /** Callback to update the value on Form when input is used in the Form component. */
+        onInputChange?: (value: string) => void;
 
-    /** On Press handler */
-    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
+        /** Indicate whether input is multiline */
+        multiline?: boolean;
 
-    /** Should loading state should be displayed */
-    isLoading?: boolean;
+        /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
+        shouldLabelStayOnSingleLine?: boolean;
 
-    /** Type of autocomplete */
-    autoCompleteType?: string;
+        /** Set the default value to the input if there is a valid saved value */
+        shouldUseDefaultValue?: boolean;
 
-    /** List of markdowns that won't be styled as a markdown */
-    excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
+        /** Indicate whether or not the input should prevent swipe actions in tabs */
+        shouldInterceptSwipe?: boolean;
 
-    /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
-    markdownStyle?: MarkdownStyle;
+        /** Should there be an error displayed */
+        hasError?: boolean;
 
-    /** Custom parser function for RNMarkdownTextInput */
-    parser?: (input: string) => MarkdownRange[];
+        /** On Press handler */
+        onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
 
-    /** Whether the clear button should be displayed */
-    shouldShowClearButton?: boolean;
+        /** Should loading state should be displayed */
+        isLoading?: boolean;
 
-    /** Whether to apply styles when input is disabled */
-    shouldUseDisabledStyles?: boolean;
+        /** Type of autocomplete */
+        autoCompleteType?: string;
 
-    /** Style for the prefix */
-    prefixStyle?: StyleProp<TextStyle>;
+        /** List of markdowns that won't be styled as a markdown */
+        excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
-    /** Style for the prefix container */
-    prefixContainerStyle?: StyleProp<ViewStyle>;
+        /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
+        markdownStyle?: MarkdownStyle;
 
-    /** Style for the suffix */
-    suffixStyle?: StyleProp<TextStyle>;
+        /** Custom parser function for RNMarkdownTextInput */
+        parser?: (input: string) => MarkdownRange[];
 
-    /** Style for the suffix container */
-    suffixContainerStyle?: StyleProp<ViewStyle>;
+        /** Whether the clear button should be displayed */
+        shouldShowClearButton?: boolean;
 
-    /** Style for the loading spinner */
-    loadingSpinnerStyle?: StyleProp<ViewStyle>;
+        /** Whether to apply styles when input is disabled */
+        shouldUseDisabledStyles?: boolean;
 
-    /** Style for the icon container */
-    iconContainerStyle?: StyleProp<ViewStyle>;
+        /** Style for the prefix */
+        prefixStyle?: StyleProp<TextStyle>;
 
-    /** The width of inner content */
-    contentWidth?: number;
+        /** Style for the prefix container */
+        prefixContainerStyle?: StyleProp<ViewStyle>;
 
-    /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
-    type?: InputType;
+        /** Style for the suffix */
+        suffixStyle?: StyleProp<TextStyle>;
 
-    /** The mask of the masked input */
-    mask?: MaskedTextInputOwnProps['mask'];
+        /** Style for the suffix container */
+        suffixContainerStyle?: StyleProp<ViewStyle>;
 
-    /** A set of permitted characters for the input */
-    allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
+        /** Style for the loading spinner */
+        loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
-    /** A regular expression to validate the input before proceeding to masking stage */
-    validationRegex?: MaskedTextInputOwnProps['validationRegex'];
+        /** Style for the icon container */
+        iconContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether the input should be enforced to be uncontrolled. Default is `false` */
-    uncontrolled?: boolean;
+        /** Style for the clear button */
+        clearButtonStyle?: StyleProp<ViewStyle>;
 
-    /** Whether the clear button should always be displayed */
-    shouldHideClearButton?: boolean;
+        /** The clear button icon size */
+        clearButtonIconSize?: number;
 
-    /** Callback when the input is cleared using the clear button */
-    onClearInput?: () => void;
-};
+        /** The width of inner content */
+        contentWidth?: number;
+
+        /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
+        type?: InputType;
+
+        /** The mask of the masked input */
+        mask?: MaskedTextInputOwnProps['mask'];
+
+        /** Custom notations for the masked input */
+        customNotations?: MaskedTextInputOwnProps['customNotations'];
+
+        /** A set of permitted characters for the input */
+        allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
+
+        /** A regular expression to validate the input before proceeding to masking stage */
+        validationRegex?: MaskedTextInputOwnProps['validationRegex'];
+
+        /** Whether the input should be enforced to be uncontrolled. Default is `false` */
+        uncontrolled?: boolean;
+
+        /** Whether the clear button should always be displayed */
+        shouldHideClearButton?: boolean;
+
+        /** Callback when the input is cleared using the clear button */
+        onClearInput?: () => void;
+
+        /** Whether the input should be enforced to take full height of container. Default is `false` */
+        shouldUseFullInputHeight?: boolean;
+
+        /** Whether the input prefix should use the default `Text` line height fallback. Disable this if you intentionally want the prefix to have `lineHeight: undefined` */
+        shouldUseDefaultLineHeightForPrefix?: boolean;
+
+        /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+        rightHandSideComponent?: React.ReactNode;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<BaseTextInputRef>;
+
+        /** When the `disableKeyboard` prop is passed with the value `true`, we need to pass the `navigation` prop from `useNavigation` to ensure that the `disableKeyboard` functionality works correctly when the application is in the background */
+        navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
+            getState(): NavigationState | undefined;
+        };
+
+        /** Whether the input should be allowed to be focused in landscape mode */
+        shouldAllowFocusInLandscapeMode?: boolean;
+    };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 

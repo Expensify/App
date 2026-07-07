@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -36,9 +42,10 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -88,7 +95,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={Expensicons.EReceiptIcon}
+                        src={icons.EReceiptIcon}
                         height={receiptIconHeight}
                         width={receiptIconWidth}
                         fill={secondaryColor}
@@ -109,7 +116,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                     )}
                     {isPerDiemRequest ? (
                         <Icon
-                            src={Expensicons.CalendarSolid}
+                            src={icons.CalendarSolid}
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
@@ -137,7 +144,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     );
 }
 
-EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default EReceiptThumbnail;
 
 export type {IconSize, EReceiptThumbnailProps};

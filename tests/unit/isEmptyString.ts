@@ -1,4 +1,5 @@
 import enEmojis from '@assets/emojis/en';
+
 import StringUtils from '@libs/StringUtils';
 
 describe('libs/StringUtils.isEmptyString', () => {
@@ -49,11 +50,11 @@ describe('libs/StringUtils.isEmptyString', () => {
         expect(StringUtils.isEmptyString('😀')).toBe(false);
     });
     it('all emojis not removed', () => {
-        Object.keys(enEmojis).forEach((key) => {
+        for (const key of Object.keys(enEmojis)) {
             expect(StringUtils.isEmptyString(key)).toBe(false);
-        });
+        }
     });
-    it('remove invisible characters (editpad)', () => {
+    it('remove invisible characters (edit pad)', () => {
         expect(StringUtils.isEmptyString('\u0020')).toBe(true);
         expect(StringUtils.isEmptyString('\u00A0')).toBe(true);
         expect(StringUtils.isEmptyString('\u2000')).toBe(true);

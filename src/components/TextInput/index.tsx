@@ -1,23 +1,32 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+
+import {isMobileChrome} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+
+import type {BaseTextInputProps} from './BaseTextInput/types';
+
 import BaseTextInput from './BaseTextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
-type RemoveVisibilityListener = () => void;
+let isRestoringKeyboardFocus = false;
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function getIsRestoringKeyboardFocus() {
+    return isRestoringKeyboardFocus;
+}
+
+function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement | null>(null);
-    const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
+    const removeVisibilityListenerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
-        let removeVisibilityListener = removeVisibilityListenerRef.current;
         if (props.disableKeyboard) {
             textInputRef.current?.setAttribute('inputmode', 'none');
         }
@@ -26,21 +35,56 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             textInputRef.current?.setAttribute('name', props.name);
         }
 
-        removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+        // On mobile Chrome, restore keyboard after returning from background via blur/refocus with a delay.
+        // See: https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/visibility#ShowReliably
+        let focusTimeoutId: ReturnType<typeof setTimeout>;
+        let flagResetTimeoutId: ReturnType<typeof setTimeout>;
+
+        const restoreKeyboardFocus = () => {
+            if (isRestoringKeyboardFocus || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
-            textInputRef.current.blur();
-            textInputRef.current.focus();
+
+            const inputElement = textInputRef.current;
+            isRestoringKeyboardFocus = true;
+
+            inputElement.blur();
+            focusTimeoutId = setTimeout(() => {
+                if (DomUtils.getActiveElement() !== document.body) {
+                    isRestoringKeyboardFocus = false;
+                    return;
+                }
+                inputElement.focus();
+                flagResetTimeoutId = setTimeout(() => {
+                    isRestoringKeyboardFocus = false;
+                }, CONST.KEYBOARD_RESTORATION_FLAG_RESET_DELAY);
+            }, CONST.ANIMATED_TRANSITION);
+        };
+
+        if (typeof window !== 'undefined' && isMobileChrome()) {
+            window.addEventListener('focus', restoreKeyboardFocus);
+        }
+
+        let removeVisibilityListener = removeVisibilityListenerRef.current;
+        removeVisibilityListener = Visibility.onVisibilityChange(() => {
+            if (!isMobileChrome() || !Visibility.isVisible()) {
+                return;
+            }
+            restoreKeyboardFocus();
         });
 
         return () => {
-            if (!removeVisibilityListener) {
-                return;
+            clearTimeout(focusTimeoutId);
+            clearTimeout(flagResetTimeoutId);
+            isRestoringKeyboardFocus = false;
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('focus', restoreKeyboardFocus);
             }
-            removeVisibilityListener();
+            if (removeVisibilityListener) {
+                removeVisibilityListener();
+            }
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;
@@ -55,7 +99,6 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
 
     return (
         <BaseTextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;
@@ -73,11 +116,10 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
                 ref.current = element;
             }}
             inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, props.inputStyle]}
-            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles]}
+            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles, styles.cursorText]}
         />
     );
 }
 
-TextInput.displayName = 'TextInput';
-
-export default React.forwardRef(TextInput);
+export default TextInput;
+export {getIsRestoringKeyboardFocus};

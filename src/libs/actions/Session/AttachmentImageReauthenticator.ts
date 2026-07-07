@@ -1,10 +1,12 @@
-import Onyx from 'react-native-onyx';
-import {reauthenticate} from '@libs/Authentication';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
+import reauthenticate from '@libs/Reauthentication';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
 
-let isOffline = false;
+import Onyx from 'react-native-onyx';
+
 let active = false;
 let currentActiveSession: Session = {};
 let timer: NodeJS.Timeout;
@@ -13,19 +15,10 @@ let timer: NodeJS.Timeout;
 // also, this is an arbitrary number so we may tweak as needed
 const TIMING_BEFORE_REAUTHENTICATION_MS = 3500; // 3.5s
 
-// We subscribe to network's online/offline status
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (network) => {
-        if (!network) {
-            return;
-        }
-        isOffline = !!network.shouldForceOffline || !!network.isOffline;
-    },
-});
-
 // We subscribe to sessions changes
-Onyx.connect({
+// We do not depend on updates on the UI to call the `deactivate` function
+// So we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value || isSameSession(value) || !active) {
@@ -47,12 +40,12 @@ function deactivate() {
 
 /**
  * The reauthenticator is currently only used by attachment images and only when the current session is expired.
- * It will only request reauthentification only once between two receptions of different sessions from Onyx
+ * It will only request reauthentication only once between two receptions of different sessions from Onyx
  * @param session the current session
  * @returns
  */
 function activate(session: Session) {
-    if (!session || isSameSession(session) || isOffline) {
+    if (!session || isSameSession(session) || getIsOffline()) {
         return;
     }
     currentActiveSession = session;
@@ -61,10 +54,10 @@ function activate(session: Session) {
 }
 
 function tryReauthenticate() {
-    if (isOffline || !active) {
+    if (getIsOffline() || !active) {
         return;
     }
-    reauthenticate()?.catch((error) => {
+    reauthenticate().catch((error) => {
         Log.hmmm('Could not reauthenticate attachment image or receipt', {error});
     });
 }

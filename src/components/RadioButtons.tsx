@@ -1,8 +1,13 @@
-import React, {forwardRef, useEffect, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import FormHelpMessage from './FormHelpMessage';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
@@ -12,7 +17,7 @@ type Choice = {
     style?: StyleProp<ViewStyle>;
 };
 
-type RadioButtonsProps = {
+type RadioButtonsProps = ForwardedFSClassProps & {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
@@ -20,31 +25,25 @@ type RadioButtonsProps = {
     defaultCheckedValue?: string;
 
     /** Callback to fire when selecting a radio button */
-    onPress: (value: string) => void;
+    onSelect: (value: string) => void;
 
     /** Potential error text provided by a form InputWrapper */
     errorText?: string;
-
-    /** Style for radio button */
-    radioButtonStyle?: StyleProp<ViewStyle>;
 
     /** Callback executed when input value changes (same as onPress, but required by FormProvider for the sake of saving drafts) */
     onInputChange?: (value: string) => void;
 
     /** The checked value, if you're using this component as a controlled input. */
     value?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyle, errorText, onInputChange = () => {}, value}: RadioButtonsProps, ref: ForwardedRef<View>) {
+function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, ref}: RadioButtonsProps) {
     const styles = useThemeStyles();
-    const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
-
-    useEffect(() => {
-        if (value === checkedValue || value === undefined) {
-            return;
-        }
-        setCheckedValue(value ?? '');
-    }, [checkedValue, value]);
+    const [localValue, setLocalValue] = useState(defaultCheckedValue);
+    const checkedValue = value !== undefined ? value : localValue;
 
     return (
         <>
@@ -56,13 +55,14 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
                     <RadioButtonWithLabel
                         key={item.value}
                         isChecked={item.value === checkedValue}
-                        style={[styles.mb4, radioButtonStyle]}
+                        style={[styles.optionRowCompact, styles.ph5]}
                         onPress={() => {
-                            setCheckedValue(item.value);
+                            setLocalValue(item.value);
                             onInputChange(item.value);
-                            return onPress(item.value);
+                            return onSelect(item.value);
                         }}
                         label={item.label}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 ))}
             </View>
@@ -71,7 +71,5 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
     );
 }
 
-RadioButtons.displayName = 'RadioButtons';
-
 export type {Choice};
-export default forwardRef(RadioButtons);
+export default RadioButtons;

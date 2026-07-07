@@ -24,6 +24,40 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `sendAuthToken` should never be called on web');
     },
+    getHybridAppSettings() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `getHybridAppSettings` should never be called on web');
+        return Promise.resolve(null);
+    },
+    getInitialURL() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `getInitialURL` should never be called on web');
+        return Promise.resolve(null);
+    },
+    onURLListenerAdded() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `onURLListenerAdded` should never be called on web');
+    },
+    signInToOldDot() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `signInToOldDot` should never be called on web');
+    },
+    signOutFromOldDot() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `signOutFromOldDot` should never be called on web');
+    },
+    startSignOut() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `startSignOut` should never be called on web');
+    },
+    cancelSignOut() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `cancelSignOut` should never be called on web');
+    },
+    clearOldDotAfterSignOut() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `clearOldDotAfterSignOut` should never be called on web');
+    },
 };
 
 export default HybridAppModule;

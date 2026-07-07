@@ -1,21 +1,26 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearSageIntacctErrorField, updateSageIntacctBillable} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -48,7 +53,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctData = policy?.connections?.intacct?.data;
 
-    const mapingItems = useMemo(
+    const mappingItems = useMemo(
         () =>
             Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
                 const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
@@ -66,7 +71,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctImportPage.displayName}
+            displayName="SageIntacctImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -98,7 +103,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
 
-            {mapingItems.map((section) => (
+            {mappingItems.map((section) => (
                 <OfflineWithFeedback
                     key={section.description}
                     pendingAction={settingsPendingAction(section.subscribedSettings, sageIntacctConfig?.pendingFields)}
@@ -147,7 +152,5 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctImportPage.displayName = 'SageIntacctImportPage';
 
 export default withPolicy(SageIntacctImportPage);

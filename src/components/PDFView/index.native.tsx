@@ -1,19 +1,32 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import PDF from 'react-native-pdf';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import {openTravelDotLink} from '@libs/openTravelDotLink';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
+
 import CONST from '@src/CONST';
-import PDFPasswordForm from './PDFPasswordForm';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Keyboard, Linking, View} from 'react-native';
+import PDF from 'react-native-pdf';
+
 import type {PDFViewNativeProps} from './types';
+
+import PDFPasswordForm from './PDFPasswordForm';
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -47,6 +60,19 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+    const {insets} = useSafeAreaPaddings();
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'PDFView',
+            shouldRequestPassword,
+            isPasswordInvalid,
+            shouldAttemptPDFLoad,
+        }),
+        [shouldRequestPassword, isPasswordInvalid, shouldAttemptPDFLoad],
+    );
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
@@ -86,7 +112,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
         onLoadError?.();
-        // eslint-disable-next-line @typescript-eslint/ban-types
+        // eslint-disable-next-line @typescript-eslint/no-restricted-types
     }) as (error: object) => void;
 
     /**
@@ -104,6 +130,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
     };
+
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
@@ -111,16 +138,37 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * @param path - Path to cache location
      */
     const finishPDFLoad = (numberOfPages: number, path: string) => {
+        Keyboard.dismiss();
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
 
+    /**
+     * Handle press link event on native apps.
+     */
+    const handlePressLink = useCallback(
+        (url: string) => {
+            if (isTravelLink(url) && activePolicyID) {
+                const postLoginPath = getRelativeUrl(url);
+                openTravelDotLink(activePolicyID, postLoginPath);
+                return;
+            }
+            Linking.openURL(url);
+        },
+        [activePolicyID],
+    );
+
     function renderPDFView() {
-        const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
+        // Insets are used to adjust the maxWidth of the PDF view in landscape mode
+        const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth - insets.left - insets.right;
         const pdfHeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_HEIGHT : windowHeight;
-        const pdfStyles: StyleProp<ViewStyle> = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(pdfWidth, pdfHeight)];
+
+        const pdfStyles: StyleProp<ViewStyle> = [
+            themeStyles.imageModalPDF,
+            isUsedAsChatAttachment ? StyleUtils.getWidthAndHeightStyle(pdfWidth, pdfHeight) : StyleUtils.getPDFViewStyle(pdfWidth, pdfHeight),
+        ];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -130,7 +178,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             pdfStyles.push(themeStyles.invisible);
         }
         const containerStyles =
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             isUsedAsChatAttachment || (shouldRequestPassword && shouldUseNarrowLayout) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
         const loadingIndicatorStyles = isUsedAsChatAttachment
             ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
@@ -142,7 +189,12 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <FullScreenLoadingIndicator style={loadingIndicatorStyles} />}
+                        renderActivityIndicator={() => (
+                            <LoadingIndicator
+                                style={loadingIndicatorStyles}
+                                reasonAttributes={reasonAttributes}
+                            />
+                        )}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
@@ -150,6 +202,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
+                        onPressLink={handlePressLink}
                     />
                 )}
                 {shouldRequestPassword && (
@@ -175,6 +228,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}
         </PressableWithoutFeedback>
@@ -182,7 +236,5 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         renderPDFView()
     );
 }
-
-PDFView.displayName = 'PDFView';
 
 export default PDFView;

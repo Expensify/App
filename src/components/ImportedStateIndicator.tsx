@@ -1,10 +1,14 @@
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearOnyxAndResetApp} from '@libs/actions/App';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {clearOnyxAndResetApp} from '@libs/actions/App';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import Button from './Button';
 
 function ImportedStateIndicator() {

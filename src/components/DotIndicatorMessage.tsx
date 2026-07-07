@@ -1,22 +1,31 @@
-/* eslint-disable react/no-array-index-key */
-import type {ReactElement} from 'react';
-import React, {useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isReceiptError} from '@libs/ErrorUtils';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import {translateLocal} from '@libs/Localize';
-import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+
+import CONST from '@src/CONST';
+import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import ConfirmModal from './ConfirmModal';
+
+import type {ReactElement} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import Button from './Button';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
+
+const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
 type DotIndicatorMessageProps = {
     /**
@@ -26,7 +35,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string | ReceiptError | ReactElement | null>;
+    messages: Record<string, string | ReceiptError | TranslationKeyError | ReactElement | null>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -46,8 +55,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
-    const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -62,72 +72,122 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
+    const receiptError = uniqueMessages.find(isReceiptError);
+
+    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
+            return null;
+        }
+
+        const displayMessage = isTranslationKeyError(message) ? translate(message.translationKey) : message;
+
+        if (typeof displayMessage !== 'string') {
             return (
-                <>
-                    <Text
-                        key={index}
-                        style={styles.offlineFeedback.text}
-                    >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.receiptFailureMessage')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
-                        >
-                            {translateLocal('iou.error.tryAgainMessage')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('common.or')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename).finally(() => dismissError());
-                            }}
-                        >
-                            {translateLocal('iou.error.saveFileMessage')}
-                        </TextLink>
+                <Text
+                    key={index}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
+                    accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                    accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
+                >
+                    {displayMessage}
+                </Text>
+            );
+        }
 
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.uploadLaterMessage')}</Text>
-                    </Text>
+        if (HTML_TAG_PATTERN.test(displayMessage)) {
+            const html = isErrorMessage ? `<rbr>${displayMessage}</rbr>` : `<muted-text-label>${displayMessage}</muted-text-label>`;
 
-                    <ConfirmModal
-                        isVisible={shouldShowErrorModal}
-                        onConfirm={() => {
-                            setShouldShowErrorModal(false);
-                        }}
-                        prompt={translate('common.genericErrorMessage')}
-                        confirmText={translate('common.ok')}
-                        shouldShowCancelButton={false}
-                    />
-                </>
+            return (
+                <RenderHTML
+                    key={index}
+                    html={html}
+                    isSelectable={isTextSelectable}
+                />
             );
         }
 
         return (
             <Text
-                // eslint-disable-next-line react/no-array-index-key
                 key={index}
-                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
+                accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
-                {message}
+                {Str.htmlDecode(displayMessage)}
             </Text>
         );
     };
 
+    if (receiptError) {
+        const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
+        const messageRow = (
+            <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
+                <View style={styles.offlineFeedbackErrorDot}>
+                    <Icon
+                        src={expensifyIcons.DotIndicator}
+                        fill={isErrorMessage ? theme.danger : theme.success}
+                    />
+                </View>
+                <Text
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1]}
+                    accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                    accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
+                >
+                    {translate('iou.error.receiptUploadFailedMessage')}
+                </Text>
+            </View>
+        );
+        const buttonsRow = (
+            <View style={[styles.flexRow, styles.gap3]}>
+                <Button
+                    small
+                    text={translate('iou.error.saveReceipt')}
+                    onPress={() => {
+                        fileDownload(translate, receiptError.source, receiptError.filename);
+                    }}
+                />
+                <Button
+                    small
+                    danger
+                    text={translate('iou.deleteExpense', {count: 1})}
+                    onPress={dismissError}
+                />
+            </View>
+        );
+        if (!isStackedLayout) {
+            return (
+                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}>
+                    {messageRow}
+                    {buttonsRow}
+                </View>
+            );
+        }
+        return (
+            <View style={style}>
+                {messageRow}
+                <View style={styles.mt3}>{buttonsRow}</View>
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedback.errorDot}>
+            <View
+                style={styles.offlineFeedbackErrorDot}
+                accessible={isErrorMessage}
+                role={isErrorMessage ? CONST.ROLE.IMG : undefined}
+                accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
+            >
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={expensifyIcons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>{uniqueMessages.map(renderMessage)}</View>
+            <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
         </View>
     );
 }
-
-DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;

@@ -1,64 +1,81 @@
-import React from 'react';
-import type {InputModeOptions} from 'react-native';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
+import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
+import type {InputModeOptions} from 'react-native';
 
-    /** The title of the form */
-    formTitle: string;
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 
-    /** The disclaimer to show below the form title */
-    formDisclaimer?: string;
+type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The ID of the form */
+        formID: TFormID;
 
-    /** The validation function to call when the form is submitted */
-    validate: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+        /** The title of the form */
+        formTitle: string;
 
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** The disclaimer to show below the form title */
+        formDisclaimer?: string;
 
-    /** The ID of the form input */
-    inputId: string;
+        /** The validation function to call when the form is submitted */
+        validate: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** The label of the input */
-    inputLabel: string;
+        /** A function to call when the form is submitted */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** The mode of the input */
-    inputMode?: InputModeOptions;
+        /** The ID of the form input */
+        inputId: string;
 
-    /** The default values for the form */
-    defaultValue: string;
+        /** The label of the input */
+        inputLabel: string;
 
-    /** Whether to show help links */
-    shouldShowHelpLinks?: boolean;
+        /** The mode of the input */
+        inputMode?: InputModeOptions;
 
-    /** Max length of the field */
-    maxLength?: number;
+        /** The default values for the form */
+        defaultValue: string;
 
-    /** Should the submit button be enabled when offline */
-    enabledWhenOffline?: boolean;
+        /** Whether to show help links */
+        shouldShowHelpLinks?: boolean;
 
-    /** Set the default value to the input if there is a valid saved value */
-    shouldUseDefaultValue?: boolean;
+        /** Max length of the field */
+        maxLength?: number;
 
-    /** Should the input be disabled */
-    disabled?: boolean;
+        /** Should the submit button be enabled when offline */
+        enabledWhenOffline?: boolean;
 
-    /** Placeholder displayed inside input */
-    placeholder?: string;
-};
+        /** Set the default value to the input if there is a valid saved value */
+        shouldUseDefaultValue?: boolean;
+
+        /** Should the input be disabled */
+        disabled?: boolean;
+
+        /** Placeholder displayed inside input */
+        placeholder?: string;
+
+        /** Whether to delay autoFocus to avoid conflicts with navigation animations */
+        shouldDelayAutoFocus?: boolean;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
+    };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
@@ -77,9 +94,14 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldUseDefaultValue = true,
     disabled = false,
     placeholder,
+    shouldDelayAutoFocus = false,
+    shouldShowPatriotActLink = false,
+    forwardedFSClass,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const internalInputRef = useRef<AnimatedTextInputRef>(null);
+    useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
     return (
         <FormProvider
@@ -94,7 +116,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
-                {!!formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
+                {!!formDisclaimer && <Text style={[styles.textSupporting, styles.mt3]}>{formDisclaimer}</Text>}
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -110,15 +132,20 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         shouldUseDefaultValue={shouldUseDefaultValue}
                         disabled={disabled}
                         placeholder={placeholder}
-                        autoFocus
+                        autoFocus={!shouldDelayAutoFocus}
+                        ref={internalInputRef}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 </View>
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt5]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
 }
-
-SingleFieldStep.displayName = 'SingleFieldStep';
 
 export default SingleFieldStep;

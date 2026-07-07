@@ -1,7 +1,11 @@
-import React, {useRef} from 'react';
-import type {View} from 'react-native';
 import useSyncFocus from '@hooks/useSyncFocus';
+
+import type {View} from 'react-native';
+
+import React, {useRef} from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItem from './MenuItem';
 
 function FocusableMenuItem(props: MenuItemProps) {
@@ -12,13 +16,10 @@ function FocusableMenuItem(props: MenuItemProps) {
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
         />
     );
 }
-
-FocusableMenuItem.displayName = 'FocusableMenuItem';
 
 export default FocusableMenuItem;

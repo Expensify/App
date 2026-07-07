@@ -3,15 +3,46 @@ title: Expensify Card Reconciliation
 description: Learn how to reconcile expenses from Expensify Cards through Continuous Reconciliation or manual methods.
 keywords: [Expensify Classic, Expensify Card reconciliation]
 ---
-<div id="expensify-classic" markdown="1">
 
 To manage unapproved Expensify Card expenses after closing your books for the month, you can set up **Continuous Reconciliation** with an accounting integration or **manually reconcile** the expenses. 
 
 ---
+# How Continuous Reconciliation works
+
+Continuous Reconciliation automates the accounting process for Expensify Card activity by syncing settled amounts and exported expenses through your connected accounting software.
+
+## What gets reconciled
+
+When using the Expensify Card, reconciliation involves two components:
+
+- **Settlement:** The full balance spent on the Expensify Card is deducted from your linked checking account either daily or monthly. This figure includes posted and pending charges, which may be adjusted later due to merchant changes.
+  
+- **Expenses:** Each transaction becomes an expense that may be submitted, approved, and exported days or even weeks after the card is settled. A single settlement may cover expenses exported across multiple accounting periods.
+
+## How daily Continuous Reconciliation works
+
+When daily settlement is enabled:
+
+1. The total settlement amount is pulled from your checking account and posted to a **clearing account**.
+2. When an expense is exported, the expense amount moves from the clearing account to a **liability account**.
+3. At the same time, the expense amount is moved from the liability account to the appropriate **expense account**.
+
+This ensures expenses can be tracked and matched even if their approval/export happens later.
+
+## How monthly Continuous Reconciliation works
+
+When monthly settlement is enabled:
+
+- The full amount is moved **directly** from your checking account to a **liability account**.
+- The **clearing account step is skipped** in this workflow.
+
+This streamlines accounting while preserving accurate tracking for exported expenses.
+
+**Note:** The Continuous Reconciliation flow depends on your connected accounting integration and whether you’ve enabled daily or monthly settlement. The Clearing and Liability accounts will be created when the routine runs for the first time - please don't manually create or rename the accounts.
+
+---
 
 # Set Up Continuous Reconciliation
-
-Continuous Reconciliation deducts Expensify Card purchases from your company's settlement account on a daily or monthly basis.
 
 _**Note: A business bank account must be linked as your settlement account to complete this process.**_
 
@@ -95,7 +126,7 @@ The filtered list will show expenses with settlement entries but no correspondin
 
 # Tips for Efficient Reconciliation
 
-- Enable [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/workspaces/reports/Scheduled-Submit) to ensure timely expense submissions.
+- Enable [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports) to ensure timely expense submissions.
 - Communicate with employees about unapproved expenses via the #announce room on [new.expensify.com](http://new.expensify.com).
 - Be aware that Expensify Card payments are posted to your general ledger immediately but may not be withdrawn from your bank until the next business day.
 - Consider accruing for Expensify Cards based on your internal policies.
@@ -120,4 +151,3 @@ A Domain Admin can set export accounts for individual cards via:
 
 Due to the highly customizable nature of Sage Intacct Smart Rules, Continuous Reconciliation may encounter conflicts, especially when Expensify attempts to create vendor accounts during the reconciliation process. To resolve this, you can temporarily disable all Smart Rules in Sage Intacct, allow Expensify to create the necessary vendor accounts, and then re-enable the Smart Rules. However, if some Smart Rules are implemented via a Sage Intacct Package and cannot be easily disabled, you may need to manually adjust the rules after account creation. This process might need to be repeated if new employees submit reports in the future. Expensify creates vendor accounts to associate reports with the email addresses that submitted them, and the "vendor" field is included in the journal entries posted via Continuous Reconciliation.
 
-</div>

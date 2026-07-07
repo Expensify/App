@@ -1,73 +1,43 @@
-import React, {useCallback, useEffect} from 'react';
-import ConfirmationPage from '@components/ConfirmationPage';
-import LottieAnimations from '@components/LottieAnimations';
-import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
-import {openLink} from '@userActions/Link';
+import useOnyx from '@hooks/useOnyx';
+
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
-import CONST from '@src/CONST';
+
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.SUCCESS>;
+import React from 'react';
 
-function SuccessPage({route}: SuccessPageProps) {
-    const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
-    const styles = useThemeStyles();
+import SuccessPageBase from './SuccessPageBase';
 
-    const goBack = useCallback(() => {
-        if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
-            Navigation.dismissModal();
+function SuccessPage() {
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+    const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
+
+    const goBack = () => {
+        quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
+    };
+
+    const onButtonPress = () => {
+        if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
+            closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             return;
         }
-        quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
-    }, [route.params?.backTo]);
-
-    useEffect(() => {
-        return () => {
-            // When the 2FA RHP is closed, we want to remove the 2FA required page fromt the navigation stack too.
-            if (route.params?.backTo !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
-                return;
-            }
-            Navigation.popRootToTop();
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+        goBack();
+    };
 
     return (
-        <TwoFactorAuthWrapper
-            stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
-            title={translate('twoFactorAuth.headerTitle')}
-            stepCounter={{
-                step: 3,
-                text: translate('twoFactorAuth.stepSuccess'),
-            }}
+        <SuccessPageBase
+            onButtonPress={onButtonPress}
             onBackButtonPress={goBack}
-        >
-            <ConfirmationPage
-                illustration={LottieAnimations.Fireworks}
-                heading={translate('twoFactorAuth.enabled')}
-                description={translate('twoFactorAuth.congrats')}
-                shouldShowButton
-                buttonText={translate('common.buttonConfirm')}
-                onButtonPress={() => {
-                    goBack();
-                    if (route.params?.forwardTo) {
-                        openLink(route.params.forwardTo, environmentURL);
-                    }
-                }}
-                containerStyle={styles.flex1}
-            />
-        </TwoFactorAuthWrapper>
+        />
     );
 }
-
-SuccessPage.displayName = 'SuccessPage';
 
 export default SuccessPage;

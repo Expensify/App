@@ -3,7 +3,6 @@ title: Add Custom Fields to Reports and Invoices
 description: Customize the fields that appear on a report or invoice for greater control and detail.
 keywords: [Expensify Classic, custom fields, report fields, invoice fields, header fields, workspace admin, Control plan, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
 Workspace Admins can add custom fields to reports or invoices to collect important header-level details like project names, business trip purposes, locations, or internal tracking codes.
 
@@ -25,4 +24,3 @@ Workspace Admins can add custom fields to reports or invoices to collect importa
 4. Select the report type: **Expense Report** or **Invoice**.
 5. Click **Add**.
 
-</div>

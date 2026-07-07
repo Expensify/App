@@ -1,8 +1,10 @@
 import getOperatingSystem from '@libs/getOperatingSystem';
+
 // eslint-disable-next-line no-restricted-imports
 import type FontFamilyStyles from '@styles/utils/FontUtils/fontFamily/types';
 // eslint-disable-next-line no-restricted-imports
 import fontWeight from '@styles/utils/FontUtils/fontWeight';
+
 import CONST from '@src/CONST';
 
 // In windows and ubuntu, we need some extra system fonts for emojis to work properly
@@ -36,12 +38,12 @@ const fontFamily: FontFamilyStyles = {
     },
 
     EXP_NEUE: {
-        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD: {
-        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
@@ -57,7 +59,7 @@ const fontFamily: FontFamilyStyles = {
     },
 
     EXP_NEW_KANSAS_MEDIUM: {
-        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.medium,
     },
@@ -66,12 +68,15 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
+    CUSTOM_EMOJI_FONT: {
+        fontFamily: 'Custom Emoji Font',
+    },
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {
-    Object.keys(fontFamily).forEach((key) => {
+    for (const key of Object.keys(fontFamily)) {
         fontFamily[key as keyof FontFamilyStyles].fontFamily = fontFamily[key as keyof FontFamilyStyles].fontFamily.replace('Segoe UI Emoji', 'Windows Segoe UI Emoji');
-    });
+    }
 }
 
 export default fontFamily;

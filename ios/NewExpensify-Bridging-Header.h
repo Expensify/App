@@ -6,7 +6,7 @@
 //
 
 #import "RCTBootSplash.h"
-#import "RCTStartupTimer.h"
+#import "SentryNativeSDKManager.h"
 #import <HardwareShortcuts.h>
 #import <BackgroundTasks/BackgroundTasks.h>
-#import <expensify-react-native-background-task/RNBackgroundTaskManager.h>
+#import <RNBackgroundTaskManager.h>

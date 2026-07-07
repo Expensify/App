@@ -1,12 +1,11 @@
-import React, {useEffect} from 'react';
-import Log from '@libs//Log';
-import BaseErrorBoundary from './BaseErrorBoundary';
-import type {BaseErrorBoundaryProps, LogError} from './types';
+import Log from '@libs/Log';
 
-const logError: LogError = (errorMessage, error, errorInfo) => {
-    // Log the error to the server
-    Log.alert(`${errorMessage} - ${error.message}`, {errorInfo}, false);
-};
+import React, {useEffect} from 'react';
+
+import type {BaseErrorBoundaryProps} from './types';
+
+import BaseErrorBoundary from './BaseErrorBoundary';
+import logError from './logError';
 
 const onUnhandledRejection = (event: PromiseRejectionEvent) => {
     let rejection: unknown = event.reason;
@@ -37,7 +36,5 @@ function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'l
         </BaseErrorBoundary>
     );
 }
-
-ErrorBoundary.displayName = 'ErrorBoundary';
 
 export default ErrorBoundary;

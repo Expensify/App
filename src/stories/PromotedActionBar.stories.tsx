@@ -1,9 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
+
 import variables from '@src/styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -15,17 +16,13 @@ const story = {
     component: PromotedActionsBar,
 };
 
-type PromotedActionWithText = Omit<PromotedAction, 'translationKey'> & {text: string};
-type PromotedActionsBarPropsWithText = Omit<PromotedActionsBarProps, 'promotedActions'> & {promotedActions: PromotedActionWithText[]};
+type PromotedActionsBarPropsWithText = Omit<PromotedActionsBarProps, 'promotedActions'> & {promotedActions: PromotedAction[]};
 type StoryType = typeof Template & {args?: Partial<PromotedActionsBarPropsWithText>};
 
 function Template(args: PromotedActionsBarProps) {
     return (
         <View style={{maxWidth: variables.sideBarWidth}}>
-            <PromotedActionsBar
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...args}
-            />
+            <PromotedActionsBar {...args} />
         </View>
     );
 }
@@ -33,30 +30,30 @@ function Template(args: PromotedActionsBarProps) {
 const promotedActions = [
     {
         key: 'join',
-        icon: Expensicons.CommentBubbles,
-        text: 'Join',
+        icon: 'CommentBubbles',
+        translationKey: 'common.message',
         onSelected: () => {},
     },
     {
         key: 'pin',
-        icon: Expensicons.Pin,
-        text: 'Pin',
+        icon: 'Pin',
+        translationKey: 'common.pin',
         onSelected: () => {},
     },
     {
         key: 'share',
-        icon: Expensicons.QrCode,
-        text: 'Share',
+        icon: 'QrCode',
+        translationKey: 'common.share',
         onSelected: () => {},
     },
-] satisfies PromotedActionWithText[];
+] satisfies PromotedAction[];
 
 const defaultPromotedAction = {
     key: '',
-    icon: Expensicons.ExpensifyLogoNew,
-    text: '',
+    icon: 'ChatBubbles',
+    translationKey: 'common.join',
     onSelected: () => {},
-};
+} satisfies PromotedAction;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

@@ -1,6 +1,9 @@
-import Clipboard from '@react-native-clipboard/clipboard';
 import * as Browser from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import type {CanSetHtml, SetHtml, SetString} from './types';
 
 type ComposerSelection = {
@@ -116,8 +119,8 @@ const setHtml: SetHtml = (html: string, text: string) => {
         setHTMLSync(html, text);
     } else {
         const htmlNonClosingTags = html
-            .replace(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
-            .replace(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+            .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
+            .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
 
         navigator.clipboard.write([
             new ClipboardItem({

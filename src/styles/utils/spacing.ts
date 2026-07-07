@@ -11,6 +11,10 @@ export default {
         margin: 0,
     },
 
+    m1: {
+        margin: 4,
+    },
+
     m2: {
         margin: 8,
     },
@@ -27,6 +31,18 @@ export default {
         margin: 20,
     },
 
+    mn5: {
+        margin: -20,
+    },
+
+    mn6: {
+        margin: -24,
+    },
+
+    mhAuto: {
+        marginHorizontal: 'auto',
+    },
+
     mh0: {
         marginHorizontal: 0,
     },
@@ -37,6 +53,10 @@ export default {
 
     mh2: {
         marginHorizontal: 8,
+    },
+
+    mh2half: {
+        marginHorizontal: 10,
     },
 
     mh3: {
@@ -115,6 +135,10 @@ export default {
         marginVertical: -48,
     },
 
+    mrAuto: {
+        marginRight: 'auto',
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -139,12 +163,36 @@ export default {
         marginRight: 20,
     },
 
+    mr6: {
+        marginRight: 24,
+    },
+
+    mr7: {
+        marginRight: 28,
+    },
+
     mr8: {
         marginRight: 32,
     },
 
+    mr10: {
+        marginRight: 40,
+    },
+
+    mr13: {
+        marginRight: 52,
+    },
+
+    mrn1: {
+        marginRight: -4,
+    },
+
     mrn2: {
         marginRight: -8,
+    },
+
+    mrn3: {
+        marginRight: -12,
     },
 
     mrn5: {
@@ -163,12 +211,20 @@ export default {
         marginLeft: 0,
     },
 
+    mlHalf: {
+        marginLeft: 2,
+    },
+
     ml1: {
         marginLeft: 4,
     },
 
     ml2: {
         marginLeft: 8,
+    },
+
+    mln2: {
+        marginLeft: -12,
     },
 
     ml3: {
@@ -209,6 +265,10 @@ export default {
 
     ml11: {
         marginLeft: 44,
+    },
+
+    ml13: {
+        marginLeft: 52,
     },
 
     ml18: {
@@ -275,6 +335,10 @@ export default {
         marginTop: 36,
     },
 
+    mt10: {
+        marginTop: 40,
+    },
+
     mt11: {
         marginTop: 44,
     },
@@ -313,6 +377,10 @@ export default {
 
     mb0: {
         marginBottom: 0,
+    },
+
+    mbHalf: {
+        marginBottom: 2,
     },
 
     mb1: {
@@ -411,6 +479,10 @@ export default {
         padding: 12,
     },
 
+    p3Half: {
+        padding: 14,
+    },
+
     p4: {
         padding: 16,
     },
@@ -447,7 +519,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv1Half: {
         paddingVertical: 6,
     },
 
@@ -463,12 +535,20 @@ export default {
         paddingVertical: 16,
     },
 
+    pv4Half: {
+        paddingVertical: 18,
+    },
+
     pv5: {
         paddingVertical: 20,
     },
 
     pv6: {
         paddingVertical: 24,
+    },
+
+    pv8: {
+        paddingVertical: 32,
     },
 
     pv10: {
@@ -535,8 +615,16 @@ export default {
         paddingRight: 0,
     },
 
+    pr0half: {
+        paddingRight: 2,
+    },
+
     pr1: {
         paddingRight: 4,
+    },
+
+    pr1half: {
+        paddingRight: 6,
     },
 
     pr2: {
@@ -547,6 +635,10 @@ export default {
         paddingRight: 12,
     },
 
+    pr3half: {
+        paddingRight: 14,
+    },
+
     pr4: {
         paddingRight: 16,
     },
@@ -555,20 +647,40 @@ export default {
         paddingRight: 20,
     },
 
+    pr7: {
+        paddingRight: 28,
+    },
+
     pr8: {
         paddingRight: 32,
+    },
+
+    pr9: {
+        paddingRight: 36,
     },
 
     pr10: {
         paddingRight: 40,
     },
 
+    pr11: {
+        paddingRight: 44,
+    },
+
     pr15: {
         paddingRight: 60,
     },
 
+    pr16: {
+        paddingRight: 64,
+    },
+
     pl0: {
         paddingLeft: 0,
+    },
+
+    pl0half: {
+        paddingLeft: 2,
     },
 
     pl1: {
@@ -597,6 +709,10 @@ export default {
 
     pl8: {
         paddingLeft: 32,
+    },
+
+    pl9: {
+        paddingLeft: 36,
     },
 
     pt9: {
@@ -711,6 +827,14 @@ export default {
         gap: 4,
     },
 
+    gapHalf: {
+        gap: 2,
+    },
+
+    gap1Half: {
+        gap: 6,
+    },
+
     gap2: {
         gap: 8,
     },
@@ -747,15 +871,54 @@ export default {
         columnGap: 12,
     },
 
+    minHeight4: {
+        minHeight: 16,
+    },
+
     minHeight5: {
         minHeight: 20,
+    },
+
+    minHeight6: {
+        minHeight: 24,
+    },
+
+    minHeight7: {
+        minHeight: 28,
+    },
+
+    minHeight22: {
+        minHeight: 88,
+    },
+
+    minHeight32: {
+        minHeight: 128,
+    },
+
+    minHeight42: {
+        minHeight: 168,
     },
 
     minHeight65: {
         minHeight: 260,
     },
 
+    minHeight55: {
+        minHeight: 220,
+    },
+
+    minWidth18: {
+        minWidth: 72,
+    },
+
     maxHeight5: {
         maxHeight: 20,
+    },
+    maxHeight100Percentage: {
+        maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

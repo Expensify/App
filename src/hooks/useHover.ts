@@ -1,12 +1,15 @@
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import {useState} from 'react';
 
 const useHover = () => {
     const [hovered, setHovered] = useState(false);
+    const deviceHasHoverSupport = hasHoverSupport();
     return {
         hovered,
         bind: {
-            onMouseEnter: () => setHovered(true),
-            onMouseLeave: () => setHovered(false),
+            onMouseEnter: () => deviceHasHoverSupport && setHovered(true),
+            onMouseLeave: () => deviceHasHoverSupport && setHovered(false),
         },
     };
 };

@@ -1,7 +1,10 @@
-import type {SetStateAction} from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import type {SetStateAction} from 'react';
+
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 function useCarouselArrows() {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -45,7 +48,7 @@ function useCarouselArrows() {
 
     useEffect(() => {
         autoHideArrows();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows};

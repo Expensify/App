@@ -1,27 +1,33 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
+
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type DebugTransactionViolationCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE>;
 
@@ -33,6 +39,8 @@ const getInitialTransactionViolation = () =>
             rejectedBy: undefined,
             rejectReason: undefined,
             formattedLimit: undefined,
+            amount: undefined,
+            currency: undefined,
             surcharge: undefined,
             invoiceMarkup: undefined,
             maxAge: undefined,
@@ -52,6 +60,7 @@ const getInitialTransactionViolation = () =>
             displayPercentVariance: undefined,
             duplicates: [],
             rterType: undefined,
+            comment: undefined,
         },
     } satisfies TransactionViolation);
 
@@ -96,7 +105,7 @@ function DebugTransactionViolationCreatePage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionViolationCreatePage.displayName}
+            testID="DebugTransactionViolationCreatePage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -115,7 +124,8 @@ function DebugTransactionViolationCreatePage({
                                 multiline
                                 value={draftTransactionViolation}
                                 onChangeText={editJSON}
-                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
+                                // We need to explicitly add styles.pt5 and styles.pb5 to override the default top and bottom padding of the text input
+                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.ph5, styles.pt5, styles.pb5]}
                             />
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
@@ -131,7 +141,5 @@ function DebugTransactionViolationCreatePage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionViolationCreatePage.displayName = 'DebugTransactionViolationCreatePage';
 
 export default DebugTransactionViolationCreatePage;

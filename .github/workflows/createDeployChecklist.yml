@@ -2,20 +2,26 @@ name: Create or update deploy checklist
 
 on:
   workflow_call:
+    inputs:
+      REF:
+        description: 'Git ref (branch, tag, or SHA) to check out. Defaults to the caller commit SHA.'
+        type: string
+        required: false
   workflow_dispatch:
 
 jobs:
   createChecklist:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        with:
+          ref: ${{ inputs.REF || github.sha }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: Create or update deploy checklist
-        uses: ./.github/actions/javascript/createOrUpdateStagingDeploy
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
+        run: npx ts-node scripts/createOrUpdateDeployChecklist.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

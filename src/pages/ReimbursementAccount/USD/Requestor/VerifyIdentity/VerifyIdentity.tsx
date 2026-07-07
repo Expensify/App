@@ -1,65 +1,93 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Growl from '@libs/Growl';
-import * as BankAccounts from '@userActions/BankAccounts';
+
+import {clearOnfidoToken, updateReimbursementAccountDraft, verifyIdentityForBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 type VerifyIdentityProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Navigates to the next step */
+    onSubmit?: () => void;
 };
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
+function VerifyIdentity({onBackButtonPress, onSubmit}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [onfidoApplicantID] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
     const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [onfidoKey, setOnfidoKey] = useState(() => Math.floor(Math.random() * 1000000));
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
+
+    const isOnfidoAlreadyComplete = useRef(reimbursementAccount?.achData?.isOnfidoSetupComplete);
+    const onSubmitRef = useRef(onSubmit);
+
+    // If Onfido is already complete (e.g. direct URL navigation), skip to next step
+    useEffect(() => {
+        if (!isOnfidoAlreadyComplete.current) {
+            return;
+        }
+        onSubmitRef.current?.();
+    }, []);
+
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
-            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
-            BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
+            verifyIdentityForBankAccount(Number(bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
+            updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
+            onSubmit?.();
         },
-        [reimbursementAccount, onfidoApplicantID, policyID],
+        [bankAccountID, onfidoApplicantID, policyID, onSubmit],
     );
 
     const handleOnfidoError = () => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
         Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
-        BankAccounts.clearOnfidoToken();
-        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+        clearOnfidoToken();
+        onBackButtonPress();
     };
 
-    const handleOnfidoUserExit = () => {
-        BankAccounts.clearOnfidoToken();
-        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+    const handleOnfidoUserExit = (isUserInitiated?: boolean) => {
+        if (isUserInitiated) {
+            clearOnfidoToken();
+            onBackButtonPress();
+        } else {
+            setOnfidoKey(Math.floor(Math.random() * 1000000));
+        }
     };
 
     return (
         <InteractiveStepWrapper
-            wrapperID={VerifyIdentity.displayName}
+            wrapperID="VerifyIdentity"
             headerTitle={translate('onfidoStep.verifyIdentity')}
             handleBackButtonPress={onBackButtonPress}
-            startStepIndex={2}
+            startStepIndex={3}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
+                        key={onfidoKey}
                         sdkToken={onfidoToken ?? ''}
                         onUserExit={handleOnfidoUserExit}
                         onError={handleOnfidoError}
@@ -70,7 +98,5 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
         </InteractiveStepWrapper>
     );
 }
-
-VerifyIdentity.displayName = 'VerifyIdentity';
 
 export default VerifyIdentity;

@@ -1,60 +1,68 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import {PopoverContext} from '@components/PopoverProvider';
+import {usePopoverActions} from '@components/PopoverProvider';
+
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
-import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import type PopoverWithoutOverlayProps from './types';
 
-function PopoverWithoutOverlay(
-    {
-        anchorPosition = {},
-        anchorRef,
-        withoutOverlayRef,
-        innerContainerStyle = {},
-        outerStyle,
-        onModalShow = () => {},
-        isVisible,
-        onClose,
-        onModalHide = () => {},
-        children,
-    }: PopoverWithoutOverlayProps,
-    ref: ForwardedRef<View>,
-) {
+const NOOP = () => {};
+
+function PopoverWithoutOverlay({
+    anchorPosition = {},
+    anchorRef,
+    withoutOverlayRef,
+    innerContainerStyle = {},
+    outerStyle,
+    onModalShow = () => {},
+    isVisible,
+    onClose,
+    onModalHide = () => {},
+    children,
+    shouldDisplayBelowModals = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+}: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {onOpen, close} = useContext(PopoverContext);
+    const {onOpen, close} = usePopoverActions();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
-        StyleUtils.getModalStyles(
-            'popover',
-            {
+        StyleUtils.getModalStyles({
+            type: CONST.MODAL.MODAL_TYPE.POPOVER,
+            windowDimensions: {
                 windowWidth,
                 windowHeight,
                 isSmallScreenWidth: false,
             },
-            anchorPosition,
+            popoverAnchorPosition: anchorPosition,
             innerContainerStyle,
             outerStyle,
-        );
+            shouldDisplayBelowModals,
+            enableEdgeToEdgeBottomSafeAreaPadding,
+        });
 
     useEffect(() => {
         let removeOnClose: () => void;
         if (isVisible) {
             onModalShow();
+
             onOpen?.({
                 ref: withoutOverlayRef,
-                close: onClose,
+                close: onClose ?? NOOP,
                 anchorRef,
             });
-            removeOnClose = setCloseModal(onClose);
+            removeOnClose = setCloseModal(onClose ?? NOOP);
         } else {
             onModalHide();
             close(anchorRef);
@@ -69,7 +77,7 @@ function PopoverWithoutOverlay(
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
     const modalPaddingStyles = useMemo(
@@ -77,12 +85,21 @@ function PopoverWithoutOverlay(
             StyleUtils.getModalPaddingStyles({
                 shouldAddBottomSafeAreaMargin,
                 shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding,
+                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
                 shouldAddTopSafeAreaPadding,
                 modalContainerStyle,
                 insets,
             }),
-        [StyleUtils, insets, modalContainerStyle, shouldAddBottomSafeAreaMargin, shouldAddBottomSafeAreaPadding, shouldAddTopSafeAreaMargin, shouldAddTopSafeAreaPadding],
+        [
+            StyleUtils,
+            enableEdgeToEdgeBottomSafeAreaPadding,
+            insets,
+            modalContainerStyle,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
     );
 
     if (!isVisible) {
@@ -91,7 +108,7 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: variables.popoverZIndex}]}
+            style={modalStyle}
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}
@@ -103,7 +120,6 @@ function PopoverWithoutOverlay(
                     ...modalContainerStyle,
                     ...modalPaddingStyles,
                 }}
-                ref={ref}
             >
                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
@@ -111,6 +127,4 @@ function PopoverWithoutOverlay(
     );
 }
 
-PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
-
-export default forwardRef(PopoverWithoutOverlay);
+export default PopoverWithoutOverlay;

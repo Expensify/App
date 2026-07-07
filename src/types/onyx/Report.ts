@@ -1,9 +1,12 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
+import type {TripData} from './TripData';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -58,11 +61,53 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
+/** Report next step */
+type ReportNextStep = {
+    /** The message key */
+    messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** The icon */
+    icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+
+    /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
+    actorAccountID?: number;
+
+    /** The ETA (if applicable, e.g. expected reimbursement date) */
+    eta?: {
+        /** The ETA key */
+        etaKey?: ValueOf<typeof CONST.NEXT_STEP.ETA_KEY>;
+
+        /** The ETA date time */
+        dateTime?: string;
+    };
+
+    /** The fill color of the icon */
+    iconFill?: string;
+};
+
 /** Model of report data */
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
+
+        /** The date the report was created */
+        created?: string;
+
+        /** The date the report was submitted */
+        submitted?: string;
+
+        /** The date the report was approved */
+        approved?: string;
+
+        /** Custom field 1 value for the report submitter */
+        submitterUserID?: string;
+
+        /** Custom field 2 value for the report submitter */
+        submitterPayrollID?: string;
+
+        /** International reimbursement IDs associated with the report */
+        orderDealNumbers?: string;
 
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -142,6 +187,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Number of transactions in the report */
+        transactionCount?: number;
+
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
 
@@ -178,6 +226,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Total amount of unheld non-reimbursable transactions in an expense report */
         unheldNonReimbursableTotal?: number;
 
+        /** Total amount of reimbursable transactions including held ones, freshly computed by the backend */
+        reimbursableTotal?: number;
+
+        /** Total amount of reimbursable transactions excluding held ones, freshly computed by the backend */
+        unheldReimbursableTotal?: number;
+
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
@@ -193,6 +247,18 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
+        /** Whether the report has been retracted */
+        hasReportBeenRetracted?: boolean;
+
+        /** Whether the report has been reopened */
+        hasReportBeenReopened?: boolean;
+
+        /** Whether the report has been exported to integration */
+        isExportedToIntegration?: boolean;
+
+        /** Whether the report has any export errors */
+        hasExportError?: boolean;
+
         /** The ID of the IOU report */
         iouReportID?: string;
 
@@ -206,7 +272,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         privateNotes?: Record<number, Note>;
 
         /** Collection of policy report fields, indexed by their fieldID */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
@@ -221,12 +287,18 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** The trip ID in spotnana */
             tripID: string;
+
+            /** The trip data */
+            payload?: TripData;
         };
 
         /** The report's welcome message */
         welcomeMessage?: string;
+
+        /** The report's next step */
+        nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName' | 'export'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */
@@ -234,4 +306,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType, ReportNextStep};

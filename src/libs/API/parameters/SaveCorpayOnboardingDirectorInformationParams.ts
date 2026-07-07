@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type SaveCorpayOnboardingDirectorInformationParams = {
     inputs: string;

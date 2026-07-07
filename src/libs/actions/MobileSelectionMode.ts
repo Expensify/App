@@ -1,12 +1,13 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import Onyx from 'react-native-onyx';
+
 const turnOnMobileSelectionMode = () => {
-    Onyx.merge(ONYXKEYS.MOBILE_SELECTION_MODE, {isEnabled: true});
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE, true);
 };
 
 const turnOffMobileSelectionMode = () => {
-    Onyx.merge(ONYXKEYS.MOBILE_SELECTION_MODE, {isEnabled: false});
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE, false);
 };
 
 export {turnOnMobileSelectionMode, turnOffMobileSelectionMode};

@@ -1,43 +1,48 @@
-import {useIsFocused} from '@react-navigation/core';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
-import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
+import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
-import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-import {addLeadingZero} from '@libs/MoneyRequestUtils';
+import {isTaxAmountInvalid} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
+import type {ForwardedRef} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
-type MoneyRequestAmountFormProps = {
-    /** IOU amount saved in Onyx */
-    amount?: number;
+type MoneyRequestAmountFormHandle = {
+    /** Returns the currently typed (unsaved) amount, signed the same way the submit handler would send it */
+    getNumber: () => string;
+};
+
+type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad' | 'onFormatAmount'> & {
+    /** Exposes the currently typed amount to the parent (e.g. for unsaved-changes detection) */
+    amountFormRef?: ForwardedRef<MoneyRequestAmountFormHandle>;
 
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
-
-    /** Currency chosen by user or saved in Onyx */
-    currency?: string;
 
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
@@ -51,15 +56,6 @@ type MoneyRequestAmountFormProps = {
     /** The policyID of the request */
     policyID?: string;
 
-    /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: Route;
-
-    /** Whether the currency symbol is pressable */
-    isCurrencyPressable?: boolean;
-
-    /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
-
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
@@ -68,168 +64,152 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
+
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
+    /** The chatReportID of the request */
+    chatReportID?: string;
+
+    /** Whether this is a P2P (1:1) request */
+    isP2P?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
+const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
+    if (!amount.length || parseFloat(amount) < 0) {
+        return true;
+    }
 
-const AMOUNT_VIEW_ID = 'amountView';
-const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
-const NUM_PAD_VIEW_ID = 'numPadView';
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(amount) < 0.01 && isP2P) {
+        return true;
+    }
 
-function MoneyRequestAmountForm(
-    {
-        amount = 0,
-        taxAmount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        isEditing = false,
-        skipConfirmation = false,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        policyID = '',
-        bankAccountRoute = '',
-        onCurrencyButtonPress,
-        onSubmitButtonPress,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
-        shouldKeepUserInput = false,
-    }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+    if (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType)) {
+        return true;
+    }
+
+    return false;
+};
+
+/**
+ * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
+ */
+function MoneyRequestAmountForm({
+    amount = 0,
+    taxAmount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    isEditing = false,
+    skipConfirmation = false,
+    iouType = CONST.IOU.TYPE.SUBMIT,
+    policyID = '',
+    onCurrencyButtonPress,
+    onSubmitButtonPress,
+    selectedTab = CONST.TAB_REQUEST.MANUAL,
+    shouldKeepUserInput = false,
+    chatReportID,
+    hideCurrencySymbol = false,
+    allowFlippingAmount = false,
+    isP2P = false,
+    amountFormRef,
+    ref,
+}: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
-    const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
+    const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
+
+    const [isNegative, setIsNegative] = useState(false);
+
+    useImperativeHandle(amountFormRef, () => ({
+        getNumber: () => {
+            const number = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+            return number && isNegative ? `-${number}` : number;
+        },
+    }));
 
     const [formError, setFormError] = useState<string>('');
-    const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
-
-    const isFocused = useIsFocused();
-    const wasFocused = usePrevious(isFocused);
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
 
-    /**
-     * Event occurs when a user presses a mouse button over an DOM element.
-     */
-    const onMouseDown = (event: React.MouseEvent<Element, MouseEvent>, ids: string[]) => {
-        const relatedTargetId = (event.nativeEvent?.target as HTMLElement)?.id;
-        if (!ids.includes(relatedTargetId)) {
-            return;
-        }
+    const absoluteAmount = Math.abs(amount);
 
-        const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
-
-        event.preventDefault();
-        moneyRequestAmountInput.current?.changeSelection({
-            start: selection.end,
-            end: selection.end,
-        });
-
-        if (!textInput.current) {
-            return;
-        }
-
-        if (!isTextInputFocused(textInput)) {
-            textInput.current.focus();
-        }
-    };
-
-    useEffect(() => {
-        if (!isFocused || wasFocused) {
-            return;
-        }
-        const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
-
-        moneyRequestAmountInput.current?.changeSelection({
-            start: selection.end,
-            end: selection.end,
-        });
-    }, [isFocused, wasFocused]);
+    const onFormatAmount = useCallback(
+        (amountAsInt: number, currencyParam?: string) => {
+            const decimals = getCurrencyDecimals(currencyParam);
+            return convertToFrontendAmountAsString(amountAsInt, decimals);
+        },
+        [getCurrencyDecimals],
+    );
 
     const initializeAmount = useCallback(
         (newAmount: number) => {
-            const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
-            moneyRequestAmountInput.current?.changeAmount(frontendAmount);
-            moneyRequestAmountInput.current?.changeSelection({
-                start: frontendAmount.length,
-                end: frontendAmount.length,
-            });
+            const frontendAmount = newAmount ? onFormatAmount(newAmount, currency) : '';
+            moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
         },
-        [currency],
+        [currency, onFormatAmount],
     );
 
-    useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+    const toggleNegative = useCallback(() => {
+        setIsNegative(!isNegative);
+    }, [isNegative]);
+
+    const clearNegative = useCallback(() => {
+        setIsNegative(false);
+    }, []);
+
+    const initializeIsNegative = useCallback((currentAmount: number) => {
+        if (currentAmount >= 0) {
+            setIsNegative(false);
             return;
         }
-        initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [selectedTab]);
-
-    /**
-     * Update amount with number or Backspace pressed for BigNumberPad.
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
-     */
-    const updateAmountNumberPad = useCallback(
-        (key: string) => {
-            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
-                textInput.current?.focus();
-            }
-            const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
-            const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
-            // Backspace button is pressed
-            if (key === '<' || key === 'Backspace') {
-                if (currentAmount.length > 0) {
-                    const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
-                    const newAmount = `${currentAmount.substring(0, selectionStart)}${currentAmount.substring(selection.end)}`;
-                    moneyRequestAmountInput.current?.setNewAmount(addLeadingZero(newAmount));
-                }
-                return;
-            }
-            const newAmount = addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
-            moneyRequestAmountInput.current?.setNewAmount(newAmount);
-        },
-        [shouldUpdateSelection],
-    );
-
-    /**
-     * Update long press value, to remove items pressing on <
-     *
-     * @param value - Changed text from user input
-     */
-    const updateLongPressHandlerState = useCallback((value: boolean) => {
-        setShouldUpdateSelection(!value);
-        if (!value && !isTextInputFocused(textInput)) {
-            textInput.current?.focus();
-        }
+        setIsNegative(true);
     }, []);
+
+    useEffect(() => {
+        initializeIsNegative(amount);
+    }, [amount, initializeIsNegative]);
+
+    useEffect(() => {
+        if (!currency || typeof absoluteAmount !== 'number') {
+            return;
+        }
+
+        initializeAmount(absoluteAmount);
+        initializeIsNegative(amount);
+
+        // we want to re-initialize the state only when the selected tab
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTab]);
 
     /**
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType?: PaymentMethodType | undefined) => {
-            const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
+        ({paymentType: iouPaymentType}: PaymentActionParams = {}) => {
+            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
-            const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
+            const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
-                setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+            if (isTaxAmountForm && isTaxAmountInvalid(currentAmount, taxAmount, getCurrencyDecimals(currency))) {
+                setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
+
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, getCurrencyDecimals],
     );
 
     const buttonText: string = useMemo(() => {
@@ -248,105 +228,109 @@ function MoneyRequestAmountForm(
         setFormError('');
     }, [selectedTab]);
 
-    return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <View
-                id={AMOUNT_VIEW_ID}
-                onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-            >
-                <MoneyRequestAmountInput
-                    amount={amount}
-                    autoGrowExtraSpace={variables.w80}
-                    currency={currency}
-                    isCurrencyPressable={isCurrencyPressable}
-                    onCurrencyButtonPress={onCurrencyButtonPress}
-                    onAmountChange={() => {
-                        if (!formError) {
-                            return;
-                        }
-                        setFormError('');
-                    }}
-                    shouldUpdateSelection={shouldUpdateSelection}
-                    ref={(ref) => {
-                        if (typeof forwardedRef === 'function') {
-                            forwardedRef(ref);
-                        } else if (forwardedRef?.current) {
-                            // eslint-disable-next-line no-param-reassign
-                            forwardedRef.current = ref;
-                        }
-                        textInput.current = ref;
-                    }}
-                    shouldKeepUserInput={shouldKeepUserInput}
-                    moneyRequestAmountInputRef={moneyRequestAmountInput}
-                    inputStyle={[styles.iouAmountTextInput]}
-                    containerStyle={[styles.iouAmountTextInputContainer]}
-                    testID="moneyRequestAmountInput"
-                />
-                {!!formError && (
-                    <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
-                        isError
-                        message={formError}
+    const footer = useMemo(
+        () => (
+            <View style={styles.w100}>
+                {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
+                    <SettlementButton
+                        pressOnEnter
+                        onPress={submitAndNavigateToNextPage}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                        addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                        currency={currency ?? CONST.CURRENCY.USD}
+                        policyID={policyID}
+                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
+                        buttonSize={CONST.BUTTON_SIZE.LARGE}
+                        kycWallAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                        paymentMethodDropdownAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                        shouldShowPersonalBankAccountOption
+                        enterKeyEventListenerPriority={1}
+                        chatReportID={chatReportID}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_PAY_BUTTON}
+                    />
+                ) : (
+                    <Button
+                        success
+                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
+                        allowBubble={!isEditing}
+                        pressOnEnter
+                        medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
+                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
+                        onPress={() => submitAndNavigateToNextPage()}
+                        text={buttonText}
+                        testID="next-button"
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
                     />
                 )}
             </View>
-            <View
-                onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
-                id={NUM_PAD_CONTAINER_VIEW_ID}
-            >
-                {canUseTouchScreen ? (
-                    <BigNumberPad
-                        id={NUM_PAD_VIEW_ID}
-                        numberPressed={updateAmountNumberPad}
-                        longPressHandlerStateChanged={updateLongPressHandlerState}
-                    />
-                ) : null}
-                <View style={styles.w100}>
-                    {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
-                        <SettlementButton
-                            pressOnEnter
-                            onPress={submitAndNavigateToNextPage}
-                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
-                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={currency ?? CONST.CURRENCY.USD}
-                            policyID={policyID}
-                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                            kycWallAnchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                            paymentMethodDropdownAnchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                            shouldShowPersonalBankAccountOption
-                            enterKeyEventListenerPriority={1}
-                        />
-                    ) : (
-                        <Button
-                            success
-                            // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                            allowBubble={!isEditing}
-                            pressOnEnter
-                            medium={isExtraSmallScreenHeight}
-                            large={!isExtraSmallScreenHeight}
-                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                            onPress={() => submitAndNavigateToNextPage()}
-                            text={buttonText}
-                            testID="next-button"
-                        />
-                    )}
-                </View>
-            </View>
+        ),
+        [
+            styles.w100,
+            styles.mt5,
+            styles.mt0,
+            iouType,
+            skipConfirmation,
+            submitAndNavigateToNextPage,
+            currency,
+            policyID,
+            canUseTouchScreen,
+            chatReportID,
+            isEditing,
+            isExtraSmallScreenHeight,
+            buttonText,
+        ],
+    );
+
+    return (
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
+            <MoneyRequestAmountInput
+                amount={amount}
+                autoGrowExtraSpace={variables.w80}
+                hideCurrencySymbol={hideCurrencySymbol}
+                currency={currency}
+                shouldUseDynamicFontSize
+                isCurrencyPressable={isCurrencyPressable}
+                onCurrencyButtonPress={onCurrencyButtonPress}
+                onFormatAmount={onFormatAmount}
+                onAmountChange={() => {
+                    if (!formError) {
+                        return;
+                    }
+                    setFormError('');
+                }}
+                shouldShowBigNumberPad={canUseTouchScreen}
+                ref={(newRef) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
+                        // eslint-disable-next-line no-param-reassign
+                        ref.current = newRef;
+                    }
+                    textInput.current = newRef;
+                }}
+                moneyRequestAmountInputRef={moneyRequestAmountInputRef}
+                shouldKeepUserInput={shouldKeepUserInput}
+                inputStyle={styles.iouAmountTextInput}
+                containerStyle={styles.iouAmountTextInputContainer}
+                touchableInputWrapperStyle={styles.heightUndefined}
+                testID="moneyRequestAmountInput"
+                isNegative={isNegative}
+                allowFlippingAmount={allowFlippingAmount}
+                toggleNegative={toggleNegative}
+                clearNegative={clearNegative}
+                errorText={formError}
+                footer={footer}
+            />
         </ScrollView>
     );
 }
 
-MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
-
-export default React.forwardRef(MoneyRequestAmountForm);
-export type {CurrentMoney};
+export default MoneyRequestAmountForm;
+export type {CurrentMoney, MoneyRequestAmountFormHandle};

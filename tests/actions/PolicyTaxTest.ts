@@ -1,18 +1,42 @@
-import Onyx from 'react-native-onyx';
-import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
 describe('actions/PolicyTax', () => {
-    const fakePolicy: PolicyType = {...createRandomPolicy(0), taxRates: CONST.DEFAULT_TAX};
+    const fakePolicy: PolicyType = {
+        ...createRandomPolicy(0),
+        taxRates: CONST.DEFAULT_TAX,
+        customUnits: {
+            [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                customUnitID: 'id_CUSTOM_UNIT_1',
+                enabled: true,
+                rates: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    id_CUSTOM_UNIT_1: {
+                        name: 'Distance',
+                        customUnitRateID: 'id_CUSTOM_UNIT_1',
+                        enabled: true,
+                        currency: 'USD',
+                        rate: 67,
+                    },
+                },
+            },
+        },
+    };
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -32,7 +56,7 @@ describe('actions/PolicyTax', () => {
         it('Set policy`s custom tax name', () => {
             const customTaxName = 'Custom tag name';
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -73,7 +97,7 @@ describe('actions/PolicyTax', () => {
             const originalCustomTaxName = fakePolicy?.taxRates?.name;
 
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, originalCustomTaxName);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -120,7 +144,7 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -161,7 +185,7 @@ describe('actions/PolicyTax', () => {
             const originalDefaultExternalID = fakePolicy?.taxRates?.defaultExternalID;
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, originalDefaultExternalID);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -207,7 +231,7 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -249,7 +273,7 @@ describe('actions/PolicyTax', () => {
             const originalDefaultForeignCurrencyID = fakePolicy?.taxRates?.foreignTaxDefault;
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, originalDefaultForeignCurrencyID);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -489,7 +513,8 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
             const newTaxName = 'Tax rate 1 updated';
             mockFetch?.pause?.();
-            renamePolicyTax(fakePolicy.id, taxID, newTaxName);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            renamePolicyTax(fakePolicy.id, taxID, newTaxName, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -534,7 +559,8 @@ describe('actions/PolicyTax', () => {
             const newTaxName = 'Tax rate 1 updated';
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             mockFetch?.pause?.();
-            renamePolicyTax(fakePolicy.id, taxID, newTaxName);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            renamePolicyTax(fakePolicy.id, taxID, newTaxName, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -584,7 +610,8 @@ describe('actions/PolicyTax', () => {
             const newTaxValue = 10;
             const stringTaxValue = `${newTaxValue}%`;
             mockFetch?.pause?.();
-            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -630,7 +657,8 @@ describe('actions/PolicyTax', () => {
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             const stringTaxValue = `${newTaxValue}%`;
             mockFetch?.pause?.();
-            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -680,7 +708,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -734,7 +762,7 @@ describe('actions/PolicyTax', () => {
                 },
             };
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID]);
+            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -776,12 +804,12 @@ describe('actions/PolicyTax', () => {
                 );
         });
 
-        it('Delete tax that is not foreignTaxDefault but API return an error, then recover the delated tax', () => {
+        it('Delete tax that is not foreignTaxDefault but API return an error, then recover the deleted tax', () => {
             const foreignTaxDefault = fakePolicy?.taxRates?.foreignTaxDefault;
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -825,6 +853,48 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 );
+        });
+    });
+    describe('SetPolicyTaxCode', () => {
+        const oldTaxCode = 'id_TAX_RATE_1';
+        const newTaxCode = 'id_TAX_RATE_2';
+        const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldTaxCode]?.name;
+
+        it('Set policy`s tax code', () => {
+            mockFetch?.pause?.();
+            const distanceRateCustomUnit = fakePolicy?.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE];
+
+            setPolicyTaxCode(
+                fakePolicy.id,
+                oldTaxCode,
+                newTaxCode,
+                // @ts-expect-error - we can send undefined tax rate here for testing
+                fakePolicy?.taxRates?.taxes[oldTaxCode],
+                fakePolicy?.taxRates?.foreignTaxDefault,
+                fakePolicy?.taxRates?.defaultExternalID,
+                distanceRateCustomUnit,
+            );
+
+            return waitForBatchedUpdates().then(
+                () =>
+                    new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                            waitForCollectionCallback: false,
+                            callback: (policy) => {
+                                Onyx.disconnect(connection);
+                                const taxRates = policy?.taxRates;
+                                const updatedTaxRate = taxRates?.taxes?.[newTaxCode];
+
+                                // We expected to have a new tax rate with the new tax code
+                                expect(updatedTaxRate).toBeDefined();
+                                expect(updatedTaxRate?.previousTaxCode).toBe(oldTaxCode);
+                                expect(updatedTaxRate?.name).toBe(oldTaxRateName);
+                                resolve();
+                            },
+                        });
+                    }),
+            );
         });
     });
 });

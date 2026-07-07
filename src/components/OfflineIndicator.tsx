@@ -1,14 +1,18 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type OfflineIndicatorProps = {
@@ -27,10 +31,12 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
 
     const fallbackStyle = useMemo(() => [styles.offlineIndicatorContainer, containerStylesProp], [styles.offlineIndicatorContainer, containerStylesProp]);
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         style: fallbackStyle,
     });
 
@@ -42,7 +48,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
         <View style={[containerStyles, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 fill={theme.icon}
-                src={Expensicons.OfflineCloud}
+                src={icons.OfflineCloud}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />
@@ -50,7 +56,5 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
         </View>
     );
 }
-
-OfflineIndicator.displayName = 'OfflineIndicator';
 
 export default OfflineIndicator;

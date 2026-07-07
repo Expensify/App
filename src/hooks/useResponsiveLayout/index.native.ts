@@ -1,29 +1,37 @@
-import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import {useContext, useMemo} from 'react';
 import ModalContext from '@components/Modal/ModalContext';
+
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
+import {useContext, useMemo} from 'react';
+
 import type ResponsiveLayoutResult from './types';
 
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator. It also provides booleans for our breakpoints
- * Use "shouldUseNarrowLayout" for "on mobile or in RHP/LHP", "isSmallScreenWidth" for "on mobile", "isInNarrowPaneModal" for "in RHP/LHP".
+ * Use "shouldUseNarrowLayout" for "on mobile or in RHP", "isSmallScreenWidth" for "on mobile", "isInNarrowPaneModal" for "in RHP".
  *
  * There are two kinds of modals in this app:
  *     1. Modal stack navigators from react-navigation
- *     2. Modal components that use react-native-modal
+ *     2. Modal components that use react-native-reanimated
  *
  * This hook is designed to handle both. `shouldUseNarrowLayout` will return `true` if any of the following are true:
  *     1. The device screen width is narrow
- *     2. The consuming component is the child of a "right docked" react-native-modal component
- *     3. The consuming component is a screen in a modal stack navigator and not a child of a "non-right-docked" react-native-modal component.
+ *     2. The consuming component is the child of a "right docked" react-native-reanimated component
+ *     3. The consuming component is a screen in a modal stack navigator and not a child of a "non-right-docked" react-native-reanimated component.
  *
- * For more details on the various modal types we've defined for this app and implemented using react-native-modal, see `ModalType`.
+ * For more details on the various modal types we've defined for this app and implemented using react-native-reanimated, see `ModalType`.
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = true;
@@ -33,10 +41,10 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
     const isSmallScreen = true;
 
-    // we need to always take screen width into consideration, no matter the platform.
-    const onboardingIsMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
+    // we need to always take screen width into consideration, no matter the platform (with exception of landscape mode).
+    const onboardingIsMediumOrLargerScreenWidth = !isInLandscapeMode && windowWidth > variables.mobileResponsiveWidthBreakpoint;
 
-    // Note: activeModalType refers to our react-native-modal component wrapper, not react-navigation's modal stack navigators.
+    // Note: activeModalType refers to our react-native-reanimated component wrapper, not react-navigation's modal stack navigators.
     // This means it will only be defined if the component calling this hook is a child of a modal component. See BaseModal for the provider.
     const {activeModalType} = useContext(ModalContext);
 
@@ -48,12 +56,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const navigator = useContext(NavigationContext);
     const currentNavigator = navigator ?? navigationContainerRef;
 
-    const isDisplayedInNarrowModalNavigator = useMemo(
-        () =>
-            !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined) ||
-            !!currentNavigator?.getParent?.(NAVIGATORS.LEFT_MODAL_NAVIGATOR as unknown as undefined),
-        [currentNavigator],
-    );
+    const isDisplayedInNarrowModalNavigator = useMemo(() => !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined), [currentNavigator]);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =
@@ -76,5 +79,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isLargeScreenWidth,
         isSmallScreen,
         isExtraLargeScreenWidth,
+        isInLandscapeMode,
     };
 }

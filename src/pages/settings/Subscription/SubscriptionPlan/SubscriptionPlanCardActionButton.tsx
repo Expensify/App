@@ -1,25 +1,36 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
+
+import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+
 import Navigation from '@navigation/Navigation';
-import {getCurrentUserAccountID} from '@userActions/Report';
+
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import AddMembersButton from './AddMembersButton';
-import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
+import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
     /** Subscription plan to display */
-    subscriptionPlan: PersonalPolicyTypeExludedProps | null;
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal: boolean;
@@ -37,30 +48,51 @@ type SubscriptionPlanCardActionButtonProps = {
 function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal, style}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const currentUserAccountID = getCurrentUserAccountID();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const privateSubscription = usePrivateSubscription();
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
-    const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
+    const [canPerformUpgrade, policy] = useMemo(() => {
+        const firstPolicy = ownerPolicies.at(0);
+        if (!firstPolicy || ownerPolicies.length > 1) {
+            return [false, undefined];
+        }
+        return [isPolicyAdmin(firstPolicy), firstPolicy];
+    }, [ownerPolicies]);
+
+    const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
         closeComparisonModal?.();
 
         // If user has no policies, return.
         if (!ownerPolicies.length) {
             return;
         }
-
-        const ownerPolicy = ownerPolicies.length === 1 ? ownerPolicies.at(0)?.id : undefined;
+        if (
+            (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) ||
+            isSubscriptionTypeOfInvoicing(privateSubscription?.type)
+        ) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
+            return;
+        }
 
         if (planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(ownerPolicy, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id, Navigation.getActiveRoute()));
             return;
         }
 
         if (planType === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(ownerPolicy, undefined, Navigation.getActiveRoute()));
+            if (canPerformUpgrade && !!policy?.id) {
+                upgradeToCorporate(policy);
+                closeComparisonModal?.();
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, undefined, Navigation.getActiveRoute()));
         }
     };
 
@@ -85,9 +117,6 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 />
             );
         }
-        if (hasTeam2025Pricing) {
-            return <AddMembersButton />;
-        }
     }
 
     if (subscriptionPlan === CONST.POLICY.TYPE.CORPORATE) {
@@ -106,20 +135,33 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
     }
 
+    if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
+        return undefined;
+    }
+
     const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
     const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+    const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
 
     return (
-        <MenuItemWithTopDescription
-            description={translate('subscription.subscriptionSettings.title')}
-            style={style}
-            shouldShowRightIcon
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
-            numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', {subscriptionType, subscriptionSize, autoRenew, autoIncrease})}
-        />
+        <View>
+            <MenuItemWithTopDescription
+                description={translate('subscription.subscriptionSettings.title')}
+                style={style}
+                interactive={false}
+                numberOfLinesTitle={3}
+                title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
+            />
+            <View style={[style, styles.mt2]}>
+                <Button
+                    text={translate('subscription.subscriptionSettings.editSubscription')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+                    style={styles.alignSelfStart}
+                />
+            </View>
+        </View>
     );
 }
 

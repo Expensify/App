@@ -1,0 +1,95 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useCallback, useContext} from 'react';
+
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLocalize from './useLocalize';
+
+type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
+
+type UseAvatarMenuParams = {
+    /** Whether the user is using a default avatar */
+    shouldHideAvatarEdit: boolean;
+    /** Source of newly uploaded avatar */
+    source?: string;
+    /** File name of newly uploaded avatar */
+    originalFileName?: string;
+    /** Account ID for navigation */
+    accountID: number;
+    /** Callback when avatar is removed */
+    onImageRemoved: () => void;
+    /** Callback to show avatar crop modal */
+    showAvatarCropModal: (image: FileObject) => void;
+    /** Callback to clear errors */
+    clearError: () => void;
+};
+
+/**
+ * Custom hook to create avatar menu items
+ */
+function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
+    const icons = useMemoizedLazyExpensifyIcons(['Upload', 'Trashcan', 'Eye']);
+    const {translate} = useLocalize();
+    const attachmentContext = useContext(AttachmentModalContext);
+
+    /**
+     * Create menu items list for avatar menu
+     */
+    const createMenuItems = useCallback(
+        (openPicker: OpenPicker): Array<DropdownOption<null>> => {
+            const menuItems: Array<DropdownOption<null>> = [
+                {
+                    icon: icons.Upload,
+                    text: translate('avatarWithImagePicker.uploadPhoto'),
+                    onSelected: () => {
+                        openPicker({
+                            onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                        });
+                    },
+                    value: null,
+                },
+            ];
+            // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
+            if (shouldHideAvatarEdit) {
+                return menuItems;
+            }
+            if (!source) {
+                menuItems.push({
+                    icon: icons.Trashcan,
+                    text: translate('avatarWithImagePicker.removePhoto'),
+                    value: null,
+                    onSelected: () => {
+                        clearError();
+                        onImageRemoved();
+                    },
+                });
+            }
+
+            return [
+                ...menuItems,
+                {
+                    value: null,
+                    icon: icons.Eye,
+                    text: translate('avatarWithImagePicker.viewPhoto'),
+                    onSelected: () => {
+                        attachmentContext.setCurrentAttachment({source, originalFileName});
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)));
+                    },
+                },
+            ];
+        },
+        [icons.Upload, icons.Trashcan, icons.Eye, translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
+    );
+
+    return {createMenuItems};
+}
+
+export default useAvatarMenu;

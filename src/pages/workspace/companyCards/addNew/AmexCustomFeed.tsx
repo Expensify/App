@@ -1,25 +1,31 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CompanyCards from '@userActions/CompanyCards';
+
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const typeSelected = localTypeSelected ?? addNewCard?.data?.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
     const submit = () => {
@@ -27,21 +33,13 @@ function AmexCustomFeed() {
             setHasError(true);
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({
+        setAddNewCompanyCardStepAndData({
             step: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.CORPORATE ? CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS : CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
             data: {
                 feedType: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
                 selectedAmexCustomFeed: typeSelected,
             },
         });
-    };
-
-    useEffect(() => {
-        setTypeSelected(addNewCard?.data.selectedAmexCustomFeed);
-    }, [addNewCard?.data.selectedAmexCustomFeed]);
-
-    const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
@@ -68,39 +66,43 @@ function AmexCustomFeed() {
         },
     ];
 
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+    };
+
     return (
         <ScreenWrapper
-            testID={AmexCustomFeed.displayName}
+            testID="AmexCustomFeed"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
-                onBackButtonPress={handleBackButtonPress}
+                onBackButtonPress={() => {
+                    setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+                }}
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
-            <Text style={[styles.textSupporting, styles.ph5, styles.mb6]}>
-                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.text')}`}
-                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.linkText')}`}</TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mb6]}>
+                <RenderHTML html={translate('workspace.companyCards.addNewCard.learnMoreAboutOptions')} />
+            </View>
 
             <SelectionList
-                ListItem={RadioListItem}
+                data={data}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data}]}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={3}
-                initiallyFocusedOptionKey={addNewCard?.data.selectedAmexCustomFeed}
+                alternateNumberOfSupportedLines={3}
+                initiallyFocusedItemKey={addNewCard?.data?.selectedAmexCustomFeed ?? undefined}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
                 addBottomSafeAreaPadding
             >
                 {hasError && (
@@ -115,7 +117,5 @@ function AmexCustomFeed() {
         </ScreenWrapper>
     );
 }
-
-AmexCustomFeed.displayName = 'AmexCustomFeed';
 
 export default AmexCustomFeed;

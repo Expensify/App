@@ -4,7 +4,6 @@ description: Learn how to integrate Workday with Expensify to automatically sync
 keywords: [Expensify Classic, Workday, Expensify, integration, employee sync, API, HR integrations]
 ---
 
-<div id="expensify-classic" markdown="1">
    
 Expensify’s integration with Workday allows businesses to automatically sync employees, update approval workflows, and manage user provisioning. This guide walks you through setting up an Advanced Custom Report in Workday and enabling the integration with Expensify.
 
@@ -97,7 +96,7 @@ To create an **Advanced Custom Report** in Workday:
    - `lastName`
    - `employeeEmail`
    - `managerEmail`
-   - `workspaceID`
+   - `policyID`
    - `domainGroupID`
    - `approvesTo`
 
@@ -151,4 +150,3 @@ If additional information is required, Expensify will reach out via direct messa
 
 ---
 
-</div>

@@ -21,6 +21,7 @@ type CategorizeTrackedExpenseParams = {
     taxAmount: number;
     billable?: boolean;
     waypoints?: string;
+    customUnitID?: string;
     customUnitRateID?: string;
     policyExpenseChatReportID?: string;
     policyExpenseCreatedReportActionID?: string;
@@ -29,6 +30,7 @@ type CategorizeTrackedExpenseParams = {
     guidedSetupData?: string;
     engagementChoice?: string;
     description?: string;
+    attendees?: string;
 };
 
 export default CategorizeTrackedExpenseParams;

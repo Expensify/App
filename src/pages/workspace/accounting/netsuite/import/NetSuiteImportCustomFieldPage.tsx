@@ -1,26 +1,33 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import type {ThemeStyles} from '@styles/index';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
@@ -67,9 +74,11 @@ function NetSuiteImportCustomFieldPage({
         params: {importCustomField},
     },
 }: NetSuiteImportCustomFieldPageProps) {
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
@@ -79,7 +88,7 @@ function NetSuiteImportCustomFieldPage({
             <WorkspaceEmptyStateSection
                 shouldStyleAsCard={false}
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={Illustrations.FolderWithPapers}
+                icon={illustrations.FolderWithPapers}
                 subtitleComponent={
                     <HelpLinkComponent
                         importCustomField={importCustomField}
@@ -91,7 +100,7 @@ function NetSuiteImportCustomFieldPage({
                 containerStyle={[styles.flex1, styles.justifyContentCenter]}
             />
         ),
-        [importCustomField, styles, translate],
+        [importCustomField, styles, translate, illustrations.FolderWithPapers],
     );
 
     const listHeaderComponent = useMemo(
@@ -110,7 +119,7 @@ function NetSuiteImportCustomFieldPage({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldPage.displayName}
+            displayName="NetSuiteImportCustomFieldPage"
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.title`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -156,5 +165,4 @@ function NetSuiteImportCustomFieldPage({
     );
 }
 
-NetSuiteImportCustomFieldPage.displayName = 'NetSuiteImportCustomFieldPage';
 export default withPolicyConnections(NetSuiteImportCustomFieldPage);

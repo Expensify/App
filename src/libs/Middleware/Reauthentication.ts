@@ -1,49 +1,52 @@
+import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
-import {reauthenticate as reauthenticateLibs} from '@libs/Authentication';
+import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
-import {isAuthenticating as isAuthenticatingNetworkStore, isOffline, setIsAuthenticating} from '@libs/Network/NetworkStore';
+import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
+import {getIsOffline} from '@libs/NetworkState';
+import reauthenticateLibs from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+
 import CONST from '@src/CONST';
+import type Request from '@src/types/onyx/Request';
+import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
-let isAuthenticating: Promise<void> | null = null;
+let isAuthenticating: Promise<boolean> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
-function reauthenticate(commandName?: string): Promise<void> | null {
+function reauthenticate(commandName?: string): Promise<boolean> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
 
-    isAuthenticating =
-        retryReauthenticate(commandName)
-            ?.then((response) => {
-                return response;
-            })
-            .catch((error) => {
-                throw error;
-            })
-            .finally(() => {
-                isAuthenticating = null;
-            }) ?? null;
+    isAuthenticating = retryReauthenticate(commandName).finally(() => {
+        // Reset the isAuthenticating state to allow new reauthentication flows to start fresh
+        isAuthenticating = null;
+    });
 
     return isAuthenticating;
 }
 
-function retryReauthenticate(commandName?: string): Promise<void> | undefined {
-    return reauthenticateLibs(commandName)?.catch((error: RequestError) => {
+function retryReauthenticate(commandName?: string): Promise<boolean> {
+    return reauthenticateLibs(commandName).catch((error: RequestError) => {
         return reauthThrottle
             .sleep(error, 'Authenticate')
             .then(() => retryReauthenticate(commandName))
             .catch(() => {
                 setIsAuthenticating(false);
-                Log.hmmm('Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
+                Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
                 redirectToSignIn('passwordForm.error.fallback');
+                return false;
             });
     });
 }
@@ -57,70 +60,97 @@ function resetReauthentication(): void {
     reauthThrottle.clear();
 }
 
+function isExpiredSessionError(error: unknown): error is HttpsError {
+    return error instanceof HttpsError && Number(error.status) === CONST.JSON_CODE.NOT_AUTHENTICATED;
+}
+
+// Preserve hard HTTP failures from Authenticate as response-shaped data so the
+// auth flow can map them to the right sign-in error instead of retrying them
+// like transient transport failures.
+function shouldResolveAuthenticateHTTPError(error: unknown, request: {command: string}): error is HttpsError {
+    return request.command === 'Authenticate' && error instanceof HttpsError && !!error.status && error.message !== CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
+}
+
+function handleExpiredSession<TKey extends OnyxKey>(
+    request: Request<TKey> | PaginatedRequest<TKey>,
+    isFromSequentialQueue: boolean,
+    data: Response<TKey> = {jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED} as Response<TKey>,
+): Promise<Response<TKey> | void> {
+    if (getIsOffline()) {
+        // Both body-level and HTTP-level 407 responses should honor the existing
+        // offline pause so flaky connectivity does not trigger sign-out retries.
+        throw new Error('Unable to reauthenticate because we are offline');
+    }
+
+    // There are some API requests that should not be retried when there is an auth failure like
+    // creating and deleting logins. In those cases, they should handle the original response instead
+    // of the new response created by handleExpiredAuthToken.
+    const shouldRetry = request?.data?.shouldRetry;
+    const apiRequestType = request?.data?.apiRequestType;
+
+    // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
+    // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
+    // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
+    const skipReauthentication = request?.data?.skipReauthentication;
+    if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
+        if (isFromSequentialQueue) {
+            return Promise.resolve(data);
+        }
+
+        if (request.resolve) {
+            request.resolve(data);
+        }
+        return Promise.resolve(data);
+    }
+
+    // We are already authenticating and using the DeprecatedAPI so we will replay the request
+    if (!apiRequestType && isAuthenticatingNetworkStore()) {
+        replayMainQueue(request);
+        return Promise.resolve(data);
+    }
+
+    return reauthenticate(request?.commandName)
+        .then((wasSuccessful) => {
+            if (!wasSuccessful) {
+                // Reauth already handled the sign-in redirect, so do not briefly show the failed request UI before sign-in.
+                request.failureData = undefined;
+                request.finallyData = undefined;
+                return data;
+            }
+
+            if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                return processWithMiddleware(request, isFromSequentialQueue);
+            }
+
+            if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
+                // Re-sync app data after successful re-authentication
+                reconnect();
+                return Promise.resolve();
+            }
+
+            replayMainQueue(request);
+        })
+        .catch(() => {
+            if (isFromSequentialQueue || apiRequestType) {
+                throw new Error('Failed to reauthenticate');
+            }
+
+            // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
+            replayMainQueue(request);
+        });
+}
+
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
     response
         .then((data) => {
             // If there is no data for some reason then we cannot reauthenticate
             if (!data) {
-                Log.hmmm('Undefined data in Reauthentication');
+                Log.hmmm('[Reauthenticate] Undefined data in Reauthentication');
                 return;
             }
 
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                if (isOffline()) {
-                    // If we are offline and somehow handling this response we do not want to reauthenticate
-                    throw new Error('Unable to reauthenticate because we are offline');
-                }
-
-                // There are some API requests that should not be retried when there is an auth failure like
-                // creating and deleting logins. In those cases, they should handle the original response instead
-                // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = request?.data?.shouldRetry;
-                const apiRequestType = request?.data?.apiRequestType;
-
-                // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
-                // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
-                // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
-                const skipReauthentication = request?.data?.skipReauthentication;
-                if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
-                    if (isFromSequentialQueue) {
-                        return data;
-                    }
-
-                    if (request.resolve) {
-                        request.resolve(data);
-                    }
-                    return data;
-                }
-
-                // We are already authenticating and using the DeprecatedAPI so we will replay the request
-                if (!apiRequestType && isAuthenticatingNetworkStore()) {
-                    replayMainQueue(request);
-                    return data;
-                }
-
-                return reauthenticate(request?.commandName)
-                    ?.then((authenticateResponse) => {
-                        if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-                            return processWithMiddleware(request, isFromSequentialQueue);
-                        }
-
-                        if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            NetworkConnection.triggerReconnectionCallbacks('read request made with expired authToken');
-                            return Promise.resolve();
-                        }
-
-                        replayMainQueue(request);
-                        return authenticateResponse;
-                    })
-                    .catch(() => {
-                        if (isFromSequentialQueue || apiRequestType) {
-                            throw new Error('Failed to reauthenticate');
-                        }
-
-                        // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
-                        replayMainQueue(request);
-                    });
+                return handleExpiredSession(request, isFromSequentialQueue, data);
             }
 
             if (isFromSequentialQueue) {
@@ -135,6 +165,31 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             return data;
         })
         .catch((error) => {
+            if (isExpiredSessionError(error)) {
+                return Promise.resolve()
+                    .then(() => handleExpiredSession(request, isFromSequentialQueue))
+                    .catch((reauthenticationError) => {
+                        if (isFromSequentialQueue) {
+                            throw reauthenticationError;
+                        }
+
+                        if (request.resolve) {
+                            request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+                        }
+                    });
+            }
+
+            if (shouldResolveAuthenticateHTTPError(error, request)) {
+                if (request.resolve) {
+                    request.resolve({
+                        jsonCode: Number(error.status),
+                        message: error.message,
+                        title: error.title,
+                    });
+                }
+                return;
+            }
+
             // If the request is on the sequential queue, re-throw the error so we can decide to retry or not
             if (isFromSequentialQueue) {
                 throw error;
@@ -147,4 +202,4 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         });
 
 export default Reauthentication;
-export {reauthenticate, resetReauthentication, reauthThrottle};
+export {resetReauthentication};

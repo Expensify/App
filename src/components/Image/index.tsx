@@ -1,19 +1,54 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useSession} from '@components/OnyxProvider';
+import LoadingIndicator from '@components/LoadingIndicator';
+import {useSession} from '@components/OnyxListItemProvider';
+
+import useNetwork from '@hooks/useNetwork';
+
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
+
 import CONST from '@src/CONST';
-import BaseImage from './BaseImage';
-import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
+
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+
 import type {ImageOnLoadEvent, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
+import BaseImage from './BaseImage';
+import getImageSource from './getImageSource';
+import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
+
+function Image({
+    source: propsSource,
+    shouldCalculateAspectRatioForWideImage = false,
+    isAuthTokenRequired = false,
+    onLoad,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    style,
+    loadingIconSize,
+    loadingIndicatorStyles,
+    imageWidthToCalculateHeight,
+    ...forwardedProps
+}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
+    const {isOffline} = useNetwork();
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
+
+    const aspectRatioStyle = useMemo(() => {
+        if (!shouldSetAspectRatioInStyle || !aspectRatio) {
+            return {};
+        }
+
+        if (!!imageWidthToCalculateHeight && typeof aspectRatio === 'number') {
+            return {
+                width: '100%',
+                height: imageWidthToCalculateHeight / aspectRatio,
+            };
+        }
+
+        return {aspectRatio, height: 'auto'};
+    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
@@ -21,14 +56,14 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 return;
             }
 
-            if (width > height) {
+            if (width > height && !shouldCalculateAspectRatioForWideImage) {
                 setAspectRatio(1);
                 return;
             }
 
             setAspectRatio(height ? width / height : 'auto');
         },
-        [isObjectPositionTop],
+        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
     );
 
     const handleLoad = useCallback(
@@ -53,7 +88,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
      */
     const previousSessionAge = useRef<number | undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const validSessionAge: number | undefined = useMemo(() => {
         // Authentication is required only for certain types of images (attachments and receipts),
         // so we only calculate the session age for those
@@ -75,7 +110,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             return session.creationDate;
         }
         return undefined;
-    }, [session, isAuthTokenRequired, isAcceptedSession]);
+    }, [session?.creationDate, isAuthTokenRequired, isAcceptedSession]);
     useEffect(() => {
         if (!isAuthTokenRequired) {
             return;
@@ -88,32 +123,23 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      * to the source.
      */
     const source = useMemo(() => {
-        if (typeof propsSource === 'object' && 'uri' in propsSource) {
-            if (typeof propsSource.uri === 'number') {
-                return propsSource.uri;
-            }
-            const authToken = session?.encryptedAuthToken ?? null;
-            if (isAuthTokenRequired && authToken) {
-                if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
-                    return {
-                        ...propsSource,
-                        headers: {
-                            [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
-                        },
-                    };
-                }
-                if (session) {
-                    activateReauthenticator(session);
-                }
-                return undefined;
-            }
+        const resolvedImageSource = getImageSource({
+            propsSource,
+            session,
+            isAuthTokenRequired,
+            isOffline,
+        });
+
+        if (resolvedImageSource.shouldReauthenticate && session) {
+            activateReauthenticator(session);
         }
-        return propsSource;
+
+        return resolvedImageSource.source;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // but we still need the image to reload sometimes (example : when the current session is expired)
         // by forcing a recalculation of the source (which value could indeed change) through the modification of the variable validSessionAge
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [propsSource, isAuthTokenRequired, validSessionAge]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [propsSource, isAuthTokenRequired, validSessionAge, isOffline]);
     useEffect(() => {
         if (!isAuthTokenRequired || source !== undefined) {
             return;
@@ -130,25 +156,27 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         return undefined;
     }
     if (source === undefined) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <LoadingIndicator
+                iconSize={loadingIconSize}
+                style={loadingIndicatorStyles}
+            />
+        );
     }
+
     return (
         <BaseImage
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );
 }
 
-function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
-    return prevProps.source === nextProps.source;
-}
+Image.displayName = 'Image';
 
-const ImageWithOnyx = React.memo(Image, imagePropsAreEqual);
-
-ImageWithOnyx.displayName = 'Image';
-
-export default ImageWithOnyx;
+export default React.memo(
+    Image,
+    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+);

@@ -1,20 +1,21 @@
-import React, {forwardRef} from 'react';
-import type {ForwardedRef} from 'react';
-import BaseValidateCodeForm from './BaseValidateCodeForm';
-import type {BaseValidateCodeFormRef} from './BaseValidateCodeForm';
+import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type ValidateCodeFormProps from './types';
 
-function ValidateCodeForm(props: ValidateCodeFormProps, ref: ForwardedRef<BaseValidateCodeFormRef>) {
+import BaseValidateCodeForm from './BaseValidateCodeForm';
+
+function ValidateCodeForm({ref, ...props}: ValidateCodeFormProps) {
     return (
         <BaseValidateCodeForm
-            autoComplete="sms-otp"
+            autoComplete={CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP}
             ref={ref}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
         />
     );
 }
 
-ValidateCodeForm.displayName = 'ValidateCodeForm';
+ValidateCodeForm.displayName = 'SignInValidateCodeForm';
 
-export default forwardRef(ValidateCodeForm);
+export default ValidateCodeForm;

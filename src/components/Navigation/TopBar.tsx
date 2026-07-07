@@ -1,45 +1,52 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Breadcrumbs from '@components/Breadcrumbs';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
-import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import SignInButton from '@pages/home/sidebar/SignInButton';
+
+import SignInButton from '@pages/inbox/sidebar/SignInButton';
+
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {AnimatedStyle} from 'react-native-reanimated';
+
+import React from 'react';
+import {Keyboard, View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type TopBarProps = {
     breadcrumbLabel: string;
-    activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayHelpButton?: boolean;
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
+    children?: React.ReactNode;
+    breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false}: TopBarProps) {
+const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
+
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = usePolicy(activeWorkspaceID);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}, canBeMissing: true});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
-    const {canUseLeftHandBar} = usePermissions();
 
-    const headerBreadcrumb = policy?.name
-        ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
-        : {
-              type: CONST.BREADCRUMB_TYPE.ROOT,
-          };
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {wideRHPRouteKeys} = useWideRHPState();
+    const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
     const displaySignIn = isAnonymousUser;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
@@ -47,47 +54,28 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     return (
         <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                    styles.ml5,
-                    styles.mr3,
-                    canUseLeftHandBar ? [styles.headerBarDesktopHeight(true)] : [styles.mv5],
-                ]}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
                 dataSet={{dragArea: true}}
+                onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
-                    {canUseLeftHandBar ? (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexShrink1, styles.topBarLabel]}
-                            >
-                                {breadcrumbLabel}
-                            </Text>
-                        </View>
-                    ) : (
-                        <>
-                            <WorkspaceSwitcherButton policy={policy} />
-                            <View style={[styles.ml3, styles.flex1]}>
-                                <Breadcrumbs
-                                    breadcrumbs={[
-                                        headerBreadcrumb,
-                                        {
-                                            text: breadcrumbLabel,
-                                        },
-                                    ]}
-                                />
-                            </View>
-                        </>
-                    )}
+                    <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbAnimatedStyle]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexShrink1, styles.topBarLabel]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {breadcrumbLabel}
+                        </Text>
+                    </Animated.View>
                 </View>
+                {children}
                 {displaySignIn && <SignInButton />}
                 {!!cancelSearch && (
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
-                        style={[styles.textBlue, !canUseLeftHandBar && styles.ph2]}
+                        style={styles.textBlue}
+                        sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
                         onPress={() => {
                             cancelSearch();
                         }}
@@ -95,14 +83,14 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
-            <LoadingBar shouldShow={(isLoadingReportData ?? false) || shouldShowLoadingBar} />
+            <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>
     );
 }
 
-TopBar.displayName = 'TopBar';
+export type {TopBarProps};
 
 export default TopBar;

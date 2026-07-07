@@ -1,27 +1,49 @@
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidMoneyRequestType, shouldUseTransactionDraft} from '@libs/IOUUtils';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, getFormattedCreated} from '@libs/TransactionUtils';
-import {setDraftSplitTransaction, setMoneyRequestCreated, updateMoneyRequestDate} from '@userActions/IOU';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
+import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
+
+import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useCallback} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DATE> & {
@@ -42,30 +64,36 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const reportActionsReportID = useMemo(() => {
-        let actionsReportID;
-        if (action === CONST.IOU.ACTION.EDIT) {
-            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-        }
-        return actionsReportID;
-    }, [action, iouType, report?.reportID, report?.parentReportID]);
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
-        canEvict: false,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        selector: (reportActions) => reportActions?.[`${report?.parentReportActionID || reportActionID}`],
-    });
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {isOffline} = useNetwork();
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
-    const canEditingSplitBill = isEditingSplitBill && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
+    const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
+    const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+
+    const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -81,22 +109,65 @@ function IOURequestStepDate({
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, {created: newCreated});
+        if (isEditingSplit) {
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
             navigateBack();
             return;
         }
 
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
-        setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
-
         if (isEditing) {
-            updateMoneyRequestDate(transactionID, reportID, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate({
+                transactionID,
+                transactionThreadReport: report,
+                parentReport,
+                transactions: duplicateTransactions,
+                transactionViolations: duplicateTransactionViolations,
+                value: newCreated,
+                policy: effectivePolicy,
+                policyForTrackExpense,
+                policyTags,
+                policyCategories,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                isOffline,
+                delegateAccountID,
+                distanceOriginalPolicy,
+            });
+        } else {
+            setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
+
+            updateDistanceRateOnExpenseDateChange({
+                transactionID,
+                transaction,
+                newCreated,
+                reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(report),
+                isTrackExpense,
+                policy,
+                policyForTrackExpense,
+                lastSelectedDistanceRates,
+                isDraft: isTransactionDraft,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            });
         }
 
         navigateBack();
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM> = {};
+            if (!values[INPUT_IDS.MONEY_REQUEST_CREATED] || values[INPUT_IDS.MONEY_REQUEST_CREATED] === '') {
+                errors[INPUT_IDS.MONEY_REQUEST_CREATED] = translate('common.error.fieldRequired');
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <StepScreenWrapper
@@ -104,7 +175,7 @@ function IOURequestStepDate({
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID={IOURequestStepDate.displayName}
+            testID="IOURequestStepDate"
             includeSafeAreaPaddingBottom
         >
             <FormProvider
@@ -114,6 +185,7 @@ function IOURequestStepDate({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                validate={validate}
             >
                 <InputWrapper
                     InputComponent={DatePicker}
@@ -121,7 +193,6 @@ function IOURequestStepDate({
                     label={translate('common.date')}
                     defaultValue={currentCreated}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     autoFocus
                 />
             </FormProvider>
@@ -129,11 +200,8 @@ function IOURequestStepDate({
     );
 }
 
-IOURequestStepDate.displayName = 'IOURequestStepDate';
-
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
 
 export default IOURequestStepDateWithWritableReportOrNotFound;

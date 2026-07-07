@@ -1,8 +1,15 @@
-import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
+import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {Linking, View} from 'react-native';
+
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -31,10 +38,31 @@ type HeaderProps = {
 
     /** Line number for the title */
     numberOfTitleLines?: number;
+
+    /** Whether this is the screen-level header (registers dialog label and focus). Only HeaderWithBackButton should set this. */
+    isScreenHeader?: boolean;
+
+    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
+    shouldSkipFocusAfterTransition?: boolean;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
+function Header({
+    title = '',
+    subtitle = '',
+    textStyles = [],
+    style,
+    containerStyles = [],
+    shouldShowEnvironmentBadge = false,
+    subTitleLink = '',
+    numberOfTitleLines = 2,
+    isScreenHeader = false,
+    shouldSkipFocusAfterTransition = false,
+}: HeaderProps) {
     const styles = useThemeStyles();
+    const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
+
+    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus, shouldSkipFocusAfterTransition);
+
     const renderedSubtitle = useMemo(
         () => (
             <>
@@ -76,7 +104,9 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                     ? !!title && (
                           <Text
                               numberOfLines={numberOfTitleLines}
-                              style={[styles.headerText, styles.textLarge, textStyles]}
+                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
+                              accessibilityRole={CONST.ROLE.HEADER}
+                              accessibilityLabel={title}
                           >
                               {title}
                           </Text>
@@ -89,8 +119,6 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
         </View>
     );
 }
-
-Header.displayName = 'Header';
 
 export default Header;
 

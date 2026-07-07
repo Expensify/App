@@ -1,6 +1,11 @@
-import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {Camera} from '@rnmapbox/maps';
+import type {ReactNode, RefObject} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 type Coordinate = [number, number];
 
@@ -20,7 +25,7 @@ type MapViewProps = {
     // Locations on which to put markers
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
-    directionCoordinates?: Coordinate[];
+    directionCoordinates?: Coordinate[] | Coordinate[][];
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
     // Whether the map is interactive or not
@@ -31,11 +36,59 @@ type MapViewProps = {
 
     // Unit of measurement for distance
     unit?: Unit;
+
+    // Reference to the outerElement
+    ref?: React.ForwardedRef<MapViewHandle>;
+
+    // Whether it should display the current user's location on the map
+    shouldDisplayCurrentLocation?: boolean;
+
+    // Whether it should display the compass overlay on the map
+    shouldDisplayCompass?: boolean;
+};
+
+type CompassProps = {
+    // Whether the map is interactive or not
+    interactive: boolean;
+
+    // Whether the compass should be displayed or not
+    shouldDisplayCompass: boolean;
+
+    // Shared value for the map heading
+    mapHeading: SharedValue<number>;
+
+    // Reference to the camera
+    cameraRef: RefObject<Camera | null>;
+};
+
+type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState'> & {
+    // Whether the GPS trip is active
+    isTrackingGPS: boolean;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
+};
+
+type GPSDirectionProps = {
+    // Whether the GPS trip is active
+    isTrackingGPS: boolean;
+
+    // Last location of the user
+    lastLocation: {longitude: number; latitude: number} | undefined;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
+
+    // ID of the layer to place the line layer below
+    belowLayerID?: string;
 };
 
 type DirectionProps = {
     // Coordinates of points that constitute the direction
-    coordinates: Coordinate[];
+    coordinates: Coordinate[] | Coordinate[][];
+
+    // ID of the layer to place the line layer below
+    belowLayerID?: string;
 };
 
 type PendingMapViewProps = {
@@ -64,6 +117,7 @@ type WayPoint = {
     id: string;
     coordinate: Coordinate;
     markerComponent: () => ReactNode;
+    markerType?: MapMarkerType;
 };
 
 // Represents a handle to interact with a map view.
@@ -74,4 +128,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps, CompassProps};

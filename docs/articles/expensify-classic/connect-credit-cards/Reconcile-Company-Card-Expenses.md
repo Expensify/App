@@ -3,7 +3,6 @@ title: Reconcile Company Card Expenses
 description: Learn how to reconcile company card expenses in Expensify, including troubleshooting discrepancies, managing approvals, and preparing accruals
 keywords: [Expensify Classic, reconcile company cards]
 ---
-<div id="expensify-classic" markdown="1">
 
 This guide explains how to reconcile corporate card transactions imported into Expensify using the reconciliation dashboard feature.
 
@@ -45,14 +44,14 @@ If the totals on the credit card statement and the Reconciliation dashboard stil
 Use the **Unapproved Total** and **Approved Total** columns to locate expenses that haven’t been approved or exported:
 
 1. Click the **Unapproved Total** heading to sort cards by those with outstanding expenses.
-2. Click the **Unapproved** amount for a card to view expenses in the Unreported, Open, Processing, or Deleted states.
+2. Click the **Unapproved** amount for a card to view expenses in the Unreported, Draft, Outstanding, or Deleted states.
 
 **Note: You must be both a Domain Admin and Workspace Admin to access expenses.**
 
 ## Add Unreported or Deleted Expenses to a Report
 1. Filter the expenses to display only Unreported or Deleted expenses.
 2. Select all relevant expenses and click **Add to a Report** > **Auto Report**.
-3. If an open report exists in the cardholder’s account, the expenses will be added to it. Otherwise, a new report will be created.
+3. If a draft report exists in the cardholder’s account, the expenses will be added to it. Otherwise, a new report will be created.
 
 ---
 
@@ -60,8 +59,8 @@ Use the **Unapproved Total** and **Approved Total** columns to locate expenses t
 
 Workspace Admins can do the following via the Reconciliation Dashboard:
   - Code (categorize or tag expenses, add receipts or comments) expenses.
-  - Submit Open reports.
-  - Approve Processing reports.
+  - Submit Draft reports.
+  - Approve Outstanding reports.
 - All changes made by admins are tracked in the **Report History and Comments** section at the bottom of each report.
 - You can remind members to submit or approve reports via Report History, which sends email notifications to users.
 
@@ -97,4 +96,3 @@ Only Domain Admins can access the Reconciliation tool.
 
 **Note: Only posted transactions will be imported.**
 
-</div>

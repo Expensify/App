@@ -19,6 +19,18 @@ export default {
         display: 'none',
     },
 
+    dInlineBlock: {
+        display: 'inline-block',
+    },
+
+    /**
+     * display: 'contents' - Supported in React Native 0.77+
+     * Ref: https://reactnative.dev/blog/2025/01/21/version-0.77#simpler-layouts-with-display-contents
+     */
+    dContents: {
+        display: 'contents',
+    },
+
     /**
      * Web-only style.
      */

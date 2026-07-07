@@ -1,14 +1,20 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import ComparePlansModal from './ComparePlansModal';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
@@ -18,15 +24,22 @@ function SubscriptionPlan() {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard']);
 
     const renderTitle = () => {
         return (
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.yourPlan.title')}</Text>
+                <Text
+                    style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('subscription.yourPlan.title')}
+                </Text>
                 <Button
                     small
                     text={translate('subscription.yourPlan.exploreAllPlans')}
                     onPress={() => setIsModalVisible(true)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPLORE_PLANS}
                 />
             </View>
         );
@@ -40,7 +53,7 @@ function SubscriptionPlan() {
             <SubscriptionPlanCard subscriptionPlan={subscriptionPlan} />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                 <Icon
-                    src={Illustrations.HandCard}
+                    src={illustrations.HandCard}
                     width={variables.iconHeader}
                     height={variables.iconHeader}
                     additionalStyles={styles.mr2}
@@ -58,7 +71,5 @@ function SubscriptionPlan() {
         </Section>
     );
 }
-
-SubscriptionPlan.displayName = 'SubscriptionPlan';
 
 export default SubscriptionPlan;

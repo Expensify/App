@@ -4,7 +4,6 @@ description: A guide to sending, receiving, and paying invoices in Expensify.
 keywords: [Expensify Classic, send an invoice, pay an invoice]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Managing invoices is easier than ever with Expensify. This guide walks you through sending invoices to vendors and suppliers, bulk importing invoices, and receiving and sending invoice payments.
 
@@ -139,7 +138,6 @@ Use [Report Comments](https://help.expensify.com/articles/expensify-classic/repo
 - **Invoice**: Sent to clients or contractors for payment.
 - **Expense Report**: Submitted to an employer for reimbursement.
 
-</div>
 
 ## What’s the difference between a bill and an invoice in Expensify?
 A Bill is an amount owed to a payee (usually a vendor or supplier) and is usually created from a vendor invoice. An Invoice is a receivable and indicates an amount owed to you by someone else.

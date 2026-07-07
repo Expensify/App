@@ -1,8 +1,11 @@
-import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type OldDotAction from './OldDotAction';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
@@ -76,10 +79,20 @@ type Message = {
     currency?: string;
 
     /** resolution for actionable mention whisper */
-    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
+    resolution?:
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>
+        | null;
 
     /** The time this report action was deleted */
     deleted?: string;
+
+    /** The bank account id that was used to pay the invoice */
+    bankAccountID?: number | undefined;
+
+    /** Whether the invoice was paid with business account or not */
+    payAsBusiness?: boolean;
 };
 
 /** Model of image */
@@ -255,6 +268,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
 
+    /** Whether the original report related to this action was deleted */
+    isOriginalReportDeleted?: boolean;
+
     /** The admins's ID */
     adminAccountID?: number;
 
@@ -301,5 +317,25 @@ type ReportActions = Record<string, ReportAction>;
 /** Collection of mock report actions, indexed by reportActions_${reportID} */
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
+/** A union type of all report action names related to policy copy log */
+type PolicyChangeLogCopyReportActionNames =
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL;
+
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction, PolicyChangeLogCopyReportActionNames};

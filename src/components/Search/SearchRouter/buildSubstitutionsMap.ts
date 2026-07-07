@@ -1,13 +1,17 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
-import type {CardFeedNamesWithType} from '@libs/CardFeedUtils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
-import {getFilterDisplayValue, getFilterDisplayValueWithPolicyID} from '@libs/SearchQueryUtils';
+import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
-import type {CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {BankAccountList, CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
-const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**
  * Given a plaintext query and specific entities data,
@@ -25,15 +29,20 @@ const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${fi
  *     to:SomeoneElse: 98765,
  * }
  */
+// Adds bankAccountList for the new bank account filter. Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function buildSubstitutionsMap(
     query: string,
     personalDetails: PersonalDetailsList | undefined,
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
-    cardList: CardList,
-    cardFeedNamesWithType: CardFeedNamesWithType,
+    cardList: CardList | undefined,
+    cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
-    canUseLeftHandBar?: boolean,
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    bankAccountList?: BankAccountList,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -41,6 +50,8 @@ function buildSubstitutionsMap(
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};
     }
+
+    const substitutionKeyOccurrences = new Map<string, number>();
 
     const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
         const {key: filterKey, value: filterValue} = range;
@@ -53,28 +64,49 @@ function buildSubstitutionsMap(
 
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
-            uniqueTaxRateNames.forEach((taxRateName) => {
-                const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
+            for (const taxRateName of uniqueTaxRateNames) {
+                const substitutionBaseKey = getSubstitutionMapKey(filterKey, taxRateName);
+                const occurrenceIndex = substitutionKeyOccurrences.get(substitutionBaseKey) ?? 0;
+                substitutionKeyOccurrences.set(substitutionBaseKey, occurrenceIndex + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, taxRateName, occurrenceIndex);
 
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = taxRateID;
-            });
+            }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const displayValue = canUseLeftHandBar
-                ? getFilterDisplayValueWithPolicyID(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType, policies)
-                : getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType);
+            const displayValue = getFilterDisplayValue({
+                filterName: filterKey,
+                filterValue,
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                reportAttributes,
+                bankAccountList,
+            });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
-                const substitutionKey = getSubstitutionsKey(filterKey, displayValue);
+                const substitutionBaseKey = getSubstitutionMapKey(filterKey, displayValue);
+                const occurrenceIndex = substitutionKeyOccurrences.get(substitutionBaseKey) ?? 0;
+                substitutionKeyOccurrences.set(substitutionBaseKey, occurrenceIndex + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, displayValue, occurrenceIndex);
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = filterValue;
             }

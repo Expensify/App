@@ -1,9 +1,13 @@
-import React from 'react';
-import type {ImageSourcePropType} from 'react-native';
-import QRCodeLibrary from 'react-native-qrcode-svg';
-import type {Svg, SvgProps} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
+
 import CONST from '@src/CONST';
+
+import type {ImageSourcePropType} from 'react-native';
+import type {Svg, SvgProps} from 'react-native-svg';
+
+import React from 'react';
+import {View} from 'react-native';
+import QRCodeLibrary from 'react-native-qrcode-svg';
 
 type QRCodeLogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
@@ -55,6 +59,9 @@ type QRCodeProps = {
      * methods
      */
     getRef?: (ref: Svg) => Svg;
+
+    /** Accessibility label for the QR code image */
+    accessibilityLabel?: string;
 };
 
 function QRCode({
@@ -64,33 +71,39 @@ function QRCode({
     svgLogoFillColor,
     logoBackgroundColor,
     getRef,
-    size = 120,
+    size = CONST.QR.DEFAULT_LOGO_SIZE,
     color,
     backgroundColor,
     logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
     logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO,
+    accessibilityLabel,
 }: QRCodeProps) {
     const theme = useTheme();
 
     return (
-        <QRCodeLibrary
-            getRef={getRef}
-            value={url}
-            size={size}
-            logo={logo}
-            logoSVG={svgLogo}
-            logoColor={svgLogoFillColor}
-            logoBackgroundColor={logoBackgroundColor ?? theme.highlightBG}
-            logoSize={size * logoRatio}
-            logoMargin={size * logoMarginRatio}
-            logoBorderRadius={size}
-            backgroundColor={backgroundColor ?? theme.highlightBG}
-            color={color ?? theme.text}
-        />
+        <View
+            accessible
+            role={CONST.ROLE.IMG}
+            accessibilityLabel={accessibilityLabel}
+            tabIndex={0}
+        >
+            <QRCodeLibrary
+                getRef={getRef}
+                value={url}
+                size={size}
+                logo={logo}
+                logoSVG={svgLogo}
+                logoColor={svgLogoFillColor}
+                logoBackgroundColor={logoBackgroundColor ?? theme.appBG}
+                logoSize={size * logoRatio}
+                logoMargin={size * logoMarginRatio}
+                logoBorderRadius={size}
+                backgroundColor={backgroundColor ?? theme.appBG}
+                color={color ?? theme.text}
+            />
+        </View>
     );
 }
-
-QRCode.displayName = 'QRCode';
 
 export default QRCode;
 export type {QRCodeLogoMarginRatio, QRCodeLogoRatio};

@@ -1,8 +1,3 @@
-import type {Meta, StoryFn} from '@storybook/react';
-import React, {useState} from 'react';
-import type {ComponentType} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
@@ -13,14 +8,27 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import NetworkConnection from '@libs/NetworkConnection';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as FormActions from '@userActions/FormActions';
+
+import useLocalize from '@hooks/useLocalize';
+
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
+import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-import {defaultStyles} from '@src/styles';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
-import type {Network} from '@src/types/onyx';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+const defaultStyles = styles(defaultTheme);
 
 type FormStory = StoryFn<FormProviderProps & FormProviderOnyxProps>;
 
@@ -41,9 +49,6 @@ type FormProviderOnyxProps = {
 
     /** Contains draft values for each input in the form */
     draftValues: OnyxEntry<Form>;
-
-    /** Information about the network */
-    network: OnyxEntry<Network>;
 };
 
 type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
@@ -65,19 +70,19 @@ const story: Meta<typeof FormProvider> = {
 };
 
 function Template(props: FormProviderProps & FormProviderOnyxProps) {
+    const {translate} = useLocalize();
+
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
-    FormActions.setDraftValues(props.formID, props.draftValues);
+    setIsLoading(props.formID, !!props.formState?.isLoading);
+    setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as string});
+        setErrors(props.formID, {error: props.formState.error as string});
     } else {
-        FormActions.clearErrors(props.formID);
+        clearErrors(props.formID);
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <FormProvider {...props}>
             <View>
                 <InputWrapper
@@ -102,7 +107,7 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
                 label="Street"
                 inputID="street"
                 containerStyles={defaultStyles.mt4}
-                hint="common.noPO"
+                hint={translate('common.noPO')}
             />
             <InputWrapper
                 InputComponent={DatePicker}
@@ -180,18 +185,16 @@ function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    NetworkConnection.setOfflineStatus(false);
-    FormActions.setIsLoading(props.formID, !!props.formState?.isLoading);
-    FormActions.setDraftValues(props.formID, props.draftValues);
+    setIsLoading(props.formID, !!props.formState?.isLoading);
+    setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as string});
+        setErrors(props.formID, {error: props.formState.error as string});
     } else {
-        FormActions.clearErrors(props.formID);
+        clearErrors(props.formID);
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <FormProvider {...props}>
             <InputWrapper
                 InputComponent={TextInput}
@@ -219,28 +222,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values: StorybookFormValues) => {
         const errors: StorybookFormErrors = {};
-        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
+        if (!isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
+        if (!isRequiredFulfilled(values.accountNumber)) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
+        if (!isRequiredFulfilled(values.street)) {
             errors.street = 'Please enter an address';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
+        if (!isRequiredFulfilled(values.dob)) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
+        if (!isRequiredFulfilled(values.pickFruit)) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
+        if (!isRequiredFulfilled(values.pickAnotherFruit)) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
+        if (!isRequiredFulfilled(values.state)) {
             errors.state = 'Please select a state';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
+        if (!isRequiredFulfilled(values.checkbox)) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;
@@ -248,7 +251,7 @@ const defaultArgs = {
     onSubmit: (values: StorybookFormValues) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsLoading(STORYBOOK_FORM_ID, false);
+            setIsLoading(STORYBOOK_FORM_ID, false);
         }, 1000);
     },
     formState: {
@@ -258,7 +261,7 @@ const defaultArgs = {
     draftValues: {
         routingNumber: '00001',
         accountNumber: '1111222233331111',
-        street: '123 Happy St, Happyland HP 12345',
+        street: '123 Happy St, HappyLand HP 12345',
         dob: '1990-01-01',
         pickFruit: 'orange',
         pickAnotherFruit: 'apple',

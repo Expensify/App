@@ -1,8 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -11,26 +6,46 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
+import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
+
+import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {setDeleteTransactionNavigateBackUrl} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
-import * as IOU from '@src/libs/actions/IOU';
+
+import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
-import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 function Confirmation() {
     const styles = useThemeStyles();
@@ -38,70 +53,139 @@ function Confirmation() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
-    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
+    const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`);
+    const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
+    const transactionID = TransactionUtils.getTransactionID(report);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`];
+    const allDuplicateIDs = useMemo(
+        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
+        [transactionViolations],
+    );
+    const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
+    const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [duplicatedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(
+        policyTags ?? {},
+        transaction,
+        allDuplicates,
+        reviewDuplicatesReport,
+        reviewDuplicates?.transactionID,
+        policy,
+        policyCategories,
+    );
+    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
+    const {superWideRHPRouteKeys} = useWideRHPState();
+    const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
 
-    const transactionsMergeParams = useMemo(() => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
+    const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
+    const transactionsMergeParams = useMemo(
+        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
+        [duplicates, reviewDuplicates, newTransaction],
+    );
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
+    const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
+    const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
+    const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
+    const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
+    const taxData = useMemo(() => {
+        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
+        // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
+        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+            return;
+        }
+
+        return {
+            taxAmount: -reviewDuplicatesTaxAmount,
+            taxValue: taxRate?.value,
+            taxCode,
+        };
+    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserLogin = currentUserPersonalDetails?.login;
+    const childReportID = reportAction?.childReportID;
 
-    const mergeDuplicates = useCallback(() => {
-        if (!reportAction?.childReportID) {
+    const handleMergeDuplicates = useCallback(() => {
+        const transactionThreadReportID = childReportID ?? generateReportID();
+        const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
+        // Suppress the NotFound guard for the discarded thread the server tears down on merge.
+        const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
+        setDeleteTransactionNavigateBackUrl(keptReportRoute);
+        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations});
+        if (isSuperWideRHPDisplayed) {
+            Navigation.dismissToSuperWideRHP();
             return;
         }
-        IOU.mergeDuplicates(transactionsMergeParams);
-        if (!reportAction?.childReportID) {
-            return;
-        }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
-    }, [reportAction?.childReportID, transactionsMergeParams]);
-
-    const resolveDuplicates = useCallback(() => {
-        IOU.resolveDuplicates(transactionsMergeParams);
-        if (!reportAction?.childReportID) {
+        // From Search, dismiss back to the results (backTo is always set here, so it can't detect Search).
+        if (isSearchTopmostFullScreenRoute()) {
             Navigation.dismissModal();
             return;
         }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
-    }, [transactionsMergeParams, reportAction?.childReportID]);
+        // From the discarded thread: pop the modal entries, then replace the dead thread with the kept report.
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
+        });
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations]);
 
-    const contextValue = useMemo(
+    const handleResolveDuplicates = useCallback(() => {
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations});
+        Navigation.dismissToSuperWideRHP();
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations]);
+
+    const contextMenuStateValue = useMemo(
         () => ({
             transactionThreadReport: report,
             action: reportAction,
             report,
-            checkIfContextMenuActive: () => {},
-            reportNameValuePairs: undefined,
             anchor: null,
             isDisabled: false,
         }),
         [report, reportAction],
     );
 
-    const reportTransactionID = report?.reportID ? getTransactionID(report.reportID) : undefined;
-    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
+    const contextMenuActionsValue = useMemo(
+        () => ({
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
+        }),
+        [],
+    );
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
+
+    const isDismissingRef = useRef(false);
+
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
-        !ReportUtils.isValidReport(report) ||
+        (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||
         ReportUtils.isReportNotFound(report) ||
-        (reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
+        (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
-    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !transaction?.transactionID) {
-        return <FullScreenLoadingIndicator />;
+    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TransactionDuplicate.Confirmation',
+            isLoadingReviewDuplicates: isLoadingOnyxValue(reviewDuplicatesResult),
+            isLoadingReport: isLoadingOnyxValue(reportResult),
+            hasNewTransaction: !!newTransaction?.transactionID,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
         <ScreenWrapper
-            testID={Confirmation.displayName}
+            testID="Confirmation"
             shouldShowOfflineIndicator
         >
             <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
@@ -121,27 +205,32 @@ function Confirmation() {
                             </Text>
                             <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                         </View>
-                        {/* We need that provider here becuase MoneyRequestView component requires that */}
-                        <ShowContextMenuContext.Provider value={contextValue}>
-                            <MoneyRequestView
-                                report={report}
-                                shouldShowAnimatedBackground={false}
-                                readonly
-                                isFromReviewDuplicates
-                                updatedTransaction={transaction as OnyxEntry<Transaction>}
-                            />
-                        </ShowContextMenuContext.Provider>
+                        {/* We need that provider here because MoneyRequestView component requires that */}
+                        <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
+                            <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                                <MoneyRequestView
+                                    transactionThreadReport={report}
+                                    parentReportID={report?.parentReportID}
+                                    expensePolicy={policy}
+                                    shouldShowAnimatedBackground={false}
+                                    readonly
+                                    updatedTransaction={newTransaction as OnyxEntry<Transaction>}
+                                    isFromReviewDuplicates
+                                />
+                            </ShowContextMenuActionsContext.Provider>
+                        </ShowContextMenuStateContext.Provider>
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
                         <Button
                             text={translate('common.confirm')}
                             success
                             onPress={() => {
+                                isDismissingRef.current = true;
                                 if (!isReportOwner) {
-                                    resolveDuplicates();
+                                    handleResolveDuplicates();
                                     return;
                                 }
-                                mergeDuplicates();
+                                handleMergeDuplicates();
                             }}
                             large
                         />
@@ -151,7 +240,5 @@ function Confirmation() {
         </ScreenWrapper>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

@@ -1,13 +1,17 @@
-import React from 'react';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {togglePinnedState} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import React from 'react';
+
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip';
 
@@ -20,6 +24,7 @@ function PinButton({report}: PinButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Pin']);
 
     return (
         <Tooltip text={report.isPinned ? translate('common.unPin') : translate('common.pin')}>
@@ -28,16 +33,15 @@ function PinButton({report}: PinButtonProps) {
                 style={styles.touchableButtonImage}
                 accessibilityLabel={report.isPinned ? translate('common.unPin') : translate('common.pin')}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.PIN_BUTTON.TOGGLE}
             >
                 <Icon
-                    src={Expensicons.Pin}
+                    src={icons.Pin}
                     fill={report.isPinned ? theme.heading : theme.icon}
                 />
             </PressableWithFeedback>
         </Tooltip>
     );
 }
-
-PinButton.displayName = 'PinButton';
 
 export default PinButton;

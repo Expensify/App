@@ -1,6 +1,8 @@
 import React, {useEffect, useRef} from 'react';
-import BaseOnfidoWeb from './BaseOnfidoWeb';
+
 import type {OnfidoElement, OnfidoProps} from './types';
+
+import BaseOnfidoWeb from './BaseOnfidoWeb';
 
 function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
     const baseOnfidoRef = useRef<OnfidoElement>(null);
@@ -25,7 +27,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
                 }
             }
         });
-        if (baseOnfidoRef.current) {
+        if (baseOnfidoRef.current instanceof Node) {
             observer.observe(baseOnfidoRef.current, {attributes: false, childList: true, subtree: true});
         }
 
@@ -53,7 +55,5 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
         />
     );
 }
-
-Onfido.displayName = 'Onfido';
 
 export default Onfido;

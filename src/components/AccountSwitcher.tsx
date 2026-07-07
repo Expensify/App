@@ -1,54 +1,142 @@
-import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import Avatar from './Avatar';
-import ConfirmModal from './ConfirmModal';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+
+import {accountIDSelector} from '@selectors/Session';
+import {Str} from 'expensify-common';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {PopoverMenuItem} from './PopoverMenu';
+
+import Avatar from './Avatar';
+import Icon from './Icon';
+import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
+import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
 import Tooltip from './Tooltip';
+import EducationalTooltip from './Tooltip/EducationalTooltip';
 
-function AccountSwitcher() {
+type AccountSwitcherProps = {
+    /* Whether the screen is focused. Used to hide the product training tooltip */
+    isScreenFocused: boolean;
+};
+
+function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
-    const {canUseLeftHandBar} = usePermissions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const accountSwitcherPopoverStyle = canUseLeftHandBar ? styles.accountSwitcherPopoverWithLHB : styles.accountSwitcherPopover;
+    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
+        isScreenFocused && canSwitchAccounts,
+    );
+
+    const {showConfirmModal} = useConfirmModal();
+
+    const showOfflineModal = () => {
+        showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+        const result = await showConfirmModal({
+            title: translate('gps.switchAccountWarningTripInProgress.title'),
+            prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
+            confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
+
+        switchAccount();
+    };
+
+    const onPressSwitcher = () => {
+        hideProductTrainingTooltip();
+        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+    };
+
+    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
+    const tooltipProps = shouldShowProductTrainingTooltip
+        ? {
+              shouldRender: shouldShowProductTrainingTooltip,
+              renderTooltipContent: renderProductTrainingTooltip,
+              anchorAlignment: {
+                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+              },
+              shiftVertical: variables.accountSwitcherTooltipShiftVertical,
+              shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
+              wrapperStyle: styles.productTrainingTooltipWrapper,
+              onTooltipPress: onPressSwitcher,
+          }
+        : {
+              text: translate('delegate.copilotAccess'),
+              shiftVertical: 8,
+              shiftHorizontal: 8,
+              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
+              shouldRender: canSwitchAccounts,
+          };
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
@@ -57,12 +145,13 @@ function AccountSwitcher() {
     ): PopoverMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
-            text: personalDetails?.displayName ?? personalDetails?.login ?? '',
+            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: shouldUseNarrowLayout ? {} : accountSwitcherPopoverStyle,
+            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            shouldIgnoreCompactStyle: true,
             numberOfLinesDescription: 1,
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
@@ -72,12 +161,7 @@ function AccountSwitcher() {
     };
 
     const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            shouldShowRightIcon: true,
-            iconRight: Expensicons.Checkmark,
-            success: true,
-            isSelected: true,
-        });
+        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
@@ -94,61 +178,68 @@ function AccountSwitcher() {
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            close(showOfflineModal);
                             return;
                         }
-                        disconnect();
+
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
+                            return;
+                        }
+
+                        disconnect({stashedCredentials, stashedSession});
                     },
                 }),
                 currentUserMenuItem,
             ];
         }
 
-        const delegatorMenuItems: PopoverMenuItem[] = delegators
-            .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role}) => {
-                const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                const error = getLatestError(errorFields?.connect?.[email]);
-                const personalDetails = getPersonalDetailByEmail(email);
-                return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', {role}),
-                    onSelected: () => {
-                        if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
-                            return;
-                        }
-                        connect(email);
-                    },
-                });
-            });
+        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+            delegators
+                .filter(({email}) => email !== currentUserPersonalDetails.login)
+                .map(({email, role}) => {
+                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                    const error = getLatestError(errorFields?.connect?.[email]);
+                    const personalDetails = getPersonalDetailByEmail(email);
+                    return createBaseMenuItem(personalDetails, error, {
+                        badgeText: translate('delegate.role', {role}),
+                        onSelected: () => {
+                            if (isOffline) {
+                                close(showOfflineModal);
+                                return;
+                            }
+                            if (isTrackingGPS) {
+                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                                return;
+                            }
+                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                        },
+                    });
+                }),
+            'text',
+            localeCompare,
+        );
 
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors();
+        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
     return (
         <>
-            <Tooltip
-                text={translate('delegate.copilotAccess')}
-                shiftVertical={8}
-                shiftHorizontal={8}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                shouldRender={canSwitchAccounts}
-            >
+            <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
-                    accessibilityLabel={translate('common.profile')}
-                    onPress={() => {
-                        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
-                    }}
+                    accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
+                    onPress={onPressSwitcher}
                     ref={buttonRef}
                     interactive={canSwitchAccounts}
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                 >
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
@@ -160,17 +251,26 @@ function AccountSwitcher() {
                         />
                         <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
                             <View style={[styles.flexRow, styles.gap1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
-                                >
-                                    {currentUserPersonalDetails?.displayName}
-                                </Text>
+                                {doesDisplayNameContainEmojis ? (
+                                    <Text numberOfLines={1}>
+                                        <TextWithEmojiFragment
+                                            message={displayName}
+                                            style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                        />
+                                    </Text>
+                                ) : (
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                    >
+                                        {formatPhoneNumber(displayName)}
+                                    </Text>
+                                )}
                                 {!!canSwitchAccounts && (
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
-                                            src={Expensicons.CaretUpDown}
+                                            src={icons.CaretUpDown}
                                             height={variables.iconSizeSmall}
                                             width={variables.iconSizeSmall}
                                         />
@@ -183,18 +283,19 @@ function AccountSwitcher() {
                             >
                                 {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                             </Text>
-                            {!!account?.isDebugModeEnabled && (
+                            {!!isDebugModeEnabled && (
                                 <Text
                                     style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                     numberOfLines={1}
                                 >
-                                    AccountID: {session?.accountID}
+                                    AccountID: {accountID}
                                 </Text>
                             )}
                         </View>
                     </View>
                 </PressableWithFeedback>
-            </Tooltip>
+            </TooltipToRender>
+
             {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
@@ -208,27 +309,17 @@ function AccountSwitcher() {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.pb0, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
-                    scrollContainerStyle={styles.pb4}
                     shouldUseScrollView
                     shouldUpdateFocusedIndex={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldShowRadioButton
                 />
             )}
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }
-
-AccountSwitcher.displayName = 'AccountSwitcher';
 
 export default AccountSwitcher;

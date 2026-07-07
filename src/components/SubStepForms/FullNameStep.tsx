@@ -1,59 +1,77 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
-    /** The title of the form */
-    formTitle: string;
+type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The ID of the form */
+        formID: TFormID;
 
-    /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+        /** The title of the form */
+        formTitle: string;
 
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** Subtitle text shown below the title */
+        formSubtitle?: string;
 
-    /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<TFormID>>;
+        /** The validation function to call when the form is submitted */
+        customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** The ID of the first name input */
-    firstNameInputID: string;
+        /** A function to call when the form is submitted */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** The ID of the last name input */
-    lastNameInputID: string;
+        /** Fields list of the form */
+        stepFields: Array<FormOnyxKeys<TFormID>>;
 
-    /** The default values for the form */
-    defaultValues: {
-        firstName: string;
-        lastName: string;
+        /** The ID of the first name input */
+        firstNameInputID: string;
+
+        /** The ID of the last name input */
+        lastNameInputID: string;
+
+        /** The default values for the form */
+        defaultValues: {
+            firstName: string;
+            lastName: string;
+        };
+
+        /** Should show the help link or not */
+        shouldShowHelpLinks?: boolean;
+
+        /** Custom label of the first name input  */
+        customFirstNameLabel?: string;
+
+        /** Custom label of the last name input */
+        customLastNameLabel?: string;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
+
+        /** Whether the form submit button should be enabled when offline */
+        enabledWhenOffline?: boolean;
     };
-
-    /** Should show the help link or not */
-    shouldShowHelpLinks?: boolean;
-
-    /** Custom label of the first name input  */
-    customFirstNameLabel?: string;
-
-    /** Custom label of the last name input */
-    customLastNameLabel?: string;
-};
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
     formTitle,
+    formSubtitle,
     customValidate,
     onSubmit,
     stepFields,
@@ -64,13 +82,16 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
+    shouldShowPatriotActLink = false,
+    forwardedFSClass,
+    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
             if (!isRequiredFulfilled(firstName)) {
@@ -81,10 +102,12 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', {
-                    length: firstName.length,
-                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
-                });
+                errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+            }
+
+            if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[firstNameInputID] = translate('personalDetails.error.containsReservedWord');
             }
 
             const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
@@ -96,10 +119,12 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', {
-                    length: lastName.length,
-                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
-                });
+                errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+            }
+
+            if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[lastNameInputID] = translate('personalDetails.error.containsReservedWord');
             }
             return errors;
         },
@@ -113,10 +138,11 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOfflineProp}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, formSubtitle ? styles.mb3 : styles.mb6]}>{formTitle}</Text>
+                {!!formSubtitle && <Text style={[styles.mb5, styles.textSupporting]}>{formSubtitle}</Text>}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={firstNameInputID}
@@ -126,6 +152,8 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues.firstName}
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
+                    forwardedFSClass={forwardedFSClass}
+                    autoComplete="given-name"
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -136,13 +164,18 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues.lastName}
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
+                    forwardedFSClass={forwardedFSClass}
+                    autoComplete="family-name"
                 />
-                {shouldShowHelpLinks && <HelpLinks />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
 }
-
-FullNameStep.displayName = 'FullNameStep';
 
 export default FullNameStep;

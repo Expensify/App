@@ -1,20 +1,27 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddressForm from '@components/AddressForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type AddressPageProps = {
     /** User's private personal details */
@@ -35,7 +42,9 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
 
     // Check if country is valid
     const {street} = address ?? {};
-    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
+    const [street1, legacyStreet2] = street ? street.split('\n') : [undefined, undefined];
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+    const street2 = address?.street2 || legacyStreet2;
     const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -49,7 +58,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         setCurrentCountry(address.country);
         setCity(address.city);
         setZipcode(address.zip);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
 
     const handleAddressChange = useCallback(
@@ -83,10 +92,12 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         [currentCountry],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressPage', isLoadingApp: !!isLoadingApp};
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={AddressPage.displayName}
+            testID="AddressPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -95,7 +106,12 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={reasonAttributes}
+                        />
+                    </View>
                 ) : (
                     <AddressForm
                         formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
@@ -114,7 +130,5 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         </ScreenWrapper>
     );
 }
-
-AddressPage.displayName = 'AddressPage';
 
 export default AddressPage;

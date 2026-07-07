@@ -1,7 +1,10 @@
-import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovered'> & {
@@ -12,9 +15,12 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
 
     /** The reportID related to the attachment */
     reportID?: string;
+
+    /** Callback function to call when the video is tap */
+    onTap?: (shouldShowArrows?: boolean) => void;
 };
 
-function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID}: AttachmentViewVideoProps) {
+function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -26,6 +32,7 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
             videoDuration={duration}
             style={[styles.w100, styles.h100, styles.pb5]}
             reportID={reportID}
+            onTap={onTap}
         />
     );
 }

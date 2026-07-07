@@ -1,9 +1,14 @@
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type TextInputMeasurementProps from './types';
 
 function TextInputMeasurement({
@@ -20,6 +25,7 @@ function TextInputMeasurement({
     onSetTextInputWidth,
     onSetTextInputHeight,
     isPrefixCharacterPaddingCalculated,
+    autoGrowMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
 
@@ -35,6 +41,10 @@ function TextInputMeasurement({
                         onSetTextInputWidth(e.nativeEvent.layout.width);
                         onSetTextInputHeight(e.nativeEvent.layout.height);
                     }}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                    aria-hidden
                 >
                     <Text
                         style={[
@@ -42,6 +52,10 @@ function TextInputMeasurement({
                             autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                             {width: contentWidth},
                         ]}
+                        accessible={false}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
+                        aria-hidden
                     >
                         {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
                         {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
@@ -54,38 +68,42 @@ function TextInputMeasurement({
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(!!autoGrow || !!autoGrowHeight) && !isAutoGrowHeightMarkdown && (
-                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
-                // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
-                // Reference: https://github.com/Expensify/App/issues/34921
-                <Text
-                    style={[
-                        inputStyle,
-                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        styles.hiddenElementOutsideOfWindow,
-                        styles.visibilityHidden,
-                    ]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        let additionalWidth = 0;
-                        if (isMobileSafari() || isSafari() || isMobileChrome()) {
-                            additionalWidth = 2;
-                        }
-                        onSetTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
-                        onSetTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                    {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                </Text>
-            )}
+            {(!!autoGrow || !!autoGrowHeight) &&
+                !isAutoGrowHeightMarkdown && (
+                    // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
+                    // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
+                    // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
+                    // Reference: https://github.com/Expensify/App/issues/34921
+                    <Text
+                        style={[
+                            inputStyle,
+                            autoGrowMeasurementStyles,
+                            autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
+                            styles.hiddenElementOutsideOfWindow,
+                            styles.visibilityHidden,
+                        ]}
+                        accessible={false}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
+                        aria-hidden
+                        onLayout={(e) => {
+                            if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                                return;
+                            }
+                            let additionalWidth = 0;
+                            if (isMobileSafari() || isSafari() || isMobileChrome()) {
+                                additionalWidth = 2;
+                            }
+                            onSetTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
+                            onSetTextInputHeight(e.nativeEvent.layout.height);
+                        }}
+                    >
+                        {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
+                        {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
+                    </Text>
+                )}
         </>
     );
 }
-
-TextInputMeasurement.displayName = 'TextInputMeasurement';
 
 export default TextInputMeasurement;

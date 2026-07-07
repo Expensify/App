@@ -1,6 +1,6 @@
 import variables from '@styles/variables';
 
-const ACTIVE_LABEL_TRANSLATE_Y = 4;
+const ACTIVE_LABEL_TRANSLATE_Y = 7;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
 const INACTIVE_LABEL_TRANSLATE_Y = variables.INACTIVE_LABEL_TRANSLATE_Y;

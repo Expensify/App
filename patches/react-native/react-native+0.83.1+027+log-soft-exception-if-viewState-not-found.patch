@@ -1,0 +1,68 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java
+index 3c0b281..9146176 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java
+@@ -354,7 +354,14 @@ public class SurfaceMountingManager {
+       return;
+     }
+ 
+-    ViewState parentViewState = getViewState(parentTag);
++    ViewState parentViewState = getNullableViewState(parentTag);
++    if (parentViewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++          ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++          new ReactNoCrashSoftException(
++              "Unable to find viewState for tag: " + parentTag + " for addViewAt"));
++      return;
++    }
+     if (!(parentViewState.mView instanceof ViewGroup)) {
+       String message =
+           "Unable to add a view into a view that is not a ViewGroup. ParentTag: "
+@@ -367,7 +374,14 @@ public class SurfaceMountingManager {
+       throw new IllegalStateException(message);
+     }
+     final ViewGroup parentView = (ViewGroup) parentViewState.mView;
+-    ViewState viewState = getViewState(tag);
++    ViewState viewState = getNullableViewState(tag);
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++          ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++          new ReactNoCrashSoftException(
++              "Unable to find viewState for tag: " + tag + " for addViewAt"));
++      return;
++    }
+     final View view = viewState.mView;
+     if (view == null) {
+       throw new IllegalStateException(
+@@ -786,7 +800,14 @@ public class SurfaceMountingManager {
+       return;
+     }
+ 
+-    ViewState viewState = getViewState(reactTag);
++    ViewState viewState = getNullableViewState(reactTag);
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++        ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++        new ReactNoCrashSoftException(
++          "Unable to find viewState for tag: " + reactTag + " for updateProps"));
++      return;
++    }
+ 
+     if (ReactNativeFeatureFlags.overrideBySynchronousMountPropsAtMountingAndroid()
+         && !shouldSkipSynchronousMountPropsOverride
+@@ -925,7 +946,14 @@ public class SurfaceMountingManager {
+       return;
+     }
+
+-    ViewState viewState = getViewState(reactTag);
++    ViewState viewState = getNullableViewState(reactTag);
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++          ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++          new ReactNoCrashSoftException(
++              "Unable to find viewState for tag: " + reactTag + " for updateLayout"));
++      return;
++    }
+     // Do not layout Root Views
+     if (viewState.mIsRoot) {
+       return;

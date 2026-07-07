@@ -1,6 +1,9 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import React from 'react';
+
 import ConfirmModal from './ConfirmModal';
 
 type AccountingConnectionConfirmationModalProps = {
@@ -26,5 +29,4 @@ function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, 
     );
 }
 
-AccountingConnectionConfirmationModal.displayName = 'AccountingConnectionConfirmationModal';
 export default AccountingConnectionConfirmationModal;

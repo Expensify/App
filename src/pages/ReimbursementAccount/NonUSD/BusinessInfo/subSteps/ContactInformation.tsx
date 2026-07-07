@@ -1,20 +1,26 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors, isValidEmail, isValidPhoneInternational} from '@libs/ValidationUtils';
+
+import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type ContactInformationProps = SubStepProps;
+import React, {useCallback} from 'react';
+
+type ContactInformationProps = SubPageProps;
 
 const {BUSINESS_CONTACT_NUMBER, BUSINESS_CONFIRMATION_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -24,13 +30,15 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const primaryLogin = account?.primaryLogin ?? '';
 
     const phoneNumberDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? '';
-    const confirmationEmailDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? '';
+    const confirmationEmailDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? primaryLogin ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values[BUSINESS_CONTACT_NUMBER] && !isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER])) {
                 errors[BUSINESS_CONTACT_NUMBER] = translate('common.error.phoneNumber');
@@ -47,8 +55,13 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: isEditing,
+        onNext: (values) => {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+                [BUSINESS_CONFIRMATION_EMAIL]: (values as FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>)[BUSINESS_CONFIRMATION_EMAIL],
+            });
+            onNext();
+        },
+        shouldSaveDraft: true,
     });
 
     return (
@@ -71,6 +84,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
                 containerStyles={[styles.mt5, styles.mh5]}
                 defaultValue={phoneNumberDefaultValue}
                 shouldSaveDraft={!isEditing}
+                autoComplete="tel"
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -82,11 +96,10 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
                 containerStyles={[styles.mt5, styles.mh5]}
                 defaultValue={confirmationEmailDefaultValue}
                 shouldSaveDraft={!isEditing}
+                autoComplete="email"
             />
         </FormProvider>
     );
 }
-
-ContactInformation.displayName = 'ContactInformation';
 
 export default ContactInformation;

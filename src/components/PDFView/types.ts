@@ -1,7 +1,7 @@
+import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 
-type PDFViewBaseProps = {
+type PDFViewProps = {
     /** URL to full-sized image */
     sourceURL: string;
 
@@ -31,23 +31,13 @@ type PDFViewBaseProps = {
 
     /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
+
+    /** Controlled rotation angle for the PDF */
+    rotation?: RotationDegrees;
 };
 
-type PDFViewOnyxProps = {
-    // Maximum canvas area to render the PDF preview
-    maxCanvasArea: OnyxEntry<number>;
-
-    // Maximum canvas height to render the PDF preview
-    maxCanvasHeight: OnyxEntry<number>;
-
-    // Maximum canvas width to render the PDF preview
-    maxCanvasWidth: OnyxEntry<number>;
-};
-
-type PDFViewProps = PDFViewBaseProps & PDFViewOnyxProps;
-
-type PDFViewNativeProps = PDFViewBaseProps & {
+type PDFViewNativeProps = PDFViewProps & {
     onPress?: (page: number, x: number, y: number) => void;
 };
 
-export type {PDFViewNativeProps, PDFViewProps, PDFViewOnyxProps};
+export type {PDFViewNativeProps, PDFViewProps};

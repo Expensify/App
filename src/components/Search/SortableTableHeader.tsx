@@ -1,0 +1,122 @@
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
+
+import SortableHeaderText from './SortableHeaderText';
+
+type ColumnConfig = {
+    columnName: SearchColumnType;
+    translationKey: TranslationPaths | undefined;
+    icon?: IconAsset;
+    isColumnSortable?: boolean;
+    sortColumnName?: SearchSortBy;
+    canBeMissing?: boolean;
+    canEdit?: boolean;
+};
+
+type SearchTableHeaderProps = {
+    columns: ColumnConfig[];
+    sortBy?: SearchSortBy;
+    sortOrder?: SortOrder;
+    shouldShowSorting: boolean;
+    dateColumnSize: TableColumnSize;
+    submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
+    postedColumnSize?: TableColumnSize;
+    exportedColumnSize?: TableColumnSize;
+    withdrawnColumnSize?: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
+    containerStyles?: StyleProp<ViewStyle>;
+    shouldShowColumn: (columnName: SearchColumnType) => boolean;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
+    shouldRemoveTotalColumnFlex?: boolean;
+    isActionColumnWide?: boolean;
+};
+
+function SortableTableHeader({
+    columns,
+    sortBy,
+    sortOrder,
+    shouldShowColumn,
+    dateColumnSize,
+    submittedColumnSize,
+    approvedColumnSize,
+    postedColumnSize,
+    exportedColumnSize,
+    withdrawnColumnSize,
+    containerStyles,
+    shouldShowSorting,
+    onSortPress,
+    amountColumnSize,
+    taxAmountColumnSize,
+    shouldRemoveTotalColumnFlex,
+    isActionColumnWide,
+}: SearchTableHeaderProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+
+    return (
+        <View style={[styles.flex1]}>
+            <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
+                {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
+                    if (!shouldShowColumn(columnName)) {
+                        return null;
+                    }
+
+                    const isSortable = shouldShowSorting && isColumnSortable;
+                    const sortByColumnName = sortColumnName ?? columnName;
+                    const isActive = sortBy === sortByColumnName;
+                    const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const textStyle = [
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
+                        isReimbursableOrBillableColumn ? styles.flexShrink1 : null,
+                    ];
+
+                    return (
+                        <SortableHeaderText
+                            key={columnName}
+                            text={translationKey ? translate(translationKey) : ''}
+                            icon={icon}
+                            textStyle={textStyle}
+                            sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
+                            isActive={isActive}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
+                            innerContainerStyle={canEdit && styles.editableCellHeader}
+                            containerStyle={[
+                                StyleUtils.getReportTableColumnStyles(columnName, {
+                                    isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    shouldRemoveTotalColumnFlex,
+                                    isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isActionColumnWide,
+                                }),
+                            ]}
+                            isSortable={isSortable}
+                            onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
+                        />
+                    );
+                })}
+            </View>
+        </View>
+    );
+}
+
+export default SortableTableHeader;

@@ -1,14 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
@@ -35,7 +43,10 @@ type FullPageNotFoundViewProps = {
     shouldShowBackButton?: boolean;
 
     /** The key in the translations file to use for the go back link */
-    linkKey?: TranslationPaths;
+    linkTranslationKey?: TranslationPaths;
+
+    /** The key in the translations file to use for the subtitle */
+    subtitleKeyBelowLink?: TranslationPaths | '';
 
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress?: () => void;
@@ -59,14 +70,14 @@ type FullPageNotFoundViewProps = {
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({
     testID,
     children = null,
     shouldShow = false,
     titleKey = 'notFound.notHere',
     subtitleKey = 'notFound.pageNotFound',
-    linkKey = 'notFound.goBackHome',
+    linkTranslationKey = 'notFound.goBackHome',
+    subtitleKeyBelowLink,
     onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
@@ -78,7 +89,9 @@ function FullPageNotFoundView({
     addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
+    const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
 
     if (shouldShow) {
         StatsCounter('FullPageNotFoundView');
@@ -87,25 +100,25 @@ function FullPageNotFoundView({
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth)}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
                     testID={testID}
                 >
                     <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
+                        icon={illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={translate(titleKey)}
                         subtitle={subtitleKey && translate(subtitleKey)}
-                        linkKey={linkKey}
-                        shouldShowLink={shouldShowLink}
+                        linkTranslationKey={shouldShowLink ? linkTranslationKey : undefined}
+                        subtitleKeyBelowLink={subtitleKeyBelowLink}
                         onLinkPress={onLinkPress}
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
-                        testID={FullPageNotFoundView.displayName}
+                        testID="FullPageNotFoundView"
                     />
                 </View>
             </ForceFullScreenView>
@@ -114,8 +127,6 @@ function FullPageNotFoundView({
 
     return children;
 }
-
-FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
 export type {FullPageNotFoundViewProps};
 export default FullPageNotFoundView;

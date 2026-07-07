@@ -1,10 +1,14 @@
-import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+
 import type {Option} from '@libs/searchOptions';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React, {useState} from 'react';
+
 import CountrySelectorModal from './CountrySelectorModal';
 
 type CountryPickerProps = {
@@ -47,11 +51,10 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
                 onCountrySelected={updateInput}
                 onClose={hidePickerModal}
                 label={translate('common.country')}
-                onBackdropPress={Navigation.dismissModal}
+                onBackdropPress={hidePickerModal}
             />
         </>
     );
 }
 
-CountryPicker.displayName = 'CountryPicker';
 export default CountryPicker;

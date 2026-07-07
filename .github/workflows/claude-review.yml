@@ -1,0 +1,124 @@
+name: PR Reviews with Claude Code
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request_target:
+    types: [opened, ready_for_review]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.html_url }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: |
+      github.event.pull_request.draft != true
+      && !contains(github.event.pull_request.title, 'Revert')
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Check contributor authorization
+        id: gate
+        uses: ./.github/actions/javascript/isAuthorizedContributor
+        with:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          GITHUB_TOKEN: ${{ github.token }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Set review authorized
+        id: set-authorized
+        run: |
+          if [ "${{ steps.gate.outputs.IS_AUTHORIZED }}" = "true" ]; then
+            echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_AUTHORIZED=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout repository
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Filter paths
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'src/**'
+            docs:
+              - 'docs/**/*.md'
+              - 'docs/**/*.csv'
+
+      - name: Setup Claude review toolkit
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        id: toolkit
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@2b751e9a86d8690f53443cce0ce886079eccea76
+
+      - name: Mark review as in progress
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          addPrReaction.sh "$PR_NUMBER" "eyes"
+
+      - name: Run Claude Code (code)
+        id: code-review
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
+        uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
+        with:
+          display_report: 'true'
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_non_write_users: '*'
+          prompt: '/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
+          claude_args: |
+            --model claude-opus-4-8
+            --effort xhigh
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
+
+      - name: Post code review results
+        if: |
+          steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+          && steps.code-review.outcome == 'success'
+          && steps.filter.outputs.code == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
+        run: postCodeReviewResults.sh "$PR_NUMBER"
+
+      - name: Run Claude Code (docs)
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
+        uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
+        with:
+          display_report: 'true'
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_non_write_users: '*'
+          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
+          claude_args: |
+            --model claude-opus-4-8
+            --effort high
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
+
+      - name: Remove in-progress indicator
+        if: always() && steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          removePrReaction.sh "$PR_NUMBER" "eyes" "github-actions[bot]"

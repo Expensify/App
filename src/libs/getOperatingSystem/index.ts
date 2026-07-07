@@ -1,8 +1,9 @@
 import CONST from '@src/CONST';
+
 import type GetOperatingSystem from './types';
 
 /**
- * Reads the current operating system when running on Web/Mobile-Web/Desktop
+ * Reads the current operating system when running on Web/Mobile-Web
  */
 const getOperatingSystem: GetOperatingSystem = () => {
     const {userAgent, platform} = window.navigator;

@@ -3,7 +3,6 @@ title: Create a Company Workspace
 description: Get started with Expensify by creating a workspace for your company.
 keywords: [Expensify Classic, getting started, new workspace, set up Expensify account]
 ---
-<div id="expensify-classic" markdown="1">
 
 A workspace is the set of rules, settings, and spending limits used for expense reports in your organization. This includes custom expense categories and tags, budgets, currency, tax settings, approval workflows, and accounting connections.
 
@@ -97,21 +96,21 @@ You can flag rule violations for:
    - **Expense violations** – Set limits and thresholds.
    - **Cash expenses** – Define policies.
    - **Rebilling** – Enable/disable rebilling.
-   - **eReceipts** – Turn on automatic receipts for non-loding expenses under $75 (_**Note:** eReceipts are IRS-compliant for expenses under $75. Additionally, all lodging expenses require a paper receipt_.
+   - **eReceipts** – Turn on automatic receipts for non-loading expenses under $75 (_**Note:** eReceipts are IRS-compliant for expenses under $75. Additionally, all lodging expenses require a paper receipt_.
    - **Receipt visibility** – Set access controls.
    - **Time expenses** – Enable time tracking if needed.
 3. Go to **Settings > Workspace > [Workspace Name] > Distance rates** to set mileage reimbursement rates.
 4. Set custom report names for consistency.
 5. Set the workspace **default currency** under **Settings > Workspace > [Workspace Name] > Overview > Default currency**.
 6. Go to **Settings > Workspace > [Workspace Name] > Workflows** to configure:
-   - **Delayed submission** – Auto-submit based on a set schedule.
+   - **Delay submission** – Auto-submit based on a set schedule.
 7. Go to **Settings > Workspace > [Workspace Name] > Report fields** to customize reports or invoices.
 8. Click the **Travel** tab to define flight class or hotel preferences.
 9. Use the **Per diem** tab to import location-specific expense rules.
 
 ---
 
-# 6. Secure Your Account
+# Secure Your Account
 
 Enable Two-Factor Authentication (2FA) to protect your account.
 
@@ -149,6 +148,5 @@ By reinforcing this process, you help prevent expense reports from being mis-cat
 
 ---
 
-**Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
+**Need help?** Schedule a free onboarding session with an Account Executive! Check your email and Expensify notifications for your unique signup link.
 
-</div>

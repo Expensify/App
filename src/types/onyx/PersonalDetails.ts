@@ -1,6 +1,10 @@
-import type {TupleToUnion} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type TIMEZONES from '@src/TIMEZONES';
+
+import type {TupleToUnion} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Selectable timezones */
@@ -56,6 +60,12 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar original file name with extension */
     originalFileName?: string;
 
+    /** Letter-avatar color scheme, only set when the user picks a color */
+    avatarStyle?: {
+        /** Color-scheme key, e.g. "blue100" */
+        color: LetterAvatarSchemeKey;
+    };
+
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 
@@ -73,6 +83,15 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
+
+    /**
+     * True when this account is a registered custom agent (server-side `private_agentOwnerID`
+     * NVP set). Stamped by Auth in `Account::formatNewDotPersonalDetails`, so it travels with
+     * every personalDetails payload returned to the client (OpenReport, OpenApp, ReconnectApp,
+     * GetPersonalDetailsForEmails, etc.). Lets chat surfaces detect custom-agent participants
+     * without subscribing to the wider `SHARED_NVP_AGENT_PROMPT` collection.
+     */
+    isCustomAgent?: boolean;
 
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
@@ -93,6 +112,14 @@ type PersonalDetailsMetadata = {
 /** Record of user personal details, indexed by user id */
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
+/** Current user's personal details */
+type CurrentUserPersonalDetails = PersonalDetails & {
+    /**
+     * Current user's email address
+     */
+    email?: string;
+};
+
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata, CurrentUserPersonalDetails};

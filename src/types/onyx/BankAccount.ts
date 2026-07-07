@@ -1,4 +1,6 @@
 import type CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
@@ -28,6 +30,42 @@ type BankAccountAdditionalData = {
 
     /** Is billing card */
     isBillingCard?: boolean;
+
+    /** ID of related policy */
+    policyID?: string;
+
+    /** Corpay fields */
+    corpay?: {
+        /** Powerform files */
+        achAuthorizationForm?: FileObject[];
+    };
+
+    /** First name of the bank account owner (OldDot field name) */
+    firstName?: string;
+
+    /** Last name of the bank account owner (OldDot field name) */
+    lastName?: string;
+
+    /** Legal first name of the bank account owner (NewDot field name) */
+    legalFirstName?: string;
+
+    /** Legal last name of the bank account owner (NewDot field name) */
+    legalLastName?: string;
+
+    /** City of the bank account owner's address */
+    addressCity?: string;
+
+    /** State of the bank account owner's address */
+    addressState?: string;
+
+    /** Street address of the bank account owner */
+    addressStreet?: string;
+
+    /** Zip code of the bank account owner's address */
+    addressZipCode?: string;
+
+    /** Phone number of the bank account owner */
+    companyPhone?: string;
 };
 
 /** Model of bank account */
@@ -43,6 +81,9 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Determines if the bank account is a savings account */
     isSavings?: boolean;
+
+    /** Determines if the bank account is an Expensify Card settlement account */
+    isExpensifyCardSettlementAccount?: boolean;
 
     /** Date when the 3 micro amounts for validation were supposed to reach the bank account */
     validateCodeExpectedDate?: string;

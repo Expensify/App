@@ -1,9 +1,8 @@
 ---
 title: Request the Expensify Card
 description: Learn how to request, activate, and manage the Expensify Card, including virtual card setup, replacement procedures, and eligibility requirements.
-keywords: [Expensify Classic, Expensify Card, request a card, new card]
+keywords: [Expensify Classic, Expensify Card, request a card, new card, activate, virtual card, replace card, lost card, update address]
 ---
-<div id="expensify-classic" markdown="1">
 
 This guide provides details on how you and your employees can request and use the Expensify Card.
 
@@ -26,7 +25,7 @@ The Expensify Card is currently available only to companies that meet the follow
 
 ## 2. Request the Card
 If a card limit hasn’t been assigned to you, look for the task on your account homepage that says: **"Ask your admin for the card!"**
-- Completing this task sends an in-product notification to your admin team requesting the card.
+- Completing this task submits a card request for your account and lets your admins know you're interested in receiving an Expensify Card.
 - Once assigned a card limit, you’ll receive an email notification. Follow these steps:
   1. Click the link in the email.
   2. Provide your shipping address on your account homepage.
@@ -95,4 +94,3 @@ If the card is marked as delivered but not received:
 
 Yes, if you have a business bank account and IRS registration for your company, you can use the Expensify Card as an individual business owner.
 
-</div>

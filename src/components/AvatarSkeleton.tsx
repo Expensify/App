@@ -1,14 +1,26 @@
-import React from 'react';
-import {Circle} from 'react-native-svg';
-import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {Circle} from 'react-native-svg';
+
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
-function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL}: {size?: ValueOf<typeof CONST.AVATAR_SIZE>}) {
-    const theme = useTheme();
+type AvatarSkeletonProps = {
+    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
+    reasonAttributes: SkeletonSpanReasonAttributes;
+};
 
+function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL, reasonAttributes}: AvatarSkeletonProps) {
+    const theme = useTheme();
+    useSkeletonSpan('AvatarSkeleton', reasonAttributes);
     const StyleUtils = useStyleUtils();
     const avatarSize = StyleUtils.getAvatarSize(size);
     const skeletonCircleRadius = avatarSize / 2;
@@ -30,5 +42,4 @@ function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL}: {size?: ValueOf<typeof
     );
 }
 
-AvatarSkeleton.displayName = 'AvatarSkeleton';
 export default AvatarSkeleton;

@@ -1,12 +1,17 @@
-import type {ForwardedRef, KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
-import React, {forwardRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Link from '@userActions/Link';
+
+import {openLink as openLinkUtil} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+
+import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
 import type {TextProps} from './Text';
+
 import Text from './Text';
 
 type LinkProps = {
@@ -30,9 +35,12 @@ type TextLinkProps = (LinkProps | PressProps) &
 
         /** Callback that is called when mousedown is triggered */
         onMouseDown?: MouseEventHandler;
+
+        /** Whether to suppress the default link style */
+        suppressDefaultStyle?: boolean;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
+function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
@@ -40,7 +48,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
         if (onPress) {
             onPress(event);
         } else {
-            Link.openLink(href, environmentURL);
+            openLinkUtil(href, environmentURL);
         }
     };
 
@@ -61,7 +69,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
 
     return (
         <Text
-            style={[styles.link, style]}
+            style={suppressDefaultStyle ? style : [styles.link, style]}
             role={CONST.ROLE.LINK}
             href={href}
             onPress={openLinkOnTap}
@@ -69,7 +77,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
             onMouseDown={onMouseDown}
             ref={ref}
             suppressHighlighting
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            accessible
             {...rest}
         >
             {children}
@@ -77,8 +85,6 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     );
 }
 
-TextLink.displayName = 'TextLink';
-
 export type {LinkProps, PressProps};
 
-export default forwardRef(TextLink);
+export default TextLink;

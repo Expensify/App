@@ -1,8 +1,10 @@
-import React, {useMemo} from 'react';
 import useThemePreference from '@hooks/useThemePreference';
+
 import ThemeIllustrationsContext from '@styles/theme/context/ThemeIllustrationsContext';
 // eslint-disable-next-line no-restricted-imports
 import illustrations from '@styles/theme/illustrations';
+
+import React, {useMemo} from 'react';
 
 type ThemeIllustrationsProviderProps = {
     children: React.ReactNode;
@@ -15,7 +17,5 @@ function ThemeIllustrationsProvider({children}: ThemeIllustrationsProviderProps)
 
     return <ThemeIllustrationsContext.Provider value={themeIllustrations}>{children}</ThemeIllustrationsContext.Provider>;
 }
-
-ThemeIllustrationsProvider.displayName = 'ThemeIllustrationsProvider';
 
 export default ThemeIllustrationsProvider;

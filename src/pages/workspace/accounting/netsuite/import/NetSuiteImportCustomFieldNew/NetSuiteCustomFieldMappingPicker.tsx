@@ -1,11 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type NetSuiteCustomListPickerProps = {
     /** Selected mapping value */
@@ -36,12 +39,12 @@ function NetSuiteCustomFieldMappingPicker({value, errorText, onInputChange}: Net
     return (
         <>
             <SelectionList
-                sections={[{data: selectionData}]}
+                data={selectionData}
                 onSelectRow={(selected) => {
                     onInputChange?.(selected.value);
                 }}
-                ListItem={RadioListItem}
-                initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
+                ListItem={SingleSelectListItem}
+                initiallyFocusedItemKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
             />
@@ -57,5 +60,4 @@ function NetSuiteCustomFieldMappingPicker({value, errorText, onInputChange}: Net
     );
 }
 
-NetSuiteCustomFieldMappingPicker.displayName = 'NetSuiteCustomFieldMappingPicker';
 export default NetSuiteCustomFieldMappingPicker;

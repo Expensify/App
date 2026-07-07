@@ -1,13 +1,19 @@
-import type {ReactElement} from 'react';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+
+import type {ReactElement} from 'react';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
+
+import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Text from './Text';
 
 type EmojiSuggestionsProps = {
@@ -101,7 +107,5 @@ function EmojiSuggestions({
         />
     );
 }
-
-EmojiSuggestions.displayName = 'EmojiSuggestions';
 
 export default EmojiSuggestions;

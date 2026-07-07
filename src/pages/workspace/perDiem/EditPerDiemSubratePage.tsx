@@ -1,26 +1,33 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {editPerDiemRateSubrate} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspacePerDiemForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
 
 type EditPerDiemSubratePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_SUBRATE>;
 
@@ -39,33 +46,27 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-            const subrateTrimmed = values.subrate.trim();
+        const subrateTrimmed = values.subrate.trim();
 
-            if (!subrateTrimmed) {
-                errors.subrate = translate('common.error.fieldRequired');
-            } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.subrate = translate('common.error.characterLimitExceedCounter', {length: subrateTrimmed.length, limit: CONST.MAX_LENGTH_256});
-            }
+        if (!subrateTrimmed) {
+            errors.subrate = translate('common.error.fieldRequired');
+        } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
+            errors.subrate = translate('common.error.characterLimitExceedCounter', subrateTrimmed.length, CONST.MAX_LENGTH_256);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editSubrate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-            const newSubrate = values.subrate.trim();
-            if (newSubrate !== selectedSubrate?.name) {
-                editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, newSubrate);
-            }
-            Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
-        },
-        [selectedSubrate?.name, policyID, rateID, subRateID, customUnit],
-    );
+    const editSubrate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
+        const newSubrate = values.subrate.trim();
+        if (newSubrate !== selectedSubrate?.name) {
+            editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, newSubrate);
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -77,7 +78,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditPerDiemSubratePage.displayName}
+                testID="EditPerDiemSubratePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -108,7 +109,5 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditPerDiemSubratePage.displayName = 'EditPerDiemSubratePage';
 
 export default EditPerDiemSubratePage;

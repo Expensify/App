@@ -1,124 +1,82 @@
-import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
-import getBackgroundColor from './getBackground';
-import getOpacity from './getOpacity';
-import TabSelectorItem from './TabSelectorItem';
 
-type TabSelectorProps = MaterialTopTabBarProps & {
-    /* Callback fired when tab is pressed */
-    onTabPress?: (name: string) => void;
+import {TabActions} from '@react-navigation/native';
+import React from 'react';
 
-    /** Callback to register focus trap container element */
-    onFocusTrapContainerElementChanged?: (element: HTMLElement | null) => void;
+import type {TabSelectorBaseItem, TabSelectorProps} from './types';
 
-    /** Whether to show the label when the tab is inactive */
-    shouldShowLabelWhenInactive?: boolean;
-};
+import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
+import TabSelectorBase from './TabSelectorBase';
+import ScrollableTabSelectorContextProvider from './TabSelectorContext';
 
-type IconTitleAndTestID = {
-    icon: IconAsset;
-    title: string;
-    testID?: string;
-};
-
-function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
-    switch (route) {
-        case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
-        case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
-        case CONST.TAB.NEW_CHAT:
-            return {icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat'};
-        case CONST.TAB.NEW_ROOM:
-            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
-        case CONST.TAB_REQUEST.DISTANCE:
-            return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
-        case CONST.TAB.SHARE.SHARE:
-            return {icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share'};
-        case CONST.TAB.SHARE.SUBMIT:
-            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
-        case CONST.TAB_REQUEST.PER_DIEM:
-            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
-        default:
-            throw new Error(`Route ${route} has no icon nor title set.`);
-    }
-}
-
-function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged, shouldShowLabelWhenInactive = true}: TabSelectorProps) {
+function TabSelector({
+    state,
+    navigation,
+    onTabPress = () => {},
+    onLongTabPress,
+    position,
+    onFocusTrapContainerElementChanged,
+    shouldShowLabelWhenInactive = true,
+    equalWidth = false,
+}: TabSelectorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
     const {translate} = useLocalize();
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
-    const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
-    useEffect(() => {
-        // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
-        setTimeout(() => {
-            setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
-        }, CONST.ANIMATED_TRANSITION);
-    }, [defaultAffectedAnimatedTabs, state.index]);
+    const tabs: TabSelectorBaseItem[] = state.routes.map((route) => {
+        const {icon, title, testID, sentryLabel} = getIconTitleAndTestID(icons, route.name, translate);
+        return {
+            key: route.name,
+            icon,
+            title,
+            testID,
+            sentryLabel,
+        };
+    });
+
+    const activeRouteName = state.routes[state.index]?.name ?? '';
+
+    const handleTabPress = (tabKey: string) => {
+        const route = state.routes.find((candidateRoute) => candidateRoute.name === tabKey);
+        if (!route) {
+            return;
+        }
+
+        const isActive = route.key === state.routes[state.index]?.key;
+        if (isActive) {
+            return;
+        }
+
+        const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+        });
+
+        if (!event.defaultPrevented) {
+            navigation.dispatch(TabActions.jumpTo(route.name));
+        }
+
+        onTabPress(route.name);
+    };
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View style={styles.tabSelector}>
-                {state.routes.map((route, index) => {
-                    const isActive = index === state.index;
-                    const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
-                    const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
-                    const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title, testID} = getIconTitleAndTestID(route.name, translate);
-                    const onPress = () => {
-                        if (isActive) {
-                            return;
-                        }
-
-                        setAffectedAnimatedTabs([state.index, index]);
-
-                        const event = navigation.emit({
-                            type: 'tabPress',
-                            target: route.key,
-                            canPreventDefault: true,
-                        });
-
-                        if (!event.defaultPrevented) {
-                            // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                            navigation.navigate({key: route.key, merge: true});
-                        }
-
-                        onTabPress(route.name);
-                    };
-
-                    return (
-                        <TabSelectorItem
-                            key={route.name}
-                            icon={icon}
-                            title={title}
-                            onPress={onPress}
-                            activeOpacity={activeOpacity}
-                            inactiveOpacity={inactiveOpacity}
-                            backgroundColor={backgroundColor}
-                            isActive={isActive}
-                            testID={testID}
-                            shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        />
-                    );
-                })}
-            </View>
+            <ScrollableTabSelectorContextProvider activeTabKey={activeRouteName}>
+                <TabSelectorBase
+                    tabs={tabs}
+                    activeTabKey={activeRouteName}
+                    onTabPress={handleTabPress}
+                    onLongTabPress={onLongTabPress}
+                    position={position}
+                    shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                    equalWidth={equalWidth}
+                />
+            </ScrollableTabSelectorContextProvider>
         </FocusTrapContainerElement>
     );
 }
 
-TabSelector.displayName = 'TabSelector';
-
 export default TabSelector;
-
-export type {TabSelectorProps};

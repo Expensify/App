@@ -1,46 +1,39 @@
-import {Str} from 'expensify-common';
-import React, {useContext, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
-import {isAnonymousUser} from '@libs/actions/Session';
-import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {setSelfTourViewed} from '@libs/actions/Welcome';
-import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {getNavatticURL} from '@libs/TourUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import TextLink from '@components/TextLink';
 
-type AnchorRendererProps = CustomRendererProps<TBlock> & {
+import useEnvironment from '@hooks/useEnvironment';
+import useHover from '@hooks/useHover';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
+
+type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
     key?: string;
 };
 
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {report, action} = useContext(ShowContextMenuContext);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${introSelected?.viewTour}`, {canBeMissing: true});
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-        canBeMissing: true,
-    });
-    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const htmlAttribs = tnode.attributes;
-    const {environment, environmentURL} = useEnvironment();
+    const {environmentURL} = useEnvironment();
+    const {hovered, bind} = useHover();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
     const tNodeChild = tnode?.domNode?.children?.at(0);
@@ -55,41 +48,72 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
 
-    const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
-
-    const isInConciergeTaskView = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && report?.type === CONST.REPORT.TYPE.TASK && report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE;
-    const isTourTask = attrHref === getNavatticURL(environment, introSelected?.choice) && (action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE || isInConciergeTaskView);
+    const textDecorationLineStyle = isDeleted ? styles.lineThrough : {};
 
     const onLinkPress = useMemo(() => {
         if (internalNewExpensifyPath || internalExpensifyPath) {
             return () => openLink(attrHref, environmentURL, isAttachment);
         }
 
-        if (isTourTask && !hasSeenTour) {
-            return () => {
-                openExternalLink(attrHref);
-                setSelfTourViewed(isAnonymousUser());
-                if (viewTourTaskReport && canModifyViewTourTask && canActionViewTourTask) {
-                    completeTask(viewTourTaskReport);
-                }
-            };
-        }
-
         return undefined;
-    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment, isTourTask, hasSeenTour, viewTourTaskReport, canModifyViewTourTask, canActionViewTourTask]);
+    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment]);
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+
+        // Define link style based on context
+        let linkStyle: StyleProp<TextStyle> = styles.link;
+
+        // Special handling for links in RBR to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfRBR(tnode)) {
+            linkStyle = [
+                styles.link,
+                {
+                    fontSize: HTMLEngineUtils.getFontSizeOfRBRChild(tnode),
+                },
+            ];
+        }
+
+        if (HTMLEngineUtils.isChildOfLabelText(tnode)) {
+            linkStyle = [styles.textLabel, styles.textLineHeightNormal, styles.link];
+        }
+
+        // Special handling for links in label font to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfMutedTextLabel(tnode)) {
+            linkStyle = [styles.mutedNormalTextLabel, styles.link];
+        }
+
+        // Special handling for links in extra small font to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfMutedTextXS(tnode)) {
+            linkStyle = [styles.textExtraSmallSupporting, styles.link];
+        }
+
+        // Special handling for links in micro font to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfMutedTextMicro(tnode)) {
+            linkStyle = [styles.textMicroSupporting, styles.link];
+        }
+
+        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
+            linkStyle = [styles.formError, styles.mb0, styles.link];
+        }
+
+        if (tnode.classes.includes('no-style-link')) {
+            // If the link has a class of a no-style-link, we don't apply any styles
+            linkStyle = {...(style as TextStyle)};
+            delete linkStyle.color;
+            delete linkStyle.textDecorationLine;
+            delete linkStyle.textDecorationColor;
+        }
+
         return (
-            <Text
-                style={styles.link}
+            <TextLink
+                style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
-                suppressHighlighting
+                suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+            </TextLink>
         );
     }
 
@@ -103,6 +127,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
+    const hoverStyle = hovered ? StyleUtils.getColorStyle(theme.linkHover) : {};
     return (
         <AnchorForCommentsOnly
             href={attrHref}
@@ -110,22 +135,25 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // a new window. On Desktop this means that we will
             // skip the default Save As... download prompt
             // and defer to whatever browser the user has.
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={[
                 style,
                 parentStyle,
+                styles.textDecorationLineNone,
                 textDecorationLineStyle,
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
-                styles.dInlineFlex,
+                hoverStyle,
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
+            {...bind}
             linkHasImage={linkHasImage}
+            isChildOfTaskTitle={isChildOfTaskTitle}
         >
             <TNodeChildrenRenderer
                 tnode={tnode}
@@ -140,10 +168,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                 style={[
                                     props.childTnode.getNativeStyles(),
                                     parentStyle,
+                                    styles.textDecorationLineNone,
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
-                                    styles.dInlineFlex,
+                                    hoverStyle,
                                 ]}
                             >
                                 {props.childTnode.data}
@@ -156,7 +185,5 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         </AnchorForCommentsOnly>
     );
 }
-
-AnchorRenderer.displayName = 'AnchorRenderer';
 
 export default AnchorRenderer;

@@ -1,8 +1,9 @@
-/* eslint-disable @typescript-eslint/await-thenable */
+import type {RawSourceMap} from 'source-map';
+
 import fs from 'fs';
 import path from 'path';
-import type {RawSourceMap} from 'source-map';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+
 import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
 const argsMap = parseCommandLineArguments();
@@ -43,12 +44,12 @@ async function mergeSourceMaps() {
         });
 
         // Add the sources content
-        consumer.sources.forEach((sourceFile: string) => {
+        for (const sourceFile of consumer.sources) {
             const content = consumer.sourceContentFor(sourceFile);
             if (content) {
                 mergedGenerator.setSourceContent(sourceFile, content);
             }
-        });
+        }
 
         consumer.destroy();
     }

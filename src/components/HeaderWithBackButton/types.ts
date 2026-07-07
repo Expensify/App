@@ -1,20 +1,23 @@
-import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
 import type {Action} from '@hooks/useSingleExecution';
+
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
-import type {AnchorPosition} from '@src/styles';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset;
+    icon: Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles' | 'Pin' | 'QrCode'>;
 
     /** Translation key for the label */
     translationKey: TranslationPaths;
@@ -52,6 +55,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
+    /** Method to trigger when pressing rotate button of the header */
+    onRotateButtonPress?: () => void;
+
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress?: () => void;
 
@@ -64,11 +70,20 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom?: boolean;
 
+    /** Whether we should display the status of the report */
+    shouldDisplayStatus?: boolean;
+
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
     /** Whether we should show a loading indicator replacing the download button */
     isDownloading?: boolean;
+
+    /** Whether we should show a rotate button */
+    shouldShowRotateButton?: boolean;
+
+    /** Whether we should show a loading indicator replacing the rotate button */
+    isRotating?: boolean;
 
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
@@ -84,9 +99,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** The anchor position of the menu */
-    threeDotsAnchorPosition?: AnchorPosition;
 
     /** The anchor alignment of the menu */
     threeDotsAnchorAlignment?: AnchorAlignment;
@@ -115,9 +127,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report?: OnyxEntry<Report>;
 
-    /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
-    policy?: OnyxEntry<Policy>;
-
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
 
@@ -135,6 +144,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Number of lines to display for the title */
+    numberOfTitleLines?: number;
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
@@ -156,6 +168,14 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** If true, display the individual button instead of the three-dot menu when there's only one menu item */
+    shouldMinimizeMenuButton?: boolean;
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
+
+    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
+    shouldSkipFocusAfterTransition?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

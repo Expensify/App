@@ -1,37 +1,64 @@
-import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getHeaderMessageForNonUserList, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, formatReportLastMessageText} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, formatReportLastMessageText, getInvoiceReceiverPolicyID, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
 
 type DebugReportActionsProps = {
     reportID: string;
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
-    });
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
+    const isReportArchived = useReportIsArchived(reportID);
+    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
+
+    const getSortedAllReportActionsSelector = useCallback(
+        (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
+            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID);
+        },
+        [ifUserCanPerformWriteAction, reportID],
+    );
+
+    const [sortedAllReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            selector: getSortedAllReportActionsSelector,
+        },
+        [getSortedAllReportActionsSelector],
+    );
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 
     const getReportActionDebugText = useCallback(
         (reportAction: ReportAction) => {
@@ -47,30 +74,54 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy).messageText ?? translate('report.noActivityYet'));
+                return formatReportLastMessageText(
+                    SidebarUtils.getWelcomeMessage({
+                        report,
+                        policy,
+                        invoiceReceiverPolicy,
+                        participantPersonalDetailList,
+                        translate,
+                        localeCompare,
+                        conciergeReportID,
+                        reportAttributes,
+                        isReportArchived,
+                    }).messageText ?? translate('report.noActivityYet'),
+                );
             }
 
             if (reportActionMessage.html) {
-                return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+                return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
             }
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, policy, report],
+        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, reportAttributes, isReportArchived],
     );
 
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
+            .filter((reportAction) => reportAction?.reportActionID)
             .filter(
                 (reportAction) =>
-                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+                    reportAction.reportActionID?.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
             )
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,
                 text: getReportActionDebugText(reportAction),
                 alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
+                keyForList: reportAction.reportActionID,
             }));
     }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+        }),
+        [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
+    );
 
     return (
         <ScrollView style={styles.mv3}>
@@ -82,19 +133,14 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 style={[styles.pb3, styles.ph3]}
             />
             <SelectionList
-                sections={[{data: searchedReportActions}]}
-                listItemTitleStyles={styles.fontWeightNormal}
-                textInputValue={searchValue}
-                textInputLabel={translate('common.search')}
-                headerMessage={getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue)}
-                onChangeText={setSearchValue}
+                data={searchedReportActions}
+                style={{listItemTitleStyles: styles.fontWeightNormal}}
+                textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
             />
         </ScrollView>
     );
 }
-
-DebugReportActions.displayName = 'DebugReportActions';
 
 export default DebugReportActions;

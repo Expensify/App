@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -22,13 +23,18 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
+    linkReversed: colors.blue300,
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
+    buttonHoveredBGReversed: colors.productDark500,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
+    buttonDangerText: colors.white,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -39,6 +45,7 @@ const lightTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productLight400,
@@ -68,14 +75,28 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productLight200,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
+    dropWrapperBG: 'rgba(235, 230, 223, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.8)',
+    attachmentDropUIBGActive: 'rgba(90, 176, 255, 0.96)',
+    attachmentDropBorderColorActive: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.8)',
+    receiptDropUIBGActive: 'rgba(3, 212, 124, 0.96)',
+    receiptDropBorderColorActive: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green100,
     reactionActiveText: colors.green600,
+    badgeDefaultBG: colors.productLight400,
+    badgeSuccessBG: colors.green200,
+    badgeDangerBG: colors.tangerine200,
+    badgeSuccessText: colors.green700,
+    badgeDangerText: colors.tangerine700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    bordersBold: colors.productLight400,
+    buttonIcon: colors.productLight700,
     mentionText: colors.blue600,
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
@@ -85,6 +106,8 @@ const lightTheme = {
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
+    widgetIconBG: colors.green100,
+    widgetIconFill: colors.green500,
     skeletonLHNIn: colors.productLight400,
     skeletonLHNOut: colors.productLight600,
     QRLogo: colors.green400,
@@ -93,8 +116,6 @@ const lightTheme = {
     white: colors.white,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
-    emptyFolderBG: colors.yellow600,
-    travelBG: colors.blue600,
     trialTimer: colors.green600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -103,6 +124,10 @@ const lightTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.INBOX]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -118,11 +143,15 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.SETTINGS.RULES.ROOT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -134,21 +163,44 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
-            backgroundColor: colors.productLight100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+    },
+
+    reportStatusBadge: {
+        draft: {
+            backgroundColor: colors.blue200,
+            textColor: colors.blue700,
+        },
+        outstanding: {
+            backgroundColor: colors.tangerine200,
+            textColor: colors.tangerine700,
+        },
+        approved: {
+            backgroundColor: colors.ice200,
+            textColor: colors.ice700,
+        },
+        paid: {
+            backgroundColor: colors.green200,
+            textColor: colors.green700,
+        },
+        closed: {
+            backgroundColor: colors.pink200,
+            textColor: colors.pink700,
+        },
+        deleted: {
+            backgroundColor: colors.tangerine500,
+            textColor: colors.productLight100,
+        },
+        unreported: {
+            backgroundColor: colors.productLight400,
+            textColor: colors.productLight900,
         },
     },
 

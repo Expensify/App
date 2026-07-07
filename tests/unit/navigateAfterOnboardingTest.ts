@@ -1,23 +1,25 @@
-import {waitFor} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax
 import type * as ReportUtils from '@libs/ReportUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
-const ACTIVE_WORKSPACE_ID = '3';
-const REPORT_ID = '4';
-const USER_ID = '5';
-const mockFindLastAccessedReport = jest.fn();
+const REPORT_ID = '3';
+const USER_ID = '4';
+const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -30,18 +32,23 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@libs/ReportUtils', () => ({
-    findLastAccessedReport: () => mockFindLastAccessedReport() as OnyxEntry<Report>,
+    findLastAccessedReport: (...args: Parameters<typeof mockFindLastAccessedReport>) => mockFindLastAccessedReport(...args),
     parseReportRouteParams: jest.fn(() => ({})),
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
-    isArchivedReportWithID: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReportWithID,
+    isArchivedReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReport,
     isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
-    generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
     getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
     isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
+    generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    getAllReportErrors: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportErrors,
+    getViolatingReportIDForRBRInLHN: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getViolatingReportIDForRBRInLHN,
+    generateIsEmptyReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateIsEmptyReport,
+    isExpenseReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isExpenseReport,
+    isSelfDM: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isSelfDM,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => mockShouldOpenOnAdminRoom() as boolean,
 }));
@@ -62,16 +69,16 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
 
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, false, true, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
-    it('should not navigate if onboardingAdminsChatReportID is not provided', () => {
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, false, true, undefined, undefined);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+    it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
     });
 
-    it('should navigate to LHN if it is a concierge chat on small screens', async () => {
+    it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {
             reportID: REPORT_ID,
@@ -82,21 +89,31 @@ describe('navigateAfterOnboarding', () => {
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
         };
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, lastAccessedReport);
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-        expect(navigate).not.toHaveBeenCalled();
+        navigateAfterOnboarding(true, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should navigate to LHN if it is onboarding workspace chat on small screens', () => {
+    it('should not navigate to last accessed report if it is onboarding expense chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should not navigate to last accessed report if it is selfDM chat on small screens', () => {
+        const lastAccessedReport = {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM};
+        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
+        mockShouldOpenOnAdminRoom.mockReturnValue(false);
+
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
     it('should navigate to last accessed report if shouldOpenOnAdminRoom is true on small screens', () => {
@@ -105,8 +122,18 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should pass reportNameValuePairs when looking up last accessed report', () => {
+        const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: {private_isArchived: '2024-02-01 04:56:47.233'}};
+        mockFindLastAccessedReport.mockReturnValue(undefined);
+        mockShouldOpenOnAdminRoom.mockReturnValue(false);
+
+        navigateAfterOnboarding(true, true, '', reportNameValuePairs, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, reportNameValuePairs);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
@@ -116,23 +143,13 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
-        navigateAfterOnboarding(
-            CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-            true,
-            true,
-            ONBOARDING_POLICY_ID,
-            ACTIVE_WORKSPACE_ID,
-            ONBOARDING_ADMINS_CHAT_REPORT_ID,
-            (testSession?.email ?? '').includes('+'),
-        );
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should navigate to Test Drive Modal if user wants to manage a small team', async () => {
+    it('should navigate to the admin room when the inboxAdminsBespoke variant is assigned', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
-        jest.spyOn(Navigation, 'isNavigationReady').mockReturnValue(Promise.resolve());
-
-        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.MANAGE_TEAM, true, true);
-        await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT));
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 });

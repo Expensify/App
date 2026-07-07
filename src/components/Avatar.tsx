@@ -1,19 +1,27 @@
-import React, {useEffect, useState} from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import {getAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
+import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarProps = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -53,6 +61,9 @@ type AvatarProps = {
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
+
+    /** Test ID for the Avatar component */
+    testID?: string;
 };
 
 function Avatar({
@@ -62,31 +73,40 @@ function Avatar({
     containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
     fill,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     fallbackIconTestID = '',
     type,
     name = '',
     avatarID,
+    testID = 'Avatar',
 }: AvatarProps) {
+    const defaultAvatars = useDefaultAvatars();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [imageError, setImageError] = useState(false);
+    const [errorSource, setErrorSource] = useState<string | undefined>(undefined);
+    const imageError = errorSource !== undefined && errorSource === originalSource;
 
-    useNetwork({onReconnect: () => setImageError(false)});
-
-    useEffect(() => {
-        setImageError(false);
-    }, [originalSource]);
+    useNetwork({onReconnect: () => setErrorSource(undefined)});
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar(originalSource, userAccountID);
-    const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
-    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
+
+    // Read the color and initials directly from the generated letter-avatar URL.
+    const letterAvatarParts = parseLetterAvatarURL(source);
+
+    let optimizedSource = source;
+    const localFromCatalog = findLocalAvatarForURL(source);
+
+    if (localFromCatalog) {
+        optimizedSource = localFromCatalog;
+    }
+    const useFallBackAvatar = imageError || !source || source === defaultAvatars.FallbackAvatar;
+    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : (fallbackIcon ?? defaultAvatars.FallbackAvatar) || defaultAvatars.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
     const iconSize = StyleUtils.getAvatarSize(size);
@@ -96,20 +116,42 @@ function Avatar({
     let iconColors;
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
-    } else if (useFallBackAvatar) {
+        // Assign the icon fill color only for the default fallback avatar
+    } else if (useFallBackAvatar && avatarSource === defaultAvatars.FallbackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
         iconColors = null;
     }
 
+    if (!isWorkspace && letterAvatarParts) {
+        return (
+            <View
+                style={[containerStyles, styles.pointerEventsNone]}
+                testID={testID}
+            >
+                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    <UserInitialsAvatar
+                        text={letterAvatarParts.initials}
+                        colors={letterAvatarParts.colors}
+                        size={iconSize}
+                    />
+                </View>
+            </View>
+        );
+    }
+
     return (
-        <View style={[containerStyles, styles.pointerEventsNone]}>
+        <View
+            style={[containerStyles, styles.pointerEventsNone]}
+            testID={testID}
+        >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: avatarSource}}
                         style={imageStyle}
-                        onError={() => setImageError(true)}
+                        onError={() => setErrorSource(typeof originalSource === 'string' ? originalSource : undefined)}
                         cachePolicy="memory-disk"
                     />
                 </View>
@@ -120,7 +162,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? iconColors?.fill ?? theme.offline : iconColors?.fill ?? fill}
+                        fill={imageError ? (iconColors?.fill ?? theme.offline) : (iconColors?.fill ?? fill)}
                         additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
                     />
                 </View>
@@ -129,6 +171,5 @@ function Avatar({
     );
 }
 
-Avatar.displayName = 'Avatar';
-
+export type {AvatarProps};
 export default Avatar;

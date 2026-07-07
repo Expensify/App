@@ -1,14 +1,20 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useEffect, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CountrySelectorProps = {
@@ -27,9 +33,12 @@ type CountrySelectorProps = {
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -62,7 +71,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
         // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
         Navigation.setParams({country: undefined});
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryFromUrl, isFocused, onBlur]);
 
     return (
@@ -75,14 +84,11 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
             description={translate('common.country')}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRoute();
                 didOpenCountrySelector.current = true;
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode ?? '')));
             }}
         />
     );
 }
 
-CountrySelector.displayName = 'CountrySelector';
-
-export default forwardRef(CountrySelector);
+export default CountrySelector;

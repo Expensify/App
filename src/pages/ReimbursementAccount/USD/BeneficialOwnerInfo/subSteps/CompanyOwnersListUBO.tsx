@@ -1,22 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CompanyOwnersListUBOProps = {
     /** Method called when user confirms data */
@@ -38,6 +43,7 @@ type CompanyOwnersListUBOProps = {
 const REQUESTOR_PERSONAL_INFO_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}: CompanyOwnersListUBOProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -62,7 +68,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
                     wrapperStyle={[styles.ph5]}
-                    icon={FallbackAvatar}
+                    icon={icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
@@ -90,7 +96,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                         title={`${requestorData.firstName} ${requestorData.lastName}`}
                         description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
                         wrapperStyle={[styles.ph5]}
-                        icon={FallbackAvatar}
+                        icon={icons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         iconWidth={40}
                         iconHeight={40}
@@ -123,7 +129,5 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
         </ScrollView>
     );
 }
-
-CompanyOwnersListUBO.displayName = 'CompanyOwnersListUBO';
 
 export default CompanyOwnersListUBO;

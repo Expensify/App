@@ -1,9 +1,11 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
-import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {ValidateCodeActionFormProps} from './type';
 
 function ValidateCodeActionForm({
@@ -19,8 +21,8 @@ function ValidateCodeActionForm({
     sendValidateCode,
     isLoading,
     submitButtonText,
-    forwardedRef,
     shouldSkipInitialValidation,
+    ref,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
     const isUnmounted = useRef(false);
@@ -33,7 +35,7 @@ function ValidateCodeActionForm({
         return () => {
             isUnmounted.current = true;
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldSkipInitialValidation]);
 
     useEffect(() => {
@@ -59,19 +61,11 @@ function ValidateCodeActionForm({
                 sendValidateCode={sendValidateCode}
                 clearError={clearError}
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
-                ref={forwardedRef}
+                ref={ref}
                 submitButtonText={submitButtonText}
             />
         </View>
     );
 }
 
-ValidateCodeActionForm.displayName = 'ValidateCodeActionForm';
-
-export default forwardRef<ValidateCodeFormHandle, ValidateCodeActionFormProps>((props, ref) => (
-    <ValidateCodeActionForm
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default ValidateCodeActionForm;

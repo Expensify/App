@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {findFocusedRoute} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 function replacePathInNestedState(state: PartialState<NavigationState<RootNavigatorParamList>>, path: string) {
     const found = findFocusedRoute(state);
@@ -9,7 +10,6 @@ function replacePathInNestedState(state: PartialState<NavigationState<RootNaviga
         return;
     }
 
-    // @ts-expect-error Updating read only property
     found.path = path;
 }
 export default replacePathInNestedState;

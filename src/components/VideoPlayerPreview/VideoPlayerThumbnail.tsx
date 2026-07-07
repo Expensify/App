@@ -1,18 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import AttachmentDeletedIndicator from '@components/AttachmentDeletedIndicator';
 import Icon from '@components/Icon';
-import {Play} from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type VideoPlayerThumbnailProps = {
     /** Url of thumbnail image. */
@@ -30,11 +35,15 @@ type VideoPlayerThumbnailProps = {
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Play']);
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
         <View style={styles.flex1}>
             {!!thumbnailUrl && (
                 <View style={[styles.flex1, {borderRadius: variables.componentBorderRadiusNormal}, styles.overflowHidden]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: thumbnailUrl}}
                         style={styles.flex1}
@@ -44,41 +53,38 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                 </View>
             )}
             {!isDeleted ? (
-                <ShowContextMenuContext.Consumer>
-                    {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
-                        <PressableWithoutFeedback
-                            style={[styles.videoThumbnailContainer]}
-                            accessibilityLabel={accessibilityLabel}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            onPress={onPress}
-                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={(event) => {
-                                if (isDisabled || !shouldDisplayContextMenu) {
-                                    return;
-                                }
-                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
-                            }}
-                            shouldUseHapticsOnLongPress
-                        >
-                            <View style={[styles.videoThumbnailPlayButton]}>
-                                <Icon
-                                    src={Play}
-                                    fill="white"
-                                    width={variables.iconSizeXLarge}
-                                    height={variables.iconSizeXLarge}
-                                />
-                            </View>
-                        </PressableWithoutFeedback>
-                    )}
-                </ShowContextMenuContext.Consumer>
+                <PressableWithoutFeedback
+                    style={[styles.videoThumbnailContainer]}
+                    accessibilityLabel={accessibilityLabel}
+                    accessibilityRole={CONST.ROLE.BUTTON}
+                    onPress={onPress}
+                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => {
+                        if (isDisabled || !shouldDisplayContextMenu) {
+                            return;
+                        }
+                        onShowContextMenu(() => {
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
+                        });
+                    }}
+                    shouldUseHapticsOnLongPress
+                    sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.THUMBNAIL}
+                >
+                    <View style={[styles.videoThumbnailPlayButton]}>
+                        <Icon
+                            src={icons.Play}
+                            fill="white"
+                            width={variables.iconSizeXLarge}
+                            height={variables.iconSizeXLarge}
+                        />
+                    </View>
+                </PressableWithoutFeedback>
             ) : (
                 <AttachmentDeletedIndicator containerStyles={{borderRadius: variables.componentBorderRadiusNormal}} />
             )}
         </View>
     );
 }
-
-VideoPlayerThumbnail.displayName = 'VideoPlayerThumbnail';
 
 export default VideoPlayerThumbnail;

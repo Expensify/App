@@ -1,24 +1,27 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as NumberUtils from '@libs/NumberUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import {rand64} from '@libs/NumberUtils';
+
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,13 +29,31 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
+
+function isParsedReportAction(value: unknown): value is ReportAction {
+    return typeof value === 'object' && value !== null && 'reportActionID' in value;
+}
+
+function parseReportActionJSON(draftReportAction: string): ReportAction | null {
+    try {
+        const parsedReportAction: unknown = JSON.parse(draftReportAction.replaceAll('\n', ''));
+        return isParsedReportAction(parsedReportAction) ? parsedReportAction : null;
+    } catch {
+        return null;
+    }
+}
 
 const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     DebugUtils.stringifyJSON({
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportID,
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: rand64(),
         created: DateUtils.getDBTime(),
         actorAccountID: session?.accountID,
         avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
@@ -49,15 +70,24 @@ function DebugReportActionCreatePage({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
+
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
-        const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
+        if (!reportAction) {
+            return;
+        }
         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [parsedReportAction.reportActionID]: parsedReportAction,
+            [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [draftReportAction, reportID]);
+    }, [reportAction, reportID]);
 
     const editJSON = useCallback(
         (updatedJSON: string) => {
@@ -78,8 +108,8 @@ function DebugReportActionCreatePage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugReportActionCreatePage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugReportActionCreatePage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -98,21 +128,21 @@ function DebugReportActionCreatePage({
                                 multiline
                                 value={draftReportAction}
                                 onChangeText={editJSON}
-                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
+                                // We need to explicitly add styles.pt5 and styles.pb5 to override the default top and bottom padding of the text input
+                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.ph5, styles.pt5, styles.pb5]}
                             />
                         </View>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
-                            {!error ? (
+                            {!error && reportAction ? (
                                 <ReportActionItem
-                                    action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
-                                    report={{reportID}}
-                                    reportActions={[]}
+                                    action={reportAction}
+                                    transactionThreadReport={transactionThreadReport}
+                                    report={report}
+                                    chatReport={chatReport}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
                                 />
@@ -133,7 +163,5 @@ function DebugReportActionCreatePage({
         </ScreenWrapper>
     );
 }
-
-DebugReportActionCreatePage.displayName = 'DebugReportActionCreatePage';
 
 export default DebugReportActionCreatePage;

@@ -3,7 +3,6 @@ title: Personal and Corporate Karma
 description: Details about Personal and Corporate Karma
 keywords: [Expensify Classic, karma points, personal karma, corporate karma]
 ---
-<div id="expensify-classic" markdown="1">
 
 [Expensify.org](https://www.expensify.org/about) is built on creating a transparent and convenient way to create an emotional connection between donors, volunteers, and recipients. The funds for this organization come from Corporate Karma, Personal Karma, and monetary donations.
 
@@ -21,13 +20,7 @@ The fund from your Personal Karma is determined by the expense's MCC (Merchant C
 
 ## Setting Up Personal Karma Donations
 
-You can enable Personal Karma donations from your personal workspace settings.
-
-1. [Sign in](www.expensify.com) to your web account.
-2. Go to **Settings > Workspace > Individual**.
-3. Under the **Subscription** section, enable Karma donations.
-
-![Settings > Workspaces > Individual workspace > enable Personal Karma in settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Individual.png){:width="100%"}
+Personal Karma is now managed in New Expensify. To enable or disable Personal Karma donations, see the [Personal Karma](https://help.expensify.com/articles/new-expensify/settings/Personal-Karma) help page.
 
 ---
 
@@ -41,12 +34,11 @@ The fund to which your Corporate Karma goes is determined by the expense's MCC (
 
 ## Setting Up Corporate Karma Donations
 
-As a [workspace billing owner](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account), you can enable Corporate Karma from the group workspace settings.
+As a [workspace billing owner](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account), you can enable Corporate Karma from your workspace settings.
 
-1. [Sign in](www.expensify.com) to your web account.
-2. Go to **Settings > Workspace > Group**.
-3. Under the **Subscription** section, enable Karma donations.
+1. [Sign in](https://www.expensify.com) to your web account.
+2. Go to **Settings > Workspace > [Your Workspace Name] > Subscription**.
+3. Enable Karma donations.
 
 ![Settings > Workspaces > Group > enable Corporate Karma in subscription settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Group.png){:width="100%"}
 
-</div>

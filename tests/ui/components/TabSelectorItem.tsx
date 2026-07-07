@@ -1,19 +1,16 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import Tooltip from '@components/Tooltip';
 
+import React from 'react';
+
 // Mock the Tooltip component since it uses portals which aren't supported in RNTL
 jest.mock('@components/Tooltip');
-jest.mock('@libs/Fullstory', () => ({
-    default: {
-        consentAndIdentify: jest.fn(),
-    },
-    parseFSAttributes: jest.fn(),
-}));
 
 describe('TabSelectorItem Component', () => {
     const title = 'Test Tab';
+    const tabKey = 'test-tab';
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -26,6 +23,7 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive={false}
+                tabKey={tabKey}
             />,
         );
 
@@ -35,7 +33,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: true,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 
@@ -46,6 +44,7 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive
+                tabKey={tabKey}
             />,
         );
 
@@ -56,7 +55,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: false,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 
@@ -67,6 +66,7 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive
                 isActive={false}
+                tabKey={tabKey}
             />,
         );
 
@@ -77,7 +77,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: false,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 });

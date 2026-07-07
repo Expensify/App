@@ -4,7 +4,6 @@ description: Understand how Collect and Control plans are billed in Expensify, i
 keywords: [Expensify Classic, billing, subscription, pricing, collect plan, control plan, expensify card, billing owner, workspace billing, transfer billing]
 ---
 
-<div id="expensify-classic" markdown="1">
   
 Here’s everything you need to know about how Expensify bills for Collect and Control plans. Learn how pricing works, who gets billed, and how to transfer billing ownership.
 
@@ -38,7 +37,7 @@ Collect is perfect for small teams that need an easy way to track receipts and g
 
 ## 🌍 Localized Pricing
 
-- Equivalent pricing available in **GBP**, **AUD**, and **NZD**
+- Equivalent pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🔄 Flexible Scaling
 
@@ -66,7 +65,7 @@ Earn **1%–2% cash back**
 - 2% if monthly spend reaches **$250,000+**  
 - Cash back is applied to your bill first, then to your bank account
 
-👉 Use the [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to estimate your monthly savings.
+👉 Use the [savings calculator](https://use.expensify.com/savings-calculator) to estimate your monthly savings.
 
 ## 📅 Annual Subscription Only
 
@@ -92,7 +91,7 @@ Earn **1%–2% cash back**
 
 ## 🌍 Localized Pricing
 
-- Equivalent pricing available in **GBP**, **AUD**, and **NZD**
+- Equivalent pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🧾 Receipts
 
@@ -117,4 +116,3 @@ To change the billing owner of a workspace:
 
 The Collect plan pricing changed in **April 2025**. If your first workspace was created **before April 1, 2025**, your billing is based on the **previous pricing structure**. Contact **Concierge or your Account Manager** if you need help understanding your charges.
 
-</div>

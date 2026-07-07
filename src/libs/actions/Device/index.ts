@@ -1,6 +1,9 @@
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import generateDeviceID from './generateDeviceID';
 import getDeviceInfo from './getDeviceInfo';
 
@@ -16,7 +19,9 @@ function getDeviceID(): Promise<string | null> {
             return;
         }
 
-        const connection = Onyx.connect({
+        // Use connectWithoutView because this is a one-time data fetch that disconnects immediately without triggering UI updates
+        // and this onyx key is created for non-UI task only.
+        const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.DEVICE_ID,
             callback: (id) => {
                 Onyx.disconnect(connection);

@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 
 /**
  * @jest-environment node
  */
+/* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../.github/libs/CONST';
-import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
 
@@ -68,7 +68,7 @@ const PRList: Record<number, PullRequest> = {
 const version = '42.42.42-42';
 const defaultTags = [
     {name: '42.42.42-42', commit: {sha: 'abcd'}},
-    {name: '42.42.42-41', commit: {sha: 'efgh'}},
+    {name: '42.42.42-41', commit: {sha: 'hash'}},
 ];
 
 function mockGetInputDefaultImplementation(key: string): boolean | string {
@@ -81,11 +81,12 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
             return version;
         case 'IOS':
         case 'ANDROID':
-        case 'DESKTOP':
         case 'WEB':
             return 'success';
         case 'DATE':
         case 'NOTE':
+        case 'ANDROID_SENTRY_URL':
+        case 'IOS_SENTRY_URL':
             return '';
         default:
             throw new Error(`Trying to access invalid input: ${key}`);
@@ -107,10 +108,9 @@ beforeAll(() => {
     mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
-                // eslint-disable-next-line @typescript-eslint/require-await
                 listForRepo: jest.fn().mockImplementation(async () => ({
                     data: [
                         {
@@ -118,7 +118,7 @@ beforeAll(() => {
                         },
                     ],
                 })),
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 listEvents: jest.fn().mockImplementation(async () => ({
                     data: [{event: 'closed', actor: {login: 'thor'}}],
                 })),
@@ -137,10 +137,10 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     };
 
-    GithubUtils.internalOctokit = moctokit as unknown as InternalOctokit;
+    GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = jest.fn();
+    GitUtils.getPullRequestsDeployedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
@@ -192,7 +192,6 @@ describe('markPullRequestsAsDeployed', () => {
 
 platform | result
 ---|---
-🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
@@ -222,7 +221,6 @@ platform | result
 
 platform | result
 ---|---
-🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
@@ -265,7 +263,7 @@ platform | result
             if (commit_sha === 'xyz') {
                 return {
                     data: {
-                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dagdag)\\n(cherry-picked to staging by freyja)`,
+                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dag_dag)\\n(cherry-picked to staging by freyja)`,
                     },
                 };
             }
@@ -281,12 +279,9 @@ platform | result
 
 platform | result
 ---|---
-🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
-🍎 iOS 🍎|success ✅
-
-@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
+🍎 iOS 🍎|success ✅`,
             issue_number: 3,
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
@@ -300,9 +295,6 @@ platform | result
             }
             if (key === 'IOS') {
                 return 'failed';
-            }
-            if (key === 'DESKTOP') {
-                return 'cancelled';
             }
             return mockGetInputDefaultImplementation(key);
         });
@@ -318,7 +310,6 @@ platform | result
 
 platform | result
 ---|---
-🖥 desktop 🖥|cancelled 🔪
 🕸 web 🕸|success ✅
 🤖 android 🤖|skipped 🚫
 🍎 iOS 🍎|failed ❌`,

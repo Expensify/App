@@ -1,15 +1,23 @@
+import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+import {FullScreenActionsContext, FullScreenStateContext} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+
+import useDebouncedState from '@hooks/useDebouncedState';
+
+import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+
 import {useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
-import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContext';
-import {FullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
-import useDebouncedState from '@hooks/useDebouncedState';
-import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type WindowDimensions from './types';
 
-const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;
 const tagNamesOpenKeyboard = [CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[];
 const isMobile = isMobileBrowser();
 
@@ -17,15 +25,17 @@ const isMobile = isMobileBrowser();
  * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const {isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
-        isFullScreenRef: useRef(false),
-        lockedWindowDimensionsRef: useRef<ResponsiveLayoutProperties | null>(null),
+    const {isFullScreen, lockedWindowDimensionsRef} = useContext(FullScreenStateContext) ?? {
+        isFullScreen: false,
+        lockedWindowDimensionsRef: {current: null} as RefObject<ResponsiveLayoutProperties | null>,
+    };
+    const {lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenActionsContext) ?? {
         lockWindowDimensions: () => {},
         unlockWindowDimensions: () => {},
     };
 
     const isCachedViewportHeight = useCachedViewportHeight && isMobileWebKit();
-    const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
+    const cachedViewportHeightWithKeyboardRef = useRef(initialViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 
     // These are the same as the ones in useResponsiveLayout, but we need to redefine them here to avoid cyclic dependency.
@@ -36,8 +46,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-    const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
-    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
+    const lowerScreenDimension = Math.min(windowWidth, windowHeight);
+    const isSmallScreen = lowerScreenDimension <= variables.mobileResponsiveWidthBreakpoint;
 
     const responsiveLayoutResults = {
         isSmallScreenWidth,
@@ -72,7 +82,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const handleFocusOut = useRef((event: FocusEvent) => {
         const targetElement = event.target as HTMLElement;
         if (tagNamesOpenKeyboard.includes(targetElement.tagName)) {
-            setCachedViewportHeight(initalViewportHeight);
+            setCachedViewportHeight(initialViewportHeight);
         }
     });
 
@@ -93,11 +103,11 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
             return;
         }
         setCachedViewportHeight(windowHeight);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowHeight, isCachedViewportHeight]);
 
     useEffect(() => {
-        if (!isCachedViewportHeight || !window.matchMedia('(orientation: portrait)').matches || windowHeight >= initalViewportHeight) {
+        if (!isCachedViewportHeight || !window.matchMedia('(orientation: portrait)').matches || windowHeight >= initialViewportHeight) {
             return;
         }
         cachedViewportHeightWithKeyboardRef.current = windowHeight;
@@ -109,28 +119,27 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         responsiveLayoutResults,
     };
 
-    if (!lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (!lockedWindowDimensionsRef.current && !isFullScreen) {
         return windowDimensions;
     }
 
     const didScreenChangeOrientation =
         isMobile &&
-        lockedWindowDimensionsRef.current &&
-        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isExtraSmallScreenHeight &&
+        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current?.responsiveLayoutResults.isExtraSmallScreenHeight &&
         isSmallScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isSmallScreen &&
         isMediumScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isMediumScreenWidth &&
         isLargeScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isLargeScreenWidth &&
         lockedWindowDimensionsRef.current.windowWidth !== windowWidth &&
         lockedWindowDimensionsRef.current.windowHeight !== windowHeight;
 
-    // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
+    // if video is in fullscreen mode, lock the window dimensions since they can change and cause whole app to re-render
     if (!lockedWindowDimensionsRef.current || didScreenChangeOrientation) {
         lockWindowDimensions(windowDimensions);
         return windowDimensions;
     }
 
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (lockedWindowDimensionsRef.current && !isFullScreen) {
         const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
         return {windowWidth: lastLockedWindowDimensions.windowWidth, windowHeight: lastLockedWindowDimensions.windowHeight};

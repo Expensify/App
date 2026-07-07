@@ -1,10 +1,13 @@
-/* eslint-disable no-param-reassign */
-import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
+
+import {useCallback, useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
-import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
+import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import type {MultiGestureCanvasVariables} from './types';
+
+import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 
 type UsePinchGestureProps = Pick<
     MultiGestureCanvasVariables,
@@ -61,14 +64,13 @@ const usePinchGesture = ({
             return;
         }
 
-        runOnJS(onScaleChanged)(zoomScale.get());
+        scheduleOnRN(onScaleChanged, zoomScale.get());
     };
 
     // Update the total (pinch) translation based on the regular pinch + bounce
     useAnimatedReaction(
         () => [pinchTranslateX.get(), pinchTranslateY.get(), pinchBounceTranslateX.get(), pinchBounceTranslateY.get()],
         ([translateX, translateY, bounceX, bounceY]) => {
-            // eslint-disable-next-line react-compiler/react-compiler
             totalPinchTranslateX.set(translateX + bounceX);
             totalPinchTranslateY.set(translateY + bounceY);
         },
@@ -130,7 +132,7 @@ const usePinchGesture = ({
             // Disable the pinch gesture if one finger is released,
             // to prevent the content from shaking/jumping
             if (evt.numberOfPointers !== 2) {
-                runOnJS(setPinchEnabled)(false);
+                scheduleOnRN(setPinchEnabled, false);
                 return;
             }
 

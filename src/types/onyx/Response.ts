@@ -1,4 +1,8 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 
 /** Model of commands data */
 type Data = {
@@ -9,18 +13,8 @@ type Data = {
     authWriteCommands: string[];
 };
 
-/** Model of OpenAI Emphemeral client secret */
-type ClientSecret = {
-    /** The short lived secret value */
-    value: string;
-
-    /** The expiration time in epoch time */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    expires_at: number;
-};
-
 /** Model of server response */
-type Response = {
+type Response<TKey extends OnyxKey> = {
     /** ID of the next update that needs to be fetched from the server */
     previousUpdateID?: number | string;
 
@@ -31,7 +25,7 @@ type Response = {
     jsonCode?: number | string;
 
     /** Collection of onyx updates (SET/MERGE/...) */
-    onyxData?: OnyxUpdate[];
+    onyxData?: Array<OnyxUpdate<TKey>>;
 
     /** ID of the request that triggered this response */
     requestID?: string;
@@ -50,6 +44,12 @@ type Response = {
 
     /** Used to load resources like attachment videos and images */
     encryptedAuthToken?: string;
+
+    /** Registered multifactor public keys */
+    publicKeys?: string[];
+
+    /** Multifactor authentication challenge object */
+    challenge?: MultifactorAuthenticationChallengeObject;
 
     /** User session auth token when connecting as a delegate */
     restrictedToken?: string;
@@ -103,12 +103,26 @@ type Response = {
     /** The ID of the original user (returned when in delegate mode) */
     requesterID?: number;
 
-    /** If there are httponly OldDot authentication cookies stored */
+    /** If there are http only OldDot authentication cookies stored */
     hasOldDotAuthCookies?: boolean;
 
-    /** Short-lived client secret for openai session */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    client_secret?: ClientSecret;
+    /** Whether the account already exists */
+    accountExists?: boolean;
+
+    /** PIN for an activated UK/EU Expensify Card */
+    pin?: string;
+
+    /** Primary Account Number (full card number) returned from SetPersonalDetailsAndRevealExpensifyCard */
+    pan?: string;
+
+    /** Expiration date returned from SetPersonalDetailsAndRevealExpensifyCard */
+    expiration?: string;
+
+    /** CVV returned from SetPersonalDetailsAndRevealExpensifyCard */
+    cvv?: string;
+
+    /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
+    transactionsPending3DSReview?: TransactionsPending3DSReview;
 };
 
 export default Response;

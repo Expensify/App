@@ -1,6 +1,3 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,15 +6,24 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useOnyx from '@hooks/useOnyx';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+
+import React, {useCallback, useMemo} from 'react';
 
 type States = keyof typeof COMMON_CONST.STATES;
 
@@ -35,7 +41,7 @@ function ConfirmCompanyLabel() {
     );
 }
 
-function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
+function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -44,7 +50,7 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
+            const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS], translate);
 
             if (!values.hasNoConnectionToCannabis) {
                 errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
@@ -106,7 +112,11 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
             />
             <MenuItemWithTopDescription
                 description={translate('businessInfoStep.companyType')}
-                title={translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}
+                title={
+                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
+                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
+                        : ''
+                }
                 shouldShowRightIcon
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
@@ -122,7 +132,7 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
             />
             <MenuItemWithTopDescription
                 description={translate('businessInfoStep.incorporationState')}
-                title={translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}
+                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : ''}
                 shouldShowRightIcon
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
@@ -159,7 +169,5 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
         </ScrollView>
     );
 }
-
-ConfirmationBusiness.displayName = 'ConfirmationBusiness';
 
 export default ConfirmationBusiness;

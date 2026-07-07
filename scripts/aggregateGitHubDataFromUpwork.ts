@@ -1,3 +1,5 @@
+import CONST from '@github/libs/CONST';
+
 /**
  * This script is used for categorizing upwork costs into cost buckets for accounting purposes.
  *
@@ -112,7 +114,7 @@ async function getProjectsForIssue(issueNumber: number): Promise<string> {
     const response = await octokit.graphql(
         `
         {
-                  repository(owner: "Expensify", name: "App") {
+                  repository(owner: "${CONST.GITHUB_OWNER}", name: "${CONST.APP_REPO}") {
                     issue(number: ${issueNumber}) {
                       projectsV2(last: 30) {
                         nodes {
@@ -134,8 +136,8 @@ async function getGitHubData() {
         console.info(`Fetching ${issueNumber}`);
         const result = await octokit.rest.issues
             .get({
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: issueNumber,
             })
@@ -155,7 +157,6 @@ async function getGitHubData() {
             const type = getIssueTypeFromLabels(labels);
             let capSWProjects = '';
             if (type === 'feature') {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 capSWProjects = await getProjectsForIssue(issueNumber);
             }
             gitHubData.push({

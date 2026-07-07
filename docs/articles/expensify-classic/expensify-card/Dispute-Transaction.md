@@ -3,7 +3,6 @@ title: Expensify-Card-Transaction-Disputes.md
 description: Learn how to dispute unauthorized or incorrect transactions on your Expensify Card and protect yourself from fraud.
 keywords: [Expensify Classic, Expensify Card, transaction dispute, fraud, unauthorized charges, chargeback process]
 ---
-<div id="expensify-classic" markdown="1">
 
 If you encounter an issue with a transaction on your Expensify Visa® Commercial Card, you may need to file a dispute. Common reasons for disputes include:
 - Unauthorized charges
@@ -17,14 +16,14 @@ Follow the steps below to resolve your dispute quickly.
 
 # How to Dispute a Transaction
 
-If you find an incorrect charge on your Expensify Card:
+If you find an incorrect charge on your Expensify Card, follow the steps below. If you are a Domain Admin, follow the steps [here](https://help.expensify.com/articles/expensify-classic/expensify-card/Deactivate-or-cancel-an-Expensify-Card#for-domain-admins) before contacting Concierge Support.
 
 1. If the charge is **fraudulent**, cancel your card right away (**Settings > Account > Wallet > Request a New Card**).
 2. Contact **Concierge Support**
 3. Provide details about the transaction, including:
-   - Date and amount
-   - Merchant name
-   - Reason for the dispute
+    - Date and amount
+    - Merchant name
+    - Reason for the dispute
 4. We’ll investigate the issue and file a dispute with our card processor on your behalf.
 
 ---
@@ -82,4 +81,3 @@ Disputes typically take up to **90 days**, depending on the case.
 
 Yes, contact Concierge Support if you need to withdraw a dispute, such as when a merchant resolves the issue.
 
-</div>

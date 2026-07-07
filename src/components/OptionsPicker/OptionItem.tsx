@@ -1,16 +1,21 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectCircle from '@components/SelectCircle';
+import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type OptionItemProps = {
     /** Text to be rendered */
@@ -43,6 +48,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
             accessibilityLabel={translate(title)}
             disabled={isDisabled}
             wrapperStyle={[styles.flex1, style]}
+            sentryLabel={CONST.SENTRY_LABEL.OPTION_CARD_PICKER.OPTION_ITEM}
         >
             <View style={[styles.borderedContentCard, isSelected && styles.borderColorFocus, styles.p5]}>
                 <View>
@@ -52,11 +58,12 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
                             width={variables.iconHeader}
                             height={variables.iconHeader}
                         />
-                        {!isDisabled && (
+                        {(isSelected || !isDisabled) && (
                             <View>
-                                <SelectCircle
+                                <RadioButton
                                     isChecked={isSelected}
-                                    selectCircleStyles={styles.sectionSelectCircle}
+                                    onPress={() => onPress?.()}
+                                    accessibilityLabel={translate(title)}
                                 />
                             </View>
                         )}
@@ -72,7 +79,5 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
         </PressableWithFeedback>
     );
 }
-
-OptionItem.displayName = 'OptionItem';
 
 export default OptionItem;

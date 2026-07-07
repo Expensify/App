@@ -1,4 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
@@ -10,7 +11,6 @@ export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef<boolean | undefined>(undefined);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     isExecutingRef.current = isExecuting;
 
     const singleExecution = useCallback(

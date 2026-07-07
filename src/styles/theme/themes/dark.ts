@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -22,13 +23,18 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
+    linkReversed: colors.blue600,
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
+    buttonHoveredBGReversed: colors.productLight500,
     buttonPressedBG: colors.productDark600,
     buttonSuccessText: colors.productLight100,
+    buttonDangerText: colors.productDark900,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -39,6 +45,7 @@ const darkTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productDark400,
@@ -68,14 +75,28 @@ const darkTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productDark200,
     dropUIBG: 'rgba(6,27,9,0.92)',
+    dropWrapperBG: 'rgba(26, 61, 50, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.8)',
+    attachmentDropUIBGActive: 'rgba(90, 176, 255, 96)',
+    attachmentDropBorderColorActive: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.8)',
+    receiptDropUIBGActive: 'rgba(3, 212, 124, 96)',
+    receiptDropBorderColorActive: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
     reactionActiveText: colors.green100,
+    badgeDefaultBG: colors.productDark400,
+    badgeSuccessBG: colors.green700,
+    badgeDangerBG: colors.tangerine700,
+    badgeSuccessText: colors.green200,
+    badgeDangerText: colors.tangerine200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    bordersBold: colors.productDark400,
+    buttonIcon: colors.productDark700,
     mentionText: colors.blue100,
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
@@ -85,6 +106,8 @@ const darkTheme = {
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     trialBannerBackgroundColor: colors.green700,
+    widgetIconBG: colors.green100,
+    widgetIconFill: colors.green500,
     skeletonLHNIn: colors.productDark400,
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
@@ -93,8 +116,6 @@ const darkTheme = {
     white: colors.white,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
-    emptyFolderBG: colors.yellow600,
-    travelBG: colors.blue600,
     trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -103,6 +124,10 @@ const darkTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
+            backgroundColor: colors.productDark100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.INBOX]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -118,11 +143,15 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
+            backgroundColor: colors.productDark100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.RULES.ROOT]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -134,21 +163,44 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
-            backgroundColor: colors.productDark100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
             backgroundColor: colors.productDark100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+    },
+
+    reportStatusBadge: {
+        draft: {
+            backgroundColor: colors.blue700,
+            textColor: colors.blue200,
+        },
+        outstanding: {
+            backgroundColor: colors.tangerine700,
+            textColor: colors.tangerine200,
+        },
+        approved: {
+            backgroundColor: colors.ice700,
+            textColor: colors.ice200,
+        },
+        paid: {
+            backgroundColor: colors.green700,
+            textColor: colors.green200,
+        },
+        closed: {
+            backgroundColor: colors.pink700,
+            textColor: colors.pink200,
+        },
+        deleted: {
+            backgroundColor: colors.tangerine700,
+            textColor: colors.productDark900,
+        },
+        unreported: {
+            backgroundColor: colors.productDark400,
+            textColor: colors.productDark900,
         },
     },
 

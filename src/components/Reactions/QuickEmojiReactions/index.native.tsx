@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
+
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
+
+import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 
 function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsProps) {
     const onPressOpenPicker = (openPicker?: OpenPickerCallback) => {
@@ -9,13 +11,10 @@ function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsPro
 
     return (
         <BaseQuickEmojiReactions
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onPressOpenPicker={onPressOpenPicker}
         />
     );
 }
-
-QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 
 export default QuickEmojiReactions;

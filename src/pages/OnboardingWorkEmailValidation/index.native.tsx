@@ -1,17 +1,16 @@
 import React from 'react';
-import BaseOnboardingWorkEmailValidation from './BaseOnboardingWorkEmailValidation';
+
 import type {OnboardingWorkEmailValidationProps} from './types';
+
+import BaseOnboardingWorkEmailValidation from './BaseOnboardingWorkEmailValidation';
 
 function OnboardingWorkEmailValidation(props: OnboardingWorkEmailValidationProps) {
     return (
         <BaseOnboardingWorkEmailValidation
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
 }
-
-OnboardingWorkEmailValidation.displayName = 'OnboardingWorkEmailValidation';
 
 export default OnboardingWorkEmailValidation;

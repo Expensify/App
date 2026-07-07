@@ -1,9 +1,17 @@
-import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
+import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
+import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
+import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
+
+import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Attendee, Participant, Split} from './IOU';
+
+import type {KeysOfUnion, ValueOf} from 'type-fest';
+
+import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
@@ -18,7 +26,7 @@ type Waypoint = {
     /** The full address of the waypoint */
     address?: string;
 
-    /** The lattitude of the waypoint */
+    /** The latitude of the waypoint */
     lat?: number;
 
     /** The longitude of the waypoint */
@@ -69,8 +77,23 @@ type Comment = {
     /** Whether the transaction comment is loading */
     isLoading?: boolean;
 
+    /** Whether the transaction comment is a demo transaction */
+    isDemoTransaction?: boolean;
+
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+
+    /** Contains information pertaining to time tracking */
+    units?: {
+        /** Count of the unit */
+        count?: number;
+
+        /** Rate of the unit in cents */
+        rate?: number;
+
+        /** Unit of the unit (e.g. 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+    };
 
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
@@ -84,11 +107,51 @@ type Comment = {
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
 
+    /** Collection of split expenses */
+    splitExpenses?: SplitExpense[];
+
+    /** Total that the user currently owes for splitExpenses */
+    splitExpensesTotal?: number;
+
+    /** Start date for splits */
+    splitsStartDate?: string;
+
+    /** End date for splits */
+    splitsEndDate?: string;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /**
+     * Accounting-system vendor matched to this expense.
+     * Stored on non-reimbursable card expenses when a vendor is set either by the
+     * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
+     * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
+     * deliberate selection.
+     */
+    vendor?: TransactionCommentVendor;
+
+    /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
+    pendingAutoCategorizationTime?: string;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object with uri on web, URI string on native) */
+    odometerStartImage?: FileObject | string;
+
+    /** Odometer end image (File object with uri on web, URI string on native) */
+    odometerEndImage?: FileObject | string;
+
+    /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
+    tripID?: string;
 };
 
 /** Model of transaction custom unit */
@@ -123,6 +186,15 @@ type TransactionCustomUnit = {
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
 
+    /** Whether the rate was auto-updated due to a date change (used for tooltip display) */
+    rateAutoUpdated?: boolean;
+
+    /**
+     * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
+     * It is used to track when the user has manually increased the distance above the system-calculated route distance.
+     */
+    routeDistanceMeters?: number;
+
     /** Sub Rates for the custom unit */
     subRates?: Array<{
         /** Key of the sub rate */
@@ -147,15 +219,15 @@ type GeometryType = 'LineString';
 
 /** Geometry data */
 type Geometry = {
-    /** Matrix of points, indexed by their coordinates */
-    coordinates: number[][] | null;
+    /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
+    coordinates: number[][] | number[][][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -167,6 +239,9 @@ type Receipt = {
 
     /** Path of the receipt file */
     source?: ReceiptSource;
+
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string | null;
 
     /** Name of receipt file */
     filename?: string;
@@ -180,8 +255,14 @@ type Receipt = {
     /** Collection of reservations */
     reservationList?: Reservation[];
 
-    /** Receipt is manager_mctest@expensify.com testing receipt */
+    /** Whether this is a test receipt */
     isTestReceipt?: true;
+
+    /** Receipt is Test Drive testing receipt */
+    isTestDriveReceipt?: true;
+
+    /** Local thumbnail URI for fast preview on confirmation page */
+    thumbnail?: string;
 };
 
 /** Model of route */
@@ -205,10 +286,13 @@ type ReceiptError = {
     filename: string;
 
     /** Action that caused the error */
-    action: string;
+    action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+
+    /** The type of receipt error */
+    error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
@@ -253,7 +337,7 @@ type Reservation = {
     numPassengers?: number;
 
     /** In flight reservations, this represents the flight duration in seconds */
-    duration: number;
+    duration?: number;
 
     /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
@@ -285,11 +369,11 @@ type Reservation = {
     /** Payment type of the reservation */
     paymentType?: string;
 
+    /** Departure gate details */
+    departureGate?: Gate;
+
     /** Arrival gate details */
-    arrivalGate?: {
-        /** Arrival terminal number */
-        terminal: string;
-    };
+    arrivalGate?: Gate;
 
     /** Coach number for rail */
     coachNumber?: string;
@@ -299,6 +383,21 @@ type Reservation = {
 
     /** This represents the details of the traveler */
     travelerPersonalInfo?: TravelerPersonalDetails;
+
+    /** Type or category of purchased fare */
+    fareType?: string;
+
+    /** leg id */
+    legId?: number;
+};
+
+/** Model of gate for flight reservation */
+type Gate = {
+    /** Terminal number */
+    terminal: string;
+
+    /** Specific gate number */
+    gate: string;
 };
 
 /** Model of trip reservation time details */
@@ -370,17 +469,44 @@ type SplitShare = {
 /** Record of participant split data, indexed by their `accountID` */
 type SplitShares = Record<number, SplitShare | null>;
 
+/** Accounting-system vendor stored on a transaction's comment NVP */
+type TransactionCommentVendor = {
+    /** External ID of the vendor in the connected accounting system */
+    externalID: string;
+
+    /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
+    isManuallySet: boolean;
+};
+
 /** Model of transaction */
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
         amount: number;
 
+        /** Selected accountant */
+        accountant?: Accountant;
+
+        /** The transaction converted amount in report's currency */
+        convertedAmount?: number;
+
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
+        /** The transaction converted tax amount in report's currency */
+        convertedTaxAmount?: number;
+
         /** The transaction tax code */
         taxCode?: string;
+
+        /** The transaction tax value */
+        taxValue?: string | undefined;
+
+        /** The transaction tax name */
+        taxName?: string;
 
         /** Whether the expense is billable */
         billable?: boolean;
@@ -403,17 +529,34 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** The name of the file used for a receipt (formerly receiptFilename) */
-        filename?: string;
+        /** The transaction converted amount in `groupCurrency` currency */
+        groupAmount?: number;
 
-        /** Used during the creation flow before the transaction is saved to the server */
+        /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+        groupCurrency?: string;
+
+        /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+        groupExchangeRate?: number;
+
+        /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
+
+        /**
+         * Tracks whether the user has explicitly set an amount in the new manual expense flow.
+         * A fresh draft transaction starts at amount=0 which is indistinguishable from an intentional $0 entry,
+         * so this flag is set to `true` the first time setMoneyRequestAmount is called, allowing the UI
+         * to show an empty field initially and the confirmation step to block submission until the field is empty.
+         */
+        isAmountSet?: boolean;
+
+        /** Whether the merchant has been explicitly set by the user */
+        isMerchantSet?: boolean;
 
         /** The original merchant name */
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];
@@ -442,8 +585,14 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The receipt object associated with the transaction */
         receipt?: Receipt;
 
+        /** The transaction thread reportID - usually set for transactions in the search snapshot */
+        transactionThreadReportID?: string | undefined;
+
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
+
+        /** The name of iouReport associated with the transaction */
+        reportName?: string;
 
         /** Existing routes */
         routes?: Routes;
@@ -451,11 +600,17 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction id */
         transactionID: string;
 
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
+
         /** The transaction tag */
         tag?: string;
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
 
         /** The transaction tax rate */
         taxRate?: string | undefined;
@@ -477,6 +632,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** If an EReceipt should be generated for this transaction */
         hasEReceipt?: boolean;
 
+        /** Raw merchant category code for this transaction */
+        mcc?: string | number;
+
         /** The MCC Group for this transaction */
         mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
@@ -494,9 +652,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
-
-        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
-        splitPayerAccountIDs?: number[];
 
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;
@@ -525,8 +680,14 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The card transaction's posted date */
         posted?: string;
 
+        /** The withdrawal ID associated with the transaction */
+        withdrawalID?: string;
+
         /** The inserted time of the transaction */
         inserted?: string;
+
+        /** Transaction type */
+        transactionType?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
@@ -553,6 +714,21 @@ type AdditionalTransactionChanges = {
 
     /** Previous currency before changes */
     oldCurrency?: string;
+
+    /** Previous distance before changes */
+    distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
+
+    /** Accounting-system vendor on the transaction's comment NVP. `null` clears the vendor. */
+    vendor?: TransactionCommentVendor | null;
 };
 
 /** Model of transaction changes  */
@@ -560,6 +736,12 @@ type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 /** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
+/** Transaction that is not associated with any report */
+type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
+    /** The ID of the report that this transaction is associated with. */
+    reportID: '0';
+};
 
 export default Transaction;
 export type {
@@ -579,4 +761,6 @@ export type {
     TransactionCollectionDataSet,
     SplitShares,
     TransactionCustomUnit,
+    TransactionCommentVendor,
+    UnreportedTransaction,
 };

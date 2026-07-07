@@ -1,8 +1,12 @@
 import CONST from '@src/CONST';
-import * as ExportOnyxState from './common';
+import type OnyxState from '@src/types/onyx/OnyxState';
 
-const readFromOnyxDatabase = () =>
-    new Promise<Record<string, unknown>>((resolve) => {
+import type {ExportOnyxStateModule, ReadFromOnyxDatabase, ShareAsFile} from './types';
+
+import {maskOnyxState} from './common';
+
+const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
+    new Promise((resolve) => {
         let db: IDBDatabase;
         const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME);
         openRequest.onsuccess = () => {
@@ -11,7 +15,7 @@ const readFromOnyxDatabase = () =>
             const objectStore = transaction.objectStore(CONST.DEFAULT_TABLE_NAME);
             const cursor = objectStore.openCursor();
 
-            const queryResult: Record<string, unknown> = {};
+            const queryResult: OnyxState = {};
 
             cursor.onerror = () => {
                 console.error('Error reading cursor');
@@ -30,9 +34,9 @@ const readFromOnyxDatabase = () =>
         };
     });
 
-const shareAsFile = (value: string) => {
+const shareAsFile: ShareAsFile = (fileContent) => {
     const element = document.createElement('a');
-    element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(value)}`);
+    element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(fileContent)}`);
     element.setAttribute('download', CONST.DEFAULT_ONYX_DUMP_FILE_NAME);
 
     element.style.display = 'none';
@@ -43,8 +47,10 @@ const shareAsFile = (value: string) => {
     document.body.removeChild(element);
 };
 
-export default {
-    maskOnyxState: ExportOnyxState.maskOnyxState,
+const ExportOnyxState: ExportOnyxStateModule = {
+    maskOnyxState,
     readFromOnyxDatabase,
     shareAsFile,
 };
+
+export default ExportOnyxState;

@@ -1,47 +1,74 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useMemo} from 'react';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSafari} from '@libs/Browser';
+
+import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
-import type {ThemeStyles} from '@src/styles';
+import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
+import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
+import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
-type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
+import CONST from '@src/CONST';
 
-function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
+import type {ParamListBase} from '@react-navigation/native';
+import type {StackCardStyleInterpolator} from '@react-navigation/stack';
+
+import {CardStyleInterpolators} from '@react-navigation/stack';
+import {useCallback} from 'react';
+
+function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
-    const customInterpolator = useModalCardStyleInterpolator();
+    const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
-    let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+    // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
+    // It works as intended on other browsers
+    // https://github.com/Expensify/App/issues/63747
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
 
-    if (isSafari()) {
-        cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator({props});
-    }
+    return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
+        ({route}) => {
+            const baseInterpolator: StackCardStyleInterpolator = isSmallScreenWidth
+                ? CardStyleInterpolators.forHorizontalIOS
+                : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
 
-    const defaultSubRouteOptions = useMemo(
-        (): PlatformStackNavigationOptions => ({
-            ...hideKeyboardOnSwipe,
-            headerShown: false,
-            animationTypeForReplace: 'pop',
-            native: {
-                contentStyle: styles.navigationScreenCardStyle,
-            },
-            web: {
-                cardStyle: styles.navigationScreenCardStyle,
-                cardStyleInterpolator,
-            },
-        }),
-        [cardStyleInterpolator, styles.navigationScreenCardStyle],
+            let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
+
+            if (!isSmallScreenWidth) {
+                if (superWideRHPRouteKeys.includes(route.key)) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                        cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                    });
+                } else if (wideRHPRouteKeys.includes(route.key)) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                    });
+                    // single RHPs displayed above the wide RHP need to be positioned
+                } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                        cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                    });
+                }
+            }
+
+            return {
+                ...hideKeyboardOnSwipe,
+                headerShown: false,
+                animationTypeForReplace: 'pop',
+                native: {
+                    contentStyle: styles.navigationScreenCardStyle,
+                },
+                web: {
+                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyleInterpolator,
+                    transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
+                },
+            };
+        },
+        [isSmallScreenWidth, modalCardStyleInterpolator, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
-
-    if (!getScreenOptions) {
-        return defaultSubRouteOptions;
-    }
-
-    return {...defaultSubRouteOptions, ...getScreenOptions(styles)};
 }
 
-export default useModalStackScreenOptions;
-export type {GetModalStackScreenOptions};
+export default useWideModalStackScreenOptions;

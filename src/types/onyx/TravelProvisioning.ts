@@ -1,3 +1,5 @@
+import type {Route} from '@src/ROUTES';
+
 import type {Errors} from './OnyxCommon';
 
 /** Model of travel provisioning process information */
@@ -16,6 +18,9 @@ type TravelProvisioning = {
 
     /** Error messages that could be thrown when provisioning travel */
     errors?: Errors;
+
+    /** Post-verification route that should be opened once the user validates their account */
+    nextStepRoute?: Route | null;
 };
 
 export default TravelProvisioning;

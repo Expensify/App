@@ -1,25 +1,30 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateCustomRules} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomForm';
+
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type RulesCustomPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM>;
 
@@ -44,12 +49,11 @@ function RulesCustomPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomPage.displayName}
+                testID="RulesCustomPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.customRules.title')}
@@ -59,7 +63,7 @@ function RulesCustomPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
                     onSubmit={({customRules}) => {
-                        updateCustomRules(policyID, customRules);
+                        updateCustomRules(policyID, customRules, policy?.customRules);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
@@ -71,7 +75,7 @@ function RulesCustomPage({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.CUSTOM_RULES}
-                            label={translate('workspace.rules.customRules.subtitle')}
+                            label={translate('workspace.rules.customRules.title')}
                             role={CONST.ROLE.PRESENTATION}
                             value={customRulesValue}
                             onChangeText={onChangeCustomRules}
@@ -80,14 +84,11 @@ function RulesCustomPage({
                             autoGrowHeight
                             maxLength={CONST.DESCRIPTION_LIMIT}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.customRules.description')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesCustomPage.displayName = 'RulesCustomPage';
 
 export default RulesCustomPage;

@@ -1,0 +1,133 @@
+import RenderHTML from '@components/RenderHTML';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {getForwardedReportActionMessage, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
+import {shouldShowMarkAsDone} from '@libs/ReportUtils';
+
+import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
+type ApprovalFlowContentProps = {
+    action: OnyxTypes.ReportAction;
+    policyID: string | undefined;
+    reportID: string | undefined;
+    originalReport: OnyxEntry<OnyxTypes.Report>;
+    isTrackIntentUser: boolean;
+};
+
+function isApprovalFlowAction(action: OnyxTypes.ReportAction): boolean {
+    return (
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+        isMarkAsClosedAction(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)
+    );
+}
+
+function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrackIntentUser}: ApprovalFlowContentProps) {
+    const {translate} = useLocalize();
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isPendingAdd = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
+        const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
+
+        if (wasSubmittedViaHarvesting) {
+            return (
+                <ReportActionItemMessageWithExplain
+                    message={translate('iou.automaticallySubmitted')}
+                    action={action}
+                    childReport={childReport}
+                    originalReport={originalReport}
+                />
+            );
+        }
+
+        if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            return <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
+        }
+
+        if (isDEWPolicy) {
+            // Don't show a memo for DEW actions, it's shown in the Concierge action below
+            return <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
+        }
+
+        if (
+            shouldShowMarkAsDone({
+                isTrackIntentUser,
+                policy,
+                report: originalReport,
+            })
+        ) {
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
+        }
+
+        return <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
+
+        if (wasAutoApproved) {
+            return (
+                <ReportActionItemMessageWithExplain
+                    message={translate('iou.automaticallyApproved')}
+                    action={action}
+                    childReport={childReport}
+                    originalReport={originalReport}
+                />
+            );
+        }
+
+        if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            return <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
+        }
+
+        if (
+            shouldShowMarkAsDone({
+                isTrackIntentUser,
+                policy,
+                report: originalReport,
+            })
+        ) {
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+        }
+
+        return <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+        const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
+
+        if (wasAutoForwarded) {
+            return (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyForwarded')}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        }
+
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
+    }
+
+    return null;
+}
+
+export default ApprovalFlowContent;
+export {isApprovalFlowAction};

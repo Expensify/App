@@ -1,79 +1,80 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useEffect, useMemo, useState} from 'react';
-import type {ReactNode} from 'react';
-import {Linking} from 'react-native';
-import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
-import Navigation, {navigationRef} from '@navigation/Navigation';
-import type {AppProps} from '@src/App';
-import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
-type InitialUrlContextType = {
-    initialURL: Route | undefined;
-    setInitialURL: React.Dispatch<React.SetStateAction<Route | undefined>>;
+import type {ReactNode} from 'react';
+
+import React, {createContext, useContext, useEffect, useState} from 'react';
+import {Linking} from 'react-native';
+
+type InitialUrlStateContextType = {
+    initialURL: Route | null;
+    isAuthenticatedAtStartup: boolean;
+};
+
+type InitialUrlActionsContextType = {
+    setInitialURL: React.Dispatch<React.SetStateAction<Route | null>>;
+    setIsAuthenticatedAtStartup: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const defaultInitialURLActionsContext: InitialUrlActionsContextType = {
+    setInitialURL: () => {},
+    setIsAuthenticatedAtStartup: () => {},
 };
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
-const InitialURLContext = createContext<InitialUrlContextType>({
-    initialURL: undefined,
-    setInitialURL: () => {},
+const InitialURLStateContext = createContext<InitialUrlStateContextType>({
+    initialURL: null,
+    isAuthenticatedAtStartup: false,
 });
 
-type InitialURLContextProviderProps = AppProps & {
+const InitialURLActionsContext = createContext<InitialUrlActionsContextType>(defaultInitialURLActionsContext);
+
+type InitialURLContextProviderProps = {
     /** Children passed to the context provider */
     children: ReactNode;
 };
 
-function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>();
-    const {splashScreenState, setSplashScreenState} = useSplashScreenStateContext();
+function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
+    const [initialURL, setInitialURL] = useState<Route | null>(null);
+    const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
-        if (url && hybridAppSettings) {
-            signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
-                setInitialURL(url);
-
-                const parsedUrl = Navigation.parseHybridAppUrl(url);
-
-                Navigation.isNavigationReady().then(() => {
-                    if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
-                        const focusRoute = findFocusedRoute(navigationRef.getRootState());
-                        if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
-                            Navigation.goBack(ROUTES.SHARE_ROOT);
-                            return;
-                        }
-                    }
-                    Navigation.navigate(parsedUrl);
-                });
-
-                if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
-                    return;
-                }
-                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-            });
-            return;
-        }
         Linking.getInitialURL().then((initURL) => {
+            if (!initURL) {
+                return;
+            }
             setInitialURL(initURL as Route);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [url, hybridAppSettings, timestamp]);
+    }, []);
 
-    const initialUrlContext = useMemo(
-        () => ({
-            initialURL,
-            setInitialURL,
-        }),
-        [initialURL],
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateContextValue = {
+        initialURL,
+        isAuthenticatedAtStartup,
+    };
+
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsContextValue = {
+        setInitialURL,
+        setIsAuthenticatedAtStartup,
+    };
+
+    return (
+        <InitialURLActionsContext.Provider value={actionsContextValue}>
+            <InitialURLStateContext.Provider value={stateContextValue}>{children}</InitialURLStateContext.Provider>
+        </InitialURLActionsContext.Provider>
     );
-
-    return <InitialURLContext.Provider value={initialUrlContext}>{children}</InitialURLContext.Provider>;
 }
 
-InitialURLContextProvider.displayName = 'InitialURLContextProvider';
-
 export default InitialURLContextProvider;
-export {InitialURLContext};
+
+function useInitialURLState() {
+    return useContext(InitialURLStateContext);
+}
+
+function useInitialURLActions() {
+    return useContext(InitialURLActionsContext);
+}
+
+export {useInitialURLState, useInitialURLActions};

@@ -1,20 +1,22 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
+
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import {completeTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 /*
  * This is a "utility page", that does this:
@@ -24,40 +26,27 @@ import ROUTES from '@src/ROUTES';
 function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const route = useRoute();
-    const {canUseLeftHandBar} = usePermissions();
-
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     useFocusEffect(
         useCallback(() => {
             if (session && 'authToken' in session) {
-                confirmReadyToOpenApp();
                 Navigation.isNavigationReady().then(() => {
                     if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
                         return;
                     }
 
-                    // Mark the viewTourTask as complete if we are redirected to Concierge after finishing the Navattic tour
-                    const {navattic} = (route.params as {navattic?: string}) ?? {};
-                    if (navattic === CONST.NAVATTIC.COMPLETED) {
-                        if (viewTourTaskReport) {
-                            if (viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || viewTourTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                                completeTask(viewTourTaskReport);
-                            }
-                        }
-                    }
-                    navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas, true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, route.params, viewTourTaskReport]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, betas]),
     );
 
     useEffect(() => {
@@ -67,16 +56,23 @@ function ConciergePage() {
         };
     }, []);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ConciergePage',
+        isLoadingReportData,
+        hasConciergeReportID: !!conciergeReportID,
+    };
+
     return (
-        <ScreenWrapper testID={ConciergePage.displayName}>
-            <View style={[styles.borderBottom, styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+        <ScreenWrapper testID="ConciergePage">
+            <View style={[styles.borderBottom, styles.appContentHeader]}>
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>
     );
 }
-
-ConciergePage.displayName = 'ConciergePage';
 
 export default ConciergePage;

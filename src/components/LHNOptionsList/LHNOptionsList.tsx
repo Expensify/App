@@ -1,63 +1,50 @@
-import {useRoute} from '@react-navigation/native';
-import type {FlashListProps} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
-import type {ReactElement} from 'react';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import TextBlock from '@components/TextBlock';
-import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
-import useLocalize from '@hooks/useLocalize';
+
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidDraftComment} from '@libs/DraftCommentUtils';
+
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
-import OptionRowLHNData from './OptionRowLHNData';
-import OptionRowRendererComponent from './OptionRowRendererComponent';
+import type {Report} from '@src/types/onyx';
+
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
-const keyExtractor = (item: string) => `report_${item}`;
+import LHNTooltipContextProvider from './LHNTooltipContextProvider';
+import OptionRowLHNData from './OptionRowLHN';
+import OptionRowRendererComponent from './OptionRowRendererComponent';
+
+const keyExtractor = (item: Report) => `report_${item.reportID}`;
+const platform = getPlatform();
+const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashList<string>>(null);
+    const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const reportAttributes = useReportAttributes();
+    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
-
-    const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
-    const estimatedListSize = useLHNEstimatedListSize();
-    const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-    const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -67,7 +54,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             return;
         }
         hasCalledOnLayout.current = true;
-
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
@@ -75,199 +61,59 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
 
-    const emptyLHNSubtitle = useMemo(
-        () => (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
-                <TextBlock
-                    color={theme.textSupporting}
-                    textStyles={[styles.textAlignCenter, styles.textNormal]}
-                    text={translate('common.emptyLHN.subtitleText1')}
-                />
-                <Icon
-                    src={Expensicons.MagnifyingGlass}
-                    width={variables.emptyLHNIconWidth}
-                    height={variables.emptyLHNIconHeight}
-                    fill={theme.icon}
-                    small
-                    additionalStyles={styles.mh1}
-                />
-                <TextBlock
-                    color={theme.textSupporting}
-                    textStyles={[styles.textAlignCenter, styles.textNormal]}
-                    text={translate('common.emptyLHN.subtitleText2')}
-                />
-                <Icon
-                    src={Expensicons.Plus}
-                    width={variables.emptyLHNIconWidth}
-                    height={variables.emptyLHNIconHeight}
-                    fill={theme.icon}
-                    small
-                    additionalStyles={styles.mh1}
-                />
-                <TextBlock
-                    color={theme.textSupporting}
-                    textStyles={[styles.textAlignCenter, styles.textNormal]}
-                    text={translate('common.emptyLHN.subtitleText3')}
-                />
-            </View>
-        ),
-        [
-            styles.alignItemsCenter,
-            styles.flexRow,
-            styles.justifyContentCenter,
-            styles.flexWrap,
-            styles.textAlignCenter,
-            styles.mh1,
-            theme.icon,
-            theme.textSupporting,
-            styles.textNormal,
-            translate,
-        ],
-    );
-
     /**
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item: reportID}: RenderItemProps): ReactElement => {
-            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
-            const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(reportID, itemReportActions, isOffline)}`];
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
-            const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
+        ({item, index}: RenderItemProps): ReactElement | null => {
+            if (!item) {
+                return null;
+            }
+            const reportID = item.reportID;
+            const itemReportAttributes = reportAttributes?.[reportID];
+            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
-            if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
-                invoiceReceiverPolicyID = itemFullReport.invoiceReceiver.policyID;
+            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
+                invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
             }
             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
             }
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(itemFullReport);
-            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
-
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
-            const transactionID = isMoneyRequestAction(itemParentReportAction)
-                ? getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
-                : CONST.DEFAULT_NUMBER_ID;
-            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
-
-            const canUserPerformWrite = canUserPerformWriteAction(itemFullReport);
-            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
-            const lastReportAction = sortedReportActions.at(0);
-
-            // Get the transaction for the last report action
-            const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
-                ? getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
-                : CONST.DEFAULT_NUMBER_ID;
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
-
-            // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
-            let lastActorDetails: Partial<PersonalDetails> | null =
-                itemFullReport?.lastActorAccountID && personalDetails?.[itemFullReport.lastActorAccountID] ? personalDetails[itemFullReport.lastActorAccountID] : null;
-            if (!lastActorDetails && lastReportAction) {
-                const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
-                lastActorDetails = lastActorDisplayName
-                    ? {
-                          displayName: lastActorDisplayName,
-                          accountID: itemFullReport?.lastActorAccountID,
-                      }
-                    : null;
-            }
-            const lastMessageTextFromReport = getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy, itemReportNameValuePairs);
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
 
             return (
                 <OptionRowLHNData
                     reportID={reportID}
-                    fullReport={itemFullReport}
-                    reportAttributes={reportAttributes ?? {}}
+                    fullReport={item}
+                    reportAttributes={itemReportAttributes}
+                    reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
-                    reportNameValuePairs={itemReportNameValuePairs}
-                    reportActions={itemReportActions}
-                    parentReportAction={itemParentReportAction}
-                    iouReportReportActions={itemIouReportReportActions}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
-                    transaction={itemTransaction}
-                    lastReportActionTransaction={lastReportActionTransaction}
-                    receiptTransactions={transactions}
                     viewMode={optionMode}
-                    isFocused={!shouldDisableFocusOptions}
-                    lastMessageTextFromReport={lastMessageTextFromReport}
+                    isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
-                    preferredLocale={preferredLocale}
-                    hasDraftComment={hasDraftComment}
-                    transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
+                    testID={index}
                 />
             );
         },
-        [
-            draftComments,
-            onSelectRow,
-            optionMode,
-            personalDetails,
-            policy,
-            preferredLocale,
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            shouldDisableFocusOptions,
-            transactions,
-            transactionViolations,
-            onLayoutItem,
-            isOffline,
-        ],
+        [reportAttributes, reports, policy, personalDetails, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
     );
 
     const extraData = useMemo(
-        () => [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            draftComments,
-            optionMode,
-            preferredLocale,
-            transactions,
-            isOffline,
-        ],
-        [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            draftComments,
-            optionMode,
-            preferredLocale,
-            transactions,
-            isOffline,
-        ],
+        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
+        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);
 
     useEffect(() => {
         if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
-            return;
-        }
-
-        if (!flashListRef.current) {
             return;
         }
 
@@ -283,18 +129,18 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            if (isWebOrDesktop) {
+            if (isWeb) {
                 saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
             }
             triggerScrollEvent();
         },
-        [estimatedItemSize, isWebOrDesktop, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
+        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
         const offset = getScrollOffset(route);
 
-        if (!(offset && flashListRef.current) || isWebOrDesktop) {
+        if (!(offset && flashListRef.current) || isWeb) {
             return;
         }
 
@@ -305,35 +151,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [getScrollOffset, route, isWebOrDesktop]);
+    }, [getScrollOffset, route]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (shouldShowEmptyLHN) {
-            Log.info('Woohoo! All caught up. Was rendered', false, {
-                reportsCount: Object.keys(reports ?? {}).length,
-                reportActionsCount: Object.keys(reportActions ?? {}).length,
-                policyCount: Object.keys(policy ?? {}).length,
-                personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
-                reportsIDsFromUseReportsCount: data.length,
-            });
-        }
-    }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
     return (
-        <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
-            {shouldShowEmptyLHN ? (
-                <BlockingView
-                    animation={LottieAnimations.Fireworks}
-                    animationStyles={styles.emptyLHNAnimation}
-                    animationWebStyle={styles.emptyLHNAnimation}
-                    title={translate('common.emptyLHN.title')}
-                    shouldShowLink={false}
-                    CustomSubtitle={emptyLHNSubtitle}
-                    accessibilityLabel={translate('common.emptyLHN.title')}
-                />
-            ) : (
+        <View style={style ?? styles.flex1}>
+            <LHNTooltipContextProvider data={data}>
                 <FlashList
                     ref={flashListRef}
                     indicatorStyle="white"
@@ -344,20 +169,18 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    estimatedItemSize={estimatedItemSize}
-                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_VIEWPORT_ITEM_COUNT}}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    estimatedListSize={estimatedListSize}
-                    initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
+                    initialScrollIndex={initialScrollIndex}
+                    maintainVisibleContentPosition={{disabled: true}}
+                    drawDistance={250}
+                    removeClippedSubviews
                 />
-            )}
+            </LHNTooltipContextProvider>
         </View>
     );
 }
-
-LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default memo(LHNOptionsList);

@@ -1,12 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingViews/BlockingView';
-import * as Illustrations from './Icon/Illustrations';
 import ScrollView from './ScrollView';
 import Text from './Text';
 
@@ -24,6 +29,7 @@ function isContentType(contentType: unknown): contentType is ContentType {
 
 function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {translate} = useLocalize();
 
     if (!isContentType(contentType)) {
@@ -36,11 +42,10 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
         <ScrollView contentContainerStyle={[styles.flexGrow1]}>
             <View style={[styles.flex1, styles.overflowHidden, styles.minHeight65]}>
                 <BlockingView
-                    icon={Illustrations.ToddWithPhones}
+                    icon={illustrations.ToddWithPhones}
                     iconWidth={variables.emptySelectionListIconWidth}
                     iconHeight={variables.emptySelectionListIconHeight}
                     title={translate(`emptyList.${translationKeyContentType}.title`)}
-                    shouldShowLink={false}
                     CustomSubtitle={EmptySubtitle}
                     containerStyle={[styles.mb8, styles.ph15]}
                 />
@@ -48,7 +53,5 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
         </ScrollView>
     );
 }
-
-EmptySelectionListContent.displayName = 'EmptySelectionListContent';
 
 export default EmptySelectionListContent;

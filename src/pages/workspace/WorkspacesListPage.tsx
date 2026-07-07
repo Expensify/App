@@ -1,586 +1,254 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
-import type {FeatureListItem} from '@components/FeatureList';
-import FeatureList from '@components/FeatureList';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
-import type {MenuItemProps} from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
-import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useCardFeeds from '@hooks/useCardFeeds';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import type {TableHandle} from '@components/Table';
+import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
+import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
+import WorkspaceListLayout from '@components/WorkspaceListLayout';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isConnectionInProgress} from '@libs/actions/connections';
-import {
-    calculateBillNewDot,
-    clearDeleteWorkspaceError,
-    clearErrors,
-    deleteWorkspace,
-    leaveWorkspace,
-    removeWorkspace,
-    updateDefaultPolicy,
-    updateLastAccessedWorkspaceSwitcher,
-} from '@libs/actions/Policy/Policy';
-import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
-import {filterInactiveCards} from '@libs/CardUtils';
+
+import {clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import localeCompare from '@libs/LocaleCompare';
-import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy as PolicyType} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspacesListRow from './WorkspacesListRow';
+import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
+import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
+import {createCopySettingsEligibleTargetsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
 
-type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
-    Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
-    Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
-    Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
-        icon: AvatarSource;
-        action: () => void;
-        dismissError: () => void;
-        iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
-        policyID?: string;
-        adminRoom?: string | null;
-        announceRoom?: string | null;
-        isJoinRequestPending?: boolean;
-    };
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
-// eslint-disable-next-line react/no-unused-prop-types
-type GetMenuItem = {item: WorkspaceItem; index: number};
+import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
+import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 
-type ChatType = {
-    adminRoom?: string | null;
-    announceRoom?: string | null;
-};
-
-type ChatPolicyType = Record<string, ChatType>;
-
-const workspaceFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.MoneyReceipts,
-        translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
-    },
-    {
-        icon: Illustrations.CreditCardsNew,
-        translationKey: 'workspace.emptyWorkspace.features.companyCards',
-    },
-    {
-        icon: Illustrations.MoneyWings,
-        translationKey: 'workspace.emptyWorkspace.features.reimbursements',
-    },
-];
-
-/**
- * Dismisses the errors on one item
- */
-function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined) {
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        clearDeleteWorkspaceError(policyID);
-        return;
-    }
-
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        removeWorkspace(policyID);
-        return;
-    }
-
-    clearErrors(policyID);
-}
-
-const stickyHeaderIndices = [0];
+const EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS: CopySettingsEligibleTargets = {adminNonPersonal: [], corporateOnly: []};
 
 function WorkspacesListPage() {
-    const theme = useTheme();
+    const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const isFocused = useIsFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
+    const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
 
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    // Light, flat projection of the policy collection. Deep, frequently mutated policy fields (isLoading*
+    // flags, employeeList, connections, etc.) are excluded, so background writes to them no longer commit
+    // this page. Per-row error indicators subscribe to those fields themselves in WorkspaceRowBrickRoadIndicator.
+    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)}, [session?.email]);
+
+    // Projection of the policy collection passed down to the row menus, which compute their copy-settings
+    // eligibility from it. Kept at the page level so it is evaluated once per policy write instead of once per row.
+    const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)}, [session?.email]);
+
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
-    const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
-    const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
+    // Narrow subscription keeping the owner name/avatar columns reactive without re-rendering the page
+    // when anything else in the personal details list changes.
+    const ownerAccountIDs = [
+        ...new Set(
+            (workspaceListPolicies ?? [])
+                .map((policy) => (policy.isJoinRequestPending && policy.nonMemberDetails ? policy.nonMemberDetails.ownerAccountID : policy.ownerAccountID))
+                .filter((id): id is number => id !== undefined),
+        ),
+    ];
+    const [ownerDisplayDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: createDisplayDetailsByAccountIDsSelector(ownerAccountIDs)}, [workspaceListPolicies]);
 
-    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
-
-    // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardFeeds] = useCardFeeds(policyIDToDelete);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
-        selector: filterInactiveCards,
-        canBeMissing: true,
-    });
-    const policyToDelete = getPolicy(policyIDToDelete);
-    const hasCardFeedOrExpensifyCard =
-        !isEmptyObject(cardFeeds) ||
-        !isEmptyObject(cardsList) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
-
-    const isSupportalAction = isSupportAuthToken();
-
-    const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
-    const hideSupportalModal = () => {
-        setIsSupportalActionRestrictedModalOpen(false);
-    };
-    const confirmDeleteAndHideModal = () => {
-        if (!policyIDToDelete || !policyNameToDelete) {
+    const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
+        const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        if (openInternalRouteInNewTab(workspaceRoute, event)) {
             return;
         }
-
-        deleteWorkspace(policyIDToDelete, policyNameToDelete);
-        setIsDeleteModalOpen(false);
-
-        if (policyIDToDelete === activeWorkspaceID) {
-            setActiveWorkspaceID(undefined);
-            resetPolicyIDInNavigationState();
-            updateLastAccessedWorkspaceSwitcher(undefined);
-        }
+        Navigation.navigate(workspaceRoute);
     };
-
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
-
-    const resetLoadingSpinnerIconIndex = useCallback(() => {
-        setLoadingSpinnerIconIndex(null);
-    }, []);
-
-    /**
-     * Gets the menu item for each workspace
-     */
-    const getMenuItem = useCallback(
-        ({item, index}: GetMenuItem) => {
-            const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
-            const isOwner = item.ownerAccountID === session?.accountID;
-            const isDefault = activePolicyID === item.policyID;
-            // Menu options to navigate to the chat report of #admins and #announce room.
-            // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
-            // In such cases, let us use the available chat report ids from the policy.
-            const threeDotsMenuItems: PopoverMenuItem[] = [
-                {
-                    icon: Expensicons.Building,
-                    text: translate('workspace.common.goToWorkspace'),
-                    onSelected: item.action,
-                },
-            ];
-
-            if (isOwner) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Trashcan,
-                    text: translate('workspace.common.delete'),
-                    shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
-                    onSelected: () => {
-                        if (loadingSpinnerIconIndex !== null) {
-                            return;
-                        }
-
-                        if (isSupportalAction) {
-                            setIsSupportalActionRestrictedModalOpen(true);
-                            return;
-                        }
-
-                        setPolicyIDToDelete(item.policyID);
-                        setPolicyNameToDelete(item.title);
-
-                        if (shouldCalculateBillNewDot) {
-                            setIsDeletingPaidWorkspace(true);
-                            calculateBillNewDot();
-                            setLoadingSpinnerIconIndex(index);
-                            return;
-                        }
-
-                        setIsDeleteModalOpen(true);
-                    },
-                    shouldKeepModalOpen: shouldCalculateBillNewDot,
-                    shouldCallAfterModalHide: !shouldCalculateBillNewDot,
-                });
-            }
-
-            if (!(isAdmin || isOwner)) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Exit,
-                    text: translate('common.leave'),
-                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
-                });
-            }
-
-            if (isAdmin && item.adminRoom) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom ?? '')),
-                });
-            }
-
-            if (item.announceRoom) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
-                });
-            }
-
-            if (!isDefault && !item?.isJoinRequestPending) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Star,
-                    text: translate('workspace.common.setAsDefault'),
-                    onSelected: () => updateDefaultPolicy(item.policyID, activePolicyID),
-                });
-            }
-
-            return (
-                <OfflineWithFeedback
-                    key={`${item.title}_${index}`}
-                    pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
-                    onClose={item.dismissError}
-                    errors={item.errors}
-                    style={styles.mb2}
-                >
-                    <PressableWithoutFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel="row"
-                        style={[styles.mh5]}
-                        disabled={item.disabled}
-                        onPress={item.action}
-                    >
-                        {({hovered}) => (
-                            <WorkspacesListRow
-                                title={item.title}
-                                policyID={item.policyID}
-                                menuItems={threeDotsMenuItems}
-                                workspaceIcon={item.icon}
-                                ownerAccountID={item.ownerAccountID}
-                                workspaceType={item.type}
-                                isJoinRequestPending={item?.isJoinRequestPending}
-                                rowStyles={hovered && styles.hoveredComponentBG}
-                                layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                                shouldDisableThreeDotsMenu={item.disabled}
-                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
-                                isDefault={isDefault}
-                                isLoadingBill={isLoadingBill}
-                                resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
-                            />
-                        )}
-                    </PressableWithoutFeedback>
-                </OfflineWithFeedback>
-            );
-        },
-        [
-            isLessThanMediumScreen,
-            styles.mb2,
-            styles.mh5,
-            styles.ph5,
-            styles.hoveredComponentBG,
-            translate,
-            styles.offlineFeedback.deleted,
-            session?.accountID,
-            session?.email,
-            activePolicyID,
-            isSupportalAction,
-            setIsDeletingPaidWorkspace,
-            isLoadingBill,
-            shouldCalculateBillNewDot,
-            loadingSpinnerIconIndex,
-            resetLoadingSpinnerIconIndex,
-        ],
-    );
-
-    const listHeaderComponent = useCallback(() => {
-        if (isLessThanMediumScreen) {
-            return <View style={styles.mt5} />;
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap5, styles.p5, styles.pl10, styles.appBG]}>
-                <View style={[styles.flexRow, styles.flex1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceName')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceOwner')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceType')}
-                    </Text>
-                </View>
-                <View style={[styles.workspaceRightColumn, styles.mr2]} />
-            </View>
-        );
-    }, [isLessThanMediumScreen, styles, translate]);
-
-    const policyRooms = useMemo(() => {
-        if (!reports || isEmptyObject(reports)) {
-            return;
-        }
-
-        return Object.values(reports).reduce<ChatPolicyType>((result, report) => {
-            if (!report?.reportID || !report.policyID || report.parentReportID) {
-                return result;
-            }
-
-            if (!result[report.policyID]) {
-                // eslint-disable-next-line no-param-reassign
-                result[report.policyID] = {};
-            }
-
-            switch (report.chatType) {
-                case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].adminRoom = report.reportID;
-                    break;
-                case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].announceRoom = report.reportID;
-                    break;
-                default:
-                    break;
-            }
-
-            return result;
-        }, {});
-    }, [reports]);
-
-    const navigateToWorkspace = useCallback(
-        (policyID: string) => {
-            // On the wide layout, we always want to open the Profile page when opening workpsace settings from the list
-            if (shouldUseNarrowLayout) {
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-                return;
-            }
-            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
-        },
-        [shouldUseNarrowLayout],
-    );
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
-    const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-        if (isEmptyObject(policies)) {
-            return [];
+    const workspaceRows: WorkspaceRowData[] = [];
+
+    for (const policy of workspaceListPolicies ?? []) {
+        if (policy.isJoinRequestPending && policy.nonMemberDetails) {
+            const {policyID, ownerAccountID} = policy.nonMemberDetails;
+            const ownerDetails = ownerAccountID ? ownerDisplayDetails?.[ownerAccountID] : undefined;
+
+            const pendingWorkspaceRow: WorkspaceRowData = {
+                keyForList: policyID,
+                policyID,
+                disabled: true,
+                errors: undefined,
+                type: policy.nonMemberDetails.type,
+                title: policy.nonMemberDetails.name,
+                role: CONST.POLICY.ROLE.USER,
+                isDeleted: false,
+                isJoinRequestPending: true,
+                isDefault: activePolicyID === policyID,
+                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
+                ownerAccountID,
+                ownerLogin: ownerDetails ? ownerDetails.login : undefined,
+                ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
+                iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.name),
+                action: () => null,
+                dismissError: () => null,
+            };
+
+            workspaceRows.push(pendingWorkspaceRow);
+        } else {
+            const ownerDetails = policy.ownerAccountID ? ownerDisplayDetails?.[policy.ownerAccountID] : undefined;
+
+            const workspaceRow: WorkspaceRowData = {
+                keyForList: policy.id,
+                policyID: policy.id,
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: policy.errors,
+                type: policy.type,
+                title: policy.name,
+                role: policy.role,
+                ownerAccountID: policy.ownerAccountID,
+                isJoinRequestPending: false,
+                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policy.id,
+                isDefault: activePolicyID === policy.id,
+                isDeleted: policy.isPendingDelete,
+                ownerLogin: ownerDetails ? ownerDetails.login : undefined,
+                ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
+                iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                pendingAction: policy.pendingAction,
+                action: (event) => navigateToWorkspace(policy.id, event),
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+            };
+
+            workspaceRows.push(workspaceRow);
+        }
+    }
+
+    useEffect(() => {
+        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        const filteredWorkspaces = tableRef.current?.getProcessedData() ?? [];
+
+        if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
+            return;
         }
 
-        return Object.values(policies)
-            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
-            .map((policy): WorkspaceItem => {
-                if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                    const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
-                    const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
-                    return {
-                        title: policyInfo.name,
-                        icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
-                        disabled: true,
-                        ownerAccountID: policyInfo.ownerAccountID,
-                        type: policyInfo.type,
-                        iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                        iconFill: theme.textLight,
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                        policyID: id,
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: null,
-                        action: () => null,
-                        dismissError: () => null,
-                        isJoinRequestPending: true,
-                    };
-                }
-                return {
-                    title: policy.name,
-                    icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => navigateToWorkspace(policy.id),
-                    brickRoadIndicator: !isPolicyAdmin(policy)
-                        ? undefined
-                        : reimbursementAccountBrickRoadIndicator ??
-                          getPolicyBrickRoadIndicatorStatus(
-                              policy,
-                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                          ),
-                    pendingAction: policy.pendingAction,
-                    errors: policy.errors,
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                    iconFill: theme.textLight,
-                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                    policyID: policy.id,
-                    adminRoom: policyRooms?.[policy.id]?.adminRoom ?? policy.chatReportIDAdmins?.toString(),
-                    announceRoom: policyRooms?.[policy.id]?.announceRoom ?? (policy.chatReportIDAnnounce ? policy.chatReportIDAnnounce?.toString() : ''),
-                    ownerAccountID: policy.ownerAccountID,
-                    role: policy.role,
-                    type: policy.type,
-                    employeeList: policy.employeeList,
-                };
-            })
-            .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
+        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
+        if (duplicateWorkspaceIndex < 0) {
+            return;
+        }
 
-    const getHeaderButton = () => (
+        tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => clearDuplicateWorkspace(),
+        });
+
+        return () => handle.cancel();
+    }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
+
+    // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
+    // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
+    // which would otherwise hide the new row — so reset after the navigation transition, once that restore has run.
+    const wasWorkspaceListEmptyRef = useRef(workspaceRows.length === 0);
+    useEffect(() => {
+        if (workspaceRows.length === 0) {
+            wasWorkspaceListEmptyRef.current = true;
+            return;
+        }
+        if (!wasWorkspaceListEmptyRef.current || !isFocused) {
+            return;
+        }
+        wasWorkspaceListEmptyRef.current = false;
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => tableRef.current?.scrollToOffset({offset: 0, animated: false}),
+        });
+        return () => handle.cancel();
+    }, [workspaceRows.length, isFocused]);
+
+    const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
-            accessibilityLabel={translate('workspace.new.newWorkspace')}
-            text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
-            icon={Expensicons.Plus}
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            success
+            accessibilityLabel={translate('common.new')}
+            text={translate('common.new')}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
+            icon={icons.Plus}
         />
     );
 
     const onBackButtonPress = () => {
-        Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS);
+        Navigation.goBack(route.params?.backTo);
         return true;
     };
 
-    useHandleBackButton(onBackButtonPress);
-
-    if (isEmptyObject(workspaces)) {
-        return (
-            <ScreenWrapper
-                shouldEnablePickerAvoiding={false}
-                shouldEnableMaxHeight
-                testID={WorkspacesListPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
-                enableEdgeToEdgeBottomSafeAreaPadding={false}
-            >
-                <HeaderWithBackButton
-                    title={translate('common.workspaces')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
-                    onBackButtonPress={onBackButtonPress}
-                    icon={Illustrations.Buildings}
-                    shouldUseHeadlineHeader
-                />
-                {shouldShowLoadingIndicator ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                ) : (
-                    <ScrollView
-                        contentContainerStyle={styles.pt3}
-                        addBottomSafeAreaPadding
-                    >
-                        <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <FeatureList
-                                menuItems={workspaceFeatures}
-                                title={translate('workspace.emptyWorkspace.title')}
-                                subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                                ctaText={translate('workspace.new.newWorkspace')}
-                                ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
-                                illustration={LottieAnimations.WorkspacePlanet}
-                                // We use this style to vertically center the illustration, as the original illustration is not centered
-                                illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
-                                titleStyles={styles.textHeadlineH1}
-                            />
-                        </View>
-                    </ScrollView>
-                )}
-            </ScreenWrapper>
-        );
-    }
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorInWideScreen
-            testID={WorkspacesListPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+        <WorkspaceListLayout
+            activeTabKey="workspaces"
+            headerButton={headerButton}
         >
-            <View style={styles.flex1}>
-                <HeaderWithBackButton
-                    title={translate('common.workspaces')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
-                    onBackButtonPress={onBackButtonPress}
-                    icon={Illustrations.Buildings}
-                    shouldUseHeadlineHeader
-                >
-                    {!shouldUseNarrowLayout && getHeaderButton()}
-                </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
-                <FlatList
-                    data={workspaces}
-                    renderItem={getMenuItem}
-                    ListHeaderComponent={listHeaderComponent}
-                    stickyHeaderIndices={stickyHeaderIndices}
+            {shouldShowLoadingIndicator ? (
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={
+                            {
+                                context: 'WorkspacesListPage',
+                                isOffline,
+                            } satisfies SkeletonSpanReasonAttributes
+                        }
+                    />
+                </View>
+            ) : (
+                <WorkspaceListTable
+                    ref={tableRef}
+                    workspaces={workspaceRows}
+                    onDeleteWorkspace={setPolicyIDToDelete}
+                    pendingDeletePolicyID={policyIDToDelete}
+                    copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
                 />
-            </View>
-            <ConfirmModal
-                title={translate('workspace.common.delete')}
-                isVisible={isDeleteModalOpen}
-                onConfirm={confirmDeleteAndHideModal}
-                onCancel={() => setIsDeleteModalOpen(false)}
-                prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-            <SupportalActionRestrictedModal
-                isModalOpen={isSupportalActionRestrictedModalOpen}
-                hideSupportalModal={hideSupportalModal}
-            />
-        </ScreenWrapper>
+            )}
+            {!!policyIDToDelete && (
+                <DeleteWorkspaceFlow
+                    key={policyIDToDelete}
+                    policyID={policyIDToDelete}
+                    onDismiss={() => setPolicyIDToDelete(undefined)}
+                />
+            )}
+            <CopyPolicySettingsProgressModal />
+        </WorkspaceListLayout>
     );
 }
-
-WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default WorkspacesListPage;

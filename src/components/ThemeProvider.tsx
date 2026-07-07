@@ -1,11 +1,14 @@
-import React, {useEffect, useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
+
 import DomUtils from '@libs/DomUtils';
+
 // eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+
+import React, {useEffect, useMemo} from 'react';
 
 type ThemeProviderProps = React.PropsWithChildren & {
     theme?: ThemePreferenceWithoutSystem;
@@ -32,12 +35,10 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
 
         // staticThemePreference as it is a property that does not change we don't need it in the dependency array
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme.text]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
-
-ThemeProvider.displayName = 'ThemeProvider';
 
 export default ThemeProvider;

@@ -1,9 +1,16 @@
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 type DateTimeSelectorProps = {
     /** Form error text. e.g when no datetime is selected */
@@ -21,9 +28,13 @@ type DateTimeSelectorProps = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
+
+    // The ref is required by InputWrapper, even though it's not used in this component yet.
+    ref?: ForwardedRef<View>;
 };
 
-function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTimeSelectorProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: DateTimeSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -49,13 +60,11 @@ function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTime
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
             }}
             shouldShowRightIcon
         />
     );
 }
-
-DateTimeSelector.displayName = 'DateTimeSelector';
 
 export default DateTimeSelector;

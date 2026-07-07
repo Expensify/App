@@ -1,20 +1,20 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
+
+import React from 'react';
+
 import type {OnboardingPersonalDetailsProps} from './types';
+
+import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
 
 function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     return (
         <OnboardingWrapper>
             <BaseOnboardingPersonalDetails
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </OnboardingWrapper>
     );
 }
-
-OnboardingPersonalDetails.displayName = 'OnboardingPurpose';
 
 export default OnboardingPersonalDetails;

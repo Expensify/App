@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {ValueOf} from 'type-fest';
 
 type RequestMoneyParams = {
     debtorEmail: string;
@@ -25,11 +26,29 @@ type RequestMoneyParams = {
     taxAmount: number;
     billable?: boolean;
     receiptGpsPoints?: string;
-    transactionThreadReportID: string;
+    transactionThreadReportID?: string;
     createdReportActionIDForThread: string | undefined;
-    reimbursible?: boolean;
+    reimbursable?: boolean;
     description?: string;
     attendees?: string;
+    isTestDrive?: boolean;
+    guidedSetupData?: string;
+    testDriveCommentReportActionID?: string;
+
+    /** Transaction type (e.g., 'time' for time tracking expenses) */
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+
+    /** Number of hours for time tracking expenses */
+    count?: number;
+
+    /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
+    rate?: number;
+
+    /** Unit for time tracking (e.g., 'h' for hours) */
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+
+    /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default RequestMoneyParams;

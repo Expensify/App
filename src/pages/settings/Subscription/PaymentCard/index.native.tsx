@@ -1,11 +1,12 @@
-import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import React from 'react';
 
 function AddPaymentCard() {
     return (
         <ScreenWrapper
-            testID={AddPaymentCard.displayName}
+            testID="AddPaymentCard"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -13,7 +14,5 @@ function AddPaymentCard() {
         </ScreenWrapper>
     );
 }
-
-AddPaymentCard.displayName = 'AddPaymentCard';
 
 export default AddPaymentCard;

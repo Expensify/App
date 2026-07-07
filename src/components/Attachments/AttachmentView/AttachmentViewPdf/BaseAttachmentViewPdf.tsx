@@ -1,7 +1,10 @@
-import React, {memo, useCallback, useContext, useEffect} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {memo, useCallback, useEffect} from 'react';
+
 import type AttachmentViewPdfProps from './types';
 
 function BaseAttachmentViewPdf({
@@ -16,15 +19,16 @@ function BaseAttachmentViewPdf({
     isUsedAsChatAttachment,
     onLoadError,
 }: AttachmentViewPdfProps) {
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
+    const isScrollEnabled = state === null ? undefined : state.isScrollEnabled;
 
     useEffect(() => {
-        if (!attachmentCarouselPagerContext) {
+        if (!actions) {
             return;
         }
-        attachmentCarouselPagerContext.onScaleChanged(1);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        actions.onScaleChanged?.(1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     /**
@@ -39,11 +43,11 @@ function BaseAttachmentViewPdf({
             }
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (attachmentCarouselPagerContext?.pagerRef) {
-                attachmentCarouselPagerContext.onScaleChanged(newScale);
+            if (state?.pagerRef && actions) {
+                actions.onScaleChanged?.(newScale);
             }
         },
-        [attachmentCarouselPagerContext, onScaleChangedProp],
+        [state?.pagerRef, actions, onScaleChangedProp],
     );
 
     /**
@@ -58,11 +62,11 @@ function BaseAttachmentViewPdf({
                 onPressProp(event);
             }
 
-            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.get()) {
-                attachmentCarouselPagerContext.onTap();
+            if (state !== null && actions && isScrollEnabled?.get()) {
+                actions.onTap?.();
             }
         },
-        [attachmentCarouselPagerContext, isScrollEnabled, onPressProp],
+        [state, actions, isScrollEnabled, onPressProp],
     );
 
     return (
@@ -80,7 +84,5 @@ function BaseAttachmentViewPdf({
         />
     );
 }
-
-BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
 export default memo(BaseAttachmentViewPdf);

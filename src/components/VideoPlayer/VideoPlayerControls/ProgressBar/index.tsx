@@ -1,10 +1,14 @@
-import React, {useEffect, useState} from 'react';
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
-import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {useEffect, useState} from 'react';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 type ProgressBarProps = {
     /** Total duration of a video. */
@@ -15,15 +19,21 @@ type ProgressBarProps = {
 
     /** Function to seek to a specific position in the video. */
     seekPosition: (newPosition: number) => void;
+
+    /** Callback when user starts dragging the slider. */
+    onSeekStart?: () => void;
+
+    /** Callback when user finishes dragging the slider. */
+    onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
 };
 
 function getProgress(currentPosition: number, maxPosition: number): number {
     return Math.min(Math.max((currentPosition / maxPosition) * 100, 0), 100);
 }
 
-function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
+function ProgressBar({duration, position, seekPosition, onSeekStart, onSeekEnd}: ProgressBarProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackContext();
+    const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackActionsContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const [isSliderPressed, setIsSliderPressed] = useState(false);
     const progressWidth = useSharedValue(0);
@@ -36,7 +46,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const progressBarInteraction = (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload> | GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
         const progress = getProgress(event.x, sliderWidth);
         progressWidth.set(progress);
-        runOnJS(seekPosition)((progress * duration) / 100);
+        scheduleOnRN(seekPosition, (progress * duration) / 100);
     };
 
     const onSliderLayout = (event: LayoutChangeEvent) => {
@@ -45,9 +55,13 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
 
     const pan = Gesture.Pan()
         .runOnJS(true)
+        // Reduce gesture threshold so quick taps trigger onFinalize on iOS.
+        .minDistance(0)
+        .activateAfterLongPress(0)
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
+            onSeekStart?.();
             pauseVideo();
             progressBarInteraction(event);
         })
@@ -56,7 +70,9 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         })
         .onFinalize(() => {
             setIsSliderPressed(false);
-            if (!wasVideoPlayingOnCheck.get()) {
+            const shouldResumeAfterSeek = wasVideoPlayingOnCheck.get();
+            onSeekEnd?.(shouldResumeAfterSeek);
+            if (onSeekEnd || !shouldResumeAfterSeek) {
                 return;
             }
             playVideo();
@@ -69,7 +85,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         progressWidth.set(getProgress(position, duration));
     }, [duration, isSliderPressed, position, progressWidth]);
 
-    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.get()}%`}));
+    const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.get()}%`}));
 
     return (
         <GestureDetector gesture={pan}>
@@ -78,16 +94,11 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
                     style={styles.progressBarOutline}
                     onLayout={onSliderLayout}
                 >
-                    <Animated.View
-                        style={styles.progressBarFill}
-                        animatedProps={progressBarStyle}
-                    />
+                    <Animated.View style={[styles.progressBarFill, progressBarStyle]} />
                 </Animated.View>
             </Animated.View>
         </GestureDetector>
     );
 }
-
-ProgressBar.displayName = 'ProgressBar';
 
 export default ProgressBar;

@@ -1,24 +1,29 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import React, {useCallback} from 'react';
+
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
 
-function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
+function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -28,7 +33,7 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('common.error.dateInvalid');
@@ -50,7 +55,11 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IncorporationDateBusiness',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -63,12 +72,11 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
             submitButtonStyles={[styles.mb0]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb4]}>{translate('businessInfoStep.selectYourCompanyIncorporationDate')}</Text>
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}
-                containerStyles={[styles.mt6]}
                 placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft={!isEditing}
@@ -78,7 +86,5 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
         </FormProvider>
     );
 }
-
-IncorporationDateBusiness.displayName = 'IncorporationDateBusiness';
 
 export default IncorporationDateBusiness;

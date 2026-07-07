@@ -1,11 +1,16 @@
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AnchorPosition} from '@styles/index';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+type ThreeDotsMenuHandle = {hidePopoverMenu: () => void; isPopupMenuVisible: boolean};
 
 type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
@@ -13,35 +18,47 @@ type SavedSearchItemThreeDotMenuProps = {
     hideProductTrainingTooltip?: () => void;
     renderTooltipContent: () => React.JSX.Element;
     shouldRenderTooltip: boolean;
+    isCopied?: boolean;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip}: SavedSearchItemThreeDotMenuProps) {
-    const threeDotsMenuContainerRef = useRef<View>(null);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip, isCopied}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
+    const {endPeek} = useSearchSidebarCollapse();
+    const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return Promise.resolve({horizontal: 0, vertical: 0});
+    const menuItemsWithPeekCleanup = useMemo(
+        () =>
+            menuItems.map((item) => {
+                if (item.shouldCloseModalOnSelect === false) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    onSelected: () => {
+                        endPeek();
+                        item.onSelected?.();
+                    },
+                };
+            }),
+        [endPeek, menuItems],
+    );
+
+    useEffect(() => {
+        if (!isCopied) {
+            return;
         }
-        return new Promise<AnchorPosition>((resolve) => {
-            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
-                resolve({
-                    horizontal: x + width,
-                    vertical: y,
-                });
-            });
-        });
-    }, [shouldUseNarrowLayout]);
+        const timer = setTimeout(() => {
+            threeDotsMenuRef.current?.hidePopoverMenu();
+        }, MENU_CLOSE_DELAY_MS);
+        return () => clearTimeout(timer);
+    }, [isCopied]);
 
     return (
-        <View
-            ref={threeDotsMenuContainerRef}
-            style={[isDisabledItem && styles.pointerEventsNone]}
-        >
+        <View style={[styles.searchTypeMenuAccessoryBox, isDisabledItem && styles.pointerEventsNone]}>
             <ThreeDotsMenu
-                menuItems={menuItems}
-                getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
+                shouldSelfPosition
+                menuItems={menuItemsWithPeekCleanup}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{
@@ -50,6 +67,8 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
                 }}
                 iconStyles={styles.wAuto}
                 hideProductTrainingTooltip={hideProductTrainingTooltip}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
+                threeDotsMenuRef={threeDotsMenuRef}
             />
         </View>
     );

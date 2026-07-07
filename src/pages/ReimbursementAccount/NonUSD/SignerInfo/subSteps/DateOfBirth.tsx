@@ -1,15 +1,19 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
+
+import WhyLink from '@pages/ReimbursementAccount/WhyLink';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type DateOfBirthProps = SubStepProps;
+import React from 'react';
+
+type DateOfBirthProps = SubPageProps;
 
 const {SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -43,7 +47,5 @@ function DateOfBirth({onNext, onMove, isEditing}: DateOfBirthProps) {
         />
     );
 }
-
-DateOfBirth.displayName = 'DateOfBirth';
 
 export default DateOfBirth;

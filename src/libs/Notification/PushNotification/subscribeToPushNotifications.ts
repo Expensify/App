@@ -1,23 +1,31 @@
-import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import Visibility from '@libs/Visibility';
+
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import {NativeModules} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import type {AnyPushNotificationData, PushNotificationData} from './NotificationType';
+
 import PushNotification from '.';
-import type {PushNotificationData} from './NotificationType';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  */
-Onyx.connect({
+// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
         if (notificationID) {
@@ -40,30 +48,20 @@ Onyx.connect({
     },
 });
 
-let lastVisitedPath: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.LAST_VISITED_PATH,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        lastVisitedPath = value;
-    },
-});
-
 let isSingleNewDotEntry: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+// Hybrid app config is not determined by changes in the UI, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
         if (!value) {
             return;
         }
-        isSingleNewDotEntry = value;
+        isSingleNewDotEntry = value?.isSingleNewDotEntry;
     },
 });
 
-function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
-    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID});
+function applyOnyxData<TKey extends OnyxKey>({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData<TKey>): Promise<void> {
+    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, lastUpdateID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
@@ -75,7 +73,7 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
         return true;
     };
 
-    let updates: OnyxUpdatesFromServer;
+    let updates: OnyxUpdatesFromServer<TKey>;
     if (hasPendingOnyxUpdates) {
         const isDataMissing = !lastUpdateID;
         logMissingOnyxDataInfo(isDataMissing);
@@ -114,13 +112,13 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
+    return getLastUpdateIDAppliedToClient()
+        .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
+        .then(() => NativeModules.PushNotificationBridge?.finishBackgroundProcessing());
 }
 
-function navigateToReport({reportID}: PushNotificationData): Promise<void> {
+function navigateToReport({reportID}: AnyPushNotificationData): Promise<void> {
     Log.info('[PushNotification] Navigating to report', false, {reportID});
-
-    const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
 
     Navigation.waitForProtectedRoutes().then(() => {
         // The attachment modal remains open when navigating to the report so we need to close it
@@ -143,7 +141,8 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
-                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID, backTo: Navigation.getActiveRoute()});
+                const backTo = Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(String(reportID))) ? undefined : Navigation.getActiveRoute();
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, backTo));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);
@@ -161,7 +160,9 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
 
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
-        Onyx.connect({
+        // We do not depend on updates on the UI to determine the last update ID applied to the client
+        // So we can use `connectWithoutView` here.
+        Onyx.connectWithoutView({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
         });

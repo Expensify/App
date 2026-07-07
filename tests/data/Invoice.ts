@@ -1,8 +1,9 @@
-// Test data for Invoices. The values come from the Onyx store in the app while manually testing.
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
+
+// Test data for Invoices. The values come from the Onyx store in the app while manually testing.
+import type {OnyxEntry} from 'react-native-onyx';
 
 const policy: OnyxEntry<OnyxTypes.Policy> = {
     id: 'CC048FA711B35B1F',
@@ -59,8 +60,8 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
         },
     },
     pendingFields: {},
-    chatReportIDAnnounce: 0,
-    chatReportIDAdmins: 1811331783036078,
+    chatReportIDAnnounce: '0',
+    chatReportIDAdmins: '1811331783036078',
     approver: 'a1@53019.com',
     areCompanyCardsEnabled: false,
     areExpensifyCardsEnabled: false,
@@ -197,7 +198,6 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
     transactionID: '1',
     isFromGlobalCreate: true,
     merchant: '(none)',
-    splitPayerAccountIDs: [32],
     shouldShowOriginalAmount: true,
     participants: [
         {
@@ -238,7 +238,7 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     isOwnPolicyExpenseChat: false,
     isPinned: false,
     isWaitingOnBankAccount: false,
-    lastActionType: 'REPORTPREVIEW',
+    lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
     lastActorAccountID: 32,
     lastMessageHtml: 'paid $1.00',
     lastMessageText: 'paid $1.00',

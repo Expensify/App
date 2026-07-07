@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react';
-import React from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {FormAlertWithSubmitButtonProps} from '@components/FormAlertWithSubmitButton';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
 
 type FormAlertWithSubmitButtonStory = StoryFn<typeof FormAlertWithSubmitButton>;
 
@@ -16,7 +18,6 @@ const story: Meta<typeof FormAlertWithSubmitButton> = {
 };
 
 function Template(props: FormAlertWithSubmitButtonProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <FormAlertWithSubmitButton {...props} />;
 }
 

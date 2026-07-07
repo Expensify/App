@@ -4,6 +4,8 @@
 */
 import type {ValueOf} from 'type-fest';
 
+import StringUtils from './StringUtils';
+
 const MATCH_RANK = {
     CASE_SENSITIVE_EQUAL: 6,
     EQUAL: 5,
@@ -22,7 +24,9 @@ type Ranking = ValueOf<typeof MATCH_RANK>;
  * @param stringToRank - the string to rank
  * @returns the ranking for how well stringToRank matches testString
  */
-function getMatchRanking(testString: string, stringToRank: string): Ranking {
+function getMatchRanking(testStringParam: string, stringToRankParam: string, keepDiacritics = false): Ranking {
+    const testString = keepDiacritics ? testStringParam : StringUtils.normalizeAccents(testStringParam);
+    const stringToRank = keepDiacritics ? stringToRankParam : StringUtils.normalizeAccents(stringToRankParam);
     // too long
     if (stringToRank.length > testString.length) {
         return MATCH_RANK.NO_MATCH;
@@ -107,4 +111,3 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
 }
 
 export default filterArrayByMatch;
-export {MATCH_RANK};

@@ -1,9 +1,16 @@
-import type {AirshipContact, AirshipPush, AirshipPushAndroid, AirshipPushIOS, AirshipRoot} from '@ua/react-native-airship';
+import type {AirshipContact, AirshipLiveActivityManager, AirshipPush, AirshipPushAndroid, AirshipPushIOS, AirshipRoot, AirshipRootIOS} from '@ua/react-native-airship';
 
 // eslint-disable-next-line no-restricted-syntax
 enum EventType {
     NotificationResponse = 'com.airship.notification_response',
     PushReceived = 'com.airship.push_received',
+}
+
+// eslint-disable-next-line no-restricted-syntax
+enum PermissionStatus {
+    Granted = 'granted',
+    Denied = 'denied',
+    NotDetermined = 'not_determined',
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -62,13 +69,26 @@ const contact = jest.fn().mockImplementation(() => ({
     module: jest.fn(),
 }))() as AirshipContact;
 
+const liveActivityManager = jest.fn().mockImplementation(() => ({
+    list: jest.fn(() => Promise.resolve([])),
+    listAll: jest.fn(() => Promise.resolve([])),
+    start: jest.fn(() => Promise.resolve({id: 'mock-activity-id'})),
+    update: jest.fn(() => Promise.resolve()),
+    end: jest.fn(() => Promise.resolve()),
+}))() as AirshipLiveActivityManager;
+
+const airshipIOS = jest.fn().mockImplementation(() => ({
+    liveActivityManager,
+}))() as AirshipRootIOS;
+
 const Airship: Partial<AirshipRoot> = {
     addListener: jest.fn(),
     removeAllListeners: jest.fn(),
     push,
     contact,
+    iOS: airshipIOS,
 };
 
 export default Airship;
 
-export {EventType, iOS};
+export {EventType, iOS, PermissionStatus};

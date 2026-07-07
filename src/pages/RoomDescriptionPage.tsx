@@ -1,7 +1,3 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -12,67 +8,73 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {canEditReportDescription, getReportDescription} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
 import variables from '@styles/variables';
+
 import {updateDescription} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
-    policies: OnyxCollection<OnyxTypes.Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 
-function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
-    const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
-    const backTo = route.params.backTo;
+function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path);
     const styles = useThemeStyles();
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report)));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
+    const reportIsArchived = useReportIsArchived(report?.reportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const handleReportDescriptionChange = useCallback((value: string) => {
         setDescription(value);
     }, []);
 
     const goBack = useCallback(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)));
-    }, [report.reportID, backTo]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
+    }, [backPath]);
 
     const submitForm = useCallback(() => {
-        const previousValue = report?.description ?? '';
         const newValue = description.trim();
 
-        updateDescription(report.reportID, previousValue, newValue);
+        updateDescription(report, newValue, currentUserAccountID);
         goBack();
-    }, [report.reportID, report.description, description, goBack]);
+    }, [report, description, goBack, currentUserAccountID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
             const errors: Errors = {};
             const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
-                    length: descriptionLength,
-                    limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
-                });
+                errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
             }
 
             return errors;
@@ -94,12 +96,12 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
-    const canEdit = canEditReportDescription(report, policy);
+    const canEdit = canEditReportDescription(report, policy, reportIsArchived);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={RoomDescriptionPage.displayName}
+            testID="RoomDescriptionPage"
         >
             <HeaderWithBackButton
                 title={translate('reportDescriptionPage.roomDescription')}
@@ -150,7 +152,5 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomDescriptionPage.displayName = 'RoomDescriptionPage';
 
 export default RoomDescriptionPage;

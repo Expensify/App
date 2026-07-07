@@ -1,32 +1,7 @@
 // Represents the options passed to useNavigationBuilder for creating a custom navigation builder,
-import type {
-    DefaultNavigatorOptions,
-    Descriptor,
-    EventMapBase,
-    NavigationBuilderOptions,
-    NavigationHelpers,
-    NavigationProp,
-    ParamListBase,
-    RouteProp,
-    StackActionHelpers,
-} from '@react-navigation/native';
-import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '.';
+import type {Descriptor, EventMapBase, NavigationHelpers, NavigationProp, ParamListBase, RouteProp, StackActionHelpers} from '@react-navigation/native';
 
-// Represents the options passed to useNavigationBuilder for creating a custom navigation builder,
-// using the abstracted and custom types from PlatformStackNavigation.
-type PlatformNavigationBuilderOptions<
-    NavigationOptions extends PlatformSpecificNavigationOptions,
-    EventMap extends PlatformSpecificEventMap & EventMapBase,
-    ParamList extends ParamListBase = ParamListBase,
-    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> &
-    NavigationBuilderOptions<NavigationOptions> &
-    RouterOptions & {
-        persistentScreens?: Array<Extract<keyof ParamList, string>>;
-        defaultCentralScreen?: Extract<keyof ParamList, string>;
-        sidebarScreen?: Extract<keyof ParamList, string>;
-        parentRoute?: RouteProp<ParamListBase>;
-    };
+import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationState} from '.';
 
 // Represents the type of the navigation object returned by useNavigationBuilder
 type PlatformNavigationBuilderNavigation<
@@ -35,7 +10,7 @@ type PlatformNavigationBuilderNavigation<
     ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
 > = NavigationHelpers<ParamList, EventMap> & ActionHelpers;
 
-// Represents the type of a single descripter returned by useNavigationBuilder
+// Represents the type of a single descriptor returned by useNavigationBuilder
 type PlatformNavigationBuilderDescriptor<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
@@ -54,4 +29,4 @@ type PlatformNavigationBuilderDescriptors<
     ParamList extends ParamListBase = ParamListBase,
 > = Record<string, PlatformNavigationBuilderDescriptor<NavigationOptions, EventMap, ParamList>>;
 
-export type {PlatformNavigationBuilderOptions, PlatformNavigationBuilderNavigation, PlatformNavigationBuilderDescriptors};
+export type {PlatformNavigationBuilderNavigation, PlatformNavigationBuilderDescriptors};

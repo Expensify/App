@@ -1,12 +1,14 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type Network from '@src/types/onyx/Network';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import FormHelpMessage from './FormHelpMessage';
-import {withNetwork} from './OnyxProvider';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -30,9 +32,6 @@ type FormAlertWrapperProps = {
     /** Error message to display above button */
     message?: string;
 
-    /** Props to detect online status */
-    network: Network;
-
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
 };
@@ -48,11 +47,14 @@ function FormAlertWrapper({
     isAlertVisible = false,
     isMessageHtml = false,
     message = '',
-    network,
     onFixTheErrorsLinkPressed = () => {},
 }: FormAlertWrapperProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+
+    const defaultFixErrorsMessage = `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`;
+    const announcementMessage = message?.length ? message : defaultFixErrorsMessage;
 
     let content;
     if (!message?.length) {
@@ -76,17 +78,17 @@ function FormAlertWrapper({
         <View style={containerStyles}>
             {isAlertVisible && (
                 <FormHelpMessage
-                    message={message}
+                    message={announcementMessage}
+                    shouldRenderMessageAsHTML={isMessageHtml}
                     style={[styles.mb3, errorMessageStyle]}
+                    shouldReannounceOnSubmit
                 >
                     {content}
                 </FormHelpMessage>
             )}
-            {children(!!network.isOffline)}
+            {children(isOffline)}
         </View>
     );
 }
 
-FormAlertWrapper.displayName = 'FormAlertWrapper';
-
-export default withNetwork()(FormAlertWrapper);
+export default FormAlertWrapper;

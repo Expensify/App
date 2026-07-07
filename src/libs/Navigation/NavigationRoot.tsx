@@ -1,33 +1,47 @@
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import type {NavigationState} from '@react-navigation/native';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+
+import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
-import Firebase from '@libs/Firebase';
-import {FSPage} from '@libs/Fullstory';
+
+import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
-import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
+import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
+import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
+
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
-import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
-import CONFIG from '@src/CONFIG';
+
 import CONST from '@src/CONST';
+import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
+import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import customGetPathFromState from './helpers/customGetPathFromState';
+import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getNavigationBaseTheme from './getNavigationBaseTheme';
+import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
+import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {saveSettingsTabPathToSessionStorage} from './helpers/getLastVisitedWorkspace';
-import {isSettingsTabScreenName} from './helpers/isNavigatorName';
+import getPathFromState from './helpers/getPathFromState';
+import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
+import {isSplitNavigatorName} from './helpers/isNavigatorName';
+import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -53,7 +67,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = customGetPathFromState(state, linkingConfig.config);
+    const currentPath = getPathFromState(state);
 
     const focusedRoute = findFocusedRoute(state);
 
@@ -68,18 +82,31 @@ function parseAndLogRoute(state: NavigationState) {
     if (currentPath.includes('/transition')) {
         Log.info('Navigating from transition link from OldDot using short lived authToken');
     } else {
-        Log.info('Navigating to route', false, {path: currentPath});
+        Log.info('Navigating to route', false, {path: sanitizeUrlForLogging(currentPath)});
     }
 
     Navigation.setIsNavigationReady();
-    if (isSettingsTabScreenName(state.routes.at(-1)?.name)) {
-        saveSettingsTabPathToSessionStorage(currentPath);
+
+    const lastRoute = state.routes.at(-1);
+    const activeTabName = getActiveTabName(lastRoute);
+
+    // Skip saving when the focused route is the navigator itself (no nested screen yet), e.g. during
+    // the intermediate state right after `TabActions.jumpTo(WORKSPACE_NAVIGATOR)` and before the
+    // navigator mounts. The path collapses to `/` in that moment and would clobber the real path
+    // that WorkspaceRouter.getInitialState needs to read.
+    const isFocusedOnEmptyNavigator = focusedRoute?.name === activeTabName;
+    if (!isFocusedOnEmptyNavigator) {
+        if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            saveWorkspacesTabPathToSessionStorage(currentPath);
+        } else if (activeTabName === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+            saveSettingsTabPathToSessionStorage(currentPath);
+        }
     }
 
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName) {
-        new FSPage(focusedRouteName, {path: currentPath}).start();
+        new FS.Page(focusedRouteName, {path: currentPath}).start();
     }
 }
 
@@ -89,76 +116,84 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
-    const currentReportIDValue = useCurrentReportID();
+    const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
-        canBeMissing: true,
     });
-    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: wasInvitedToNewDotSelector,
-        canBeMissing: true,
-    });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
 
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, lastVisitedPath));
+            });
+
+            return getAdaptedStateFromPath(lastVisitedPath);
         }
 
         if (!account || account.isFromPublicDomain) {
             return;
         }
 
-        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
-        if (shouldShowRequire2FAPage) {
-            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
-        }
-
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
-        // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
-        }
-
-        // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
-        // The same applies to HybridApp, as we always define the route to which we want to transition.
-        if (!lastVisitedPath || CONFIG.IS_HYBRID_APP) {
+        // If we have a transition URL, don't restore last visited path - let React Navigation handle it
+        // This prevents reusing deep links after logout regardless of authentication status
+        if (isTransitioning) {
             return undefined;
         }
 
-        // If the user opens the root of app "/" it will be parsed to empty string "".
-        // If the path is defined and different that empty string we don't want to modify the default behavior.
-        if (path) {
-            return;
+        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
+            // Only skip restoration if there's a specific deep link that's not the root
+            // This allows restoration when app is killed and reopened without a deep link
+            const isRootPath = !path || path === '' || path === '/';
+            const isSpecificDeepLink = path && !isRootPath;
+
+            if (!isSpecificDeepLink) {
+                Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
+                return getAdaptedStateFromPath(lastVisitedPath);
+            }
         }
 
-        // Otherwise we want to redirect the user to the last visited path.
-        return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        // Default behavior - let React Navigation handle the initial state
+        return undefined;
 
         // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
 
         return {
             ...defaultNavigationTheme,
             colors: {
                 ...defaultNavigationTheme.colors,
-                background: theme.appBG,
+                /**
+                 * We want to have a stack with variable size of screens in RHP (wide layout).
+                 * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce its size with margin.
+                 * The stack has to be this size because it has a container with overflow: hidden.
+                 * On wide layout, background: 'transparent' is used to make the bottom of the card stack transparent.
+                 * On narrow layout, we use theme.appBG to match the standard app background.
+                 */
+                background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
             },
         };
-    }, [theme.appBG, themePreference]);
+    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+
+    useEffect(() => {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+        });
+    }, []);
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -169,44 +204,50 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopAllStateOnUP to true.
+        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopToSidebar to true.
         // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
         // More context here: https://github.com/Expensify/App/pull/59300
         if (!shouldUseNarrowLayout) {
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(true);
+        const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
+
+        // Sidebar is a separate screen only in SplitNavigators, so shouldPopToSidebar should only be set when the last route is a SplitNavigator.
+        // When the last route is TAB_NAVIGATOR, check the active tab inside it.
+        const effectiveName = lastRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveTabName(lastRoute) : lastRoute?.name;
+        if (!isSplitNavigatorName(effectiveName)) {
+            return;
+        }
+
+        Navigation.setShouldPopToSidebar(true);
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
-        // this navigator should be the only one in the navigation state after logout.
+        // After logout, reset the nav state so a logged-out user can't stay on a protected or
+        // consumed route.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
         }
 
-        const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes.at(-1);
-        if (!lastRoute) {
+        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
+        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        clearPreservedNavigatorStates();
+
+        const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
+        if (!stateToReset) {
             return;
         }
 
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
-        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        navigationRef.reset({
-            ...rootState,
-            index: 0,
-            routes: [
-                {
-                    ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
-                },
-            ],
-        });
+        try {
+            navigationRef.reset(stateToReset);
+        } catch (error) {
+            // A synthesized reset state can be rejected by RN; fall back to a known-valid
+            // TAB_NAVIGATOR (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
+            Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
+            navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+        }
     }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
@@ -214,12 +255,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
         const currentRoute = navigationRef.getCurrentRoute();
-        Firebase.log(`[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`);
+        Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
 
-        // Performance optimization to avoid context consumers to delay first render
-        setTimeout(() => {
-            currentReportIDValue?.updateCurrentReportID(state);
-        }, 0);
+        updateCurrentReportID(state);
         parseAndLogRoute(state);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
@@ -227,11 +265,25 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         cleanPreservedNavigatorStates(state);
     };
 
+    const onReadyWithSentry = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
+        onReady();
+        navigationIntegration.registerNavigationContainer(navigationRef);
+        setupNavigationFocusReturn();
+    }, [onReady]);
+
+    // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.
+    useEffect(() => {
+        setupNavigationFocusReturn();
+        return teardownNavigationFocusReturn;
+    }, []);
+
     return (
         <NavigationContainer
             initialState={initialState}
             onStateChange={handleStateChange}
-            onReady={onReady}
+            onReady={onReadyWithSentry}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}
@@ -243,7 +295,5 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         </NavigationContainer>
     );
 }
-
-NavigationRoot.displayName = 'NavigationRoot';
 
 export default NavigationRoot;

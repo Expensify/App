@@ -1,8 +1,11 @@
-import type {Meta, StoryFn} from '@storybook/react';
-import React, {useState} from 'react';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
 import variables from '@styles/variables';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React, {useState} from 'react';
 
 type TextInputStory = StoryFn<typeof TextInput>;
 
@@ -17,7 +20,6 @@ const story: Meta<typeof TextInput> = {
 };
 
 function Template(props: BaseTextInputProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <TextInput {...props} />;
 }
 
@@ -85,10 +87,9 @@ function HintAndErrorInput(props: BaseTextInputProps) {
     const [error, setError] = useState('');
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onChangeText={(value) => {
-                if (value && value.toLowerCase() === 'oops!') {
+                if (value?.toLowerCase() === 'oops!') {
                     setError("Oops! Looks like there's an error");
                     return;
                 }
@@ -114,7 +115,6 @@ function AutoGrowSupportInput(props: BaseTextInputProps) {
 
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onChangeText={setValue}
             value={value}
@@ -124,7 +124,7 @@ function AutoGrowSupportInput(props: BaseTextInputProps) {
 
 const AutoGrowInput: TextInputStory = AutoGrowSupportInput.bind({});
 AutoGrowInput.args = {
-    label: 'Autogrow input',
+    label: 'Auto grow input',
     name: 'AutoGrow',
     placeholder: 'My placeholder text',
     autoGrow: true,
@@ -139,7 +139,7 @@ AutoGrowInput.args = {
 
 const AutoGrowHeightInput: TextInputStory = AutoGrowSupportInput.bind({});
 AutoGrowHeightInput.args = {
-    label: 'Autogrowheight input',
+    label: 'Auto grow height input',
     name: 'AutoGrowHeight',
     placeholder: 'My placeholder text',
     autoGrowHeight: true,

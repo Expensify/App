@@ -1,23 +1,31 @@
-/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {forwardRef} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+
 import getButtonState from '@libs/getButtonState';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
+
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
     /** The text to display */
-    text: string;
+    text?: string;
 
     /** The text to display once the pressable is pressed */
     textChecked?: string;
@@ -31,7 +39,10 @@ type PressableWithDelayToggleProps = PressableProps & {
     /** Styles to apply to the container */
     styles?: StyleProp<ViewStyle>;
 
-    // /** Styles to apply to the text */
+    /** Styles to apply to the root PressableView */
+    wrapperStyles?: StyleProp<ViewStyle>;
+
+    /** Styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
 
     /** Styles to apply to the icon */
@@ -50,28 +61,59 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
+
+    /**
+     * Reference to the outer element
+     */
+    ref?: PressableRef;
+
+    /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
+    shouldUseButtonBackground?: boolean;
+
+    /** Whether to always use active (hovered) background by default */
+    shouldHaveActiveBackground?: boolean;
+
+    /** Icon width */
+    iconWidth?: number;
+
+    /** Icon height */
+    iconHeight?: number;
+
+    /** Custom accessibility label that overrides the tooltipText-based label for both states */
+    accessibilityLabel?: string;
+
+    /** Custom accessibility label to use in the checked (pressed) state */
+    accessibilityLabelChecked?: string;
 };
 
-function PressableWithDelayToggle(
-    {
-        iconChecked = Expensicons.Checkmark,
-        inline = true,
-        onPress,
-        text,
-        textChecked,
-        tooltipText,
-        tooltipTextChecked,
-        styles: pressableStyle,
-        textStyles,
-        iconStyles,
-        icon,
-        accessibilityRole,
-    }: PressableWithDelayToggleProps,
-    ref: PressableRef,
-) {
+function PressableWithDelayToggle({
+    iconChecked,
+    inline = true,
+    onPress,
+    text,
+    textChecked,
+    tooltipText,
+    tooltipTextChecked,
+    styles: pressableStyle,
+    wrapperStyles,
+    textStyles,
+    iconStyles,
+    icon,
+    ref,
+    accessibilityRole = CONST.ROLE.BUTTON,
+    sentryLabel,
+    shouldHaveActiveBackground,
+    iconWidth = variables.iconSizeSmall,
+    iconHeight = variables.iconSizeSmall,
+    shouldUseButtonBackground = false,
+    accessibilityLabel: accessibilityLabelProp,
+    accessibilityLabelChecked,
+}: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 
     const updatePressState = () => {
         if (!isActive) {
@@ -81,65 +123,99 @@ function PressableWithDelayToggle(
         onPress?.();
     };
 
-    // Due to limitations in RN regarding the vertical text alignment of non-Text elements,
-    // for elements that are supposed to be inline, we need to use a Text element instead
-    // of a Pressable
-    const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    const labelText = (
-        <Text
-            suppressHighlighting
-            style={textStyles}
-        >
-            {!isActive && textChecked ? textChecked : text}
-            &nbsp;
-        </Text>
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const checkedAccessibilityLabel = accessibilityLabelChecked || accessibilityLabelProp || tooltipTextChecked || textChecked || text || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const defaultAccessibilityLabel = accessibilityLabelProp || tooltipText || text || '';
+    const accessibilityLabel = !isActive ? checkedAccessibilityLabel : defaultAccessibilityLabel;
+    const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
+    const labelText =
+        text || textChecked ? (
+            <Text
+                suppressHighlighting
+                style={textStyles}
+            >
+                {!isActive && textChecked ? textChecked : text}
+                {shouldShowIcon && <>&nbsp;</>}
+            </Text>
+        ) : null;
+
+    // Hide text when showing iconChecked and no icon prop is provided
+    const shouldShowText = !(resolvedIconChecked && !icon && !isActive);
+    const displayLabelText = shouldShowText ? labelText : null;
+
+    const content = (
+        <>
+            {inline && displayLabelText}
+            <Tooltip
+                text={tooltipTexts}
+                shouldRender
+            >
+                <PressableWithoutFeedback
+                    tabIndex={-1}
+                    accessible={false}
+                    onPress={updatePressState}
+                    sentryLabel={sentryLabel ?? CONST.SENTRY_LABEL.PRESSABLE_WITH_DELAY_TOGGLE.BUTTON}
+                    style={({hovered, pressed}) => [
+                        styles.flexRow,
+                        pressableStyle,
+                        !isActive && styles.cursorDefault,
+                        shouldUseButtonBackground &&
+                            StyleUtils.getButtonBackgroundColorStyle(
+                                getButtonState(!!shouldHaveActiveBackground || hovered, shouldHaveActiveBackground ? hovered : pressed, !shouldHaveActiveBackground && !isActive),
+                                true,
+                            ),
+                    ]}
+                >
+                    {({hovered, pressed}) => (
+                        <>
+                            {shouldShowIcon && (
+                                <Icon
+                                    src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                    additionalStyles={[styles.mr2, iconStyles]}
+                                    width={iconWidth}
+                                    height={iconHeight}
+                                    inline={inline}
+                                />
+                            )}
+                            {!inline && displayLabelText}
+                        </>
+                    )}
+                </PressableWithoutFeedback>
+            </Tooltip>
+        </>
     );
 
-    return (
-        <PressableView
+    return inline ? (
+        // Due to limitations in RN regarding the vertical text alignment of non-Text elements,
+        // for elements that are supposed to be inline, we need to use a Text element instead
+        // of a Pressable
+        <Text
             // Using `ref as any` due to variable component (Text or View) based on 'inline' prop; TypeScript workaround.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={tooltipTexts}
-            suppressHighlighting={inline ? true : undefined}
+            accessibilityLabel={accessibilityLabel}
+            suppressHighlighting
             accessibilityRole={accessibilityRole}
         >
-            <>
-                {inline && labelText}
-                <Tooltip
-                    text={tooltipTexts}
-                    shouldRender
-                >
-                    <PressableWithoutFeedback
-                        tabIndex={-1}
-                        accessible={false}
-                        onPress={updatePressState}
-                        style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
-                    >
-                        {({hovered, pressed}) => (
-                            <>
-                                {!inline && labelText}
-                                {!!icon && (
-                                    <Icon
-                                        src={!isActive ? iconChecked : icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        additionalStyles={iconStyles}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
-                                        inline={inline}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </PressableWithoutFeedback>
-                </Tooltip>
-            </>
-        </PressableView>
+            {content}
+        </Text>
+    ) : (
+        <PressableWithoutFeedback
+            ref={ref}
+            onPress={updatePressState}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={accessibilityRole}
+            style={wrapperStyles}
+            sentryLabel={sentryLabel}
+        >
+            {content}
+        </PressableWithoutFeedback>
     );
 }
 
-PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
-
-export default forwardRef(PressableWithDelayToggle);
+export default PressableWithDelayToggle;
+export type {PressableWithDelayToggleProps};

@@ -1,19 +1,29 @@
-import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
-type TransactionPreviewStyle = {
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
+};
+
+type TransactionPreviewStandaloneStyle = {
+    [key in keyof TransactionPreviewStyleType]: string;
 };
 
 type MoneyRequestReportPreviewStyleType = {
     flatListStyle: StyleProp<ViewStyle>;
     wrapperStyle: ViewStyle;
     contentContainerStyle: ViewStyle;
-    transactionPreviewStyle: TransactionPreviewStyle;
+    transactionPreviewCarouselStyle: TransactionPreviewCarouselStyle;
+    transactionPreviewStandaloneStyle: TransactionPreviewStandaloneStyle;
     componentStyle: StyleProp<ViewStyle>;
+    expenseCountVisible: boolean;
 };
 
 type MoneyRequestReportPreviewProps = {
@@ -26,17 +36,14 @@ type MoneyRequestReportPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
+    /** The chat report this preview belongs to */
+    chatReport: OnyxEntry<Report>;
+
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: StyleProp<ViewStyle>;
-
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
+    /** The stabilized IOU report, provided by the parent so the preview does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -50,44 +57,47 @@ type MoneyRequestReportPreviewProps = {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
-
-    /** Whether the report is an invoice preview */
-    isInvoice?: boolean;
-
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
-    chatReport: OnyxEntry<Report>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    violations: OnyxCollection<TransactionViolation[]>;
+    /** Full set of the report's transactions, including optimistically-deleted rows (matches `getReportTransactions`) */
+    allReportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
+    Omit<MoneyRequestReportPreviewProps, 'allReports' | 'policies' | 'policyID'> &
+    ForwardedFSClassProps & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 
         /** MoneyRequestReportPreview's current width */
         currentWidth: number;
 
-        /** Callback passed to onLayout  */
-        onLayout: (e: LayoutChangeEvent) => void;
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: StyleProp<ViewStyle>;
+
+        /** Callback passed to Carousel's onLayout  */
+        onCarouselLayout: (e: LayoutChangeEvent) => void;
+
+        /** Callback passed to Component wrapper view's onLayout */
+        onWrapperLayout: (e: LayoutChangeEvent) => void;
 
         /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;
 
         /** Callback called when the whole preview is pressed */
         onPress: () => void;
+
+        /** IDs of newly added transactions */
+        newTransactionIDs?: Set<string>;
     };
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps, MoneyRequestReportPreviewStyleType};

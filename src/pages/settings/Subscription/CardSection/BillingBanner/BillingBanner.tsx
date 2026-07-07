@@ -1,16 +1,22 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type BillingBannerProps = {
     /** The title of the banner. */
@@ -43,6 +49,9 @@ type BillingBannerProps = {
     /** Accessibility label for the right icon. */
     rightIconAccessibilityLabel?: string;
 
+    /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
+    rightIconSentryLabel?: string;
+
     /** A component to be rendered on the right side of the banner. */
     rightComponent?: React.ReactNode;
 };
@@ -58,19 +67,23 @@ function BillingBanner({
     rightIcon,
     onRightIconPress,
     rightIconAccessibilityLabel,
+    rightIconSentryLabel,
     rightComponent,
 }: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
             return onRightIconPress && rightIconAccessibilityLabel ? (
                 <PressableWithoutFeedback
                     onPress={onRightIconPress}
-                    style={[styles.touchableButtonImage]}
+                    style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={rightIconAccessibilityLabel}
+                    sentryLabel={rightIconSentryLabel ?? CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
                 >
                     <Icon
                         src={rightIcon}
@@ -88,12 +101,24 @@ function BillingBanner({
         return (
             !!brickRoadIndicator && (
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={expensifyIcons.DotIndicator}
                     fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                 />
             )
         );
-    }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success]);
+    }, [
+        brickRoadIndicator,
+        onRightIconPress,
+        rightIcon,
+        rightIconAccessibilityLabel,
+        rightIconSentryLabel,
+        styles.touchableButtonImage,
+        styles.threeDotsMenuIconWidth,
+        theme.danger,
+        theme.icon,
+        theme.success,
+        expensifyIcons.DotIndicator,
+    ]);
 
     return (
         <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>
@@ -105,15 +130,22 @@ function BillingBanner({
 
             <View style={[styles.flex1, styles.justifyContentCenter]}>
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
-                {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
+                {!!subtitle && (typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle)}
             </View>
-            {!!rightComponent && rightComponent}
-            {rightIconComponent}
+            {shouldUseNarrowLayout && !isInLandscapeMode ? (
+                <>
+                    {rightIconComponent}
+                    {!!rightComponent && rightComponent}
+                </>
+            ) : (
+                <>
+                    {!!rightComponent && rightComponent}
+                    {rightIconComponent}
+                </>
+            )}
         </View>
     );
 }
-
-BillingBanner.displayName = 'BillingBanner';
 
 export default BillingBanner;
 export type {BillingBannerProps};

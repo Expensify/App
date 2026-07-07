@@ -1,8 +1,11 @@
-import Config from 'react-native-config';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import getEnvironment from './getEnvironment';
+
+import Config from 'react-native-config';
+
 import type Environment from './getEnvironment/types';
+
+import getEnvironment from './getEnvironment';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,
@@ -36,7 +39,7 @@ function isProduction(): Promise<boolean> {
  * Are we running an internal test build?
  */
 function isInternalTestBuild(): boolean {
-    return !!((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC && (Config?.PULL_REQUEST_NUMBER ?? ''));
+    return !!((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC && (CONST.PULL_REQUEST_NUMBER ?? ''));
 }
 
 /**
@@ -62,4 +65,4 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};
+export {isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};

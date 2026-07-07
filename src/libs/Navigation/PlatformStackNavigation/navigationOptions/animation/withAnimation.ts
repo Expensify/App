@@ -1,6 +1,8 @@
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import fade from './fade';
 import Animations from './index';
 import none from './none';
@@ -16,7 +18,7 @@ function withAnimation<PlatformSpecificNavigationOptions extends StackNavigation
             return slideFromLeft as PlatformSpecificNavigationOptions;
         case Animations.SLIDE_FROM_RIGHT:
             return slideFromRight as PlatformSpecificNavigationOptions;
-        case Animations.MODAL:
+        case Animations.SLIDE_FROM_BOTTOM:
             return slideFromBottom as PlatformSpecificNavigationOptions;
         case Animations.NONE:
             return none as PlatformSpecificNavigationOptions;

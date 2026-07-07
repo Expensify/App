@@ -1,6 +1,7 @@
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+
 import connections from './connections';
 
 const mccGroup = {
@@ -74,8 +75,8 @@ const policy420A: Policy = {
     employeeList: {},
     isPolicyExpenseChatEnabled: true,
     lastModified: '1744880511066991',
-    chatReportIDAnnounce: 0,
-    chatReportIDAdmins: 1552825053855260,
+    chatReportIDAnnounce: '0',
+    chatReportIDAdmins: '1552825053855260',
     autoReimbursement: {
         limit: 0,
     },
@@ -93,7 +94,6 @@ const policy420A: Policy = {
     },
     areRulesEnabled: false,
     eReceipts: true,
-    shouldShowCustomReportTitleOption: false,
     shouldShowAutoApprovalOptions: false,
     shouldShowAutoReimbursementLimitOption: false,
     maxExpenseAmountNoReceipt: 100000,
@@ -104,7 +104,7 @@ const policy420A: Policy = {
         companyName: 'Company',
         markUp: 0,
     },
-    workspaceAccountID: 93521943,
+    policyAccountID: 93521943,
     address: {
         addressStreet: 'Street',
         city: 'City',

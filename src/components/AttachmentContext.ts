@@ -1,6 +1,8 @@
-import {createContext} from 'react';
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import {createContext} from 'react';
 
 type AttachmentContextProps = {
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -15,8 +17,6 @@ const AttachmentContext = createContext<AttachmentContextProps>({
     accountID: undefined,
     hashKey: undefined,
 });
-
-AttachmentContext.displayName = 'AttachmentContext';
 
 export {
     // eslint-disable-next-line import/prefer-default-export

@@ -1,31 +1,37 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
-import {SafeAreaView, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
+import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addAttachment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
+
+import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
-import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import variables from '@styles/variables';
-import UserListItem from '@src/components/SelectionList/UserListItem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,44 +39,77 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
-import getFileSize from './getFileSize';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isDraftReportSelector} from '@selectors/Report';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
+import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
-function ShareDetailsPage({
-    route: {
-        params: {reportOrAccountID},
-    },
-}: ShareDetailsPageProps) {
+function ShareDetailsPage({route}: ShareDetailsPageProps) {
+    const {reportOrAccountID} = route.params;
+
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    const isTextShared = currentAttachment?.mimeType === 'txt';
-    const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
+
+    const reportAttributesDerived = useReportAttributes();
+    const personalDetails = usePersonalDetails();
+    const personalDetail = useCurrentUserPersonalDetails();
+    const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
+    const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
+    const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
+    const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const privateIsArchived = useReportIsArchived(report?.reportID);
+    const ancestors = useAncestors(report);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy],
+    );
 
-    useEffect(() => {
-        if (!currentAttachment?.content || errorTitle) {
-            return;
+    const shouldShowAttachment = !isTextShared;
+    const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
+
+    // Only get file name for actual files to avoid URI decoding errors on text content
+    const validateFileName = useMemo(() => {
+        if (!shouldShowAttachment) {
+            return '';
         }
-        getFileSize(currentAttachment?.content).then((size) => {
-            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-            }
+        return shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    }, [shouldShowAttachment, shouldUsePreValidatedFile, validatedFile?.uri, currentAttachment?.content]);
 
-            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-            }
+    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
+
+    const reportAttachmentsContext = useContext(AttachmentModalContext);
+    const showAttachmentModalScreen = useCallback(() => {
+        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
+            source: fileSource,
+            headerTitle: validateFileName,
+            originalFileName: validateFileName,
+            fallbackSource: icons.FallbackAvatar,
         });
-    }, [currentAttachment, errorTitle, translate]);
+        Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
+    }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
+
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -84,48 +123,63 @@ function ShareDetailsPage({
         return <NotFoundPage />;
     }
 
-    const isDraft = isDraftReport(reportOrAccountID);
-    const currentUserID = getCurrentUserAccountID();
-    const shouldShowAttachment = !isTextShared;
-
-    const fileName = currentAttachment?.content.split('/').pop();
-
     const handleShare = () => {
-        if (!currentAttachment) {
+        if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 
         if (isTextShared) {
-            addComment(report.reportID, message);
+            addComment({
+                report,
+                notifyReportID: report.reportID,
+                ancestors,
+                text: message,
+                timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: personalDetail.accountID,
+                delegateAccountID,
+            });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             return;
         }
 
         readFileAsync(
-            currentAttachment.content,
-            getFileName(currentAttachment.content),
+            fileSource,
+            validateFileName,
             (file) => {
-                if (isDraft) {
-                    openReport(
-                        report.reportID,
-                        '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
-                        report,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                    );
+                if (isDraftReport) {
+                    openReport({
+                        reportID: report.reportID,
+                        introSelected,
+                        participants:
+                            displayReport.participantsList
+                                ?.filter((u) => u.accountID !== personalDetail.accountID)
+                                .map((u) => ({
+                                    login: u.login ?? '',
+                                })) ?? [],
+                        personalDetails,
+                        newReportObject: report,
+                        betas,
+                    });
                 }
                 if (report.reportID) {
-                    addAttachment(report.reportID, file, message);
+                    addAttachmentWithComment({
+                        report,
+                        notifyReportID: report.reportID,
+                        ancestors,
+                        attachments: file,
+                        currentUserAccountID: personalDetail.accountID,
+                        text: message,
+                        timezone: personalDetail.timezone,
+                        delegateAccountID,
+                    });
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, {forceReplace: true});
+                Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
             () => {},
+            fileType,
         );
     };
 
@@ -134,26 +188,39 @@ function ShareDetailsPage({
             includeSafeAreaPaddingBottom
             keyboardAvoidingViewBehavior="padding"
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareDetailsPage.displayName}
+            testID="ShareDetailsPage"
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    KeyboardUtils.dismiss();
+                }}
+                accessible={false}
+                sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
+            >
+                <HeaderWithBackButton
+                    title={translate('share.shareToExpensify')}
+                    shouldShowBackButton
+                />
+            </PressableWithoutFeedback>
+
+            <ScrollView
+                style={[styles.flex1, styles.appBG]}
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
                 <PressableWithoutFeedback
                     onPress={() => {
                         KeyboardUtils.dismiss();
                     }}
                     accessible={false}
+                    sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                 >
-                    <HeaderWithBackButton
-                        title={translate('share.shareToExpensify')}
-                        shouldShowBackButton
-                    />
-
                     {!!report && (
                         <View>
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <UserListItem
+                            <BareUserListItem
                                 item={displayReport}
                                 isFocused={false}
                                 showTooltip={false}
@@ -162,6 +229,7 @@ function ShareDetailsPage({
                                 }}
                                 pressableStyle={[styles.flexRow]}
                                 shouldSyncFocus={false}
+                                keyForList={displayReport.keyForList}
                             />
                         </View>
                     )}
@@ -187,48 +255,29 @@ function ShareDetailsPage({
                             KeyboardUtils.dismiss();
                         }}
                         accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                     >
                         {shouldShowAttachment && (
                             <>
                                 <View style={[styles.pt6, styles.pb2]}>
                                     <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
                                 </View>
-                                <SafeAreaView>
-                                    <AttachmentModal
-                                        headerTitle={fileName}
-                                        source={currentAttachment?.content}
-                                        originalFileName={fileName}
-                                        fallbackSource={FallbackAvatar}
-                                    >
-                                        {({show}) => (
-                                            <AttachmentPreview
-                                                source={currentAttachment?.content ?? ''}
-                                                aspectRatio={currentAttachment?.aspectRatio}
-                                                onPress={show}
-                                                onLoadError={() => {
-                                                    showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                                }}
-                                            />
-                                        )}
-                                    </AttachmentModal>
-                                </SafeAreaView>
+                                <AttachmentPreview
+                                    source={fileSource ?? ''}
+                                    aspectRatio={currentAttachment?.aspectRatio}
+                                    onPress={showAttachmentModalScreen}
+                                    onLoadError={() => {
+                                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                    }}
+                                />
                             </>
                         )}
                     </PressableWithoutFeedback>
                 </View>
-                <FixedFooter style={[styles.pt4]}>
-                    <Button
-                        success
-                        large
-                        text={translate('common.share')}
-                        style={styles.w100}
-                        onPress={handleShare}
-                    />
-                </FixedFooter>
-            </View>
+            </ScrollView>
+            <ShareButton onPress={handleShare} />
         </ScreenWrapper>
     );
 }
 
-ShareDetailsPage.displayName = 'ShareDetailsPage';
 export default ShareDetailsPage;

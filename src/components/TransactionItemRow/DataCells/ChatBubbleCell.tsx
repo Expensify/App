@@ -1,55 +1,82 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
-function ChatBubbleCell({transaction}: {transaction: Transaction}) {
+function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
-        selector: (reportActions) => getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID),
-    });
+    const nonEmptyStringTransactionReportID = getNonEmptyStringOnyxID(transaction.reportID);
 
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
+    const getIOUActionForTransactionIDSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+            return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID);
+        },
+        [transaction.transactionID],
+    );
+
+    const [iouReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`,
+        {
+            selector: getIOUActionForTransactionIDSelector,
+        },
+        [getIOUActionForTransactionIDSelector],
+    );
+
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringTransactionReportID}`);
+
+    const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
     const threadMessages = useMemo(
         () => ({
-            count: (iouReportAction && iouReportAction?.childVisibleActionCount) ?? 0,
+            count: iouReportAction?.childVisibleActionCount ?? 0,
             isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
         }),
-        [iouReportAction, transactionReport],
+        [iouReportAction?.childVisibleActionCount, transactionReport],
     );
 
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter']);
 
-    const elementSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
     const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(elementSize)]}>
+            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
                 <Icon
-                    src={ChatBubbleCounter}
+                    src={icons.ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
-                    width={elementSize}
-                    height={elementSize}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 <Text
                     style={[
@@ -66,7 +93,5 @@ function ChatBubbleCell({transaction}: {transaction: Transaction}) {
         )
     );
 }
-
-ChatBubbleCell.displayName = 'ChatBubbleCell';
 
 export default ChatBubbleCell;

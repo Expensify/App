@@ -1,15 +1,26 @@
+import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+
 import {Portal} from '@gorhom/portal';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
-import useStyleUtils from '@hooks/useStyleUtils';
-import getBottomSuggestionPadding from './getBottomSuggestionPadding';
-import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
+
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
-function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, resetSuggestions = () => {}, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
+import getBottomSuggestionPadding from './getBottomSuggestionPadding';
+import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
+
+function AutoCompleteSuggestionsPortal<TSuggestion>({
+    left = 0,
+    width = 0,
+    bottom = 0,
+    resetSuggestions = () => {},
+    isInLandscapeMode = false,
+    ...props
+}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
-    const bottomPadding = getBottomSuggestionPadding(bottom);
+    const bottomPadding = getBottomSuggestionPadding(bottom, isInLandscapeMode);
     const styles = useMemo(() => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + bottomPadding}), [StyleUtils, left, width, bottom, bottomPadding]);
 
     if (!width) {
@@ -20,17 +31,13 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
         <Portal hostName="suggestions">
             <TransparentOverlay onPress={resetSuggestions} />
             <View style={styles}>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <BaseAutoCompleteSuggestions<TSuggestion>
                     width={width}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </View>
         </Portal>
     );
 }
-
-AutoCompleteSuggestionsPortal.displayName = 'AutoCompleteSuggestionsPortal';
 
 export default AutoCompleteSuggestionsPortal;

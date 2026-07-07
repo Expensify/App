@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Picklist */
 type Picklist = Array<{
@@ -32,4 +33,4 @@ type CorpayOnboardingFields = {
     picklists: Record<ValueOf<typeof CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.PICKLIST>, Picklist>;
 };
 
-export default CorpayOnboardingFields;
+export type {CorpayOnboardingFields, Picklist};

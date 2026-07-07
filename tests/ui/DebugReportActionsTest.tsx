@@ -1,15 +1,21 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import DebugReportActions from '@pages/Debug/Report/DebugReportActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -21,11 +27,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-}));
-
-jest.mock('@components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/Navigation/Navigation');
 
 describe('DebugReportActions', () => {
     beforeAll(() => {
@@ -33,10 +35,15 @@ describe('DebugReportActions', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        act(() => {
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
     });
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('should show no results message when search is empty', async () => {
@@ -44,7 +51,7 @@ describe('DebugReportActions', () => {
         const reportID = '1';
         const reportActionID = '123';
         const policy: Policy = createRandomPolicy(Number(policyID));
-        const report: Report = {...createRandomReport(Number(reportID)), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID};
+        const report: Report = {...createRandomReport(Number(reportID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM), policyID};
         const reportActionL: ReportAction = {
             ...createRandomReportAction(Number(reportActionID)),
             reportID,
@@ -54,25 +61,27 @@ describe('DebugReportActions', () => {
                 type: '',
             },
         };
-        await Onyx.merge(`${ONYXKEYS.NVP_PREFERRED_LOCALE}`, 'en');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [reportActionID]: reportActionL,
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.NVP_PREFERRED_LOCALE}`, 'en');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: reportActionL,
+            });
         });
 
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DebugReportActions reportID={reportID} />
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('selection-list-text-input');
-        fireEvent.changeText(input, 'testtesttesttest');
-        expect(await screen.findByText('No results found')).toBeOnTheScreen();
+        fireEvent.changeText(input, 'Should show no results found');
+        expect(await screen.findByText('No results found', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 });

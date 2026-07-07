@@ -1,54 +1,71 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
-import useAccountValidation from '@hooks/useAccountValidation';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
+import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+
 import AddressPage from '@pages/AddressPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateAddress} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React from 'react';
 
 type WorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_ADDRESS>;
 
 function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPageProps) {
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const policy = usePolicy(activePolicyID);
-    const isUserValidated = useAccountValidation();
+    const {policyID} = route.params;
+    const policy = usePolicy(policyID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
             return;
         }
+
+        // Always validate OTP first before allowing address submission
+        if (!isUserValidated) {
+            // After OTP validation, redirect back to this address page
+            const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, policyID, route.params.backTo);
+            setTravelProvisioningNextStep(currentRoute);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, policyID));
+            return;
+        }
+
         updateAddress(policy?.id, {
-            addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
+            addressStreet: values.addressLine1?.trim() ?? '',
+            addressStreet2: values.addressLine2?.trim() ?? '',
             city: values.city.trim(),
             state: values.state.trim(),
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.TRAVEL_MY_TRIPS, ROUTES.TRAVEL_TCS.getRoute(route.params.domain) ?? CONST.TRAVEL.DEFAULT_DOMAIN));
-            return;
-        }
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN, policyID)), {forceReplace: true});
     };
 
     return (
-        <AddressPage
-            isLoadingApp={false}
-            updateAddress={updatePolicyAddress}
-            title={translate('common.companyAddress')}
-        />
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <AddressPage
+                isLoadingApp={false}
+                updateAddress={updatePolicyAddress}
+                title={translate('common.companyAddress')}
+                backTo={route.params.backTo}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceAddressForTravelPage.displayName = 'WorkspaceAddressForTravelPage';
 
 export default WorkspaceAddressForTravelPage;

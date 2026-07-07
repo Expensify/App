@@ -1,26 +1,37 @@
-import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
+import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 
+import React, {useMemo, useState} from 'react';
+
 type TagPickerProps = {
     /** The policyID we are getting tags for */
-    // It's used in withOnyx HOC.
-    // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 
     /** The selected tag of the expense */
     selectedTag: string;
+
+    /** The current transaction tag of the expense */
+    transactionTag?: string;
+
+    /** Whether the policy has dependent tags */
+    hasDependentTags?: boolean;
 
     /** The name of tag list we are getting tags for */
     tagListName: string;
@@ -36,83 +47,140 @@ type TagPickerProps = {
 
     /** Indicates which tag list index was selected */
     tagListIndex: number;
+
+    /**
+     * Extra tag names to always surface as selectable options, on top of the policy's own tags.
+     * Used to keep "orphaned" tags from a deleted source workspace selectable in flows like
+     * split-edit where the active workspace no longer carries the original tag value.
+     */
+    additionalTagsToInclude?: string[];
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, shouldOrderListByTagName = false, onSubmit}: TagPickerProps) {
+const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
+    if (!selectedTag) {
+        return [];
+    }
+    return [
+        {
+            name: selectedTag,
+            enabled: true,
+            accountID: undefined,
+        },
+    ];
+};
+
+function TagPicker({
+    selectedTag,
+    transactionTag,
+    hasDependentTags,
+    tagListName,
+    policyID,
+    tagListIndex,
+    shouldShowDisabledAndSelectedOption = false,
+    shouldOrderListByTagName = false,
+    onSubmit,
+    additionalTagsToInclude,
+}: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
-    const policyTagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
-    const isTagsCountBelowThreshold = policyTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+    const selectedOptions = getSelectedOptions(selectedTag);
 
-    const shouldShowTextInput = !isTagsCountBelowThreshold;
+    // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
+    const policyTagsWithAdditions = useMemo<PolicyTags>(() => {
+        const baseTags = policyTagList.tags ?? {};
+        if (!additionalTagsToInclude?.length) {
+            return baseTags;
+        }
+        const extras: PolicyTags = {};
+        for (const name of additionalTagsToInclude) {
+            if (!name || baseTags[name]) {
+                continue;
+            }
+            extras[name] = {name, enabled: true} as PolicyTag;
+        }
+        return Object.keys(extras).length ? {...baseTags, ...extras} : baseTags;
+    }, [policyTagList.tags, additionalTagsToInclude]);
 
-    const selectedOptions: SelectedTagOption[] = useMemo(() => {
-        if (!selectedTag) {
-            return [];
+    const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
+        if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
+            return policyTagsWithAdditions;
         }
 
-        return [
-            {
-                name: selectedTag,
-                enabled: true,
-                accountID: undefined,
-            },
-        ];
-    }, [selectedTag]);
+        if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
+            // Truncate transactionTag to the current level (e.g., "California:North")
+            const parentTag = getTagArrayFromName(transactionTag ?? '')
+                .slice(0, tagListIndex)
+                .join(':');
 
-    const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
-        if (!shouldShowDisabledAndSelectedOption) {
-            return policyTagList.tags;
+            return Object.values(policyTagsWithAdditions).filter((policyTag) => {
+                const filterRegex = policyTag.rules?.parentTagsFilter;
+                if (!filterRegex) {
+                    return policyTagsWithAdditions;
+                }
+
+                const regex = new RegExp(filterRegex);
+                return regex.test(parentTag ?? '');
+            });
         }
-        const selectedNames = selectedOptions.map((s) => s.name);
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
-    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
+        const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-    const sections = useMemo(() => {
-        const tagSections = getTagListSections({
-            searchValue,
-            selectedOptions,
-            tags: enabledTags,
-            recentlyUsedTags: policyRecentlyUsedTagsList,
-        });
-        return shouldOrderListByTagName
-            ? tagSections.map((option) => ({
-                  ...option,
-                  data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
-              }))
-            : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
+        return [...selectedOptions, ...Object.values(policyTagsWithAdditions).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
+    };
 
-    const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
+    const enabledTags = getEnabledTags();
+    const enabledTagsList = Array.isArray(enabledTags) ? enabledTags : Object.values(enabledTags ?? {});
+    const availableTagsCount = enabledTagsList.filter((tag) => tag.enabled).length;
 
-    const selectedOptionKey = sections.at(0)?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
+    const tagSections = getTagListSections({
+        searchValue,
+        selectedOptions,
+        tags: enabledTags,
+        recentlyUsedTags: policyRecentlyUsedTagsList,
+        localeCompare,
+        translate,
+    });
+    const sections = shouldOrderListByTagName
+        ? tagSections.map((option) => ({
+              ...option,
+              data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
+          }))
+        : tagSections;
+
+    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
+
+    const textInputOptions = {
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
+        label: translate('common.search'),
+        disableAutoFocus: true,
+        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
+    };
 
     return (
-        <SelectionList
-            ListItem={RadioListItem}
-            sectionTitleStyles={styles.mt5}
-            listItemTitleStyles={styles.breakAll}
+        <SelectionListWithSections
             sections={sections}
-            textInputValue={searchValue}
-            headerMessage={headerMessage}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            isRowMultilineSupported
-            initiallyFocusedOptionKey={selectedOptionKey}
-            onChangeText={setSearchValue}
+            ListItem={SingleSelectListItem}
+            style={{
+                sectionTitleStyles: styles.mt5,
+                listItemTitleStyles: styles.w100,
+            }}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            isRowMultilineSupported
+            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
 }
 
-TagPicker.displayName = 'TagPicker';
-
 export default TagPicker;
-
-export type {SelectedTagOption};

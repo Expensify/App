@@ -1,71 +1,77 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
-import * as App from '@userActions/App';
-import CONST from '@src/CONST';
+
+import variables from '@styles/variables';
+
+import {setLocale} from '@userActions/App';
+
+import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Locale} from '@src/types/onyx';
-import Picker from './Picker';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {PickerSize} from './Picker/types';
 
-type LocalePickerOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
+import Icon from './Icon';
+import Picker from './Picker';
 
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<Locale>;
-};
-
-type LocalePickerProps = LocalePickerOnyxProps & {
+type LocalePickerProps = {
     /** Indicates size of a picker component and whether to render the label or not */
     size?: PickerSize;
 };
 
-function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}: LocalePickerProps) {
+function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
-        value: language,
-        label: translate(`languagePage.languages.${language}.label`),
-        keyForList: language,
-        isSelected: preferredLocale === language,
-    }));
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const icons = useMemoizedLazyExpensifyIcons(['Globe']);
+
+    const locales = useMemo(() => {
+        const sortedLocales = SORTED_LOCALES;
+        return sortedLocales.map((locale) => ({
+            value: locale,
+            label: LOCALE_TO_LANGUAGE_STRING[locale],
+            keyForList: locale,
+            isSelected: preferredLocale === locale,
+        }));
+    }, [preferredLocale]);
+
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (
-        <Picker
-            label={size === 'normal' ? translate('languagePage.language') : null}
-            onInputChange={(locale) => {
-                if (locale === preferredLocale) {
-                    return;
-                }
-
-                App.setLocale(locale);
-            }}
-            isDisabled={shouldDisablePicker}
-            items={localesToLanguages}
-            shouldAllowDisabledStyle={false}
-            shouldShowOnlyTextWhenDisabled={false}
-            size={size}
-            value={preferredLocale}
-            containerStyles={size === 'small' ? styles.pickerContainerSmall : {}}
-            backgroundColor={theme.signInPage}
-        />
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Icon
+                src={icons.Globe}
+                fill={theme.icon}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
+                accessibilityLabel={translate('languagePage.language')}
+            />
+            <View style={styles.ml2}>
+                <Picker
+                    label={size === 'normal' ? translate('languagePage.language') : null}
+                    accessibilityLabel={`${translate('common.select')} ${translate('languagePage.language')}`}
+                    onInputChange={(locale) => setLocale(locale, preferredLocale)}
+                    isDisabled={shouldDisablePicker}
+                    items={locales}
+                    shouldAllowDisabledStyle={false}
+                    shouldShowOnlyTextWhenDisabled={false}
+                    size={size}
+                    value={preferredLocale}
+                    containerStyles={size === 'small' ? styles.pickerContainerSmall : {}}
+                    backgroundColor={theme.signInPage}
+                />
+            </View>
+        </View>
     );
 }
 
-LocalePicker.displayName = 'LocalePicker';
-
-export default withOnyx<LocalePickerProps, LocalePickerOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(LocalePicker);
+export default LocalePicker;

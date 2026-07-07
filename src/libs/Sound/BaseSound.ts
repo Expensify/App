@@ -1,10 +1,15 @@
-import Onyx from 'react-native-onyx';
 import getPlatform from '@libs/getPlatform';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 let isMuted = false;
 
-Onyx.connect({
+// We use `connectWithoutView` here because this is purely for sound utility logic and not connected
+// to any UI component. This connection tracks the platform-specific mute state in a module-level
+// variable that sound functions check when called, avoiding unnecessary re-renders since.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_MUTED_PLATFORMS,
     callback: (val) => {
         const platform = getPlatform(true);

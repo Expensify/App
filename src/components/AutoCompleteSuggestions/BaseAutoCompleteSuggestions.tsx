@@ -1,13 +1,19 @@
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
+import CONST from '@src/CONST';
+
 import type {ReactElement} from 'react';
+
 import React, {useCallback, useEffect, useRef} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import CONST from '@src/CONST';
+
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
 import type {RenderSuggestionMenuItemProps} from './types';
 
@@ -40,6 +46,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 onPress={() => onSelect(index)}
                 onLongPress={() => {}}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
+                role={CONST.ROLE.MENUITEM}
+                sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
             >
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
@@ -83,16 +91,14 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         // When using cursor control (moving the cursor with the space bar on the keyboard) on Android, moving the cursor too fast may cause an error.
         try {
             scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
-        } catch (e) {
-            // eslint-disable-next-line no-console
-        }
+        } catch (e) {}
     }, [highlightedSuggestionIndex]);
 
     return (
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             onPointerDown={(e) => {
-                if (DeviceCapabilities.hasHoverSupport()) {
+                if (hasHoverSupport()) {
                     return;
                 }
                 e.preventDefault();
@@ -108,12 +114,11 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.get()}
                     extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
+                    style={styles.overscrollBehaviorContain}
                 />
             </ColorSchemeWrapper>
         </Animated.View>
     );
 }
-
-BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
 export default BaseAutoCompleteSuggestions;

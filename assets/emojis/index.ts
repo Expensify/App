@@ -1,49 +1,53 @@
-import type {Locale} from '@src/types/onyx';
-import emojis from './common';
+import type {FullySupportedLocale} from '@src/CONST/LOCALES';
+
 import type {Emoji, EmojisList} from './types';
+
+import emojis from './common';
 
 type EmojiTable = Record<string, Emoji>;
 
-type LocaleEmojis = Partial<Record<Locale, EmojisList>>;
+type LocaleEmojis = Partial<Record<FullySupportedLocale, EmojisList>>;
 
-const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur) && cur.name) {
-        newValue[cur.name] = cur;
-    }
-    return newValue;
-}, {});
+const emojiNameTable: EmojiTable = {};
+const emojiCodeTableWithSkinTones: EmojiTable = {};
+const emojiHexcodeTable: EmojiTable = {};
 
-const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur)) {
-        newValue[cur.code] = cur;
+for (const emoji of emojis) {
+    if ('header' in emoji) {
+        continue;
     }
-    if ('types' in cur && cur.types) {
-        cur.types.forEach((type) => {
-            newValue[type] = cur;
-        });
+    if (emoji.name) {
+        emojiNameTable[emoji.name] = emoji;
     }
-    return newValue;
-}, {});
+    emojiCodeTableWithSkinTones[emoji.code] = emoji;
+    if (emoji.types) {
+        for (const type of emoji.types) {
+            emojiCodeTableWithSkinTones[type] = emoji;
+        }
+    }
+    if (emoji.hexcode) {
+        emojiHexcodeTable[emoji.hexcode] = emoji;
+    }
+}
+
+const findEmojiByHexCode = (hexcode: string): Emoji | undefined => emojiHexcodeTable[hexcode];
 
 const localeEmojis: LocaleEmojis = {
     en: undefined,
     es: undefined,
 };
 
-const importEmojiLocale = (locale: Locale) => {
-    const normalizedLocale = locale.toLowerCase().split('-').at(0) as Locale;
-    if (!localeEmojis[normalizedLocale]) {
-        const emojiImportPromise = normalizedLocale === 'en' ? import('./en') : import('./es');
+const importEmojiLocale = (locale: FullySupportedLocale) => {
+    if (!localeEmojis[locale]) {
+        const emojiImportPromise = locale === 'en' ? import('./en') : import('./es');
         return emojiImportPromise.then((esEmojiModule) => {
             // it is needed because in jest test the modules are imported in double nested default object
-            localeEmojis[normalizedLocale] = esEmojiModule.default.default ? (esEmojiModule.default.default as unknown as EmojisList) : esEmojiModule.default;
+            localeEmojis[locale] = esEmojiModule.default.default ? (esEmojiModule.default.default as unknown as EmojisList) : esEmojiModule.default;
         });
     }
     return Promise.resolve();
 };
 
 export default emojis;
-export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, importEmojiLocale};
+export {emojiNameTable, emojiCodeTableWithSkinTones, emojiHexcodeTable, findEmojiByHexCode, localeEmojis, importEmojiLocale};
 export {skinTones, categoryFrequentlyUsed} from './common';

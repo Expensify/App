@@ -21,7 +21,7 @@ fi
 
 if [[ -z "$CLI_PATH" ]]; then
   export CONFIG_CMD="dummy-workaround-value"
-  CLI_PATH="$("$NODE_BINARY" --print "require('path').dirname(require.resolve('@rnef/cli/package.json')) + '/dist/src/bin.js'")"
+  CLI_PATH="$("$NODE_BINARY" --print "require('path').dirname(require.resolve('rock/package.json')) + '/dist/src/bin.js'")"
   export CLI_PATH
 fi
 if [[ -z "$BUNDLE_COMMAND" ]]; then
@@ -29,4 +29,4 @@ if [[ -z "$BUNDLE_COMMAND" ]]; then
   export BUNDLE_COMMAND="bundle"
 fi
 
-"$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'"
+eval "$("$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'")"

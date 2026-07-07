@@ -1,8 +1,14 @@
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet, View} from 'react-native';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type TabLabelProps = {
     /** Title of the tab */
@@ -13,22 +19,36 @@ type TabLabelProps = {
 
     /** Animated opacity value while the label is in active state */
     activeOpacity?: number | Animated.AnimatedInterpolation<number>;
+
+    /** Whether an icon is present - used to conditionally apply margin */
+    hasIcon?: boolean;
+
+    /** Text style */
+    textStyle?: StyleProp<TextStyle>;
 };
 
-function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1}: TabLabelProps) {
+function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false, textStyle}: TabLabelProps) {
     const styles = useThemeStyles();
     return (
-        <View>
+        <View style={{maxWidth: variables.tabSelectorMaxTabLabelWidth}}>
             <Animated.View style={[{opacity: activeOpacity}]}>
-                <Text style={styles.tabText(true)}>{title}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.tabText(true, hasIcon), textStyle]}
+                >
+                    {title}
+                </Text>
             </Animated.View>
             <Animated.View style={[StyleSheet.absoluteFill, {opacity: inactiveOpacity}]}>
-                <Text style={styles.tabText(false)}>{title}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.tabText(false, hasIcon), textStyle]}
+                >
+                    {title}
+                </Text>
             </Animated.View>
         </View>
     );
 }
-
-TabLabel.displayName = 'TabLabel';
 
 export default TabLabel;

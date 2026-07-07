@@ -1,35 +1,119 @@
-import React from 'react';
-import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import LottieAnimations from '@components/LottieAnimations';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
+
+import Navigation from '@navigation/Navigation';
+
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {openUnreportedExpense} from '@userActions/Report';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 const minModalHeight = 380;
 
-function SearchMoneyRequestReportEmptyState() {
+function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report: OnyxTypes.Report; policy?: OnyxTypes.Policy; onLayout?: (event: LayoutChangeEvent) => void}) {
+    const {accountID} = useCurrentUserPersonalDetails();
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus']);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const reportId = report.reportID;
+    const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
+    const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
+    const addExpenseDropdownOptions = [
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+            text: translate('iou.createExpense'),
+            icon: expensifyIcons.Plus,
+            onSelected: () => {
+                if (!reportId) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
+            },
+        },
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+            text: translate('iou.trackDistance'),
+            icon: expensifyIcons.Location,
+            onSelected: () => {
+                if (!reportId) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);
+            },
+        },
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
+            text: translate('iou.addExistingExpense'),
+            icon: icons.ReceiptPlus,
+            onSelected: () => {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                openUnreportedExpense(reportId);
+            },
+        },
+    ];
+
+    useEffect(() => {
+        cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${report.reportID}`);
+    }, [report.reportID]);
 
     return (
-        <View style={styles.flex1}>
+        <View
+            style={styles.flex1}
+            onLayout={onLayout}
+        >
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
+                cardContentStyles={[styles.pb0]}
+                headerMedia={illustrations.FolderWithPapersAndWatch}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                 minModalHeight={minModalHeight}
+                buttons={
+                    canAddTransactionToReport
+                        ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
+                        : []
+                }
             />
         </View>
     );
 }
-
-SearchMoneyRequestReportEmptyState.displayName = 'SearchMoneyRequestReportEmptyState';
 
 export default SearchMoneyRequestReportEmptyState;

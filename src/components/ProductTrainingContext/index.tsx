@@ -1,27 +1,33 @@
-import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parseFSAttributes} from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
+
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
+
 import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
@@ -32,14 +38,9 @@ type ProductTrainingContextType = {
 
 type ProductTrainingContextConfig = {
     /**
-     * Callback to be called when the tooltip is dismissed
+     * Callback to be called when the tooltip is shown
      */
-    onDismiss?: () => void;
-
-    /**
-     * Callback to be called when the tooltip is confirmed
-     */
-    onConfirm?: () => void;
+    onShown?: () => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
@@ -49,16 +50,16 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
-        canBeMissing: true,
     });
 
-    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
     const isUserPolicyEmployee = useMemo(() => {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
@@ -74,11 +75,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
     }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
-    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
@@ -116,6 +117,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         return highestPriorityTooltip.name;
     }, [activeTooltips]);
 
+    const isUserInPaidPolicy = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return hasAnyPaidPolicy(allPolicies);
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
@@ -137,11 +145,18 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
+            // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
+            // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
+            if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
+                return false;
+            }
+
             // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED &&
                 isModalVisible
             ) {
                 return false;
@@ -152,18 +167,21 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyEmployee,
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
+                isUserInPaidPolicy,
             });
         },
         [
+            isOnboardingCompletedMetadata,
+            isLoadingApp,
             dismissedProductTraining,
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
-            isOnboardingCompletedMetadata,
-            shouldUseNarrowLayout,
             isModalVisible,
-            isLoadingApp,
+            modal?.isPopover,
+            shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
+            isUserInPaidPolicy,
         ],
     );
 
@@ -180,6 +198,10 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const shouldRenderTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
+            // If the user is acting as a copilot, don't show any tooltips
+            if (isActingAsDelegate) {
+                return false;
+            }
             // First check base conditions
             const shouldShow = shouldTooltipBeVisible(tooltipName);
             if (!shouldShow) {
@@ -194,7 +216,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
             return false;
         },
-        [shouldTooltipBeVisible, determineVisibleTooltip],
+        [isActingAsDelegate, shouldTooltipBeVisible, determineVisibleTooltip],
     );
 
     const contextValue = useMemo(
@@ -213,8 +235,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldHideToolTip} = useSidePanel();
+    const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -231,14 +254,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
             unregisterTooltip(tooltipName);
         };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
-
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
@@ -258,115 +273,57 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+
         return (
             <View
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                onLayout={config.onShown}
             >
-                <View
-                    style={[
-                        styles.alignItemsCenter,
-                        styles.flexRow,
-                        tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.flexWrap,
-                        styles.textAlignCenter,
-                        styles.gap3,
-                        styles.pv2,
-                        styles.ph1,
-                    ]}
-                >
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.textAlignCenter, styles.gap3, styles.pv2, styles.ph2]}>
                     <Icon
-                        src={Expensicons.Lightbulb}
+                        src={expensifyIcons.Lightbulb}
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                        {tooltip.content.map(({text, isBold}) => {
-                            const translatedText = translate(text);
-                            return (
-                                <Text
-                                    key={text}
-                                    style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                                >
-                                    {translatedText}
-                                </Text>
-                            );
-                        })}
-                    </Text>
-                    {!tooltip?.shouldRenderActionButtons && (
-                        <PressableWithoutFeedback
-                            // On some Samsung devices, `onPress` is never triggered.
-                            // So, we use `onPressIn` for Android to ensure the button is pressable.
-                            onPressIn={
-                                getPlatform() === CONST.PLATFORM.ANDROID
-                                    ? () => {
-                                          hideTooltip(true);
-                                      }
-                                    : undefined
-                            }
-                            // For other platforms, we stick with `onPress`.
-                            onPress={
-                                getPlatform() !== CONST.PLATFORM.ANDROID
-                                    ? () => {
-                                          hideTooltip(true);
-                                      }
-                                    : undefined
-                            }
-                            shouldUseAutoHitSlop
-                            accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
-                            role={CONST.ROLE.BUTTON}
-                        >
-                            <Icon
-                                src={Expensicons.Close}
-                                fill={theme.icon}
-                                width={variables.iconSizeSemiSmall}
-                                height={variables.iconSizeSemiSmall}
-                            />
-                        </PressableWithoutFeedback>
-                    )}
-                </View>
-                {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
-                        <Button
-                            success
-                            text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
-                            style={[styles.flex1]}
-                            onPress={config.onConfirm}
-                        />
-                        <Button
-                            text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
-                            style={[styles.flex1]}
-                            onPress={config.onDismiss}
-                        />
+                    <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                        <RenderHTML html={translate(tooltip.content)} />
                     </View>
-                )}
+                    <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
+                        shouldUseAutoHitSlop
+                        accessibilityLabel={translate('common.noThanks')}
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => hideTooltip(true)}
+                    >
+                        <Icon
+                            src={expensifyIcons.Close}
+                            fill={theme.icon}
+                            width={variables.iconSizeSemiSmall}
+                            height={variables.iconSizeSemiSmall}
+                        />
+                    </PressableWithoutFeedback>
+                </View>
             </View>
         );
     }, [
         tooltipName,
         styles.alignItemsCenter,
         styles.flexRow,
-        styles.justifyContentStart,
         styles.justifyContentCenter,
-        styles.flexWrap,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.ph1,
-        styles.productTrainingTooltipText,
-        styles.textWrap,
-        styles.mw100,
-        styles.flex1,
-        styles.justifyContentBetween,
         styles.ph2,
-        styles.gap2,
-        styles.textBold,
+        styles.renderHTML,
+        styles.dFlex,
+        styles.flexShrink1,
         theme.tooltipHighlightText,
         theme.icon,
         translate,
-        config.onConfirm,
-        config.onDismiss,
+        config.onShown,
         hideTooltip,
+        expensifyIcons.Close,
+        expensifyIcons.Lightbulb,
     ]);
 
     const hideProductTrainingTooltip = useCallback(() => {

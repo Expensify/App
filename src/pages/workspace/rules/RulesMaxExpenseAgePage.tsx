@@ -1,24 +1,31 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setPolicyMaxExpenseAge} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesMaxExpenseAgeForm';
+
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type RulesMaxExpenseAgePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE>;
 
@@ -32,6 +39,8 @@ function RulesMaxExpenseAgePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const maxExpenseAgeDefaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
@@ -39,7 +48,7 @@ function RulesMaxExpenseAgePage({
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
+        let validMaxExpenseAge = newValue.replaceAll(/[^0-9]/g, '');
         validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
     }, []);
@@ -53,17 +62,17 @@ function RulesMaxExpenseAgePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesMaxExpenseAgePage.displayName}
+                testID="RulesMaxExpenseAgePage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
+                    title={translate(isRevamp ? 'workspace.rules.generalTab.expensesOlderThan' : 'workspace.rules.individualExpenseRules.maxExpenseAge')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
-                        setPolicyMaxExpenseAge(policyID, maxExpenseAge);
+                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
@@ -91,7 +100,5 @@ function RulesMaxExpenseAgePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesMaxExpenseAgePage.displayName = 'RulesMaxExpenseAgePage';
 
 export default RulesMaxExpenseAgePage;

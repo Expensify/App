@@ -1,5 +1,7 @@
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+
 import {useContext, useMemo} from 'react';
-import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
+
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 

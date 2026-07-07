@@ -4,7 +4,6 @@ description: Best practices for deploying Expensify in Seed to Series A startups
 keywords: [Expensify, VC-backed startups, expense management, accounting integration, financial automation]
 redirect_from: articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups/
 ---
-<div id="expensify-classic" markdown="1">
 
 This playbook outlines best practices for Seed to Series A startups with fewer than 100 employees, helping them leverage Expensify to scale efficiently while maintaining financial control.
 
@@ -27,7 +26,7 @@ Expensify offers three workspace plans: **Individual, Collect, and Control**. We
 2. Select **Group** and click **New Workspace**.
 3. Click **Select** under **Control**.
 
-The **Control** plan is bundled with the Expensify Visa® Commercial Card and costs $9/user per month (annual commitment). You’ll also be assigned a **Setup Specialist**, available in your workspace’s #admins chat room on *[new.expensify.com](https://new.expensify.com)*.
+The **Control** plan is bundled with the Expensify Visa® Commercial Card and costs $9/user per month (annual commitment). You’ll also be assigned an **Account Executive**, available in your workspace’s #admins chat room on *[new.expensify.com](https://new.expensify.com)*.
 
 ## Step 3: Connect Your Accounting System
 Proper financial management is key for VC-backed companies. Ensure that:
@@ -121,6 +120,5 @@ Ensure uninterrupted service by adding a billing card:
 3. Enter your card details and click *Accept Terms*.
 
 # You’re All Set!
-Your Expensify setup is complete! If you need help, reach out via [new.expensify.com](https://new.expensify.com) in your workspace’s #admins room. If you don’t have a Setup Specialist yet, upgrade to a **Control** workspace to be assigned one automatically.
+Your Expensify setup is complete! If you need help, reach out via [new.expensify.com](https://new.expensify.com) in your workspace’s #admins room. If you don’t have an Account Executive yet, upgrade to a **Control** workspace to be assigned one automatically.
 
-</div>

@@ -4,7 +4,6 @@ description: Learn how to connect and sync employees between Gusto and Expensify
 keywords: [Gusto, Expensify Classic, integration, HR sync, employee management]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify's direct integration with Gusto helps automate employee management by:
 - **Creating Expensify accounts** for new full-time employees upon hiring.
@@ -68,4 +67,3 @@ Duplicate accounts occur if an employee's email in Expensify differs from that i
 1. Go to **Settings > Account > Profile**.
 2. Scroll to **Merge Accounts** and follow the steps.
 
-</div>

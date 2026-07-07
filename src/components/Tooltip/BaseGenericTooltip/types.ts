@@ -1,5 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type {SharedTooltipProps} from '@components/Tooltip/types';
+
+import type {SharedValue} from 'react-native-reanimated';
 
 type BaseGenericTooltipProps = {
     /** Window width */
@@ -20,6 +21,9 @@ type BaseGenericTooltipProps = {
     /** The height of the tooltip's target */
     targetHeight: number;
 
+    /** Minimum width for the tooltip */
+    minWidth?: number;
+
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
     shiftHorizontal?: number;
@@ -38,7 +42,16 @@ type BaseGenericTooltipProps = {
     isEducationTooltip?: boolean;
 } & Pick<
     SharedTooltipProps,
-    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onTooltipPress'
+    | 'renderTooltipContent'
+    | 'maxWidth'
+    | 'numberOfLines'
+    | 'text'
+    | 'shouldForceRenderingBelow'
+    | 'wrapperStyle'
+    | 'anchorAlignment'
+    | 'shouldUseOverlay'
+    | 'onTooltipPress'
+    | 'computeHorizontalShiftForNative'
 >;
 
 // eslint-disable-next-line import/prefer-default-export

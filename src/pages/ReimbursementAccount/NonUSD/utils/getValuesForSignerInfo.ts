@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type SignerInfoValues = {
     dateOfBirth: string;

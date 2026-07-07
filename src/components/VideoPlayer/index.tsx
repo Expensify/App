@@ -1,21 +1,25 @@
-import React from 'react';
+import {Root as PopoverMenuRoot} from '@components/PopoverMenu/v2';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
+
+import React, {useState} from 'react';
+
+import type VideoPlayerProps from './types';
+
 import BaseVideoPlayer from './BaseVideoPlayer';
-import type {VideoPlayerProps} from './types';
 
 function VideoPlayer(props: VideoPlayerProps) {
-    const {fakeReportID} = uniqueIDForVideoWithoutReport();
+    // `fakeReportID` is a getter that increments each access — freeze it per instance.
+    const [fakeReportID] = useState(() => uniqueIDForVideoWithoutReport().fakeReportID);
     const {reportID} = props;
 
     return (
-        <BaseVideoPlayer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            reportID={reportID ?? fakeReportID}
-        />
+        <PopoverMenuRoot>
+            <BaseVideoPlayer
+                {...props}
+                reportID={reportID ?? fakeReportID}
+            />
+        </PopoverMenuRoot>
     );
 }
-
-VideoPlayer.displayName = 'VideoPlayer';
 
 export default VideoPlayer;

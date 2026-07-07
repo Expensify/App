@@ -1,11 +1,13 @@
+import run from '@github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
+
+import asMutable from '@src/types/utils/asMutable';
+
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import run from '@github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
-import type {InternalOctokit} from '@github/libs/GithubUtils';
-import GithubUtils from '@github/libs/GithubUtils';
-import asMutable from '@src/types/utils/asMutable';
 
 type CommentData = {body: string};
 
@@ -34,7 +36,7 @@ beforeAll(() => {
     asMutable(core).setOutput = mockSetOutput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 get: mockGetIssue,
@@ -43,7 +45,7 @@ beforeAll(() => {
         },
     } as unknown as InternalOctokit;
 
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 let baseComments: Comment = {};

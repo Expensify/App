@@ -1,6 +1,28 @@
 {
-    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "module": "node16",
+        "moduleResolution": "node16",
+        "target": "ES2023",
+        "rootDir": "..",
+        "types": ["node"],
+        "strict": true,
+        "paths": {
+            "@assets/*": ["../assets/*"],
+            "@components/*": ["../src/components/*"],
+            "@github/*": ["../.github/*"],
+            "@hooks/*": ["../src/hooks/*"],
+            "@libs/*": ["../src/libs/*"],
+            "@navigation/*": ["../src/libs/Navigation/*"],
+            "@pages/*": ["../src/pages/*"],
+            "@prompts/*": ["../prompts/*"],
+            "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
+            "@styles/*": ["../src/styles/*"],
+            "@src/*": ["../src/*"],
+            "@userActions/*": ["../src/libs/actions/*"]
+        }
+    },
     "ts-node": {
-        "require": ["tsconfig-paths/register"]
+        "require": ["tsconfig-paths/register", "./stubReactNative.js"],
+        "transpileOnly": true
     }
 }

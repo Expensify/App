@@ -1,21 +1,35 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
+
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addTempShareFile, clearShareData} from '@libs/actions/Share';
+
+import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import {close as closeModal} from '@userActions/Modal';
+import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Alert, AppState, View} from 'react-native';
+
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
@@ -24,14 +38,48 @@ function showErrorAlert(title: string, message: string) {
     Alert.alert(title, message, [
         {
             onPress: () => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             },
         },
     ]);
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate(ROUTES.INBOX);
 }
 
 function ShareRootPage() {
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+
+    const {validateFiles, ErrorModal} = useFilesValidation(addValidatedShareFile);
+    const isTextShared = currentAttachment?.mimeType === 'txt';
+
+    const validateFileIfNecessary = useCallback(
+        (file: ShareTempFile) => {
+            if (!file || isTextShared || !shouldValidateFile(file)) {
+                return;
+            }
+
+            getFileSize(file.content)
+                .catch((error: unknown) => {
+                    Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
+                    return undefined;
+                })
+                .then((size) => {
+                    validateFiles(
+                        [
+                            {
+                                name: file.id,
+                                uri: file.content,
+                                type: file.mimeType,
+                                size,
+                            },
+                        ],
+                        undefined,
+                        {isValidatingReceipts: false},
+                    );
+                });
+        },
+        [isTextShared, validateFiles],
+    );
+
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
 
@@ -39,7 +87,7 @@ function ShareRootPage() {
     const {translate} = useLocalize();
     const [isFileScannable, setIsFileScannable] = useState(false);
     const receiptFileFormats = Object.values(CONST.RECEIPT_ALLOWED_FILE_TYPES) as string[];
-    const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
+    const shareFileMimeTypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
@@ -57,7 +105,7 @@ function ShareRootPage() {
             if (errorTitle) {
                 return;
             }
-            if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
+            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
                 return;
@@ -78,7 +126,10 @@ function ShareRootPage() {
                 });
             }
 
-            if (isImage) {
+            // Skip the standalone corruption check for files that go through `validateFileIfNecessary`,
+            // because `validateFiles` already runs corruption checks internally. Running both would
+            // surface a duplicate (and potentially misleading) "corrupt attachment" alert.
+            if (isImage && !shouldValidateFile(tempFile)) {
                 const fileObject: FileObject = {name: tempFile.id, uri: tempFile?.content, type: tempFile?.mimeType};
                 validateImageForCorruption(fileObject).catch(() => {
                     setErrorTitle(translate('attachmentPicker.attachmentError'));
@@ -91,16 +142,20 @@ function ShareRootPage() {
                 if (tempFile.mimeType) {
                     if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
                         setIsFileScannable(true);
+                        // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
+                        // even when a previous Share session left the tab on SHARE.
+                        Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
                     } else {
                         setIsFileScannable(false);
                     }
+                    validateFileIfNecessary(tempFile);
                     setIsFileReady(true);
                 }
 
                 addTempShareFile(tempFile);
             }
         });
-    }, [receiptFileFormats, shareFileMimetypes, translate, errorTitle]);
+    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats, validateFileIfNecessary]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -119,39 +174,51 @@ function ShareRootPage() {
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        closeModal();
+    }, []);
+
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'ShareRootPage',
+            isFileReady,
+        }),
+        [isFileReady],
+    );
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareRootPage.displayName}
+            testID="ShareRootPage"
         >
             <View style={[styles.flex1]}>
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.INBOX)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        defaultSelectedTab={isFileScannable ? CONST.TAB.SHARE.SUBMIT : CONST.TAB.SHARE.SHARE}
+                        lazyLoadEnabled
                     >
                         <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
                         {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
-                    <TabNavigatorSkeleton />
+                    <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />
                 )}
             </View>
+            {ErrorModal}
         </ScreenWrapper>
     );
 }
-
-ShareRootPage.displayName = 'ShareRootPage';
 
 export default ShareRootPage;
 

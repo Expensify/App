@@ -1,11 +1,11 @@
-import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
+import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/types';
 
 type CurrencyListItem = ListItem & {
     currencyName: string;
     currencyCode: string;
 };
 
-type CurrencySelectionListProps = Partial<SelectionListProps<CurrencyListItem>> & {
+type CurrencySelectionListProps = Partial<SelectionListWithSectionsProps<CurrencyListItem>> & {
     /** Label for the search text input */
     searchInputLabel: string;
 
@@ -26,6 +26,9 @@ type CurrencySelectionListProps = Partial<SelectionListProps<CurrencyListItem>> 
 
     /** List of excluded currency codes */
     excludedCurrencies?: string[];
+
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd?: boolean;
 };
 
 export type {CurrencyListItem, CurrencySelectionListProps};

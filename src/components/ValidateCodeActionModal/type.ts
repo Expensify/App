@@ -1,11 +1,8 @@
-import type React from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
-type ValidateCodeActionModalProps = {
-    /** Whether the modal is visible */
-    isVisible: boolean;
-
+type ValidateCodeActionContentProps = {
     /** Title of the modal */
     title: string;
 
@@ -17,9 +14,6 @@ type ValidateCodeActionModalProps = {
 
     /** Function to call when the user closes the modal */
     onClose?: () => void;
-
-    /** Function to be called when the modal is closed */
-    onModalHide?: () => void;
 
     /** The pending action we're trying to validate */
     validatePendingAction?: PendingAction;
@@ -36,27 +30,21 @@ type ValidateCodeActionModalProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** A component to be rendered inside the modal */
-    footer?: () => React.JSX.Element;
-
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
-
-    /** Whether disable the animations */
-    disableAnimation?: boolean;
-
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
 
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
+
+    /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */
+    isPageModal?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export
-export type {ValidateCodeActionModalProps};
+export type {ValidateCodeActionContentProps};

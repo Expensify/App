@@ -1,16 +1,22 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+import {View} from 'react-native';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
@@ -110,32 +116,28 @@ function ConnectionLayout({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
-    const renderSelectionContent = useMemo(
-        () => (
-            <ConnectionLayoutContent
-                title={title}
-                titleStyle={titleStyle}
-                titleAlreadyTranslated={titleAlreadyTranslated}
-            >
-                {children}
-            </ConnectionLayoutContent>
-        ),
-        [title, titleStyle, children, titleAlreadyTranslated],
-    );
-
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+
+    const selectionContent = (
+        <ConnectionLayoutContent
+            title={title}
+            titleStyle={titleStyle}
+            titleAlreadyTranslated={titleAlreadyTranslated}
+        >
+            {children}
+        </ConnectionLayoutContent>
+    );
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
+            shouldBeBlocked={!!shouldBeBlocked && shouldBlockByConnection}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
-                shouldEnableMaxHeight
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -148,15 +150,14 @@ function ConnectionLayout({
                         contentContainerStyle={contentContainerStyle}
                         addBottomSafeAreaPadding
                     >
-                        {renderSelectionContent}
+                        {selectionContent}
                     </ScrollView>
                 ) : (
-                    <View style={contentContainerStyle}>{renderSelectionContent}</View>
+                    <View style={contentContainerStyle}>{selectionContent}</View>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-ConnectionLayout.displayName = 'ConnectionLayout';
 export default ConnectionLayout;

@@ -1,14 +1,18 @@
-import {Parser as HtmlParser} from 'htmlparser2';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
+
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, VisibleReportActionsDerivedValue} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Parser as HtmlParser} from 'htmlparser2';
 
 /**
  * Constructs the initial component state from report actions
@@ -21,12 +25,22 @@ function extractAttachments(
         parentReportAction,
         reportActions,
         report,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
+        isReportArchived,
+        visibleReportActionsData,
+    }: {
+        privateNotes?: Record<number, Note>;
+        accountID?: number;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        reportActions?: OnyxEntry<ReportActions>;
+        report: OnyxEntry<Report>;
+        isReportArchived: boolean | undefined;
+        visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const canUserPerformAction = canUserPerformWriteAction(report);
+    const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
     let currentLink = '';
 
     const htmlParser = new HtmlParser({
@@ -107,10 +121,14 @@ function extractAttachments(
         return attachments.reverse();
     }
 
+    const reportID = report?.reportID;
+    if (!reportID) {
+        return attachments.reverse();
+    }
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
-    actions.forEach((action, key) => {
-        if (!shouldReportActionBeVisible(action, key, canUserPerformAction) || isMoneyRequestAction(action)) {
-            return;
+    for (const action of actions) {
+        if (!isReportActionVisible(action, reportID, canUserPerformAction, visibleReportActionsData) || isMoneyRequestAction(action)) {
+            continue;
         }
 
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
@@ -119,7 +137,7 @@ function extractAttachments(
             .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
             .replaceAll('<video ', `<video data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}" `);
         htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
-    });
+    }
     htmlParser.end();
 
     return attachments.reverse();

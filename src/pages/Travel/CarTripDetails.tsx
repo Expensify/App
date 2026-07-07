@@ -1,15 +1,19 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import UserPills from '@components/UserPills';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type CarTripDetailsProps = {
     reservation: Reservation;
@@ -25,7 +29,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline)).date}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline)}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {
@@ -71,30 +75,40 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                     description={translate('travel.carDetails.cancellation')}
                     title={cancellationText}
                     interactive={false}
+                    numberOfLinesTitle={2}
                 />
             )}
             {!!reservation.reservationID && (
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
-                    title={reservation.reservationID}
-                    copyValue={reservation.reservationID}
+                    title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    interactive={false}
+                    copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    copyable
                 />
             )}
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.carDetails.driver')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.carDetails.driver')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
+                    accessibilityLabel={`${translate('travel.carDetails.driver')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>
     );
 }
-
-CarTripDetails.displayName = 'CarTripDetails';
 
 export default CarTripDetails;

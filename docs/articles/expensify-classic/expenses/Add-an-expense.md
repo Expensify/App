@@ -1,9 +1,8 @@
 ---
 title: Add an Expense
 description: Learn how to add, edit, and manage expenses in Expensify, including SmartScans, per diems, mileage, and group expenses.
-keywords: [Expensify Classic, add expense, add expense to a report, SmartScan, per diem, mileage, group expense, receipts, upload receipts, distance tracking, bulk expense upload]
+keywords: [Expensify Classic, add expense, add expense to a report, SmartScan, per diem, mileage, group expense, receipts, upload receipts, distance tracking, bulk expense upload, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email, receipt forwarding]
 ---
-<div id="expensify-classic" markdown="1">
 
 Add, track, and manage all types of expenses in Expensify—from SmartScanned receipts to mileage, per diems, and group costs. This guide walks through all your options.
 
@@ -12,6 +11,7 @@ Add, track, and manage all types of expenses in Expensify—from SmartScanned re
 # Add an Expense with SmartScan
 
 💡 **Things to know when SmartScanning expenses:** 💡
+- Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number as **Settings > Account > Profile > Contact Methods**.
 - You can edit any scanned receipt by tapping **Fill out details myself** to update the merchant, date, total, currency, category, description, attendees, report, or reimbursement settings.
 - On iPhone, hard-press the Expensify app icon to open the camera shortcut.
 - You can also email receipts to **receipts@expensify.com** from any email associated with your account. SmartScan will auto-fill the details and upload the receipt to your **Expenses** tab.
@@ -72,6 +72,7 @@ Track business travel with distance-based expenses using one of these methods. M
 2. Under **Distance**, select:
    - **Manually create** – enter miles and rate. Tap **More options** for category, description, report.
    - **Odometer** – enter pre/post trip readings and rate. Tap **More options** to complete.
+   - **Start GPS** – Tap **Start** at the start of your trip, and tap **Stop** when you reach your destination. For best results, keep the Expensify app open. 
 3. Tap **Save**.
 
 ## Available options for tracking distance
@@ -81,7 +82,7 @@ Track business travel with distance-based expenses using one of these methods. M
 - **Mobile app**
   - **Manually create** – enter miles and rate.
   - **Odometer** – log before/after readings.
-  - **Start GPS** – currently unavailable.
+  - **Start GPS** – automatically tracks your mileage using GPS. 
 
 ---
 
@@ -143,7 +144,7 @@ Add your expenses to a report to submit them for approval and reimbursement.
 3. Check the box next to each expense to select them.
 4. Click **Add to Report** in the upper-right corner.
 5. Choose one of the following options:
-   - **Auto-Report** – Adds expenses to an open report or creates a new one if none exist.
+   - **Auto-Report** – Adds expenses to a draft report or creates a new one if none exist.
    - **New Report** – Creates a brand-new report with the selected expenses.
    - **Existing Report** – Adds expenses to a report you choose.
    - **None** – Removes selected expenses from any report, as long as the report hasn’t been submitted.
@@ -170,6 +171,12 @@ To resolve duplicates, you can [merge the expenses](https://help.expensify.com/a
 
 **Note:** Employees under a workspace may have expenses auto-labeled. Ask a Workspace Admin if anything looks incorrect.
 
+## Can I upload a PDF receipt from the mobile app? 
+
+The Expensify mobile app has access to your photo gallery, not your files. To upload a file outside of the photo gallery, you can use one of these methods:
+1. For a single-page receipt, take a screenshot and upload it from your gallery
+2. For a multi-page receipt, use your email app to send it to receipts@expensify.com
+
 ## Why don’t I see a certain expense type?
 
 Your company’s workspace settings may limit what expense types are visible to you.
@@ -178,4 +185,3 @@ Your company’s workspace settings may limit what expense types are visible to 
 
 No. Per diem expenses can't be changed once created. You’ll need to delete and recreate the expense.
 
-</div>

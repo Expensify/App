@@ -1,14 +1,20 @@
-import type {Ref} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {Ref} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
-type FormAlertWithSubmitButtonProps = {
+type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** Error message to display above button */
     message?: string;
 
@@ -74,6 +80,9 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Whether to add a bottom padding to the button */
     addButtonBottomPadding?: boolean;
+
+    /** Prevents the button from triggering blur on mouse down. */
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -98,9 +107,11 @@ function FormAlertWithSubmitButton({
     shouldRenderFooterAboveSubmit = false,
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
+    shouldPreventDefaultFocusOnPress = false,
+    sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -130,6 +141,8 @@ function FormAlertWithSubmitButton({
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
+                            onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
+                            sentryLabel={sentryLabel}
                         />
                     ) : (
                         <Button
@@ -146,6 +159,8 @@ function FormAlertWithSubmitButton({
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
+                            onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
+                            sentryLabel={sentryLabel}
                         />
                     )}
                     {!shouldRenderFooterAboveSubmit && footerContent}
@@ -154,8 +169,6 @@ function FormAlertWithSubmitButton({
         </FormAlertWrapper>
     );
 }
-
-FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
 
 export default FormAlertWithSubmitButton;
 

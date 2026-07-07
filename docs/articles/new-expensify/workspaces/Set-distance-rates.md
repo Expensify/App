@@ -1,50 +1,91 @@
 ---
-title: Set Distance Rates 
-description: Set distance rates on your Expensify workspace
+title: Set Distance Rates
+description: Set and manage distance rates for mileage reimbursement in your Expensify workspace.
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
 ---
-<div id="new-expensify" markdown="1">
 
-# Set Distance rates 
+# Set Distance Rates
 
-Each Expensify workspace can be configured with one or more distance rates. Once distance rates are enabled on your workspace, employees will be able to choose between the available rates to create distance expenses. 
+Distance rates allow your workspace to reimburse mileage-based travel. Admins can create and manage one or more rates that members can select when submitting distance expenses.
 
-##  Enable distance rates on a workspace
+---
 
-**To enable distance rates on a workspace you are an admin on:**
+## How to enable Distance rates 
 
-1. Click your profile image or icon in the bottom left menu
-2. Click **Workspaces** in the left menu
-3. Select the workspace where you want to enable distance rates 
-4. Click **More features** in the left menu
-5. Click the toggle next to **Distance rates**
+To activate Distance rates for a workspace:
 
-After toggling on distance rates, you will see a new **Distance rates** option in the left menu.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **More Features**.
+3. Toggle **Distance rates** to enable the setting. 
 
-## Add, delete, or edit distance rates
+Once enabled, **Distance Rates** will appear in the left menu. 
 
-**To add a distance rate:**
+---
 
-1. Click your profile image or icon in the bottom left menu
-2. Click **Workspaces** in the left menu
-3. Select the workspace where you want to add distance rates 
-4. Click **Distance rates** in the left menu
-5. Click **Add rate** in the top right
-6. Enter a value, then click **Save**
+## How to add Distance rates
 
-**To enable, disable, edit or delete a single distance rate:**
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **Distance rates**.
+3. Click **Add rate**. 
+4. Enter the rate value. 
+5. Click **Save**.
 
-1. Click the distance rate on the **Distance rates** settings page
-2. To enable or disable the distance rate, click the toggle next to **Enable rate**, then click **Save**
-3. To edit the rate amount, click on the amount field, enter the new value, then click **Save**
-4. To permanently delete the distance rate, click **Delete**
 
-Note: When Distance rates is enabled, the workspace must have at least one enabled distance rate.
+## How to edit Distance rate settings 
 
-**To enable, disable, edit or delete distance rates in bulk:**
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **Distance rates**.
+3. Click on the rate you want to edit. 
+4. Update any of the available settings:
+   - Name
+   - Rate
+   - Tax rate
+   - Tax reclaimable amount
+5. Click **Save**.
 
-1. On the **Distance rates** settings page, click the checkboxes next to the distance rates that should me modified
-2. Click “x selected” at the top right 
-3. To enable or disable all the selected distance rates, click **Enable rates** or **Disable rates**
-4. To permanently delete the distance rates, click **Delete rates**
+**Note:** If **Taxes** is enabled on the Workspace, each Distance rate can be associated with a tax rate and a tax reclaimable amount. The selected tax rate is automatically applied when the Distance rate is used on an expense. To track **Taxes** on a Workspace, [learn how to track Taxes](/articles/new-expensify/workspaces/Track-Taxes).
 
-Note: When Distance rates are enabled, the workspace must have at least one enabled distance rate.
+
+## How to remove Distance rates
+
+To prevent members from using a Distance rate, you can either disable it or delete it.
+
+- Disabled rates remain in the Workspace but cannot be selected on new Distance expenses.
+- Deleted rates are permanently removed.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **Distance rates**.
+3. Select each rate you want to disable or delete.
+4. Click **Selected**
+5. Choose **Disable rates** or **Delete rates**.
+
+# FAQ
+
+## Can I create multiple Distance rates?
+
+Yes. A Workspace can have multiple active Distance rates. Members can select from the available rates when creating a Distance expense.
+
+## Can I disable a Distance rate without deleting it?
+
+Yes. Disabled Distance rates remain in the Workspace but cannot be selected on new Distance expenses. You can re-enable the rate at any time.
+
+## Can I apply taxes to Distance rates?
+
+Yes. If **Taxes** is enabled on the Workspace, you can associate a tax rate with each Distance rate. When a member selects that Distance rate on an expense, the associated tax rate is applied automatically.
+
+## What is the Tax reclaimable amount?
+
+The **Tax reclaimable** amount represents the portion of the Distance rate that can be reclaimed as tax. It is entered as a fixed monetary value for the Distance rate.
+
+## What happens if I delete a Distance rate?
+
+Deleted Distance rates are permanently removed from the Workspace and cannot be restored. If you want to prevent members from using a rate without removing it permanently, disable the rate instead.
+
+## Can I change the reimbursement rate for existing Distance expenses?
+
+No. Updating a Distance rate only affects future Distance expenses. Existing expenses keep the rate that was applied when the expense was created.
+
+## Do I need at least one Distance rate?
+
+Yes. When **Distance Rates** is enabled, the Workspace must always have at least one active Distance rate.
+

@@ -1,20 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import variables from '@styles/variables';
+
 import {updateXeroEnableNewCategories} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -24,7 +31,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroChartOfAccountsPage.displayName}
+            displayName="XeroChartOfAccountsPage"
             headerTitle="workspace.accounting.accounts"
             title="workspace.xero.accountsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -67,7 +74,5 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-XeroChartOfAccountsPage.displayName = 'XeroChartOfAccountsPage';
 
 export default withPolicyConnections(XeroChartOfAccountsPage);

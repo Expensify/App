@@ -1,8 +1,10 @@
-import type {ViewToken} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+
 import type CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import type {ViewToken} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type UpdatePageProps = {
     viewableItems: ViewToken[];
@@ -11,6 +13,9 @@ type UpdatePageProps = {
 type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
     source: AttachmentSource;
+
+    /** The report currently being looked at */
+    report: Report;
 
     /** The id of the current active attachment */
     attachmentID?: string;
@@ -21,9 +26,6 @@ type AttachmentCarouselProps = {
     /** Function to change the download button Visibility */
     setDownloadButtonVisibility?: (isButtonVisible: boolean) => void;
 
-    /** The report currently being looked at */
-    report: Report;
-
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
@@ -31,9 +33,12 @@ type AttachmentCarouselProps = {
     accountID?: number;
 
     /** A callback that is called when swipe-down-to-close gesture happens */
-    onClose: () => void;
+    onSwipeDown?: () => void;
 
     attachmentLink?: string;
+
+    /** Callback for attachment errors */
+    onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps};

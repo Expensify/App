@@ -1,10 +1,14 @@
-import React, {Fragment} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {Fragment} from 'react';
+import {View} from 'react-native';
+
 import OptionItem from './OptionItem';
 
 type OptionsPickerItem<TKey extends string> = {
@@ -75,8 +79,6 @@ function OptionsPicker<TKey extends string>({options, selectedOption, onOptionSe
         </View>
     );
 }
-
-OptionsPicker.displayName = 'OptionsPicker';
 
 export default OptionsPicker;
 export type {OptionsPickerItem};

@@ -1,323 +1,392 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchQueryJSON} from '@components/Search/types';
-import * as usePreviousModule from '@hooks/usePrevious';
+import {renderHook} from '@testing-library/react-native';
+
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
 
-// Mock the usePrevious hook
-jest.mock('@hooks/usePrevious', () => ({
+import {search} from '@libs/actions/Search';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+jest.mock('@libs/actions/Search');
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: jest.fn(() => true),
+    createNavigationContainerRef: () => ({}),
+}));
+jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    default: jest.fn((value) => value),
+    default: {},
+    MarkerView: {},
+    setAccessToken: jest.fn(),
 }));
 
-jest.mock('@src/components/ConfirmedRoute.tsx');
+const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
-const mockUsePrevious = jest.mocked(usePreviousModule.default);
+afterEach(() => {
+    jest.clearAllMocks();
+});
 
 describe('useSearchHighlightAndScroll', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockUsePrevious.mockImplementation(() => undefined);
-        jest.useFakeTimers();
+    beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
     });
 
-    afterEach(() => {
-        jest.useRealTimers();
-    });
-
-    describe('Transaction search', () => {
-        const transactionQueryJSON = {
+    const baseProps: UseSearchHighlightAndScroll = {
+        shouldUseLiveData: false,
+        searchResults: {
+            data: {
+                personalDetailsList: {},
+            },
+            search: {
+                hasMoreResults: false,
+                hasResults: true,
+                offset: 0,
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                type: 'expense',
+                isLoading: false,
+            },
+        },
+        transactions: {},
+        previousTransactions: {},
+        reportActions: {},
+        previousReportActions: {},
+        queryJSON: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},
-            inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
+            inputQuery: 'type:expense',
             flatFilters: [],
-            hash: 243428839,
-            recentSearchHash: 422547233,
-        } as SearchQueryJSON;
+            hash: 123,
+            recentSearchHash: 456,
+            similarSearchHash: 789,
+            view: 'table',
+        },
+        searchKey: undefined,
+        shouldCalculateTotals: false,
+        offset: 0,
+    };
 
-        it('should initialize with null newSearchResultKey when searchResults is empty', () => {
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: {
-                    data: {personalDetailsList: {}},
-                    search: {
-                        columnsToShow: {
-                            shouldShowCategoryColumn: true,
-                            shouldShowTagColumn: true,
-                            shouldShowTaxColumn: true,
-                        },
-                        hasMoreResults: false,
-                        hasResults: true,
-                        offset: 0,
-                        status: 'all',
-                        type: 'expense',
-                        isLoading: false,
-                    },
-                },
-                queryJSON: transactionQueryJSON,
-            };
+    it('should not trigger search when collections are empty', () => {
+        renderHook(() => useSearchHighlightAndScroll(baseProps));
+        expect(search).not.toHaveBeenCalled();
+    });
 
-            const {result} = renderHook(() => useSearchHighlightAndScroll(initialProps));
-            expect(result.current.newSearchResultKey).toBeNull();
+    it('should trigger search when new transaction added and focused', () => {
+        const initialProps = {
+            ...baseProps,
+            transactions: {'1': {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
         });
 
-        it('should detect new transactions and set newSearchResultKey', () => {
-            // Initial search results with transaction1
-            const initialSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
+        const updatedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
 
-            // Updated search results with transaction2 added
-            const updatedSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    transaction2: {transactionID: 'transaction2'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+    });
 
-            // Mock usePrevious to return the initial search results data
-            mockUsePrevious.mockImplementation(() => initialSearchResults.data);
+    it('should not trigger search when not focused', () => {
+        mockUseIsFocused.mockReturnValue(false);
 
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: initialSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const updatedProps: UseSearchHighlightAndScroll = {
-                searchResults: updatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const {result, rerender} = renderHook((props) => useSearchHighlightAndScroll(props), {
-                initialProps,
-            });
-
-            // Rerender with updated search results
-            rerender(updatedProps);
-
-            // Check if newSearchResultKey is set correctly
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction2`);
-
-            // Reset timer to verify it clears newSearchResultKey
-            act(() => {
-                jest.runAllTimers();
-            });
-
-            expect(result.current.newSearchResultKey).toBeNull();
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps: baseProps,
         });
 
-        it('should not highlight already highlighted transactions', () => {
-            // Initial search results
-            const initialSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    personalDetailsList: {},
+        const updatedProps = {
+            ...baseProps,
+            transactions: {'1': {transactionID: '1'}},
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger search for chat when report actions added and focused', () => {
+        mockUseIsFocused.mockReturnValue(true);
+
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
                 },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
                 },
-            };
+            },
+        };
 
-            // Updated search results with transaction2 added
-            const updatedSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    transaction2: {transactionID: 'transaction2'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Another update adding transaction3
-            const furtherUpdatedSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    transaction2: {transactionID: 'transaction2'},
-                    transaction3: {transactionID: 'transaction3'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Mock usePrevious to return the initial search results data
-            mockUsePrevious.mockImplementation(() => initialSearchResults.data);
-
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: initialSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const {result, rerender} = renderHook((props) => useSearchHighlightAndScroll(props), {
-                initialProps,
-            });
-
-            // Rerender with updated search results
-            rerender({
-                searchResults: updatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            });
-
-            // Check if newSearchResultKey is set correctly for transaction2
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction2`);
-
-            // Run timers to clear highlight
-            act(() => {
-                jest.runAllTimers();
-            });
-
-            // Update previous search results mock
-            mockUsePrevious.mockImplementation(() => updatedSearchResults.data);
-
-            // Rerender with further updated search results
-            rerender({
-                searchResults: furtherUpdatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            });
-
-            // Check if newSearchResultKey is set correctly for transaction3
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction3`);
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
         });
 
-        it('should handle nested transactions in report items', () => {
-            // Initial search results with nested transactions
-            const initialSearchResults = {
-                data: {
-                    report1: {
-                        reportID: 'report1',
-                        transactions: [{transactionID: 'transaction1'}],
-                    },
-                    personalDetailsList: {},
+        const updatedProps = {
+            ...chatProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
                 },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
+            },
+        };
 
-            // Updated search results with a new nested transaction
-            const updatedSearchResults = {
-                data: {
-                    report1: {
-                        reportID: 'report1',
-                        transactions: [{transactionID: 'transaction1'}, {transactionID: 'transaction2'}],
-                    },
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+    });
 
-            // Mock usePrevious to return the initial search results data
-            mockUsePrevious.mockImplementation(() => initialSearchResults.data);
+    it('should not trigger search when new transaction removed and focused', () => {
+        const initialProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+        };
 
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: initialSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const {result, rerender} = renderHook((props) => useSearchHighlightAndScroll(props), {
-                initialProps,
-            });
-
-            // Rerender with updated search results
-            rerender({
-                searchResults: updatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            });
-
-            // Check if newSearchResultKey is set correctly
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction2`);
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
         });
+
+        const updatedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger search for chat when report actions removed and focused', () => {
+        mockUseIsFocused.mockReturnValue(true);
+
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+
+        const updatedProps = {
+            ...chatProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should return multiple new search result keys when there are multiple new expenses', () => {
+        const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps: baseProps,
+        });
+        const updatedProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {
+                        transactionID: '1',
+                    },
+                    transactions_2: {
+                        transactionID: '2',
+                    },
+                },
+            },
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+                '3': {transactionID: '3'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+            },
+        };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(result.current.newSearchResultKeys?.size).toBe(2);
+    });
+
+    it('should return new search result keys for manually highlighted expenses', async () => {
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest
+            .spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute')
+            .mockImplementationOnce(jest.fn());
+        // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+            callback(performance.now());
+            return 0;
+        });
+
+        await Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[baseProps.queryJSON.type]: {'3': true}});
+
+        const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps: baseProps,
+        });
+        const updatedProps1 = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {
+                        transactionID: '1',
+                    },
+                    transactions_2: {
+                        transactionID: '2',
+                    },
+                },
+            },
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+                '3': {transactionID: '3'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+            },
+        } as unknown as UseSearchHighlightAndScroll;
+
+        // When there is no data yet, even if the transactionID has been added to manual highlight transactionIDs,
+        // it still will not be included in newSearchResultKeys.
+        rerender(updatedProps1);
+        expect(result.current.newSearchResultKeys?.size).toBe(2);
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).not.toContain('transactions_3');
+
+        // When the data contains the highlight transactionID, it will be highlighted.
+        const updatedProps2 = {
+            ...updatedProps1,
+            searchResults: {
+                ...updatedProps1.searchResults,
+                data: {
+                    transactions_1: {
+                        transactionID: '1',
+                    },
+                    transactions_2: {
+                        transactionID: '2',
+                    },
+                    transactions_3: {
+                        transactionID: '3',
+                    },
+                },
+            },
+        } as unknown as UseSearchHighlightAndScroll;
+
+        rerender(updatedProps2);
+        expect(result.current.newSearchResultKeys?.size).toBe(1);
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).toContain('transactions_3');
+
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(baseProps.queryJSON.type, {'3': false});
+    });
+
+    it('should return multiple new search result keys when there are multiple new chats', () => {
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+        const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+        const updatedProps = {
+            ...chatProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    reportActions_1: {
+                        '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    },
+                    reportActions_2: {
+                        '2': {actionName: 'EXISTING', reportActionID: '2'},
+                    },
+                },
+            },
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+                reportActions_2: {
+                    '2': {actionName: 'EXISTING', reportActionID: '2'},
+                },
+                reportActions_3: {
+                    '3': {actionName: 'EXISTING', reportActionID: '3'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(result.current.newSearchResultKeys?.size).toBe(2);
     });
 });

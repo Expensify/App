@@ -1,4 +1,5 @@
 import validateFormDataParameter from '@libs/validateFormDataParameter';
+
 import type PrepareRequestPayload from './types';
 
 /**
@@ -7,16 +8,16 @@ import type PrepareRequestPayload from './types';
 const prepareRequestPayload: PrepareRequestPayload = (command, data) => {
     const formData = new FormData();
 
-    Object.keys(data).forEach((key) => {
+    for (const key of Object.keys(data)) {
         const value = data[key];
 
-        if (value === undefined) {
-            return;
+        if (value === undefined || value === null) {
+            continue;
         }
 
         validateFormDataParameter(command, key, value);
         formData.append(key, value as string | Blob);
-    });
+    }
 
     return Promise.resolve(formData);
 };

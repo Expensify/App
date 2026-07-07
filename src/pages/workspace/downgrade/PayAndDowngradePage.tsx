@@ -1,6 +1,3 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -12,14 +9,21 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type BillingItem = {
     key: string;
@@ -32,7 +36,7 @@ function PayAndDowngradePage() {
 
     const {translate} = useLocalize();
 
-    const [billingDetails, metadata] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS, {canBeMissing: true});
+    const [billingDetails, metadata] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
     const prevIsLoading = usePrevious(billingDetails?.isLoading);
 
     const errorMessage = billingDetails?.errors;
@@ -58,7 +62,6 @@ function PayAndDowngradePage() {
     }, [billingDetails, translate]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (billingDetails?.isLoading || !prevIsLoading || billingDetails?.errors) {
             return;
         }
@@ -70,7 +73,7 @@ function PayAndDowngradePage() {
     }, []);
 
     if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'PayAndDowngradePage'}} />;
     }
 
     return (
@@ -84,14 +87,10 @@ function PayAndDowngradePage() {
                 <FullPageOfflineBlockingView>
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
-                        <Text>
-                            {translate('workspace.payAndDowngrade.description1')} <Text style={[styles.textBold]}>{billingDetails?.formattedSubtotal}</Text>
-                        </Text>
-                        <Text style={[styles.mb5]}>
-                            {translate('workspace.payAndDowngrade.description2', {
-                                date: billingDetails?.billingMonth ?? '',
-                            })}
-                        </Text>
+                        <View style={[styles.renderHTML]}>
+                            <RenderHTML html={translate('workspace.payAndDowngrade.description1', billingDetails?.formattedSubtotal ?? '')} />
+                        </View>
+                        <Text style={[styles.mb5]}>{translate('workspace.payAndDowngrade.description2', billingDetails?.billingMonth ?? '')}</Text>
 
                         <View style={[styles.borderedContentCard, styles.ph5, styles.pv2, styles.mb5]}>
                             {items.map((item) => (

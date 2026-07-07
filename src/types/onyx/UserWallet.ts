@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Type of account linked to user's wallet */
@@ -63,6 +65,9 @@ type UserWallet = {
 
     /** The type of setup for adding the bank account */
     setupType?: SetupType;
+
+    /** Whether the wallet data is currently being loaded from the server */
+    isLoading?: boolean;
 };
 
 export default UserWallet;

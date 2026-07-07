@@ -1,124 +1,137 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
-import ReactNativeModal from 'react-native-modal';
-import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import NavigationBar from '@components/NavigationBar';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import ScrollView from '@components/ScrollView';
+
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
+import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
+
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
-import BottomDockedModal from './BottomDockedModal';
-import type ModalProps from './BottomDockedModal/types';
-import ModalContent from './ModalContent';
-import ModalContext from './ModalContext';
+
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+// Animated required for side panel navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+
 import type BaseModalProps from './types';
 
-type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
-    type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-    shouldUseNewModal: boolean;
-};
+import ModalContext from './ModalContext';
+import ReanimatedModal from './ReanimatedModal';
 
-function ModalComponent({type, shouldUseNewModal, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && shouldUseNewModal) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <BottomDockedModal {...(props as ModalProps)} />;
-    }
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
-}
-
-function BaseModal(
-    {
-        isVisible,
-        onClose,
-        shouldSetModalVisibility = true,
-        onModalHide = () => {},
-        type,
-        popoverAnchorPosition = {},
-        innerContainerStyle = {},
-        outerStyle,
-        onModalShow = () => {},
-        propagateSwipe,
-        fullscreen = true,
-        animationIn,
-        animationOut,
-        useNativeDriver,
-        useNativeDriverForBackdrop,
-        hideModalContentWhileAnimating = false,
-        animationInTiming,
-        animationOutTiming,
-        animationInDelay,
-        statusBarTranslucent = true,
-        navigationBarTranslucent = true,
-        onLayout,
-        avoidKeyboard = false,
-        children,
-        shouldUseCustomBackdrop = false,
-        shouldUseNewModal = false,
-        onBackdropPress,
-        modalId,
-        shouldEnableNewFocusManagement = false,
-        restoreFocusType,
-        shouldUseModalPaddingStyle = true,
-        initialFocus = false,
-        swipeThreshold = 150,
-        swipeDirection,
-        shouldPreventScrollOnFocus = false,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-        shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        canBeClosedByOtherModal = true,
-    }: BaseModalProps,
-    ref: React.ForwardedRef<View>,
-) {
-    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
-    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
+function BaseModal({
+    isVisible,
+    onClose,
+    shouldSetModalVisibility = true,
+    onModalHide = () => {},
+    type,
+    popoverAnchorPosition = {},
+    innerContainerStyle = {},
+    outerStyle,
+    onModalShow = () => {},
+    onModalWillShow,
+    onModalWillHide,
+    fullscreen = true,
+    animationIn,
+    animationOut,
+    hideModalContentWhileAnimating = false,
+    animationInTiming,
+    animationOutTiming,
+    animationInDelay,
+    statusBarTranslucent = true,
+    navigationBarTranslucent = true,
+    onLayout,
+    avoidKeyboard = false,
+    children,
+    shouldUseCustomBackdrop = false,
+    onBackdropPress,
+    modalId,
+    shouldEnableNewFocusManagement = false,
+    shouldReturnFocus,
+    restoreFocusType,
+    shouldUseModalPaddingStyle = true,
+    initialFocus = false,
+    swipeThreshold = 150,
+    swipeDirection,
+    shouldPreventScrollOnFocus = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
+    hasBackdrop,
+    backdropOpacity,
+    shouldDisableBottomSafeAreaPadding = false,
+    shouldIgnoreBackHandlerDuringTransition = false,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
+    ref,
+    shouldDisplayBelowModals = false,
+    shouldKeepRightDockedBackdropInNarrowPane = false,
+    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
+}: BaseModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
+    const canUseTouchScreen = canUseTouchScreenCheck();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {sidePanelOffset} = useSidePanel();
-    const sidePanelStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal, isInLandscapeMode} = useResponsiveLayout();
+
+    const {sidePanelOffset} = useSidePanelState();
+
+    // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
+    const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
+
+    const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
+    const [modalHeight, setModalHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
 
-    const isVisibleRef = useRef(isVisible);
-    const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>();
+    const shouldCallHideModalOnUnmount = useRef(false);
+    const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
+    const bottomDockedDismissButtonRef = useRef<View>(null);
+    const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    if (fallbackModalIdRef.current === undefined) {
+        fallbackModalIdRef.current = ComposerFocusManager.getId();
+    }
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
-    const saveFocusState = useCallback(() => {
+    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
+    const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);
         }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
-    }, [shouldEnableNewFocusManagement, uniqueModalId]);
+    };
     /**
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
+            shouldCallHideModalOnUnmount.current = false;
+            willAlertModalBecomeVisible(false);
             if (areAllModalsHidden()) {
-                willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
                 }
@@ -132,15 +145,24 @@ function BaseModal(
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
+    const handleDismissModal = useCallback(() => {
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
+    }, [uniqueModalId]);
+
     useEffect(() => {
-        isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
+            shouldCallHideModalOnUnmount.current = true;
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            if (canBeClosedByOtherModal) {
+            if (onClose) {
                 removeOnCloseListener = setCloseModal(onClose);
             }
+        }
+
+        // When the modal becomes not visible, run dismiss logic to setReadyToFocus after it fully closes.
+        if (!isVisible && wasVisible) {
+            handleDismissModal();
         }
 
         return () => {
@@ -149,7 +171,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, canBeClosedByOtherModal]);
+    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -157,13 +179,12 @@ function BaseModal(
 
     useEffect(
         () => () => {
-            // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (!isVisibleRef.current) {
+            if (!shouldCallHideModalOnUnmount.current) {
                 return;
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+
         [],
     );
 
@@ -174,20 +195,42 @@ function BaseModal(
         onModalShow();
     }, [onModalShow, shouldSetModalVisibility, type]);
 
-    const handleBackdropPress = (e?: KeyboardEvent) => {
-        if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+    const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
 
         if (onBackdropPress) {
             onBackdropPress();
         } else {
-            onClose();
+            onClose?.();
         }
     };
 
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
+    // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
+    useEffect(() => {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth) {
+            return;
+        }
+        const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
+        const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
+        setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && Math.floor(availableHeight) <= 0);
+    }, [
+        StyleUtils,
+        insets,
+        keyboardStateContextValue.isKeyboardActive,
+        keyboardStateContextValue.isKeyboardAnimatingRef,
+        keyboardStateContextValue.keyboardActiveHeight,
+        modalHeight,
+        type,
+        windowHeight,
+        modalOverlapsWithTopSafeArea,
+        canUseTouchScreen,
+        isSmallScreenWidth,
+    ]);
+
+    const onViewLayout = (e: LayoutChangeEvent) => {
+        setModalHeight(e.nativeEvent.layout.height);
     };
 
     const {
@@ -200,129 +243,169 @@ function BaseModal(
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = useMemo(
-        () =>
-            StyleUtils.getModalStyles(
-                type,
-                {
-                    windowWidth,
-                    windowHeight,
-                    isSmallScreenWidth,
-                },
-                popoverAnchorPosition,
-                innerContainerStyle,
-                outerStyle,
-            ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
-    );
-
-    const modalPaddingStyles = useMemo(() => {
-        const paddings = StyleUtils.getModalPaddingStyles({
-            shouldAddBottomSafeAreaMargin,
-            shouldAddTopSafeAreaMargin,
-            // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaPadding,
-            modalContainerStyle,
-            insets,
-        });
-        return shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
-    }, [
-        StyleUtils,
-        avoidKeyboard,
-        insets,
-        isUsingEdgeToEdgeMode,
-        keyboardStateContextValue.isKeyboardActive,
-        modalContainerStyle,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding,
-        shouldAddTopSafeAreaMargin,
-        shouldAddTopSafeAreaPadding,
+    } = StyleUtils.getModalStyles({
+        type,
+        windowDimensions: {
+            windowWidth,
+            windowHeight,
+            isSmallScreenWidth,
+            shouldUseNarrowLayout,
+        },
+        popoverAnchorPosition,
+        innerContainerStyle,
+        outerStyle,
         shouldUseModalPaddingStyle,
-    ]);
+        safeAreaOptions: {
+            modalOverlapsWithTopSafeArea,
+            shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
+        },
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        shouldDisplayBelowModals,
+    });
 
-    const modalContextValue = useMemo(
-        () => ({
-            activeModalType: isVisible ? type : undefined,
-            default: false,
-        }),
-        [isVisible, type],
-    );
+    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
+
+    const paddings = StyleUtils.getModalPaddingStyles({
+        shouldAddBottomSafeAreaMargin,
+        shouldAddTopSafeAreaMargin,
+        // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+        shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        modalContainerStyle,
+        insets,
+    });
+    const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
+
+    const modalContextValue = {
+        activeModalType: isVisible ? type : undefined,
+        default: false,
+    };
+
+    // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
+    // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
+    const {isInNarrowPane} = useContext(NarrowPaneContext);
+    const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const offlineIndicatorContextValue = isInNarrowPane ? (originalValues ?? {}) : {};
+
+    const shouldSuppressRightDockedBackdrop =
+        type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+    const isFullWidthNarrowSheet =
+        (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
+    const backdropOpacityAdjusted =
+        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
+            ? 0
+            : backdropOpacity;
+
+    const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
+
+    const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
+
+    const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
+    // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`
+    // and unmounted the button. focus-trap throws on a `null` (vs `false`) initial focus, so coerce it to `false` ("no initial focus").
+    const modalInitialFocus = shouldShowBottomDockedDismissButton ? () => bottomDockedDismissButtonRef.current ?? false : initialFocus;
 
     return (
         <ModalContext.Provider value={modalContextValue}>
-            <View
-                // this is a workaround for modal not being visible on the new arch in some cases
-                // it's necessary to have a non-collapsible view as a parent of the modal to prevent
-                // a conflict between RN core and Reanimated shadow tree operations
-                // position absolute is needed to prevent the view from interfering with flex layout
-                collapsable={false}
-                style={[styles.pAbsolute, {zIndex: 1}]}
-            >
-                <ModalComponent
-                    // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-                    onClick={(e) => e.stopPropagation()}
-                    onBackdropPress={handleBackdropPress}
-                    // Note: Escape key on web/desktop will trigger onBackButtonPress callback
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    onBackButtonPress={closeTop}
-                    onModalShow={handleShowModal}
-                    propagateSwipe={propagateSwipe}
-                    onModalHide={hideModal}
-                    onModalWillShow={saveFocusState}
-                    onDismiss={handleDismissModal}
-                    onSwipeComplete={() => onClose?.()}
-                    swipeDirection={swipeDirection}
-                    swipeThreshold={swipeThreshold}
-                    isVisible={isVisible}
-                    backdropColor={theme.overlay}
-                    backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
-                    backdropTransitionOutTiming={0}
-                    hasBackdrop={fullscreen}
-                    coverScreen={fullscreen}
-                    style={[modalStyle, sidePanelStyle]}
-                    deviceHeight={windowHeight}
-                    deviceWidth={windowWidth}
-                    animationIn={animationIn ?? modalStyleAnimationIn}
-                    animationInDelay={animationInDelay}
-                    animationOut={animationOut ?? modalStyleAnimationOut}
-                    useNativeDriver={useNativeDriver}
-                    useNativeDriverForBackdrop={useNativeDriverForBackdrop}
-                    hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                    animationInTiming={animationInTiming}
-                    animationOutTiming={animationOutTiming}
-                    statusBarTranslucent={statusBarTranslucent}
-                    navigationBarTranslucent={navigationBarTranslucent}
-                    onLayout={onLayout}
-                    avoidKeyboard={avoidKeyboard}
-                    customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
-                    type={type}
-                    shouldUseNewModal={shouldUseNewModal}
+            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+                <View
+                    // this is a workaround for modal not being visible on the new arch in some cases
+                    // it's necessary to have a non-collapsible view as a parent of the modal to prevent
+                    // a conflict between RN core and Reanimated shadow tree operations
+                    // position absolute is needed to prevent the view from interfering with flex layout
+                    collapsable={false}
+                    style={[styles.pAbsolute, {zIndex: 1}]}
                 >
-                    <ModalContent
-                        onModalWillShow={saveFocusState}
+                    <ReanimatedModal
+                        dataSet={{dragArea}}
+                        // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                        onClick={(e) => e.stopPropagation()}
+                        onBackdropPress={handleBackdropPress}
+                        // Note: Escape key on web will trigger onBackButtonPress callback
+                        onBackButtonPress={closeTop}
+                        onModalShow={handleShowModal}
+                        onModalHide={hideModal}
+                        onModalWillShow={() => {
+                            saveFocusState();
+                            onModalWillShow?.();
+                        }}
+                        onModalWillHide={() => {
+                            // Reset willAlertModalBecomeVisible when modal is about to hide
+                            // This ensures it's cleared before any other components check its value
+                            if (areAllModalsHidden()) {
+                                willAlertModalBecomeVisible(false);
+                            }
+                            onModalWillHide?.();
+                        }}
                         onDismiss={handleDismissModal}
+                        onSwipeComplete={onClose}
+                        swipeDirection={swipeDirection}
+                        shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
+                        initialFocus={modalInitialFocus}
+                        swipeThreshold={swipeThreshold}
+                        isVisible={isVisible}
+                        backdropColor={theme.overlay}
+                        backdropOpacity={backdropOpacityAdjusted}
+                        backdropTransitionOutTiming={0}
+                        hasBackdrop={hasBackdrop ?? fullscreen}
+                        coverScreen={fullscreen}
+                        style={modalStyle}
+                        deviceHeight={windowHeight}
+                        deviceWidth={windowWidth}
+                        animationIn={animationIn ?? modalStyleAnimationIn}
+                        animationInTiming={animationInTiming}
+                        animationInDelay={animationInDelay}
+                        animationOut={animationOut ?? modalStyleAnimationOut}
+                        animationOutTiming={animationOutTiming}
+                        hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+                        statusBarTranslucent={statusBarTranslucent}
+                        navigationBarTranslucent={navigationBarTranslucent}
+                        onLayout={onLayout}
+                        avoidKeyboard={avoidKeyboard}
+                        customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+                        type={type}
+                        shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+                        shouldReturnFocus={shouldReturnFocus}
                     >
-                        <FocusTrapForModal
-                            active={isVisible}
-                            initialFocus={initialFocus}
-                            shouldPreventScroll={shouldPreventScrollOnFocus}
+                        <Animated.View
+                            onLayout={onViewLayout}
+                            style={[
+                                styles.defaultModalContainer,
+                                modalContainerStyle,
+                                modalPaddingStyles,
+                                !isVisible && styles.pointerEventsNone,
+                                sidePanelAnimatedStyle,
+                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
+                            ]}
+                            ref={ref}
+                            fsClass={forwardedFSClass}
                         >
-                            <View
-                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                                ref={ref}
-                            >
-                                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                            </View>
-                        </FocusTrapForModal>
-                    </ModalContent>
-                    {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
-                </ModalComponent>
-            </View>
+                            {shouldShowBottomDockedDismissButton && (
+                                <PressableWithoutFeedback
+                                    ref={bottomDockedDismissButtonRef}
+                                    onPress={handleBackdropPress}
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.dismiss')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MODAL.DISMISS_DIALOG}
+                                    style={styles.bottomDockedModalDismissButton}
+                                >
+                                    <View />
+                                </PressableWithoutFeedback>
+                            )}
+                            <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                        </Animated.View>
+                        {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
+                    </ReanimatedModal>
+                </View>
+            </ScreenWrapperOfflineIndicatorContext.Provider>
         </ModalContext.Provider>
     );
 }
 
-BaseModal.displayName = 'BaseModalWithRef';
-
-export default forwardRef(BaseModal);
+export default BaseModal;

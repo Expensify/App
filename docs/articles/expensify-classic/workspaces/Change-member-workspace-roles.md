@@ -3,7 +3,6 @@ title: Update workspace member roles
 description: Learn how to update a member's role and permissions in a workspace.
 keywords: [Expensify Classic, workspace roles, permissions, workspace admin, approval settings]
 ---
-<div id="expensify-classic" markdown="1">
 
 Workspace admins may need to update a member's role to adjust their permissions, grant approval authority, or restrict access based on changing responsibilities. This guide walks you through updating a member's role in your workspace.
 
@@ -20,6 +19,8 @@ Workspace admins may need to update a member's role to adjust their permissions,
 |                                           |                                            | &#10004; Edit workspace settings          |
 
 **Note:** A Workspace Admin is the member with the highest level of permissions on a workspace.
+
+**Note:** A **Card Admin** role — which lets you delegate Expensify Card and company card management without granting full Workspace Admin access — is available only in New Expensify. To assign or use it, switch to New Expensify. [Learn more](https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members).
 
 ---
 
@@ -52,4 +53,3 @@ If your workspace uses **Advanced Approvals**, you can configure an approver in 
 
 You can check the approval workflow for your workspace under **Settings > Workspaces > [Workspace Name] > Workflows**.
 
-</div>

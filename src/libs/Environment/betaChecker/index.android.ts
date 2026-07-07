@@ -1,10 +1,14 @@
-import Onyx from 'react-native-onyx';
-import semver from 'semver';
 import * as AppUpdate from '@libs/actions/AppUpdate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import pkg from '../../../../package.json';
+
+import Onyx from 'react-native-onyx';
+import semver from 'semver';
+
 import type {IsBetaBuild} from './types';
+
+import pkg from '../../../../package.json';
 
 type GithubReleaseJSON = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -12,7 +16,8 @@ type GithubReleaseJSON = {
 };
 
 let isLastSavedBeta = false;
-Onyx.connect({
+// We have opted for `connectWithoutView` here as this is a strictly non-UI data.
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_BETA,
     callback: (value) => {
         isLastSavedBeta = !!value;

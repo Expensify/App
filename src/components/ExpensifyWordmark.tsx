@@ -1,16 +1,22 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import AdHocLogo from '@assets/images/expensify-logo--adhoc.svg';
 import DevLogo from '@assets/images/expensify-logo--dev.svg';
+import ProductionLogo from '@assets/images/expensify-logo--prod.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
-import ProductionLogo from '@assets/images/expensify-wordmark.svg';
+
 import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ImageSVG from './ImageSVG';
 
 type ExpensifyWordmarkProps = {
@@ -26,8 +32,8 @@ const logoComponents = {
 };
 
 function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[environment];
@@ -36,10 +42,12 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
 
     return (
         <View
+            accessible
+            role={CONST.ROLE.IMG}
+            accessibilityLabel={translate('common.expensifyLogo')}
             style={[
                 StyleUtils.getSignInWordmarkWidthStyle(shouldUseNarrowLayout, environment),
                 StyleUtils.getHeight(shouldUseNarrowLayout ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                shouldUseNarrowLayout && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
                 style,
             ]}
         >
@@ -50,7 +58,5 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
         </View>
     );
 }
-
-ExpensifyWordmark.displayName = 'ExpensifyWordmark';
 
 export default ExpensifyWordmark;

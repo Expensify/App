@@ -1,19 +1,22 @@
-import * as Localize from './Localize';
-import type {Option} from './OptionsListUtils';
-import type * as ReportUtils from './ReportUtils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import type {OptionData} from './ReportUtils';
+
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Transforms the provided report field options into option objects.
  *
  * @param reportFieldOptions - an initial report field options array
  */
-function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
+function getReportFieldOptions(reportFieldOptions: string[], selectedKeys?: Set<string>) {
     return reportFieldOptions.map((name) => ({
         text: name,
         keyForList: name,
         searchText: name,
         tooltipText: name,
         isDisabled: false,
+        isSelected: selectedKeys ? selectedKeys.has(name) : false,
     }));
 }
 
@@ -25,66 +28,61 @@ function getReportFieldOptionsSection({
     recentlyUsedOptions,
     selectedOptions,
     searchValue,
+    translate,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
-    selectedOptions: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions: Array<Partial<OptionData>>;
     searchValue: string;
+    translate: LocalizedTranslate;
 }) {
     const reportFieldOptionsSections = [];
     const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
-    let indexOffset = 0;
+    const selectedKeySet = new Set(selectedOptionKeys);
 
     if (searchValue) {
-        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
 
         reportFieldOptionsSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(searchOptions),
+            sectionIndex: 0,
+            data: getReportFieldOptions(searchOptions, selectedKeySet),
         });
 
         return reportFieldOptionsSections;
     }
 
-    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((recentlyUsedOption) => !selectedOptionKeys.includes(recentlyUsedOption));
-    const filteredOptions = options.filter((option) => !selectedOptionKeys.includes(option));
+    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((o) => !selectedKeySet.has(o));
+    const filteredOptions = options.filter((o) => !selectedKeySet.has(o));
 
     if (selectedOptionKeys.length) {
         reportFieldOptionsSections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(selectedOptionKeys),
+            sectionIndex: 1,
+            data: getReportFieldOptions(selectedOptionKeys, selectedKeySet),
         });
-
-        indexOffset += selectedOptionKeys.length;
     }
 
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
-            shouldShow: true,
-            indexOffset,
+            title: translate('common.recent'),
+            sectionIndex: 2,
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
         });
-
-        indexOffset += filteredRecentlyUsedOptions.length;
     }
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
-        shouldShow: true,
-        indexOffset,
+        title: translate('common.all'),
+        sectionIndex: 3,
         data: getReportFieldOptions(filteredOptions),
     });
 
     return reportFieldOptionsSections;
 }
 
-export {getReportFieldOptionsSection, getReportFieldOptions};
+// eslint-disable-next-line import/prefer-default-export
+export {getReportFieldOptionsSection};

@@ -1,24 +1,27 @@
-import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddressStep from '@components/SubStepForms/AddressStep';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+import {SafeString} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
+
+type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
 const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     const countryInputKey = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+
     const inputKeys = {
         street: `${PREFIX}_${ownerBeingModifiedID}_${STREET}`,
         city: `${PREFIX}_${ownerBeingModifiedID}_${CITY}`,
@@ -28,10 +31,10 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
     } as const;
 
     const defaultValues = {
-        street: String(reimbursementAccountDraft?.[inputKeys.street] ?? ''),
-        city: String(reimbursementAccountDraft?.[inputKeys.city] ?? ''),
-        state: String(reimbursementAccountDraft?.[inputKeys.state] ?? ''),
-        zipCode: String(reimbursementAccountDraft?.[inputKeys.zipCode] ?? ''),
+        street: SafeString(reimbursementAccountDraft?.[inputKeys.street]),
+        city: SafeString(reimbursementAccountDraft?.[inputKeys.city]),
+        state: SafeString(reimbursementAccountDraft?.[inputKeys.state]),
+        zipCode: SafeString(reimbursementAccountDraft?.[inputKeys.zipCode]),
         country: (reimbursementAccountDraft?.[inputKeys.country] ?? '') as Country | '',
     };
 
@@ -60,22 +63,9 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
     };
 
-    const handleNextStep = () => {
-        // owner is US based we need to gather last four digits of his SSN
-        if (reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US) {
-            onNext();
-            // currency is set to GBP and owner is UK based, so we skip SSN and Documents step
-        } else if (countryStepCountryValue === CONST.COUNTRY.GB && reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.GB) {
-            onMove(6, false);
-            // owner is not US based so we skip SSN step
-        } else {
-            onMove(5, false);
-        }
-    };
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        onNext: handleNextStep,
+        onNext,
         shouldSaveDraft: isEditing,
     });
 
@@ -86,7 +76,7 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={formTitle}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}
@@ -98,7 +88,5 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         />
     );
 }
-
-Address.displayName = 'Address';
 
 export default Address;

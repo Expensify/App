@@ -1,8 +1,8 @@
-import type {StorybookConfig} from 'storybook/internal/types';
+import type {StorybookConfig} from '@storybook/react-webpack5';
 
 const main: StorybookConfig = {
     stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
-    addons: ['@storybook/addon-essentials', '@storybook/addon-a11y', '@storybook/addon-webpack5-compiler-babel'],
+    addons: ['@storybook/addon-a11y', '@storybook/addon-webpack5-compiler-babel', '@storybook/addon-docs'],
     staticDirs: ['./public', {from: '../assets/css', to: 'css'}, {from: '../assets/fonts/web', to: 'fonts'}],
     core: {},
 
@@ -15,6 +15,9 @@ const main: StorybookConfig = {
         options: {},
     },
     docs: {},
+    typescript: {
+        reactDocgen: false,
+    },
 };
 
 export default main;

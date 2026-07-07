@@ -1,10 +1,13 @@
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {ValueSelectorModalProps} from './types';
+
 import ValueSelectionList from './ValueSelectionList';
 
 function ValueSelectorModal({
@@ -17,24 +20,23 @@ function ValueSelectorModal({
     shouldShowTooltips = true,
     onBackdropPress,
     shouldEnableKeyboardAvoidingView = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
 }: ValueSelectorModalProps) {
-    const styles = useThemeStyles();
-
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={() => onClose?.()}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
+            shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom
-                testID={ValueSelectorModal.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="ValueSelectorModal"
                 shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >
                 <HeaderWithBackButton
@@ -44,14 +46,15 @@ function ValueSelectorModal({
                 <ValueSelectionList
                     items={items}
                     selectedItem={selectedItem}
+                    isVisible={isVisible}
                     onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-ValueSelectorModal.displayName = 'ValueSelectorModal';
 
 export default ValueSelectorModal;

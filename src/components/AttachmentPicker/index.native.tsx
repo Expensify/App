@@ -1,4 +1,27 @@
+import MenuItem from '@components/MenuItem';
+import Popover from '@components/Popover';
+
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
+
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
+import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {FileToCopy} from '@react-native-documents/picker';
+import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
+
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
@@ -6,25 +29,30 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
-import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import Popover from '@components/Popover';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type IconAsset from '@src/types/utils/IconAsset';
-import launchCamera from './launchCamera/launchCamera';
+
 import type AttachmentPickerProps from './types';
+
+import launchCamera from './launchCamera/launchCamera';
+
+const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
+    pdf: String(types.pdf),
+    doc: String(types.doc),
+    docx: String(types.docx),
+    zip: String(types.zip),
+    txt: String(types.plainText),
+    json: String(types.json),
+    xls: String(types.xls),
+    xlsx: String(types.xlsx),
+    jpg: String(types.images),
+    jpeg: String(types.images),
+    png: String(types.images),
+    gif: String(types.images),
+    heif: String(types.images),
+    heic: String(types.images),
+    tif: String(types.images),
+    tiff: String(types.images),
+};
 
 type LocalCopy = {
     name: string | null;
@@ -40,6 +68,26 @@ type Item = {
     textTranslationKey: TranslationPaths;
     /** Function to call when the user clicks the item */
     pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+};
+
+/**
+ * Ensures asset has proper fileName and type properties
+ */
+const processAssetWithFallbacks = (asset: Asset): Asset => {
+    // Generate fallback name: extract from URI if available, otherwise use timestamped default
+    const fallbackName = asset.uri
+        ? asset.uri
+              .substring(asset.uri.lastIndexOf('/') + 1)
+              .split('?')
+              .at(0)
+        : `image_${Date.now()}.jpeg`;
+    const fileName = asset.fileName ?? fallbackName;
+    return {
+        ...asset,
+        fileName,
+        // Default to JPEG if no type specified
+        type: asset.type ?? 'image/jpeg',
+    };
 };
 
 /**
@@ -68,7 +116,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name || 'chat_attachment';
+    const fileName = fileData.name || CONST.DEFAULT_ATTACHMENT_FILENAME;
     const fileResult: FileObject = {
         name: cleanFileName(fileName),
         type: fileData.type,
@@ -78,14 +126,25 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         size: fileData.size,
     };
 
-    if (fileResult.size) {
-        return Promise.resolve(fileResult);
-    }
+    const fileWithSize = fileResult.size
+        ? Promise.resolve(fileResult)
+        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+              fileResult.size = stats.size;
+              return fileResult;
+          });
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
+    // Move the file out of the cache directory (which the OS can purge) into durable storage so it
+    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
+    // re-reads on offline replay, so it must point at the durable path too. On failure
+    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    return fileWithSize.then((file) =>
+        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
+            .catch((error: unknown) => {
+                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                return file;
+            }),
+    );
 };
 
 /**
@@ -100,9 +159,12 @@ function AttachmentPicker({
     shouldHideCameraOption = false,
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
+    acceptedFileTypes,
     fileLimit = 1,
     onOpenPicker,
+    shouldSkipAttachmentTypeModal = false,
 }: AttachmentPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
@@ -143,7 +205,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showCameraPermissionsAlert();
+                                showCameraPermissionsAlert(translate);
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -153,56 +215,101 @@ function AttachmentPicker({
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    const targetAsset = response.assets?.[0];
-                    const targetAssetUri = targetAsset?.uri;
-
-                    if (!targetAssetUri) {
+                    const assets = response.assets;
+                    if (!assets || assets.length === 0) {
                         return resolve();
                     }
 
-                    if (targetAsset?.type?.startsWith('image')) {
-                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
-                            .then((isHEIC) => {
-                                // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                if (isHEIC && targetAssetUri) {
-                                    ImageManipulator.manipulate(targetAssetUri)
-                                        .renderAsync()
-                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                        .then((manipulationResult) => {
-                                            const uri = manipulationResult.uri;
-                                            const convertedAsset = {
-                                                uri,
-                                                name: uri
-                                                    .substring(uri.lastIndexOf('/') + 1)
-                                                    .split('?')
-                                                    .at(0),
-                                                type: 'image/jpeg',
-                                                width: manipulationResult.width,
-                                                height: manipulationResult.height,
-                                            };
+                    const processedAssets: Asset[] = [];
+                    let processedCount = 0;
 
-                                            return resolve([convertedAsset]);
-                                        })
-                                        .catch((err) => reject(err));
-                                } else {
-                                    return resolve(response.assets);
-                                }
-                            })
-                            .catch((err) => reject(err));
-                    } else {
-                        return resolve(response.assets);
+                    const checkAllProcessed = () => {
+                        processedCount++;
+                        if (processedCount === assets.length) {
+                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
+                        }
+                    };
+
+                    for (const asset of assets) {
+                        if (!asset.uri) {
+                            checkAllProcessed();
+                            continue;
+                        }
+
+                        if (asset.type?.startsWith('image')) {
+                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
+                                .then((isHEIC) => {
+                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                                    if (isHEIC && asset.uri) {
+                                        ImageManipulator.manipulate(asset.uri)
+                                            .renderAsync()
+                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
+                                            .then((manipulationResult) => {
+                                                const uri = manipulationResult.uri;
+                                                const convertedAsset = {
+                                                    uri,
+                                                    name: uri
+                                                        .substring(uri.lastIndexOf('/') + 1)
+                                                        .split('?')
+                                                        .at(0),
+                                                    type: 'image/jpeg',
+                                                    width: manipulationResult.width,
+                                                    height: manipulationResult.height,
+                                                };
+                                                processedAssets.push(convertedAsset);
+                                                checkAllProcessed();
+                                            })
+                                            .catch((error: Error) => {
+                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
+                                                const fallbackAsset = processAssetWithFallbacks(asset);
+                                                processedAssets.push(fallbackAsset);
+                                                checkAllProcessed();
+                                            });
+                                    } else {
+                                        // Ensure the asset has proper fileName and type for non-HEIC images
+                                        const processedAsset = processAssetWithFallbacks(asset);
+                                        processedAssets.push(processedAsset);
+                                        checkAllProcessed();
+                                    }
+                                })
+                                .catch((error: Error) => {
+                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                    checkAllProcessed();
+                                });
+                        } else {
+                            // Ensure the asset has proper fileName and type
+                            const processedAsset = processAssetWithFallbacks(asset);
+                            processedAssets.push(processedAsset);
+                            checkAllProcessed();
+                        }
                     }
                 });
             }),
-        [fileLimit, showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, translate, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
+        let pickerTypes: string[];
+        if (acceptedFileTypes && acceptedFileTypes.length > 0) {
+            const mappedTypes = acceptedFileTypes.reduce<string[]>((result, extension) => {
+                const nativeType = EXTENSION_TO_NATIVE_TYPE[String(extension)];
+                if (nativeType !== undefined && !result.includes(nativeType)) {
+                    result.push(nativeType);
+                }
+                return result;
+            }, []);
+            // If any extension has no native type mapping, fall back to allFiles so those
+            // file types remain selectable. Downstream validation handles the type check.
+            const hasUnmappedExtensions = acceptedFileTypes.some((ext) => EXTENSION_TO_NATIVE_TYPE[String(ext)] === undefined);
+            pickerTypes = mappedTypes.length > 0 && !hasUnmappedExtensions ? mappedTypes : [types.allFiles];
+        } else {
+            pickerTypes = [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles];
+        }
+
         const pickedFiles = await pick({
-            type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
+            type: pickerTypes,
             allowMultiSelection: fileLimit !== 1,
         });
 
@@ -216,9 +323,10 @@ function AttachmentPicker({
             destination: 'cachesDirectory',
         });
 
-        return pickedFiles.map((file, index) => {
-            const localCopy = localCopies[index];
-            if (localCopy.status !== 'success') {
+        return pickedFiles.map((file) => {
+            const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
+
+            if (localCopy?.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
 
@@ -229,33 +337,33 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [fileLimit, type]);
+    }, [acceptedFileTypes, fileLimit, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Paperclip,
+                icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
         if (!shouldHideGalleryOption) {
             data.unshift({
-                icon: Expensicons.Gallery,
+                icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: Expensicons.Camera,
+                icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -267,18 +375,23 @@ function AttachmentPicker({
     }, [translate]);
 
     /**
-     * Opens the attachment modal
-     *
-     * @param onPickedHandler A callback that will be called with the selected attachment
-     * @param onCanceledHandler A callback that will be called without a selected attachment
+     * Handles errors during image processing (resize, dimension check, etc.)
      */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        completeAttachmentSelection.current = onPickedHandler;
-        onCanceled.current = onCanceledHandler;
-        onClosed.current = onClosedHandler;
-        setIsVisible(true);
-    };
+    const handleImageProcessingError = useCallback(
+        (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+
+            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+            } else if (errorMessage) {
+                showGeneralAlert(errorMessage);
+            } else {
+                showImageCorruptionAlert();
+            }
+            return null;
+        },
+        [showGeneralAlert, showImageCorruptionAlert, translate],
+    );
 
     /**
      * Closes the attachment modal
@@ -287,42 +400,20 @@ function AttachmentPicker({
         setIsVisible(false);
     };
 
-    const validateAndCompleteAttachmentSelection = useCallback(
-        (fileData: FileResponse) => {
-            // Check if the file dimensions indicate corruption
-            // The width/height for a corrupted file is -1 on android native and 0 on ios native
-            // We must check only numeric values because the width/height can be undefined for non-image files
-            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current([result]);
-                })
-                .catch((error: Error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
-                });
-        },
-        [showGeneralAlert, showImageCorruptionAlert],
-    );
-
     /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void[]> | undefined => {
+        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
-                return Promise.resolve([]);
+                return Promise.resolve();
             }
 
             const filesToProcess = attachments.map((fileData) => {
                 if (!fileData) {
-                    onCanceled.current();
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -339,53 +430,88 @@ function AttachmentPicker({
                 };
 
                 if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
-                    return ImageSize.getSize(fileDataUri)
-                        .then(({width, height}) => {
-                            fileDataObject.width = width;
-                            fileDataObject.height = height;
-                            return fileDataObject;
-                        })
-                        .then((file) => {
-                            return getDataForUpload(file)
-                                .then((result) => completeAttachmentSelection.current([result]))
-                                .catch((error) => {
-                                    if (error instanceof Error) {
-                                        showGeneralAlert(error.message);
-                                    } else {
-                                        showGeneralAlert('An unknown error occurred');
-                                    }
-                                    throw error;
-                                });
-                        })
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                        });
+                    return getDataForUpload(fileDataObject)
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => ({
+                                ...file,
+                                width,
+                                height,
+                            })),
+                        )
+                        .catch(handleImageProcessingError);
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
-                    return ImageSize.getSize(fileDataUri)
-                        .then(({width, height}) => {
-                            fileDataObject.width = width;
-                            fileDataObject.height = height;
+                    return getDataForUpload(fileDataObject)
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+                                if (width <= 0 || height <= 0) {
+                                    showImageCorruptionAlert();
+                                    return null;
+                                }
 
-                            if (fileDataObject.width <= 0 || fileDataObject.height <= 0) {
-                                showImageCorruptionAlert();
-                                return Promise.resolve(); // Skip processing this corrupted file
-                            }
-
-                            return validateAndCompleteAttachmentSelection(fileDataObject);
-                        })
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                        });
+                                return {
+                                    ...file,
+                                    width,
+                                    height,
+                                };
+                            }),
+                        )
+                        .catch(handleImageProcessingError);
                 }
-                return validateAndCompleteAttachmentSelection(fileDataObject);
+
+                return getDataForUpload(fileDataObject).catch((error: Error) => {
+                    showGeneralAlert(error.message);
+                    return null;
+                });
             });
 
-            return Promise.all(filesToProcess);
+            return Promise.all(filesToProcess)
+                .then((results) => {
+                    const validResults = results.filter((result): result is FileObject => result !== null);
+                    if (validResults.length > 0) {
+                        completeAttachmentSelection.current(validResults);
+                    } else {
+                        onCanceled.current();
+                    }
+                })
+                .catch((error) => {
+                    if (error instanceof Error) {
+                        showGeneralAlert(error.message);
+                    } else {
+                        showGeneralAlert('An unknown error occurred');
+                    }
+                });
         },
-        [shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
+        [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
+
+    /**
+     * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
+     */
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
+        completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
+
+        if (shouldSkipAttachmentTypeModal) {
+            onOpenPicker?.();
+            showDocumentPicker()
+                .catch((error: Error) => {
+                    if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                        return;
+                    }
+                    showGeneralAlert(error.message);
+                    throw error;
+                })
+                .then((result) => pickAttachment(result))
+                .catch(console.error)
+                .finally(() => onClosedHandler());
+            return;
+        }
+
+        setIsVisible(true);
+    };
 
     /**
      * Setup native attachment selection to start after this popover closes
@@ -456,8 +582,7 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
-                // eslint-disable-next-line react-compiler/react-compiler
-                onModalHide={onModalHide.current}
+                onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {menuItemData.map((item, menuIndex) => (
@@ -472,12 +597,9 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );
 }
-
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;
