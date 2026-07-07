@@ -92,8 +92,7 @@ describe('SearchAutocompleteList', () => {
 
     beforeEach(() => {
         mockHtmlToText.mockClear();
-        // Restore the default mock behavior so tests are order-independent (the frozen-rank
-        // test below reconfigures these mocks per phase).
+        // Reset to defaults so tests don't leak into each other; the DM test overrides these per phase.
         jest.mocked(useFilteredOptions).mockReturnValue({
             options: {reports: [], personalDetails: []},
             isLoading: false,
@@ -188,12 +187,11 @@ describe('SearchAutocompleteList', () => {
         expect(mockHtmlToText).toHaveBeenCalled();
     });
 
-    it('keeps a known DM pinned in the local "Recent chats" section after its keyForList flips from accountID to reportID', async () => {
+    it('keeps a known DM in "Recent chats" after its report loads from search', async () => {
         const mockUseFilteredOptions = jest.mocked(useFilteredOptions);
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
 
-        // Phase 1: the DM is only known locally as a personal-detail option, so its `keyForList`
-        // is the participant's accountID and the DM report is not yet in Onyx.
+        // Before the report loads, the DM is just a personal detail keyed by accountID.
         const dmAsPersonalDetail: OptionData = {reportID: '', keyForList: '123', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsPersonalDetail], personalDetails: []});
 
@@ -211,17 +209,19 @@ describe('SearchAutocompleteList', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // The rank of the DM is frozen and it renders under "Recent chats".
+        // The DM shows up under "Recent chats" and its position is now frozen.
         const treeAfterFreeze = JSON.stringify(toJSON());
         expect(treeAfterFreeze).toContain('Recent chats');
         expect(treeAfterFreeze).toContain('Alice');
         expect(treeAfterFreeze.indexOf('Recent chats')).toBeLessThan(treeAfterFreeze.indexOf('Alice'));
 
-        // Phase 2: the server search returns. The DM report lands in Onyx (so its `keyForList`
-        // flips to the reportID while `accountID` stays the same), and a brand-new report shows up.
-        // A fresh (distinct) listOptions reference is returned to force the memoized options to recompute
-        // without changing the query (which would otherwise rebuild the frozen rank map).
-        const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
+        // Now the search results come back. The DM's report loads, so its keyForList flips to the reportID
+        // (accountID stays the same). We hand back a new options reference so the list recomputes without
+        // touching the query, otherwise the frozen ranks would be rebuilt.
+        const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
+        // Alice also has a task report. It carries her accountID too, but it isn't the DM, so it should end up
+        // in the server section rather than pinned under "Recent chats".
+        const aliceTaskReport: OptionData = {reportID: '999', keyForList: '999', accountID: 123, isDM: false, isTaskReport: true, text: 'Alice Task', alternateText: '', lastMessageText: ''};
         const brandNewServerReport: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
         mockUseFilteredOptions.mockReturnValue({
             options: {reports: [], personalDetails: []},
@@ -230,7 +230,7 @@ describe('SearchAutocompleteList', () => {
             hasMore: false,
             isLoadingMore: false,
         });
-        mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, brandNewServerReport], personalDetails: []});
+        mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, aliceTaskReport, brandNewServerReport], personalDetails: []});
 
         rerender(
             <OnyxListItemProvider>
@@ -248,20 +248,26 @@ describe('SearchAutocompleteList', () => {
 
         const treeAfterServer = JSON.stringify(toJSON());
         const recentChatsIndex = treeAfterServer.indexOf('Recent chats');
-        const aliceIndex = treeAfterServer.indexOf('Alice');
+        // The first "Alice" is the DM row under "Recent chats".
+        const aliceDMIndex = treeAfterServer.indexOf('Alice');
         const serverResultsIndex = treeAfterServer.indexOf('Search results');
+        const aliceTaskIndex = treeAfterServer.indexOf('Alice Task');
         const bobIndex = treeAfterServer.indexOf('Bob');
 
-        // Both sections and both rows are present.
+        // Both section headers and all three rows rendered.
         expect(recentChatsIndex).toBeGreaterThanOrEqual(0);
         expect(serverResultsIndex).toBeGreaterThan(recentChatsIndex);
-        expect(aliceIndex).toBeGreaterThanOrEqual(0);
+        expect(aliceDMIndex).toBeGreaterThanOrEqual(0);
+        expect(aliceTaskIndex).toBeGreaterThanOrEqual(0);
         expect(bobIndex).toBeGreaterThanOrEqual(0);
 
-        // The DM stayed in the frozen local section (before the "Search results" header) instead of
-        // being knocked into the server section by the keyForList flip, and the new report is server-side.
-        expect(aliceIndex).toBeGreaterThan(recentChatsIndex);
-        expect(aliceIndex).toBeLessThan(serverResultsIndex);
+        // The DM stayed under "Recent chats" (before the "Search results" header) despite the keyForList flip.
+        expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
+        expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
+
+        // Alice's task report and Bob's report are in the server section - the task wasn't pinned just
+        // because it shares Alice's accountID.
+        expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
         expect(bobIndex).toBeGreaterThan(serverResultsIndex);
     });
 });

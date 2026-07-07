@@ -99,13 +99,14 @@ const defaultListOptions = {
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 
-// Stable identity for a recent-report row, used to key the frozen rank map and to test local vs. server membership.
-// A 1:1 DM's `keyForList` flips from the participant's accountID (personal-detail option, before the DM report is in
-// Onyx) to the reportID (once the report loads from the server search). Both option shapes keep `accountID` set, so we
-// key on accountID for single-participant options and fall back to reportID/keyForList for group chats and rooms
-// (where accountID is 0). The `account-` prefix avoids collisions between numeric accountIDs and reportIDs.
-function getStableRankKey(option: {accountID?: number | null; keyForList?: string; reportID?: string}): string | undefined {
-    if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID) {
+// A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
+// row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
+// account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
+// masquerade as the DM row for the same person. So only DMs and personal details use the accountID; everything else
+// keeps its reportID/keyForList. The `account-` prefix keeps accountIDs from clashing with reportIDs.
+function getStableRankKey(option: {accountID?: number | null; keyForList?: string; reportID?: string; isDM?: boolean}): string | undefined {
+    const isDMOrPersonalDetail = !!option.isDM || !option.reportID;
+    if (isDMOrPersonalDetail && option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID) {
         return `account-${option.accountID}`;
     }
     return option.keyForList ?? option.reportID ?? undefined;
