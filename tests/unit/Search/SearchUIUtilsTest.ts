@@ -5111,6 +5111,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
 
             expect(result).toHaveLength(1);
