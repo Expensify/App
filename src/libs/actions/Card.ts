@@ -440,6 +440,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
 
     const parameters: UpdateExpensifyCardLimitParams = {
         authToken,
+        workspaceAccountID,
         cardID,
         limit: newLimit,
     };
