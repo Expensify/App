@@ -365,6 +365,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Adds padding to the left of the text when there is no icon. */
         shouldPutLeftPaddingWhenNoIcon?: boolean;
 
+        /** Whether to apply icon left padding to HTML-rendered titles. */
+        shouldApplyIconPaddingToHTMLTitle?: boolean;
+
         /** Handles what to do when the item is focused */
         onFocus?: () => void;
 
@@ -575,6 +578,7 @@ function MenuItem({
     contentFit = 'cover',
     isPaneMenu = true,
     shouldPutLeftPaddingWhenNoIcon = false,
+    shouldApplyIconPaddingToHTMLTitle = false,
     onFocus,
     onBlur,
     avatarID,
@@ -661,12 +665,14 @@ function MenuItem({
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
+    // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
+    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            // eslint-disable-next-line no-nested-ternary
-            shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
+            iconLeftPadding,
             shouldShowBasicTitle ? {} : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
@@ -1022,7 +1028,7 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={styles.renderHTMLTitle}>
+                                                                    <View style={[styles.renderHTMLTitle, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
                                                                         <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}

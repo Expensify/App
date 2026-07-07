@@ -41,6 +41,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const reportID = report.reportID;
     const reportAttributesSelector = useMemo(() => reportByIDsSelector([reportID]), [reportID]);
@@ -130,7 +131,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         if (Object.keys(invitedEmailsToAccountIDs).length === 0) {
             return;
         }
-        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
         goBack();
     };
 

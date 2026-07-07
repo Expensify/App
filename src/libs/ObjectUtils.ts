@@ -28,4 +28,8 @@ function filterObject<TObject extends Record<string, unknown>>(obj: TObject, pre
         }, {} as TObject);
 }
 
-export {shallowCompare, filterObject};
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export {shallowCompare, filterObject, isRecord};

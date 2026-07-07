@@ -11,7 +11,6 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
@@ -184,7 +183,7 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
@@ -384,7 +383,7 @@ function Search({
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
-            archivedReportsIDList: archivedReportsIDSet,
+            reportNameValuePairs,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
@@ -415,7 +414,7 @@ function Search({
         searchDataWithOptimisticTransaction,
         searchResults,
         type,
-        archivedReportsIDSet,
+        reportNameValuePairs,
         translate,
         formatPhoneNumber,
         accountID,

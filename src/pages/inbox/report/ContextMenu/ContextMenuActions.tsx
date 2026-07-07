@@ -22,7 +22,7 @@ import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getParticipantsPersonalDetails, getPersonalDetailsByID, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
@@ -901,6 +901,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 bankAccountList,
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
+                personalDetails,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -950,7 +951,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportName, reportAttributes).html ?? '';
+                    const targetAccountIDs = getOriginalMessage(reportAction)?.targetAccountIDs;
+                    const logMessage =
+                        getMemberChangeMessageFragment(
+                            translate,
+                            reportAction,
+                            getPersonalDetailsByID(reportAction.actorAccountID, personalDetails),
+                            getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),
+                            getReportName,
+                            reportAttributes,
+                        ).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, reportAction)));
@@ -1068,13 +1078,23 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-                    Clipboard.setString(getReimbursedMessage(translate, reportAction, report?.ownerAccountID, currentUserPersonalDetails.accountID));
+                    Clipboard.setString(
+                        getReimbursedMessage(
+                            translate,
+                            reportAction,
+                            report?.ownerAccountID,
+                            getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                            getLoginByAccountID(reportAction.actorAccountID, personalDetails),
+                            currentUserPersonalDetails.accountID,
+                        ),
+                    );
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
                         getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),
                     );
                 } else if (isActionableMentionWhisper(reportAction)) {
-                    const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction);
+                    const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
+                    const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);

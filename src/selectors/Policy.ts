@@ -2,7 +2,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
@@ -37,6 +37,35 @@ const createOwnedPaidPoliciesCountsSelector =
             total: ownedPaidPolicies.length,
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
         };
+    };
+
+type CopySettingsEligibleTargets = {
+    /** IDs of non-personal policies administered by the user that can be copy-settings targets */
+    adminNonPersonal: string[];
+
+    /** Subset of adminNonPersonal limited to corporate (Control) policies */
+    corporateOnly: string[];
+};
+
+/**
+ * Creates a selector returning only the policy IDs eligible as copy-settings targets,
+ * so subscribers don't re-render when anything else on the policy collection changes.
+ */
+const createCopySettingsEligibleTargetsSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): CopySettingsEligibleTargets => {
+        const adminNonPersonal: string[] = [];
+        const corporateOnly: string[] = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, currentUserLogin) || isPendingDeletePolicy(policy)) {
+                continue;
+            }
+            adminNonPersonal.push(policy.id);
+            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+                corporateOnly.push(policy.id);
+            }
+        }
+        return {adminNonPersonal, corporateOnly};
     };
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
@@ -271,6 +300,7 @@ export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
+    createCopySettingsEligibleTargetsSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
@@ -290,4 +320,4 @@ export {
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
-export type {ReusablePolicyConnectionName};
+export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets};

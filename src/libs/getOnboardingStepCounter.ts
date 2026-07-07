@@ -13,6 +13,7 @@ type OnboardingFlowContext = {
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -72,13 +73,13 @@ function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext)
 
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
+        // Validated or skipped work-email steps are no longer reachable: navigating back to them immediately redirects
+        // forward again. Excluding them keeps the step counter accurate and prevents a dead back button.
+        if (context.isAccountValidated || context.isMergeAccountStepSkipped === true) {
+            return [];
+        }
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
-        }
-        // The user skipped the work email step, so it is no longer a reachable part of the flow: navigating back to it
-        // immediately redirects forward again. Excluding it keeps the step counter accurate and prevents a dead back button.
-        if (context.isMergeAccountStepSkipped === true) {
-            return [];
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }

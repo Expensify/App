@@ -1,5 +1,6 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
@@ -45,7 +46,7 @@ function useAutoCreateSubmitWorkspace() {
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
 
     const autoCreateSubmitWorkspace = useCallback(
-        (firstName: string, lastName: string) => {
+        async (firstName: string, lastName: string) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
             const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
@@ -71,16 +72,20 @@ function useAutoCreateSubmitWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            completeOnboarding({
-                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
-                firstName,
-                lastName,
-                adminsChatReportID: newAdminsChatReportID,
-                onboardingPolicyID: newPolicyID,
-                introSelected,
-                isSelfTourViewed,
-            });
+            try {
+                await completeOnboarding({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
+                    firstName,
+                    lastName,
+                    adminsChatReportID: newAdminsChatReportID,
+                    onboardingPolicyID: newPolicyID,
+                    introSelected,
+                    isSelfTourViewed,
+                });
+            } catch (error) {
+                Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+            }
 
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();

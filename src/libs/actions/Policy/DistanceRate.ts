@@ -4,8 +4,10 @@ import * as API from '@libs/API';
 import type {
     CreatePolicyDistanceRateParams,
     DeletePolicyDistanceRatesParams,
+    DisablePolicyCommuterExclusionsParams,
     EnablePolicyDistanceRatesParams,
     OpenPolicyDistanceRatesPageParams,
+    SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
     UpdatePolicyDistanceRateParams,
@@ -20,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
@@ -519,6 +521,119 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_TAX_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
+/**
+ * Set the commuter exclusion for a workspace. Currently only `fixedDistance` is supported; the
+ * distance unit is owned by the workspace's distance custom unit (Auth resolves it server-side and
+ * snapshots it into the change log), so we only echo it into Onyx optimistically.
+ *
+ * Callers should pass the workspace's current `commuterExclusions` so the failure path can restore
+ * the prior state.
+ */
+function setPolicyCommuterExclusions(
+    policyID: string,
+    method: 'fixedDistance',
+    fixedDistance: number,
+    fixedDistanceUnit: string,
+    previousCommuterExclusions: CommuterExclusions | undefined,
+) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const optimisticCommuterExclusions: CommuterExclusions = {
+        method,
+        fixedDistance,
+        fixedDistanceUnit,
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: optimisticCommuterExclusions,
+                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: previousCommuterExclusions ?? null,
+                    pendingFields: {commuterExclusions: null},
+                    errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCommuterExclusionsParams = {policyID, commuterExclusionMethod: method, distance: fixedDistance};
+    API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
+}
+
+/**
+ * Disable the commuter exclusion for a policy.
+ * `DisablePolicyCommuterExclusions` command that removes the policy NVP entirely.
+ */
+function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclusions: CommuterExclusions | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: null,
+                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: previousCommuterExclusions ?? null,
+                    pendingFields: {commuterExclusions: null},
+                    errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: DisablePolicyCommuterExclusionsParams = {policyID};
+    API.write(WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
+}
+
+function clearPolicyCommuterExclusionsErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {commuterExclusions: null},
+        pendingFields: {commuterExclusions: null},
+    });
+}
+
 export {
     enablePolicyDistanceRates,
     openPolicyDistanceRatesPage,
@@ -535,4 +650,7 @@ export {
     deletePolicyDistanceRates,
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
+    setPolicyCommuterExclusions,
+    disablePolicyCommuterExclusions,
+    clearPolicyCommuterExclusionsErrors,
 };

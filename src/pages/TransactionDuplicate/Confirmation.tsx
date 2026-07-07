@@ -52,7 +52,8 @@ function Confirmation() {
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = TransactionUtils.getTransactionID(report);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`];
     const allDuplicateIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
@@ -108,7 +109,7 @@ function Confirmation() {
         // Suppress the NotFound guard for the discarded thread the server tears down on merge.
         const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
         setDeleteTransactionNavigateBackUrl(keptReportRoute);
-        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? ''});
+        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations});
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
@@ -122,12 +123,12 @@ function Confirmation() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap});
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations});
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap]);
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations]);
 
     const contextMenuStateValue = useMemo(
         () => ({

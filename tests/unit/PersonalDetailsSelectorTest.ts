@@ -1,4 +1,5 @@
 import {
+    createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
@@ -7,7 +8,7 @@ import {
 } from '@selectors/PersonalDetails';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;
@@ -113,6 +114,11 @@ describe('PersonalDetailsSelector', () => {
             expect(result).toEqual([]);
         });
 
+        it('should return an empty array if accountIDs is undefined', () => {
+            const result = multiPersonalDetailsSelector(undefined)(personalDetailsList);
+            expect(result).toEqual([]);
+        });
+
         it('should return an empty array if the personalDetailsList is undefined', () => {
             const result = multiPersonalDetailsSelector([accountID])(undefined);
             expect(result).toEqual([]);
@@ -137,6 +143,51 @@ describe('PersonalDetailsSelector', () => {
 
         it('should return an empty object if the personalDetailsList is undefined', () => {
             const result = personalDetailsListSelector([accountID])(undefined);
+            expect(result).toEqual({});
+        });
+    });
+
+    describe('createDisplayDetailsByAccountIDsSelector', () => {
+        const fullDetails = {
+            accountID,
+            displayName: 'Test User',
+            login: 'test@user.com',
+            avatar: 'https://example.com/avatar.png',
+            pronouns: 'they/them',
+            timezone: {selected: 'UTC'},
+        } as unknown as PersonalDetails;
+        const listWithAvatar = {[accountID]: fullDetails} as unknown as PersonalDetailsList;
+
+        it('should return only the display detail fields for present account IDs', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);
+            expect(result).toEqual({
+                [accountID]: {
+                    accountID,
+                    displayName: 'Test User',
+                    login: 'test@user.com',
+                    avatar: 'https://example.com/avatar.png',
+                },
+            });
+        });
+
+        it('should not include extra fields beyond accountID, displayName, login, avatar', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);
+            const keys = Object.keys(result[accountID] ?? {});
+            expect(keys.sort()).toEqual(['accountID', 'avatar', 'displayName', 'login']);
+        });
+
+        it('should skip account IDs that are not in the list', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID, 999])(listWithAvatar);
+            expect(Object.keys(result)).toEqual([String(accountID)]);
+        });
+
+        it('should return an empty object for an empty account IDs array', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([])(listWithAvatar);
+            expect(result).toEqual({});
+        });
+
+        it('should return an empty object when personalDetailsList is undefined', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID])(undefined);
             expect(result).toEqual({});
         });
     });

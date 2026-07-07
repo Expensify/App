@@ -23,9 +23,6 @@ type UseDefaultParticipantsParams = {
 
     /** The IOU type from the route params. */
     iouType?: IOUType;
-
-    /** When false, the hook short-circuits and returns an empty list (the new manual expense flow beta is off). */
-    isNewManualExpenseFlowEnabled?: boolean;
 };
 
 /**
@@ -38,7 +35,7 @@ type UseDefaultParticipantsParams = {
  * Shared by `useResetIOUType` (to seed the freshly-rebuilt transaction so the confirmation's auto-assign effect
  * short-circuits) and `IOURequestStepConfirmation` (to compute the participants it auto-assigns) so both stay in sync.
  */
-function useDefaultParticipants({sourceReport, transaction, iouType, isNewManualExpenseFlowEnabled = true}: UseDefaultParticipantsParams): Participant[] {
+function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefaultParticipantsParams): Participant[] {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -50,10 +47,6 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const accountID = currentUserPersonalDetails.accountID;
 
     return useMemo(() => {
-        if (!isNewManualExpenseFlowEnabled) {
-            return [];
-        }
-
         const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
         if (reportParticipants.length > 0) {
             return reportParticipants;
@@ -73,7 +66,6 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
         return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
     }, [
-        isNewManualExpenseFlowEnabled,
         sourceReport,
         accountID,
         transaction?.isFromGlobalCreate,

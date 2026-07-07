@@ -492,6 +492,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
@@ -505,6 +506,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     originalReportID={originalReportIDRef.current}
                     disabledActions={disabledActions}
                     setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

@@ -39,7 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
-import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -489,6 +489,13 @@ function MoneyRequestReportTransactionList({
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+            return;
+        }
+        // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
+        // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
+        // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
+        // still seed the correct siblings lazily via useNavigateToTransactionThread.
+        if (getActiveTransactionIDs().descriptors) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);

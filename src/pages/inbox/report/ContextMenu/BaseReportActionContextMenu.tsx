@@ -13,6 +13,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -106,6 +107,9 @@ type BaseReportActionContextMenuProps = {
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
+
+    /** Whether to add bottom safe area padding for edge-to-edge modal content */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 function BaseReportActionContextMenu({
@@ -122,6 +126,7 @@ function BaseReportActionContextMenu({
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
 }: BaseReportActionContextMenuProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -366,13 +371,15 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
                 <CompactMenuContext.Provider value>
                     <View
                         ref={contentRef}
-                        style={wrapperStyle}
+                        style={bottomSafeAreaPaddingStyle}
                     >
                         {filteredContextMenuActions.map((contextAction, index) => {
                             const closePopup = !isMini;

@@ -89,8 +89,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
         selector: (r) => ({
-            reportPendingAction: r?.pendingFields?.addWorkspaceRoom ?? r?.pendingFields?.createChat ?? r?.pendingFields?.createReport ?? r?.pendingFields?.reportName,
-            reportErrors: r?.errorFields?.addWorkspaceRoom ?? r?.errorFields?.createChat ?? r?.errorFields?.createReport,
+            reportPendingAction: r?.pendingFields?.createReport ?? r?.pendingFields?.reportName,
+            reportErrors: r?.errorFields?.createReport,
         }),
     });
     const {reportPendingAction, reportErrors} = reportPendingActionAndErrors ?? {};

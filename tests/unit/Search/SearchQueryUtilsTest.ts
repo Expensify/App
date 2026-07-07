@@ -15,22 +15,38 @@ import {
     buildSearchQueryString,
     buildUserReadableQueryString,
     getAdvancedFiltersToReset,
+    getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getKeywordQueryWithCurrentSearchContext,
+    getLastRouteByName,
+    getParamsState,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
+    getRoutes,
+    isSearchRootParams,
     serializeQueryJSONForBackend,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
 } from '@src/libs/SearchQueryUtils';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
 import {localeCompare, translateLocal} from '../../utils/TestHelper';
+
+const mockGetRootState = jest.fn();
+
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {
+        getRootState: () => mockGetRootState() as unknown,
+    },
+}));
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -65,6 +81,168 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 const defaultQuery = `type:expense sortBy:date sortOrder:desc`;
 
 describe('SearchQueryUtils', () => {
+    beforeEach(() => {
+        mockGetRootState.mockReset();
+    });
+
+    describe('getCurrentSearchQueryJSON', () => {
+        test('reads nested Search params from an unmounted tab route', () => {
+            mockGetRootState.mockReturnValue({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {
+                            screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                            params: {
+                                screen: SCREENS.SEARCH.ROOT,
+                                params: {q: 'type:invoice'},
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
+
+        test('reads query from a mounted search navigator state', () => {
+            mockGetRootState.mockReturnValue({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 2,
+                            routes: [
+                                {name: SCREENS.HOME},
+                                {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                {
+                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                    state: {
+                                        routes: [
+                                            {
+                                                name: SCREENS.SEARCH.ROOT,
+                                                params: {q: 'type:invoice'},
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            });
+
+            expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
+
+        test('reads nested Search params from tab params state', () => {
+            mockGetRootState.mockReturnValue({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {
+                            state: {
+                                index: 2,
+                                routes: [
+                                    {name: SCREENS.HOME},
+                                    {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                    {
+                                        name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                        params: {
+                                            screen: SCREENS.SEARCH.ROOT,
+                                            params: {q: 'type:invoice'},
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
+    });
+
+    describe('getLastRouteByName', () => {
+        const state = {
+            routes: [
+                {key: 'home-key', name: SCREENS.HOME},
+                {key: 'search-key-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                {key: 'reports-key', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                {key: 'search-key-2', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+            ],
+        };
+
+        it('returns the last matching route', () => {
+            expect(getLastRouteByName(state, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)?.key).toBe('search-key-2');
+        });
+
+        it('returns undefined when no route matches', () => {
+            expect(getLastRouteByName(state, SCREENS.SETTINGS.ROOT)).toBeUndefined();
+        });
+
+        it('returns undefined for non-object state', () => {
+            expect(getLastRouteByName(null, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)).toBeUndefined();
+            expect(getLastRouteByName('invalid', NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)).toBeUndefined();
+        });
+    });
+
+    describe('getRoutes', () => {
+        it('returns the routes array from a valid state', () => {
+            const routes = [{key: 'a', name: SCREENS.HOME}];
+            expect(getRoutes({routes})).toBe(routes);
+        });
+
+        it('returns undefined when routes is not an array', () => {
+            expect(getRoutes({routes: 'invalid'})).toBeUndefined();
+        });
+
+        it('returns undefined for non-object state', () => {
+            expect(getRoutes(null)).toBeUndefined();
+            expect(getRoutes('invalid')).toBeUndefined();
+        });
+    });
+
+    describe('getParamsState', () => {
+        it('returns the state property from a record', () => {
+            const nestedState = {routes: []};
+            expect(getParamsState({state: nestedState})).toBe(nestedState);
+        });
+
+        it('returns undefined for non-object params', () => {
+            expect(getParamsState(null)).toBeUndefined();
+            expect(getParamsState('invalid')).toBeUndefined();
+        });
+    });
+
+    describe('isSearchRootParams', () => {
+        it('returns true for valid params with only q', () => {
+            expect(isSearchRootParams({q: 'type:expense'})).toBe(true);
+        });
+
+        it('returns true for valid params with q and rawQuery', () => {
+            expect(isSearchRootParams({q: 'type:expense', rawQuery: 'expense'})).toBe(true);
+        });
+
+        it('returns false when q is missing', () => {
+            expect(isSearchRootParams({rawQuery: 'expense'})).toBe(false);
+        });
+
+        it('returns false when q is not a string', () => {
+            expect(isSearchRootParams({q: 42})).toBe(false);
+        });
+
+        it('returns false when rawQuery is present but not a string', () => {
+            expect(isSearchRootParams({q: 'type:expense', rawQuery: 42})).toBe(false);
+        });
+
+        it('returns false for non-object input', () => {
+            expect(isSearchRootParams(null)).toBe(false);
+            expect(isSearchRootParams('string')).toBe(false);
+        });
+    });
+
     describe('getDateRangeDisplayValueFromFormValue', () => {
         test('returns full range display when both boundaries exist', () => {
             const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');

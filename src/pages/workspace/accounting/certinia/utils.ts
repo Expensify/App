@@ -8,7 +8,7 @@ import {
 } from '@libs/actions/connections/FinancialForce';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
+import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
@@ -109,6 +109,10 @@ function isCertiniaDimensionParam(dimension: string): dimension is CertiniaDimen
     return (CERTINIA_DIMENSION_PARAMS as readonly string[]).includes(dimension);
 }
 
+function isCertiniaSRPConnection(config: FinancialForceConnectionConfig | undefined): boolean {
+    return !!config?.hasPSA && config?.hasPSAOnly === false;
+}
+
 export {
     CERTINIA_DIMENSION_PARAMS,
     CERTINIA_FFA_EXPORT_STATUSES,
@@ -117,6 +121,7 @@ export {
     getCertiniaFFAExportStatusValue,
     getDimensionLabel,
     getDisplayTypeLabel,
+    isCertiniaSRPConnection,
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };

@@ -151,6 +151,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -188,6 +189,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -239,6 +241,7 @@ describe('Transaction', () => {
                 reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -292,6 +295,7 @@ describe('Transaction', () => {
                 reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -333,6 +337,7 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -386,6 +391,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -436,6 +442,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -478,6 +485,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -526,6 +534,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -574,6 +583,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -629,6 +639,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -683,6 +694,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -732,6 +744,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -783,6 +796,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -848,6 +862,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -941,6 +956,7 @@ describe('Transaction', () => {
                     policy: undefined,
                     allTransactions,
                     policyTagList: undefined,
+                    allReports: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -1006,6 +1022,7 @@ describe('Transaction', () => {
                 policyCategories,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1060,6 +1077,7 @@ describe('Transaction', () => {
                 policyCategories: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1115,6 +1133,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1154,6 +1173,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1188,6 +1208,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1235,6 +1256,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1294,6 +1316,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1340,6 +1363,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 allTransactionViolation: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1401,6 +1425,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1448,6 +1473,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1523,6 +1549,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1607,6 +1634,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1682,6 +1710,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1758,6 +1787,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 

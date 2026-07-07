@@ -268,7 +268,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
-        if (isMobileSelectionModeEnabled) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }

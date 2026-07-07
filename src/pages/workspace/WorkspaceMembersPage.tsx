@@ -596,6 +596,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }
 
+    // Fall back to "All" when the selected role is no longer an available option (e.g. after the
+    // workspace type changes and removes that role from the dropdown). Deriving this from the current
+    // options keeps the filter in sync without storing a copy or mutating state during render.
+    const effectiveRoleFilter = selectedRoleFilter && roleFilterOptions.some((option) => option.value === selectedRoleFilter.value) ? selectedRoleFilter : null;
+
     const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
         setSelectedEmployees([]);
 
@@ -608,13 +613,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const rolePreFilter = (member: MemberOption) => {
-        if (!selectedRoleFilter) {
+        if (!effectiveRoleFilter) {
             return true;
         }
 
         const employee = policy?.employeeList?.[member.login];
 
-        switch (selectedRoleFilter.value) {
+        switch (effectiveRoleFilter.value) {
             case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
                 return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
@@ -682,7 +687,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
     const hasNoDisplayedMembers = displayedFilteredData.length === 0;
     const shouldShowRoleFilter = data.length > 0;
-    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!selectedRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
+    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!effectiveRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
     const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
 
@@ -695,7 +700,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         <SingleSelectPopup
             label={translate('common.role')}
             items={roleFilterOptions}
-            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
+            value={effectiveRoleFilter ?? roleFilterOptions.at(0)}
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
             defaultValue={roleFilterOptions.at(0)?.value}
@@ -705,7 +710,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const roleFilterDropdown = shouldShowRoleFilter ? (
         <DropdownButton
-            label={selectedRoleFilter?.text ?? translate('workspace.people.allMembers')}
+            label={effectiveRoleFilter?.text ?? translate('workspace.people.allMembers')}
             value={null}
             PopoverComponent={rolePopoverComponent}
             innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}

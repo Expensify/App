@@ -3,6 +3,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
+import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
@@ -17,7 +18,7 @@ import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
@@ -26,17 +27,37 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
 };
 
 function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
+    const {startSubmittingAnimation} = usePaymentAnimationsContext();
+
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            onSubmitSuccess={startSubmittingAnimation}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
+            <SubmitPrimaryActionContent reportID={reportID} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -95,6 +116,11 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
         }
 
         confirmPendingRTERAndProceed(() => {
+            if (isSubmitPolicy(policy) && reportID) {
+                openReportSubmitToPopover();
+                return;
+            }
+
             submitReport({
                 expenseReport: moneyRequestReport,
                 policy,

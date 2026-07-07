@@ -95,6 +95,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                allReports,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -117,6 +118,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactions,
             policyTagList,
             allTransactionViolation: transactionViolations,
+            allReports,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

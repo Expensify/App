@@ -4152,6 +4152,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4215,6 +4216,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4263,6 +4265,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4311,6 +4314,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4359,6 +4363,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4406,6 +4411,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4441,6 +4447,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4502,6 +4509,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4549,6 +4557,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4582,6 +4591,7 @@ describe('OptionsListUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4608,6 +4618,7 @@ describe('OptionsListUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4635,6 +4646,7 @@ describe('OptionsListUtils', () => {
                     [approvedAction.reportActionID]: approvedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4664,6 +4676,7 @@ describe('OptionsListUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4690,6 +4703,7 @@ describe('OptionsListUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4714,6 +4728,7 @@ describe('OptionsListUtils', () => {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -4737,6 +4752,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4759,6 +4775,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4781,6 +4798,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4803,6 +4821,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4825,6 +4844,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4846,6 +4866,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4867,6 +4888,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4888,6 +4910,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4909,6 +4932,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4930,6 +4954,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4951,6 +4976,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4972,6 +4998,7 @@ describe('OptionsListUtils', () => {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -4994,6 +5021,7 @@ describe('OptionsListUtils', () => {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -5016,6 +5044,7 @@ describe('OptionsListUtils', () => {
                 [movedAction.reportActionID]: movedAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -5042,6 +5071,7 @@ describe('OptionsListUtils', () => {
 
             // When getting the last message text for the report
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -5070,6 +5100,7 @@ describe('OptionsListUtils', () => {
 
             const expectedVisibleText = '';
             const result = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -5089,6 +5120,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -5120,6 +5152,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                personalDetails: undefined,
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
@@ -5160,6 +5193,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                personalDetails: undefined,
                 report,
                 translate: translateLocal,
                 lastActorDetails: null,
@@ -5211,6 +5245,7 @@ describe('OptionsListUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -5246,6 +5281,7 @@ describe('OptionsListUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -5277,6 +5313,7 @@ describe('OptionsListUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -5315,6 +5352,7 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -5356,6 +5394,7 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -5397,6 +5436,7 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     policy: undefined,
+                    personalDetails: undefined,
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -5423,6 +5463,7 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,

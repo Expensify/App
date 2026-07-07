@@ -8,7 +8,7 @@ import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {useCurrencyListState} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -25,20 +25,6 @@ function policiesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Poli
             continue;
         }
         result[key] = {taxRates: policy.taxRates} as Policy;
-    }
-    return result;
-}
-
-function reportsSelector(reports: OnyxCollection<Report>): OnyxCollection<Report> {
-    if (!reports) {
-        return reports;
-    }
-    const result: OnyxCollection<Report> = {};
-    for (const [key, report] of Object.entries(reports)) {
-        if (!report) {
-            continue;
-        }
-        result[key] = {reportID: report.reportID} as Report;
     }
     return result;
 }
@@ -90,7 +76,9 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    // Subscribe to the report collection directly. buildFilterFormValuesFromQuery only does keyed existence
+    // lookups (`in:` filter), so projecting via a selector would just waste an O(n) pass over every report.
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -119,4 +107,4 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
 };
 
 export default useFilterFormValues;
-export {policiesSelector, reportsSelector, policyCategoriesSelector, policyTagsSelector};
+export {policiesSelector, policyCategoriesSelector, policyTagsSelector};

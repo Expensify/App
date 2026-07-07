@@ -789,6 +789,35 @@ describe('canApproveIOU', () => {
         expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
+    it('should return true for Submit workspace report when user is manager', async () => {
+        const report: Report = {
+            ...createRandomReport(Number(REPORT_ID), undefined),
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(123),
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            status: undefined,
+        };
+
+        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
+    });
+
     it('should return false for non-expense report', async () => {
         // Given a non-expense report
         const report = {

@@ -3,6 +3,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+/**
+ * Module-level selector factory that scopes the VISIBLE_REPORT_ACTIONS derived value to a single report
+ */
+const reportVisibleActionsSelector = (reportID: string | undefined) => (data: VisibleReportActionsDerivedValue | undefined) => (reportID ? data?.[reportID] : undefined);
 
 function getParentReportActionSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): OnyxEntry<ReportAction> {
     if (!parentReportActions || !parentReportActionID) {
@@ -83,4 +89,4 @@ function getReceiptScanFailedIOUActionDataSelector(
     };
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector};
+export {getParentReportActionSelector, getLastClosedReportAction, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector, reportVisibleActionsSelector};

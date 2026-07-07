@@ -72,6 +72,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        activeExportID,
+        handleExportModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -81,8 +83,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         allTransactions,
         allReports,
         searchData,
-        activeExportID,
-        handleExportModalClose,
     } = useSearchBulkActions({queryJSON});
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
@@ -281,7 +281,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     exportID={activeExportID}
                     isVisible
                     onClose={handleExportModalClose}
-                    failedBody={translate('exportDownload.csvFailedBody')}
                 />
             )}
         </>

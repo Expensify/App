@@ -72,9 +72,9 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 }
 
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
+    const {translate, localeCompare} = useLocalize();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
         hash: queryJSON?.hash,
         similarSearchHash: queryJSON?.similarSearchHash,
@@ -177,6 +177,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                   };
               })
               .filter((item) => item !== null)
+              .sort((a, b) => localeCompare(a?.title ?? '', b?.title ?? ''))
         : [];
 
     for (const section of typeMenuSections) {

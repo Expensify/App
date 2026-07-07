@@ -464,6 +464,21 @@ describe('useGettingStartedItems', () => {
             expect(categoriesItem).toBeDefined();
         });
 
+        it('should show "Customize accounting categories" (not "Connect to accounting") for "other" even when the connections feature is enabled', async () => {
+            // Selecting "Other" during onboarding enables the connections feature (areConnectionsEnabled: true) without a real
+            // connection, so the row must still route to categories rather than back to the unsupported integration list.
+            await setupManageTeamScenario({accounting: 'other', policy: {areConnectionsEnabled: true, areCategoriesEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(categoriesItem).toBeDefined();
+            expect(categoriesItem?.route).toBe(ROUTES.WORKSPACE_CATEGORIES.getRoute(POLICY_ID));
+            expect(connectItem).toBeUndefined();
+        });
+
         it('should have isFeatureEnabled=true when categories feature is enabled', async () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 

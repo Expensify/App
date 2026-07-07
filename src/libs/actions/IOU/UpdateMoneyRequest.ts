@@ -565,7 +565,7 @@ function updateMoneyRequestVendor({transactionID, vendorID, transaction, transac
     }
 
     // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
-    // path: the vendor selector RHP only offers vendors from `getQBOVendors(policy)`, so a user
+    // path: the vendor selector RHP only offers vendors from `getMatchingVendors(policy)`, so a user
     // pick is always a valid vendor (resolving the violation); clearing the vendor likewise
     // resolves it (no vendor → no inactive-vendor). Without this, the stale violation persists
     // in Onyx until some unrelated recalculation fires, keeping the expense incorrectly flagged.
