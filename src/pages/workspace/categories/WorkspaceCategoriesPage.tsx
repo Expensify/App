@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -14,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
+
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,6 +23,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,6 +31,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -43,15 +44,21 @@ import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {arePolicyRulesEnabled, getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
@@ -81,6 +88,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -344,7 +353,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteCategories) {
+        if (canWriteCategories && !isRulesRevampEnabled) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -392,6 +401,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         translate,
         navigateToCategoriesSettings,
         canWriteCategories,
+        isRulesRevampEnabled,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
@@ -518,7 +528,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <ButtonWithDropdownMenu
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
                     options={options}
                     isSplitButton={false}

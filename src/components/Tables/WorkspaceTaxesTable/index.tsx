@@ -1,14 +1,19 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import WorkspaceTaxesTableRow from './WorkspaceTaxesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
+
+import WorkspaceTaxesTableRow from './WorkspaceTaxesTableRow';
 
 type WorkspaceTaxTableColumnKey = 'name' | 'enabled' | 'actions';
 

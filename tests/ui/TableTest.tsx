@@ -1,13 +1,18 @@
-import {NavigationContainer} from '@react-navigation/native';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -150,9 +155,21 @@ type TestColumnKey = 'name' | 'category' | 'value';
 const mockData: TestItem[] = [
     {keyForList: '1', id: '1', name: 'Apple', category: 'fruit', value: 100},
     {keyForList: '2', id: '2', name: 'Banana', category: 'fruit', value: 200},
-    {keyForList: '3', id: '3', name: 'Carrot', category: 'vegetable', value: 50},
+    {
+        keyForList: '3',
+        id: '3',
+        name: 'Carrot',
+        category: 'vegetable',
+        value: 50,
+    },
     {keyForList: '4', id: '4', name: 'Date', category: 'fruit', value: 150},
-    {keyForList: '5', id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
+    {
+        keyForList: '5',
+        id: '5',
+        name: 'Eggplant',
+        category: 'vegetable',
+        value: 75,
+    },
 ];
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [
@@ -291,7 +308,12 @@ describe('Table', () => {
             const props = createDefaultProps();
             const customColumns: Array<TableColumn<TestColumnKey>> = [
                 {key: 'name', label: 'Name', styling: {flex: 2}, sortable: true},
-                {key: 'category', label: 'Category', styling: {flex: 1}, sortable: true},
+                {
+                    key: 'category',
+                    label: 'Category',
+                    styling: {flex: 1},
+                    sortable: true,
+                },
                 {key: 'value', label: 'Value', styling: {flex: 1}, sortable: true},
             ];
 

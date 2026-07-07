@@ -1,8 +1,12 @@
-import {useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import type {TableData} from '@components/Table/types';
+
 import type CONST from '@src/CONST';
 import {getObjectKeys, getObjectValues} from '@src/libs/ObjectUtils';
+
+import type {ValueOf} from 'type-fest';
+
+import {useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -71,7 +75,10 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
     });
 
     const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = ({key, value}) => {
-        setCurrentFilters((previousFilters) => ({...previousFilters, [key]: value}));
+        setCurrentFilters((previousFilters) => ({
+            ...previousFilters,
+            [key]: value,
+        }));
     };
 
     const getActiveFilters: FilteringMethods<FilterKey>['getActiveFilters'] = () => {
@@ -93,7 +100,7 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
 type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends string = string> = {
     data: DataType[];
     filters?: FilterConfig<FilterKey>;
-    currentFilters: Record<FilterKey, string[]>;
+    currentFilters: Partial<Record<FilterKey, string[]>>;
     isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
 
@@ -111,7 +118,7 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
             const filterValue = currentFilters[filterKey];
 
             // When no filter value is set, we keep the item.
-            if (!filterValue.length) {
+            if (!filterValue?.length) {
                 return true;
             }
 

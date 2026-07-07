@@ -1,11 +1,15 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
+
+import type {OnyxMergeInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';

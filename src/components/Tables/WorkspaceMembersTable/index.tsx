@@ -1,16 +1,23 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
@@ -37,7 +44,7 @@ type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
     policy: OnyxEntry<Policy>;
-    isPolicyAdmin: boolean;
+    canSelectMembers: boolean;
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
@@ -51,11 +58,12 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
 export default function WorkspaceMembersTable({
     ref,
-    isPolicyAdmin,
+    canSelectMembers,
     policy,
     selectedKeys,
     shouldShowCustomField1Column,
@@ -219,6 +227,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isPeopleAdmin = item.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS) && isPeopleAdmin) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -237,8 +250,14 @@ export default function WorkspaceMembersTable({
             label: translate('common.role'),
             filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
             options: [
-                {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-                {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+                {
+                    label: translate('workspace.people.admins'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+                },
+                {
+                    label: translate('workspace.people.approvers'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS,
+                },
             ],
         },
     };
@@ -247,6 +266,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.cardAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.peopleAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
         });
 
         filterConfig.role.options.push({
@@ -285,7 +309,7 @@ export default function WorkspaceMembersTable({
             data={members}
             filters={filterConfig}
             selectedKeys={selectedKeys}
-            selectionEnabled={isPolicyAdmin}
+            selectionEnabled={canSelectMembers}
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}

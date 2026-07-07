@@ -1,12 +1,15 @@
-import React from 'react';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {GenericEmptyStateComponentProps} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
 import {useTableContext} from '@components/Table/TableContext';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
 
 type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia' | 'title' | 'subtitle'> & {
     headerMedia?: IconAsset;

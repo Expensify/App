@@ -1,14 +1,10 @@
-import {useRoute} from '@react-navigation/native';
-import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
-import React from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
+
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -18,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     canUserPerformWriteAction,
@@ -27,10 +24,19 @@ import {
     isPublicRoom,
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
+import React from 'react';
+import {Keyboard, View} from 'react-native';
+
 import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';

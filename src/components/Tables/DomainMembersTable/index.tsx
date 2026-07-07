@@ -1,13 +1,20 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect} from 'react';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect} from 'react';
+
 import DomainMembersTableRow from './DomainMembersTableRow';
 
 type DomainMembersTableColumnKey = 'member' | 'group' | 'actions';
@@ -44,7 +51,7 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = groupFilterValue.at(0);
+        const activeGroupFilter = groupFilterValue?.at(0);
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {

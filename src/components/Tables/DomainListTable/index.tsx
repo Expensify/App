@@ -1,18 +1,25 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import DomainListTableRow from './DomainListTableRow';
 
 type DomainTableColumnKey = 'domains' | 'actions';

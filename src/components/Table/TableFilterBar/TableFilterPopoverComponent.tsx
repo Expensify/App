@@ -1,9 +1,11 @@
-import React from 'react';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import {useTableContext} from '@components/Table/TableContext';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 export default function TableFilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
     const {filterConfig, activeFilters, tableMethods} = useTableContext();
@@ -41,7 +43,7 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
         );
     }
 
-    const value = items.find((item) => activeFilters[filterKey].includes(item.value));
+    const value = items.find((item) => activeFilters[filterKey]?.includes(item.value));
 
     return (
         <SingleSelectPopup

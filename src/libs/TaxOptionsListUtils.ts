@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import tokenizedSearch from './tokenizedSearch';
 import {transformedTaxRates} from './TransactionUtils';
 

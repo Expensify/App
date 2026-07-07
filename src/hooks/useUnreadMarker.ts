@@ -1,10 +1,14 @@
-import {useEffect, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
+
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {useEffect, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useLocalize from './useLocalize';
@@ -13,16 +17,30 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
 type UseUnreadMarkerParams = {
+    /** The report whose unread marker is being computed */
     reportID: string;
+
+    /** The visible actions (FlatList `data` domain, newest-first) that the marker scan runs over */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** All sorted actions (the full chain); used to find the earliest-received-while-offline message index */
     sortedReportActions: OnyxTypes.ReportAction[];
+
+    /** The oldest unread action id used as the pagination anchor for marker placement before actions have fully loaded */
     oldestUnreadReportActionID: string | undefined;
+
+    /** Whether the list is scrolled past the threshold where incoming actions are treated as out of view */
     isScrolledOverThreshold: boolean;
+
+    /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
 };
 
 type UseUnreadMarkerResult = {
+    /** The reportActionID the unread marker should render above, or `null` if none qualifies */
     unreadMarkerReportActionID: string | null;
+
+    /** Index of that action within `sortedVisibleReportActions`, or `-1` if none */
     unreadMarkerReportActionIndex: number;
 };
 
@@ -47,16 +65,6 @@ function useUnreadMarker({
     const reportLastReadTime = reportLastReadTimeValue ?? '';
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
-
-    const [trackedReportID, setTrackedReportID] = useState(reportID);
-    if (trackedReportID !== reportID) {
-        setTrackedReportID(reportID);
-        setUnreadMarkerTime(reportLastReadTime);
-    }
-
-    if (unreadMarkerTime === '' && reportLastReadTime !== '') {
-        setUnreadMarkerTime(reportLastReadTime);
-    }
 
     useEffect(() => {
         if (isAnonymousUser) {

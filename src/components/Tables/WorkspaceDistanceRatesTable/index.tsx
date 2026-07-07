@@ -1,19 +1,27 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useMemo} from 'react';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useMemo} from 'react';
+
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
+
+import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
 type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 

@@ -1,11 +1,14 @@
-import React from 'react';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {GenericEmptyStateComponentProps} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
 import {useTableContext} from '@components/Table/TableContext';
+
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
 
 type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'> & {
     headerMedia?: IconAsset;

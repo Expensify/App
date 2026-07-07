@@ -1,15 +1,22 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
+
+import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
 
 type SpendRulesTableColumnKey = 'type' | 'card' | 'rule' | 'actions';
 
@@ -35,9 +42,22 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'card', label: translate('workspace.rules.spendRules.tableColumnCard'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.spendRules.tableColumnRule'), sortable: false},
-        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
+        {
+            key: 'card',
+            label: translate('workspace.rules.spendRules.tableColumnCard'),
+            sortable: true,
+        },
+        {
+            key: 'rule',
+            label: translate('workspace.rules.spendRules.tableColumnRule'),
+            sortable: false,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<SpendRuleTableItem, SpendRulesTableColumnKey> = (a, b, activeSorting) => {

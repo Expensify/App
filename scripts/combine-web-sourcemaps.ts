@@ -1,7 +1,9 @@
+import type {RawSourceMap} from 'source-map';
+
 import fs from 'fs';
 import path from 'path';
-import type {RawSourceMap} from 'source-map';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+
 import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
 const argsMap = parseCommandLineArguments();

@@ -1,9 +1,13 @@
-import {groupsSelector} from '@selectors/Domain';
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {groupsSelector} from '@selectors/Domain';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -27,7 +31,9 @@ type UseDomainGroupFilterResult = {
 function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResult {
     const {translate} = useLocalize();
 
-    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
+    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: groupsSelector,
+    });
 
     const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
     const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
@@ -38,7 +44,10 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
               group: {
                   label: translate('common.group'),
                   filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
-                  options: (groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id})),
+                  options: (groups ?? []).map((group) => ({
+                      label: group.details.name ?? '',
+                      value: group.id,
+                  })),
               },
           };
 
