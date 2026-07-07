@@ -1,48 +1,52 @@
 ---
 title: Transfer Workspace Ownership
-description: Learn how a Workspace Admin can transfer ownership to themselves and become the Workspace owner.
-keywords: [New Expensify, take over billing, transfer owner, billing owner, change owner, workspace owner, transfer ownership, subscription]
-internalScope: Audience is Workspace Admins who want to become the owner of a Workspace. Covers how to transfer ownership from the current owner under Workspaces > Members. Does not cover how to configure or cancel a plan or subscription.
+description: Learn how a Workspace Admin can transfer Workspace ownership to themselves and become the Workspace owner.
+keywords: [transfer workspace ownership, transfer owner, workspace owner, billing owner, change workspace owner, subscription]
+internalScope: Audience is Workspace Admins who want to become the owner of a Workspace. Covers how to transfer ownership from the current owner under Workspaces > Members and how to transfer an annual subscription. Does not cover how to configure or cancel a plan or subscription.
 contentType: task
 platform: new
 ---
 
 # Transfer Workspace Ownership
 
-Taking over as Workspace owner makes you the billing owner of a workspace—the person whose payment card is charged for its subscription and the only one who can manage its billing settings.
+The Workspace owner, sometimes called the billing owner, is responsible for a Workspace's subscription. They manage the Workspace's billing settings, and their payment card is charged for the subscription.
 
-You'd transfer Workspace ownership when the current Workspace owner is leaving, no longer manages the Workspace, or simply needs you to take responsibility for the subscription. 
+You might transfer Workspace ownership when the current Workspace owner is leaving your organization, no longer manages the Workspace, or needs someone else to take responsibility for the Expensify subscription.
 
-## Who can transfer Workspace owner
+## Who can transfer Workspace ownership
 
-Workspace Admins can transfer Workspace ownership to themselves to become the Workspace nowner. 
+Workspace Admins can transfer Workspace ownership to themselves to become the Workspace owner.
 
-A few things to know before you start:
+Before you begin:
 
- - When you take over Workspace ownership, you become the owner for that Workspace only. Workspace ownership is transferred over one Workspace at a time.
- - To take over Workspace ownership, you'll need a payment card on file. If you don't have one, you'll add it during the process.
+- You can transfer ownership for one Workspace at a time.
+- You'll need a payment card on file. If you don't have one, you'll be prompted to add it during the transfer.
 
 ---
 
-## How to take over Workspace ownershop
+## How to transfer Workspace ownership
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name] > Members**.
-2. Select the current billing owner from the member list.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name] > Members**.
+2. Select the current Workspace owner from the member list.
 3. Click **Transfer owner**.
-4. If you don't have a payment card on file, click **Accept terms & add payment card** and add your payment card.
+4. Confirm the transfer.
 
-Once confirmed, you'll see a message letting you know you're now the billing owner of the workspace.
+When the transfer is complete, you'll see a confirmation message that you're now the Workspace owner.
 
 ---
 
-## What happens after you take over billing
+## What happens after you transfer Workspace ownership
 
-You become the workspace owner and billing owner, and your payment card is charged for the subscription going forward. You'll also start receiving the workspace's billing alerts and subscription receipts.
+- You become the Workspace owner for that Workspace.
+- Your payment card is used for future subscription charges.
+- You can manage the Workspace's billing settings.
+- You'll receive billing notifications and receipts for that Workspace.
 
-If the previous owner had unbilled charges or an annual subscription, taking over may affect what you're charged:
+Depending on the Workspace's status and subscription, you may also see one of the following messages: 
 
-* **Outstanding balance:** If the previous owner has a balance from a prior month, you'll be asked to transfer it to take over billing. Your card is charged for that amount immediately.
-* **Annual subscription:** If the workspace is on an annual subscription, it merges with your subscription and increases your subscription size by the number of members on that workspace.
+ - **Outstanding balance:** If there's an unpaid balance from a previous billing period, you'll be prompted to transfer the balance before ownership can be transferred. Your payment card is charged for that amount immediately.
+ - **Take over annual subscription:** If the Workspace is the only Workspace on the current owner's annual subscription, you'll be prompted to transfer the annual subscription to your account. This merges the annual subscription with your current subscription and increases your subscription size by the number of members shown in the message.
+ - **Duplicate subscription alert:** If the current Workspace owner has other Workspaces on the same annual subscription, you can't transfer the subscription by taking over just one Workspace. To transfer the annual subscription, ask the current Workspace owner to add you as a Workspace Admin to every Workspace included in the subscription. Then transfer ownership of each Workspace.
 
 ---
 
@@ -55,6 +59,27 @@ If the previous owner had unbilled charges or an annual subscription, taking ove
 
 # FAQ
 
-## Why can't I take over billing?
+## Why do I see the "Take over annual subscription" message?
 
-If the current owner has an overdue Expensify Card settlement, you won't be able to take over billing until it's resolved. Ask them to contact Concierge to clear it, then try again.
+This message appears when the Workspace you're taking over is the only Workspace included in the current owner's annual subscription.
+
+If you continue, the annual subscription is transferred to your account and merged with your existing subscription. Your subscription size increases by the number of members shown in the message.
+
+## Why do I see the "Duplicate subscription alert" message?
+
+This message appears because the current Workspace owner has multiple Workspaces on the same annual subscription.
+
+To transfer the annual subscription, you must be a Workspace Admin on every Workspace included in that subscription. Ask the current Workspace owner to add you as a Workspace Admin to all of their Workspaces, then transfer ownership for each Workspace.
+
+If you only want to become the owner of the current Workspace, click **Continue** to transfer ownership without transferring the annual subscription.
+
+## Why do I see the "Outstanding balance" message?
+
+This message appears when the current Workspace owner has an unpaid balance from a previous billing period. To complete the ownership transfer, you'll need to transfer the outstanding balance. Once you confirm, your payment card is charged for the outstanding amount and the ownership transfer continues.
+
+## How do I take over an annual subscription?
+
+You can take over an annual subscription only if you're a Workspace Admin on every Workspace included in that subscription.
+
+- If the subscription includes only the Workspace you're transferring, you'll see the **Take over annual subscription** message. Continue to transfer the subscription to your account.
+- If the subscription includes multiple Workspaces, you'll see the **Duplicate subscription alert** message. Ask the current Workspace owner to add you as a Workspace Admin to every Workspace included in the subscription, then transfer ownership of each Workspace.
