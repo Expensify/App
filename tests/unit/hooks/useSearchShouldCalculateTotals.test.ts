@@ -83,9 +83,9 @@ describe('useSearchShouldCalculateTotals', () => {
         expect(result.current).toBe(true);
     });
 
-    it('returns false when all matching items are selected but the hook is disabled', () => {
+    it('returns true when all matching items are selected even when the hook is disabled (select-all bypasses the offset gate)', () => {
         const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, false, true));
 
-        expect(result.current).toBe(false);
+        expect(result.current).toBe(true);
     });
 });
