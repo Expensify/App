@@ -1527,12 +1527,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !(personalDetails?.[payerAccountID] ?? allPersonalDetails[payerAccountID]);
-    // For imported device contacts the name is carried on `text`/`firstName`/`lastName` rather than
-    // `displayName`, so fall back through those before defaulting to the login/phone number. Otherwise
+    // For imported device contacts the name is carried on text/firstName/lastName rather than
+    // displayName, so fall back through those before defaulting to the login/phone number. Otherwise
     // the contact's name is lost and the optimistic record falls back to the phone number.
     const optimisticPersonalDetailFirstName = participant.firstName ?? '';
     const optimisticPersonalDetailLastName = participant.lastName ?? '';
-    // These fields can each be an empty string, so pick the first non-empty candidate rather than using `??`.
     const optimisticPersonalDetailDisplayName =
         [participant.displayName, participant.text, `${optimisticPersonalDetailFirstName} ${optimisticPersonalDetailLastName}`.trim()].find((name) => !!name) ?? payerEmail;
     // Add optimistic personal details for participant
