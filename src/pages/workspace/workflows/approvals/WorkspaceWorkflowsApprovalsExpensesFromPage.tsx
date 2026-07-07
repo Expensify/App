@@ -166,6 +166,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         keyForList: member.email,
                         isSelected: true,
                         login: member.email,
+                        value: member.email,
                         icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(displayName), id: accountID}],
                         // Only show right element for policy members
                         rightElement: isPolicyMember ? (
@@ -213,6 +214,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: false,
                     login: member.email,
+                    value: member.email,
                     icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                     rightElement: (
                         <MemberRightIcon
@@ -244,6 +246,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         keyForList: userToInvite.login ?? '',
                         isSelected: false,
                         login: userToInvite.login ?? '',
+                        value: userToInvite.login ?? '',
                         icons: userToInvite.icons ?? [],
                     });
                 }
@@ -259,6 +262,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: option.login ?? '',
                     isSelected: false,
                     login: option.login ?? '',
+                    value: option.login ?? '',
                     icons: option.icons ?? [],
                 });
             }

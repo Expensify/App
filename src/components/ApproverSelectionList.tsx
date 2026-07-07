@@ -1,4 +1,5 @@
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -52,7 +54,7 @@ type ApproverSelectionListPageProps = {
 };
 
 type SelectionListApprover = ListItem & {
-    value?: number;
+    value?: number | string;
 };
 
 function ApproverSelectionList({
@@ -96,6 +98,9 @@ function ApproverSelectionList({
     );
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
+    const selectedApproverKeys = useMemo(() => selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean), [selectedMembers]);
+    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: allApprovers.length > 0});
+    const initiallyFocusedApproverKey = useInitialSelection(initiallyFocusedOptionKey, {isVisible: !!initiallyFocusedOptionKey});
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
@@ -106,8 +111,14 @@ function ApproverSelectionList({
                 ? tokenizedSearch(allApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
                 : allApprovers;
 
-        return sortAlphabetically(filteredApprovers, 'text', localeCompare);
-    }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare]);
+        const sortedApprovers = sortAlphabetically(filteredApprovers, 'text', localeCompare);
+
+        if (debouncedSearchTerm) {
+            return sortedApprovers;
+        }
+
+        return moveInitialSelectionToTop(sortedApprovers, initialSelectedApproverKeys);
+    }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare, initialSelectedApproverKeys]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !data.length && shouldShowListEmptyContentProp;
 
@@ -180,7 +191,7 @@ function ApproverSelectionList({
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
-                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedApproverKey}
                     shouldShowTextInput={shouldShowTextInput}
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
@@ -188,6 +199,7 @@ function ApproverSelectionList({
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     showScrollIndicator
                     isRowMultilineSupported
+                    shouldScrollToTopOnSelect={false}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

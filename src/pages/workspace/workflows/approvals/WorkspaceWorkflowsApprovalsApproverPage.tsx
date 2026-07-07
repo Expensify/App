@@ -117,6 +117,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     keyForList: email,
                     isSelected: visibleSelectedApproverEmail === email,
                     login: email,
+                    value: email,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
