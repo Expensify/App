@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, waitFor} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
@@ -9,14 +9,18 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
 
+import {createAgent} from '@userActions/Agent';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
-    createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),
+    createAgent: jest.fn(),
 }));
+
+const mockCreateAgent = jest.mocked(createAgent);
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
 
@@ -131,6 +135,7 @@ describe('AddAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
+        mockCreateAgent.mockReturnValue({optimisticAccountID: -123456, avatarURI: undefined, createdAgentAccountID: Promise.resolve(22542959)});
         mockAvatarOnPress = undefined;
     });
 
@@ -239,7 +244,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit = undefined;
         });
 
-        it('opens the DM with the new agent when policyID is absent in route params', () => {
+        it('dismisses the modal and opens the DM with the real accountID once it resolves when policyID is absent', async () => {
             render(
                 <AddAgentPage
                     route={makeRoute({})}
@@ -249,12 +254,15 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
+            // The modal is dismissed immediately so the optimistic agent shows in the Agents list.
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+            // The DM opens with the agent's real, server-assigned accountID — never the optimistic one.
+            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(22542959, {shouldDismissModal: true}));
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
-            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456, {shouldDismissModal: true});
-            expect(mockGoBack).not.toHaveBeenCalled();
         });
 
-        it('opens the DM with the new agent when policyID is present', () => {
+        it('dismisses the modal and opens the DM with the real accountID once it resolves when policyID is present', async () => {
             render(
                 <AddAgentPage
                     route={makeRoute({policyID: 'POL_42'})}
@@ -264,9 +272,10 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(22542959, {shouldDismissModal: true}));
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
-            expect(mockChatWithAgent).toHaveBeenCalledWith(-123456, {shouldDismissModal: true});
-            expect(mockGoBack).not.toHaveBeenCalled();
         });
     });
 });

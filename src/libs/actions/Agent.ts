@@ -101,7 +101,44 @@ function createAgent(
         {optimisticData, successData, failureData},
     );
 
-    return {optimisticAccountID, avatarURI};
+    return {optimisticAccountID, avatarURI, createdAgentAccountID: waitForCreatedAgentAccountID(optimisticAccountID)};
+}
+
+/**
+ * Resolves with the real, server-assigned accountID of the agent just created by `createAgent`.
+ *
+ * Account IDs (unlike report IDs) can't be generated optimistically on the client, so the optimistic
+ * accountID above is never the agent's real identity — CREATE_AGENT nulls it out on success and writes
+ * the agent under a real accountID instead. We therefore watch the agent-prompt collection and resolve
+ * with the first agent that appears after this call that isn't the optimistic placeholder or an agent
+ * that already existed. Callers use it to open the DM with the newly created agent once it's real.
+ */
+function waitForCreatedAgentAccountID(optimisticAccountID: number): Promise<number> {
+    return new Promise((resolve) => {
+        let knownAgentAccountIDs: Set<number> | undefined;
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
+            waitForCollectionCallback: true,
+            callback: (agentPrompts) => {
+                const currentAgentAccountIDs = Object.keys(agentPrompts ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length)));
+
+                // The first callback runs before CREATE_AGENT can respond, so it establishes the baseline
+                // (agents that already existed plus the optimistic placeholder). The real agent is whatever shows up after.
+                if (!knownAgentAccountIDs) {
+                    knownAgentAccountIDs = new Set(currentAgentAccountIDs);
+                    return;
+                }
+
+                const createdAgentAccountID = currentAgentAccountIDs.find((accountID) => accountID !== optimisticAccountID && !knownAgentAccountIDs?.has(accountID));
+                if (createdAgentAccountID === undefined) {
+                    return;
+                }
+
+                Onyx.disconnect(connection);
+                resolve(createdAgentAccountID);
+            },
+        });
+    });
 }
 
 function clearAgentError(optimisticAccountID: number) {

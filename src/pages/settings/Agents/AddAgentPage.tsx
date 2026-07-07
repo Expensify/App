@@ -99,16 +99,17 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
-        // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
-        // returns the optimistic accountID it wrote into Onyx so we can open the DM with the
-        // new agent right away and let it render with opacity until CREATE_AGENT resolves.
-        const {optimisticAccountID} = pendingFile
+        // `createAgent` writes the agent optimistically (works offline) and returns a promise that
+        // resolves with the agent's real, server-assigned accountID once CREATE_AGENT responds.
+        const {createdAgentAccountID} = pendingFile
             ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        // This page lives on the RHP/modal stack, so dismiss the modal before navigating —
-        // otherwise the modal stays on top and the new DM is never shown to the user.
-        chatWithAgent(optimisticAccountID, {shouldDismissModal: true});
+        // Leave the add-agent modal right away so the optimistic agent shows in the Agents list
+        // (this also keeps the flow usable offline). We can't open the DM with the optimistic
+        // accountID — account IDs are server-assigned — so open it as soon as the real one resolves.
+        Navigation.goBack();
+        createdAgentAccountID.then((accountID) => chatWithAgent(accountID, {shouldDismissModal: true}));
     };
 
     return (
