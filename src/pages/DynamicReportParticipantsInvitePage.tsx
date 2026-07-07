@@ -1,4 +1,3 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,11 +7,13 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -25,11 +26,16 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay, isGroupChat, isMoneyRequestReport, isOpenExpenseReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import reportByIDsSelector from '@src/selectors/Attributes';
+
+import reportByIDsSelector from '@selectors/ReportAttributes';
+import React, {useEffect, useMemo, useState} from 'react';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import getInvitedEmailsToAccountIDs from './InviteReportParticipantsPageUtils';
 
@@ -56,7 +62,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
     const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
-    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs);
+    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs, personalDetailsList);
     for (const login of loginsByAccountIDs) {
         excludedUsers[login] = true;
     }

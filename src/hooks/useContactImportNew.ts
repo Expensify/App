@@ -1,14 +1,18 @@
-import {useState} from 'react';
-import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import {getContacts} from '@libs/ContactUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {useState} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 

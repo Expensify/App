@@ -1,16 +1,20 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 function HaveReadAndAgreeLabel() {
     const {translate} = useLocalize();
@@ -29,7 +33,7 @@ function AgreeToTheLabel() {
     return <RenderHTML html={`${translate('termsStep.agreeToThe', walletAgreementUrl)}`} />;
 }
 
-function TermsStep({onNext}: SubStepProps) {
+function TermsStep({onNext}: SubPageProps) {
     const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);

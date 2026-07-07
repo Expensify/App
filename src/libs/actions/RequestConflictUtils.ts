@@ -1,12 +1,15 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 type AnyRequestMatcher = (request: AnyRequest) => boolean;
 
@@ -122,6 +125,74 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
     }
 
     // If we didn't find any request to replace, we should push the new request
+    return {
+        conflictAction: {
+            type: 'push',
+        },
+    };
+}
+
+function isReconnectFamilyRequest(request: AnyRequest | null | undefined): request is AnyRequest {
+    return !!request && (request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP);
+}
+
+/**
+ * Read the `updateIDFrom` coverage marker off untyped reconnect params. Returns the number, or undefined
+ * when the param is missing or not a number.
+ */
+function readUpdateIDFrom(params: unknown): number | undefined {
+    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params && typeof params.updateIDFrom === 'number') {
+        return params.updateIDFrom;
+    }
+    return undefined;
+}
+
+/**
+ * How far back a reconnect re-fetches: a lower number means more coverage. OpenApp and a full
+ * ReconnectApp re-fetch everything (0); an incremental ReconnectApp covers only from its
+ * `updateIDFrom` onward. Mirrors the `!updateIDFrom` "is full reconnect" notion in App.ts.
+ */
+function reconnectCoverageFrom(request: AnyRequest): number {
+    const updateIDFrom = request.data?.updateIDFrom;
+    return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
+}
+
+/**
+ * Coverage-based duplicate resolver for an incoming ReconnectApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md for how coverage and the ongoing-request check decide the outcome.
+ * Preserve it in the SequentialQueue refactor.
+ */
+function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
+    const incomingCoverage = reconnectCoverageFrom(incomingRequest);
+    const isCovered = [ongoingRequest, ...persistedRequests].some((live) => isReconnectFamilyRequest(live) && reconnectCoverageFrom(live) <= incomingCoverage);
+
+    if (isCovered) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    // The incoming reconnect is wider than everything live, so drop the now-redundant narrower
+    // reconnects still waiting in the queue (never the in-flight one) to avoid an extra fetch.
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) > incomingCoverage) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length > 0) {
+        return {
+            conflictAction: {
+                type: 'delete',
+                indices: indicesToDelete,
+                pushNewRequest: true,
+            },
+        };
+    }
+
     return {
         conflictAction: {
             type: 'push',
@@ -289,6 +360,8 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
+    readUpdateIDFrom,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
