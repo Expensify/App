@@ -92,7 +92,7 @@ function makeMergeHRConnection({
     lastSync,
 }: {
     config?: Partial<MergeHRConnectionConfig>;
-    data?: NonNullable<Connections[typeof MERGE_HR]>['data'];
+    data?: Connections[typeof MERGE_HR]['data'];
     lastSync?: Partial<MergeHRConnectionLastSync>;
 } = {}): Connections[typeof MERGE_HR] {
     return {

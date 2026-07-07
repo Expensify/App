@@ -69,7 +69,7 @@ function openPolicyHRPage(policyID: string) {
     });
 }
 
-function updateConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<NonNullable<Policy.Connections[TConnectionName]>['config']>>(
+function updateConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Policy.Connections[TConnectionName]['config']>>(
     policyID: string,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,

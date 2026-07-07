@@ -218,7 +218,7 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
     });
 }
 
-function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<NonNullable<Connections[TConnectionName]>['config']>>(
+function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
     policyID: string | undefined,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,

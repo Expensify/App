@@ -49,11 +49,11 @@ function clearRilletErrorField(policyID: string, fieldName: string) {
     });
 }
 
-function prepareRilletOptimisticData<TSettingName extends keyof NonNullable<Connections['rillet']>['config']>(
+function prepareRilletOptimisticData<TSettingName extends keyof Connections['rillet']['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<NonNullable<Connections['rillet']>['config'][TSettingName]>,
-    oldSettingValue: Partial<NonNullable<Connections['rillet']>['config'][TSettingName]> | null,
+    settingValue: Partial<Connections['rillet']['config'][TSettingName]>,
+    oldSettingValue: Partial<Connections['rillet']['config'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -120,11 +120,11 @@ function prepareRilletOptimisticData<TSettingName extends keyof NonNullable<Conn
     return {optimisticData, successData, failureData};
 }
 
-function prepareRilletCodingOptimisticData<TSettingName extends keyof NonNullable<Connections['rillet']>['config']['coding']>(
+function prepareRilletCodingOptimisticData<TSettingName extends keyof Connections['rillet']['config']['coding']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<NonNullable<Connections['rillet']>['config']['coding'][TSettingName]>,
-    oldSettingValue: Partial<NonNullable<Connections['rillet']>['config']['coding'][TSettingName]> | null,
+    settingValue: Partial<Connections['rillet']['config']['coding'][TSettingName]>,
+    oldSettingValue: Partial<Connections['rillet']['config']['coding'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -197,9 +197,9 @@ function prepareRilletCodingOptimisticData<TSettingName extends keyof NonNullabl
 
 function prepareRilletFieldMappingOptimisticData(
     policyID: string,
-    fieldID: keyof NonNullable<Connections['rillet']>['config']['coding']['fieldMappings'],
-    mapping: ValueOf<NonNullable<Connections['rillet']>['config']['coding']['fieldMappings']>,
-    oldMapping: ValueOf<NonNullable<Connections['rillet']>['config']['coding']['fieldMappings']> | null,
+    fieldID: keyof Connections['rillet']['config']['coding']['fieldMappings'],
+    mapping: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']>,
+    oldMapping: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']> | null,
 ) {
     const fieldOfflineFeedbackKey = `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${fieldID}`;
 
@@ -276,11 +276,7 @@ function prepareRilletFieldMappingOptimisticData(
     return {optimisticData, successData, failureData};
 }
 
-function updateRilletSubsidiary(
-    policyID: string,
-    subsidiaryID: NonNullable<Connections['rillet']>['config']['subsidiaryID'],
-    oldSubsidiaryID?: NonNullable<Connections['rillet']>['config']['subsidiaryID'],
-) {
+function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['rillet']['config']['subsidiaryID'], oldSubsidiaryID?: Connections['rillet']['config']['subsidiaryID']) {
     const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
         policyID,
@@ -291,8 +287,8 @@ function updateRilletSubsidiary(
 
 function updateRilletEnableNewCategories(
     policyID: string,
-    enabled: NonNullable<Connections['rillet']>['config']['enableNewCategories'],
-    oldEnabled?: NonNullable<Connections['rillet']>['config']['enableNewCategories'],
+    enabled: Connections['rillet']['config']['enableNewCategories'],
+    oldEnabled?: Connections['rillet']['config']['enableNewCategories'],
 ) {
     const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletEnableNewCategoriesParams = {
@@ -304,8 +300,8 @@ function updateRilletEnableNewCategories(
 
 function updateRilletSyncTaxRates(
     policyID: string,
-    enabled: NonNullable<Connections['rillet']>['config']['coding']['syncTaxRates'],
-    oldEnabled?: NonNullable<Connections['rillet']>['config']['coding']['syncTaxRates'],
+    enabled: Connections['rillet']['config']['coding']['syncTaxRates'],
+    oldEnabled?: Connections['rillet']['config']['coding']['syncTaxRates'],
 ) {
     const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncTaxRatesParams = {
@@ -317,9 +313,9 @@ function updateRilletSyncTaxRates(
 
 function updateRilletFieldMapping(
     policyID: string,
-    fieldID: keyof NonNullable<Connections['rillet']>['config']['coding']['fieldMappings'],
-    mapping: ValueOf<NonNullable<Connections['rillet']>['config']['coding']['fieldMappings']>,
-    oldMapping?: ValueOf<NonNullable<Connections['rillet']>['config']['coding']['fieldMappings']>,
+    fieldID: keyof Connections['rillet']['config']['coding']['fieldMappings'],
+    mapping: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']>,
+    oldMapping?: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']>,
 ) {
     const onyxData = prepareRilletFieldMappingOptimisticData(policyID, fieldID, mapping, oldMapping ?? null);
     const parameters: UpdateRilletFieldMappingParams = {

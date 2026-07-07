@@ -50,7 +50,7 @@ function DynamicSageIntacctDefaultVendorPage() {
     }, [backPath]);
 
     let defaultVendor;
-    let settingName: keyof NonNullable<Connections['intacct']>['config']['export'];
+    let settingName: keyof Connections['intacct']['config']['export'];
     if (!isReimbursable) {
         const {nonReimbursable} = exportConfig ?? {};
         defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);

@@ -52,9 +52,9 @@ function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyT
     writeNetSuiteCredentials(WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS, policyID, credentials);
 }
 
-function createPendingFields<TSettingName extends keyof NonNullable<Connections['netsuite']>['options']['config']>(
+function createPendingFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     settingName: TSettingName,
-    settingValue: Partial<NonNullable<Connections['netsuite']>['options']['config'][TSettingName]>,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     pendingValue: OnyxCommon.PendingAction,
 ) {
     if (!isObject(settingValue)) {
@@ -67,9 +67,9 @@ function createPendingFields<TSettingName extends keyof NonNullable<Connections[
     }, {});
 }
 
-function createErrorFields<TSettingName extends keyof NonNullable<Connections['netsuite']>['options']['config']>(
+function createErrorFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     settingName: TSettingName,
-    settingValue: Partial<NonNullable<Connections['netsuite']>['options']['config'][TSettingName]>,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
     if (!isObject(settingValue)) {
@@ -82,11 +82,11 @@ function createErrorFields<TSettingName extends keyof NonNullable<Connections['n
     }, {});
 }
 
-function updateNetSuiteOnyxData<TSettingName extends keyof NonNullable<Connections['netsuite']>['options']['config']>(
+function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<NonNullable<Connections['netsuite']>['options']['config'][TSettingName]>,
-    oldSettingValue: Partial<NonNullable<Connections['netsuite']>['options']['config'][TSettingName]>,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
+    oldSettingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
 ) {
     const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
     const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
@@ -155,11 +155,11 @@ function updateNetSuiteOnyxData<TSettingName extends keyof NonNullable<Connectio
     return {optimisticData, failureData, successData};
 }
 
-function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof NonNullable<Connections['netsuite']>['options']['config']['syncOptions']>(
+function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']['syncOptions']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<NonNullable<Connections['netsuite']>['options']['config']['syncOptions'][TSettingName]>,
-    oldSettingValue: Partial<NonNullable<Connections['netsuite']>['options']['config']['syncOptions'][TSettingName]>,
+    settingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
+    oldSettingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
     modifiedFieldID?: string,
     pendingAction?: OnyxCommon.PendingAction,
 ) {
@@ -333,7 +333,7 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
-function updateNetSuiteImportMapping<TMappingName extends keyof NonNullable<Connections['netsuite']>['options']['config']['syncOptions']['mapping']>(
+function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
     policyID: string | undefined,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
