@@ -8,10 +8,8 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import {
     approveMoneyRequest,
     canApproveIOU,
-    canCancelPayment,
     canIOUBePaid,
     canSubmitReport,
-    canUnapproveIOU,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
@@ -2638,37 +2636,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Then canApproveIOU should still return true for the real approver
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeTruthy();
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeTruthy();
-        });
-    });
-
-    describe('canUnapproveIOU', () => {
-        it('should return false if the report is waiting for a bank account', () => {
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: 'A',
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                isWaitingOnBankAccount: true,
-                managerID: RORY_ACCOUNT_ID,
-            };
-            expect(canUnapproveIOU(fakeReport, undefined)).toBeFalsy();
-        });
-    });
-
-    describe('canCancelPayment', () => {
-        it('should return true if the report is waiting for a bank account', () => {
-            // Using ID_FAKE to test the isWaitingOnBankAccount logic without workspace membership concerns
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: CONST.POLICY.ID_FAKE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                isWaitingOnBankAccount: true,
-                managerID: RORY_ACCOUNT_ID,
-            };
-            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID}, undefined)).toBeTruthy();
         });
     });
 

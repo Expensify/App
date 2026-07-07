@@ -151,7 +151,6 @@ import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
-    getCorrectedAutoReportingFrequency,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -2016,16 +2015,6 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCo
     }
     // Backend deletes transactions on reports with state = STATE_OPEN (0)
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
-}
-
-/**
- * Determines if a report requires manual submission based on policy settings and report state
- */
-function requiresManualSubmission(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-
-    // The report needs manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
-    return isManualSubmitEnabled || (isOpenReport(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
 }
 
 function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>): boolean {
@@ -13679,7 +13668,6 @@ export {
     isPolicyExpenseChat,
     isProcessingReport,
     isOpenReport,
-    requiresManualSubmission,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,
