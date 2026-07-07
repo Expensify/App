@@ -90,24 +90,12 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
     const getSearchStateForTab = useCallback(
         (tab: ReceiptPartnersTab) => {
             if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
-                return {
-                    searchTerm: allSearchTerm,
-                    debouncedSearchTerm: allDebouncedSearchTerm,
-                    setSearchTerm: setAllSearchTerm,
-                };
+                return {searchTerm: allSearchTerm, debouncedSearchTerm: allDebouncedSearchTerm, setSearchTerm: setAllSearchTerm};
             }
             if (tab === CONST.TAB.RECEIPT_PARTNERS.LINKED) {
-                return {
-                    searchTerm: linkedSearchTerm,
-                    debouncedSearchTerm: linkedDebouncedSearchTerm,
-                    setSearchTerm: setLinkedSearchTerm,
-                };
+                return {searchTerm: linkedSearchTerm, debouncedSearchTerm: linkedDebouncedSearchTerm, setSearchTerm: setLinkedSearchTerm};
             }
-            return {
-                searchTerm: outstandingSearchTerm,
-                debouncedSearchTerm: outstandingDebouncedSearchTerm,
-                setSearchTerm: setOutstandingSearchTerm,
-            };
+            return {searchTerm: outstandingSearchTerm, debouncedSearchTerm: outstandingDebouncedSearchTerm, setSearchTerm: setOutstandingSearchTerm};
         },
         [
             allSearchTerm,
@@ -122,27 +110,11 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
         ],
     );
 
-    const uberEmployeesByEmail = useMemo<
-        Record<
-            string,
-            {
-                status?: string;
-                pendingAction?: PendingAction;
-                errors?: Record<string, string | null>;
-            }
-        >
-    >(() => {
+    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
                 uber?: {
-                    employees?: Record<
-                        string,
-                        {
-                            status?: string;
-                            pendingAction?: PendingAction;
-                            errors?: Record<string, string | null>;
-                        }
-                    >;
+                    employees?: Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>;
                 };
             };
         };
@@ -312,7 +284,9 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
             <ScreenWrapper testID="DynamicEditInviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.manageInvites')}
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(backPath);
+                    }}
                 />
 
                 <OnyxTabNavigator
@@ -347,10 +321,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
                                             ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            style={{
-                                                listItemWrapperStyle: styles.cursorDefault,
-                                                listStyle: styles.mt3,
-                                            }}
+                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
                                             textInputOptions={{
