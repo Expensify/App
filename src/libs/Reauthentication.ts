@@ -287,7 +287,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                         stashedCredentials,
                         stashedSession,
                     });
-                    return true;
+                    return false;
                 }
 
                 // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
