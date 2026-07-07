@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useChatWithAgent from '@hooks/useChatWithAgent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -47,6 +48,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
+    const chatWithAgent = useChatWithAgent();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -98,15 +100,13 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const pendingFile = pendingFileRef.current;
 
         // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
-        // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
-        // screen and let it render the agent with opacity until CREATE_AGENT resolves.
-        if (pendingFile) {
-            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
-        } else {
-            createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
-        }
+        // returns the optimistic accountID it wrote into Onyx so we can open the DM with the
+        // new agent right away and let it render with opacity until CREATE_AGENT resolves.
+        const {optimisticAccountID} = pendingFile
+            ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
+            : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        Navigation.goBack();
+        chatWithAgent(optimisticAccountID);
     };
 
     return (
