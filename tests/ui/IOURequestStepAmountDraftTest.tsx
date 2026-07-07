@@ -264,10 +264,10 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
             }),
         );
 
-        // The same optimisticTransactionID must reach the action AND post-create cleanup, else the destination report highlights the wrong transaction.
+        // The action receives the UI-resolved optimistic id (it owns post-create navigation/growl);
+        // cleanup is cleanup-only and no longer takes transaction ids beyond the draft list.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
-        const cleanupArg = jest.mocked(cleanupAfterSkipConfirmSubmit).mock.calls.at(0)?.[0];
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
-        expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
+        expect(cleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
     });
 });

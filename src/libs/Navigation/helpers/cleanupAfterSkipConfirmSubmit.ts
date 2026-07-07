@@ -1,4 +1,4 @@
-import type {CleanupAndNavigateAfterExpenseCreateParams} from './cleanupAndNavigateAfterExpenseCreate';
+import type {CleanupAfterExpenseCreateParams} from './cleanupAfterExpenseCreate';
 
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
 
@@ -8,8 +8,8 @@ import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
  * `shouldHandleNavigation`), so cleanup must never navigate too or the fallback path would run
  * navigation/growl twice. Navigation on dismiss-first paths is done by `submitWithDismissFirst`.
  */
-function cleanupAfterSkipConfirmSubmit(params: CleanupAndNavigateAfterExpenseCreateParams) {
-    cleanupAfterExpenseCreate({draftTransactionIDs: params.draftTransactionIDs, linkedTrackedExpenseReportAction: params.linkedTrackedExpenseReportAction});
+function cleanupAfterSkipConfirmSubmit({draftTransactionIDs, linkedTrackedExpenseReportAction}: CleanupAfterExpenseCreateParams) {
+    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
 }
 
 export default cleanupAfterSkipConfirmSubmit;

@@ -291,17 +291,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
-    function performPostBatchCleanup({
-        allTransactionsCreated,
-    }: {
-        participant: Participant;
-        shouldHandleNavigation: boolean;
-        allTransactionsCreated: boolean;
-        fallbackOptimisticChatReportID: string;
-        navigateBackToReport: string | undefined;
-        lastOptimisticTransactionID: string | undefined;
-        preResolvedChatTarget?: {report: OnyxEntry<Report>; chatReportID: string};
-    }) {
+    function performPostBatchCleanup({allTransactionsCreated}: {allTransactionsCreated: boolean}) {
         const lastTransaction = transactions.at(-1);
         // Action bailed mid-batch — keep drafts for retry.
         if (!allTransactionsCreated) {
@@ -447,6 +437,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // the destination themselves) and only for the final transaction of the batch.
                 shouldHandleNavigation,
                 isLastTransactionOfBatch: index === transactions.length - 1,
+                // Post-create navigation must return to the report the flow started from, not the chat the expense was written to.
+                backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -466,19 +458,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 allTransactionsCreated = false;
             }
         }
-        const isExpenseReport = isMoneyRequestReportReportUtils(report);
-        performPostBatchCleanup({
-            participant,
-            shouldHandleNavigation,
-            allTransactionsCreated,
-            fallbackOptimisticChatReportID: optimisticChatReportID,
-            navigateBackToReport: backToReport,
-            lastOptimisticTransactionID,
-            preResolvedChatTarget: {
-                report: isExpenseReport ? report : undefined,
-                chatReportID: isExpenseReport ? optimisticChatReportID : (existingIOUReport?.chatReportID ?? optimisticChatReportID),
-            },
-        });
+        performPostBatchCleanup({allTransactionsCreated});
     }
 
     function submitPerDiemExpense(trimmedComment: string, shouldHandleNavigation: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
@@ -693,14 +673,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }
-        performPostBatchCleanup({
-            participant,
-            shouldHandleNavigation,
-            allTransactionsCreated: true,
-            fallbackOptimisticChatReportID: optimisticSelfDMReportID,
-            navigateBackToReport: undefined,
-            lastOptimisticTransactionID,
-        });
+        performPostBatchCleanup({allTransactionsCreated: true});
     }
 
     function createDistanceRequest(trimmedComment: string, shouldHandleNavigation = true, shouldDeferForSearch = false) {

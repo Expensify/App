@@ -216,7 +216,6 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
-        shouldUseLiveData,
     });
 
     const {
@@ -235,7 +234,7 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
-    } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys: null, transactions, reportActions});
+    } = useSearchSnapshot({queryJSON, searchResults, transactions, reportActions});
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search

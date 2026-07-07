@@ -18,14 +18,14 @@ import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/action
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, getExistingTransactionID} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -35,7 +35,7 @@ import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepS
 import {resolveChatTargetForScan} from '@pages/iou/request/step/resolveChatTarget';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector, validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type {Report} from '@src/types/onyx';
@@ -55,7 +55,6 @@ import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxEntry<Report>;
-    action: IOUAction;
     iouType: IOUType;
     reportID: string;
     transactionID: string;
@@ -68,7 +67,7 @@ type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
  * Handles GPS permission flow, split bills, and direct submission.
  * Most complex variant with the most Onyx subscriptions.
  */
-function ScanSkipConfirmation({report, action, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanSkipConfirmationProps) {
+function ScanSkipConfirmation({report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanSkipConfirmationProps) {
     const policy = usePolicy(report?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isArchived = useReportIsArchived(report?.reportID);
@@ -167,16 +166,14 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         cancelShutterSpans();
 
         const participant = participants.at(0);
-        const {chatReportID, optimisticChatReportID} = resolveChatTargetForScan({
+        const {optimisticChatReportID} = resolveChatTargetForScan({
             iouType,
             participant,
             report,
             currentUserAccountID: currentUserPersonalDetails.accountID,
         });
         const optimisticTransactionIDs = files.map(() => rand64());
-        const lastOptimisticTransactionID = optimisticTransactionIDs.at(-1) ?? transactionID;
         const linkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
-        const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
 
         const firstReceiptFile = files.at(0);
 
@@ -214,13 +211,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         shouldDeferForSearch: false,
                     });
                     cleanupAfterSkipConfirmSubmit({
-                        report,
-                        action,
                         draftTransactionIDs,
-                        transactionID: getExistingTransactionID(linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID,
-                        isFromGlobalCreate,
-                        backToReport,
-                        optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
                     });
                 },
@@ -284,13 +275,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
                 const runCleanup = () =>
                     cleanupAfterSkipConfirmSubmit({
-                        report,
-                        action,
                         draftTransactionIDs,
-                        transactionID: lastOptimisticTransactionID,
-                        isFromGlobalCreate,
-                        backToReport,
-                        optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
                     });
                 if (locationPermissionGranted) {

@@ -26,7 +26,6 @@ type UseSearchAutoRefetch = {
     searchKey: SearchKey | undefined;
     offset: number;
     shouldCalculateTotals: boolean;
-    shouldUseLiveData: boolean;
 };
 
 function useSearchAutoRefetch({
@@ -39,7 +38,6 @@ function useSearchAutoRefetch({
     searchKey,
     offset,
     shouldCalculateTotals,
-    shouldUseLiveData,
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -129,7 +127,7 @@ function useSearchAutoRefetch({
         }
 
         searchTriggeredRef.current = false;
-    }, [searchResults?.search?.isLoading, shouldUseLiveData, searchResultsData]);
+    }, [searchResults?.search?.isLoading, searchResultsData]);
 }
 
 function getTransactionIDFromValue(value: unknown): string | undefined {

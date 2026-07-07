@@ -72,7 +72,7 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// cleanupAfterSkipConfirmSubmit is a spy so the move-from-track cleanup-id contract can be asserted. It's cleanup-only — the write action owns post-create navigation.
+// cleanupAfterSkipConfirmSubmit is a spy so the cleanup contract (draft ids + linked tracked action) can be asserted. It's cleanup-only — the write action owns post-create navigation.
 const mockCleanupAfterSkipConfirmSubmit = jest.fn();
 jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => ({
     __esModule: true,
@@ -715,7 +715,7 @@ describe('MoneyRequest', () => {
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
 
-        it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track distance submission', async () => {
+        it('should pass the moved transaction linkedTrackedExpenseReportAction to cleanup for a move-from-track distance submission', async () => {
             const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-88';
             const linkedTrackedExpenseReportAction = {
                 reportActionID: 'linked-action-1',
@@ -745,15 +745,16 @@ describe('MoneyRequest', () => {
             await waitForBatchedUpdates();
 
             expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
+            // Cleanup is cleanup-only now; it carries the moved transaction's linkedTrackedExpenseReportAction
+            // (used to release the original tracked expense thread screen).
             expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    linkedTrackedExpenseReportAction,
                 }),
             );
         });
 
-        // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
-        it('should pass the draft transaction id (not the optimistic id) to cleanup for a non-track distance submission', async () => {
+        it('should pass the draft transaction ids to cleanup for a non-track distance submission', async () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 shouldSkipConfirmation: true,
@@ -767,7 +768,7 @@ describe('MoneyRequest', () => {
 
             expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    transactionID: fakeTransaction.transactionID,
+                    draftTransactionIDs: [baseParams.transactionID],
                 }),
             );
         });

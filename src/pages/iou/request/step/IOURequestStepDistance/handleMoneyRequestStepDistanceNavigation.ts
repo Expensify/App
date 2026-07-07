@@ -11,7 +11,7 @@ import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -24,7 +24,7 @@ import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getVal
 
 import {setTransactionReport} from '@userActions/Transaction';
 
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
@@ -100,7 +100,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
-    action: IOUAction;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -194,7 +193,6 @@ function handleMoneyRequestStepDistanceNavigation({
     optimisticTransactionID,
     optimisticChatReportID,
     reportDraft,
-    action,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -210,7 +208,6 @@ function handleMoneyRequestStepDistanceNavigation({
     }
 
     const distance = manualDistance ?? gpsDistance ?? odometerDistance;
-    const transactionIsFromGlobalCreate = getIsFromGlobalCreate(transaction);
     const transactionLinkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
 
     // If a reportID exists in the report object, it's because either:
@@ -333,13 +330,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
                         cleanupAfterSkipConfirmSubmit({
-                            report,
-                            action,
                             draftTransactionIDs,
-                            transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? optimisticTransactionID,
-                            isFromGlobalCreate: transactionIsFromGlobalCreate,
-                            backToReport,
-                            optimisticChatReportID,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                         });
                     },
@@ -408,14 +399,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         },
                     });
                     cleanupAfterSkipConfirmSubmit({
-                        report,
-                        action,
                         draftTransactionIDs,
-                        // createDistanceRequest writes under the existing draft transaction, so the cleanup target must mirror that id, not a fresh optimistic one.
-                        transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? transaction?.transactionID,
-                        isFromGlobalCreate: transactionIsFromGlobalCreate,
-                        backToReport,
-                        optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                     });
                 },

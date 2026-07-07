@@ -245,7 +245,6 @@ function IOURequestStepDistanceManual({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
-            action,
             report,
             policy,
             transaction,

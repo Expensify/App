@@ -154,7 +154,6 @@ function useOdometerNavigation({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
-            action,
             report,
             policy,
             transaction,

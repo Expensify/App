@@ -2777,6 +2777,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionID: transaction?.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isFromGlobalCreate,
+                // Moving a tracked expense (CATEGORIZE/SHARE) lands on a report where the transaction
+                // already exists before the view mounts, so diff-based new-transaction detection misses
+                // it - pending IDs are the fallback highlight path (see useNewTransactions).
                 shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
             });
         } else {

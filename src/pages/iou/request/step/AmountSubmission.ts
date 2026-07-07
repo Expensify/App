@@ -428,13 +428,7 @@ function submitAmount({
                         });
                     }
                     cleanupAfterSkipConfirmSubmit({
-                        report,
-                        action,
                         draftTransactionIDs: draftTransactionIDsList,
-                        transactionID: existingTransactionID ?? optimisticTransactionID,
-                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                        backToReport,
-                        optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
                     });
                 };

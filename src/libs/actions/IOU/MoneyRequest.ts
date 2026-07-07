@@ -172,6 +172,8 @@ function createTransaction({
                 optimisticTransactionID,
                 currentUserLocalCurrency,
                 shouldHandleNavigation,
+                // Navigation/growl must fire once per multi-receipt batch, on its final transaction.
+                isLastTransactionOfBatch: index === files.length - 1,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -215,6 +217,7 @@ function createTransaction({
                 optimisticChatReportID,
                 optimisticTransactionID,
                 shouldHandleNavigation,
+                isLastTransactionOfBatch: index === files.length - 1,
             });
         }
     }

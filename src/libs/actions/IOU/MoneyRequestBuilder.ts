@@ -174,6 +174,7 @@ type RequestMoneyInformation = {
      * so single-transaction callers keep their existing behavior.
      */
     isLastTransactionOfBatch?: boolean;
+    /** Report the money request flow started from; post-create navigation returns there instead of the written-to chat. */
     backToReport?: string;
     /** Retry-path cleanup only; the action itself never reads this. */
     draftTransactionIDs?: string[];

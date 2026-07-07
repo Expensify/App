@@ -173,11 +173,16 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
 
             if (iouReportID && hasMultipleReportTransactions) {
                 Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
-            }
-            setNavigationActionToMicrotaskQueue(() => {
-                setActiveTransactionIDs([transactionID]).then(() => {
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo: Navigation.getActiveRoute()}));
+                // Defer so the thread RHP stacks on top of the expense report navigation above.
+                setNavigationActionToMicrotaskQueue(() => {
+                    setActiveTransactionIDs([transactionID]).then(() => {
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo: Navigation.getActiveRoute()}));
+                    });
                 });
+                return;
+            }
+            setActiveTransactionIDs([transactionID]).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo}));
             });
         };
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
@@ -196,9 +201,9 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     }
 
     // No iouReportID to subscribe to (and no thread ID was passed): the reportActions key would be
-    // `reportActions_undefined` and the callback below early-returns on `!iouReportID` forever, so the
-    // subscription can never resolve and would only fire via the 8s timeout. Resolve immediately with
-    // the same fallback the timeout would produce (a growl without "View" when no thread is resolvable).
+    // `reportActions_undefined`, so the subscription below could never resolve an iouAction and would only
+    // fire via the safety timeout. Resolve immediately with the same fallback the timeout would produce
+    // (a growl without "View" when no thread is resolvable).
     if (!iouReportID) {
         showGrowl(buildThreadFromOnyx());
         return;
@@ -208,11 +213,12 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     // optimistic data → iouAction lands → we show the growl.
     const SAFETY_TIMEOUT_MS = 8000;
     let resolved = false;
+    let safetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
     const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const;
     const connectionId = Onyx.connectWithoutView({
         key: reportActionsKey,
         callback: () => {
-            if (resolved || !iouReportID) {
+            if (resolved) {
                 return;
             }
             const iouAction = getIOUActionForReportID(iouReportID, transactionID);
@@ -220,13 +226,14 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
                 return;
             }
             resolved = true;
+            clearTimeout(safetyTimeoutID);
             Onyx.disconnect(connectionId);
             const threadReportID = buildThreadFromOnyx();
             showGrowl(threadReportID);
         },
     });
 
-    setTimeout(() => {
+    safetyTimeoutID = setTimeout(() => {
         if (resolved) {
             return;
         }
@@ -325,7 +332,7 @@ function navigateAfterExpenseCreate({
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    // POC variant B: navigate to Search (if not already there), then show the "View" growl on
+    // Navigate to Search (if not already there), then show the "View" growl on
     // Search once the optimistic IOU action lands in Onyx. Runs whether or not the user is
     // already on Spend — on the SEARCH_PRE_INSERT fast path the orchestrator pre-inserts Search
     // and dismisses the modal before createTransaction runs, so by the time we get here the user

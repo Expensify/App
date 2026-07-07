@@ -150,7 +150,6 @@ function useDistanceNavigation({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
-            action,
             report,
             policy,
             transaction,

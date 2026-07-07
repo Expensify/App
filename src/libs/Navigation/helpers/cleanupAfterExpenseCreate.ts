@@ -28,3 +28,4 @@ function cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseRep
 }
 
 export default cleanupAfterExpenseCreate;
+export type {CleanupAfterExpenseCreateParams};

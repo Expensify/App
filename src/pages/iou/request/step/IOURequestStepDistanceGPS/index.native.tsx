@@ -124,7 +124,6 @@ function IOURequestStepDistanceGPS({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
-            action,
             report,
             policy,
             transaction,

@@ -193,7 +193,7 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         expect(capturedCreateTransactionArg?.optimisticTransactionIDs).toHaveLength(1);
         expect(capturedCreateTransactionArg?.optimisticChatReportID).toBe('optimistic-resolved');
 
+        // Cleanup is cleanup-only (draft ids + linked tracked action); it no longer receives navigation params.
         expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
-        expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'chat-resolved'}));
     });
 });
