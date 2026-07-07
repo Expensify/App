@@ -5,6 +5,7 @@ keywords: [where is my receipt, download receipt, view payment history, find bil
 internalScope: Audience is Workspace owners. Covers how to locate the monthly Expensify billing receipt in Subscription settings. Does not cover pricing or how to interpret the receipt.
 platform: new
 contentType: task
+order: 1
 ---
 
 # Find Your Expensify Billing Receipt
