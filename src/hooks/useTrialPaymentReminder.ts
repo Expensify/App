@@ -205,11 +205,7 @@ function useTrialPaymentReminder() {
                 return isSameVariation(prev, next) ? prev : next;
             });
 
-        if (
-            !isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) ||
-            doesUserHavePaymentCardAdded(billingFundID) ||
-            currentVariation?.variant === CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN
-        ) {
+        if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) || doesUserHavePaymentCardAdded(billingFundID) || currentVariation?.variant === CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN) {
             return;
         }
 

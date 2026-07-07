@@ -1,9 +1,13 @@
-import React, {useCallback, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import useTrialPaymentReminder from '@hooks/useTrialPaymentReminder';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback, useState} from 'react';
+
 import TrialPaymentReminderModal from './TrialPaymentReminderModal';
 
 function TrialPaymentReminderModalManager() {
