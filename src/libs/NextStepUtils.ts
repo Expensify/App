@@ -157,7 +157,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntent
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackIntentUser ?? isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -221,7 +221,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntent
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackIntentUser ?? isTrackOnboardingChoice(introSelected?.choice),
+                        isTrackIntentUser,
                         report,
                         policy,
                     })
