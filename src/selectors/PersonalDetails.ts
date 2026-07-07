@@ -1,19 +1,33 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {
+    getLoginByAccountID,
+    getLoginsByAccountIDs,
+    getPersonalDetailsByID,
+    getPersonalDetailsListByIDs,
+    newGetPersonalDetailsByIDs,
+    temporaryGetDisplayNameOrDefault,
+} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
-const multiPersonalDetailsSelector = (accountIDs: number[]) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
+const multiPersonalDetailsSelector = (accountIDs: number[] | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
 
-const personalDetailsListSelector = (accountIDs: Array<number | undefined>) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+const personalDetailsListSelector = (accountIDs: Array<number | undefined> | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
+const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
+
+const personalDetailsDisplayNameSelector = (accountID: number, translate: LocalizedTranslate) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
+    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate});
 
 const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
@@ -36,6 +50,11 @@ const createDisplayDetailsByAccountIDsSelector =
         }
         return result;
     };
+
+const doesPersonalDetailExistSelector =
+    (accountID: number | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
+        accountID !== undefined && !!personalDetailsList?.[accountID];
 
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
@@ -67,7 +86,9 @@ export {
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
+    personalDetailsLoginsSelector,
     conciergePersonalDetailSelector,
+    doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,

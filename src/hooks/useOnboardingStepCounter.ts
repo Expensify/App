@@ -1,6 +1,8 @@
 import {getOnboardingStepCounter} from '@libs/getOnboardingStepCounter';
 import type {OnboardingScreen, OnboardingStepResult} from '@libs/getOnboardingStepCounter';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useOnyx from './useOnyx';
 
 function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult | undefined {
@@ -14,6 +16,7 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
         hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
         purposeSelected: purposeSelected ?? undefined,
         isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
+        isAccountValidated: !!account?.validated,
     });
 }
 

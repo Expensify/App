@@ -6,7 +6,7 @@ keywords: [New Expensify, workflows, approval workflows, delay submission, add a
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
 
-**Note:** Workflows are available on **Collect** and **Control** workspaces. Only **Workspace Admins** can enable and configure them.
+**Note:** Workflows are available on **Collect** and **Control** workspaces. **Workspace Admins** can enable and configure all workflow settings. **People Admins** can configure the **Approvals** section; the **Submissions** and **Payments** sections remain available to Workspace Admins only.
 
 ---
 
@@ -40,6 +40,7 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 - You can assign an approver per workspace member.
 - You can also set an over-limit approver for reports that exceed a specific amount. 
 - The default approver is the **Workspace Owner**, but any workspace member can be selected.
+- Both **Workspace Admins** and **People Admins** can enable and configure Approvals.
 
 Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
 

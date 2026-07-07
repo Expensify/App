@@ -1,10 +1,15 @@
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import colors from '@styles/theme/colors';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type EnterSignerInfoProps = {
     /** The policy ID that owns the bank account requiring signer info */

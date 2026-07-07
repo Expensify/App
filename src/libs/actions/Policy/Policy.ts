@@ -1,14 +1,8 @@
-/* eslint-disable max-lines */
-import {addDays} from 'date-fns/addDays';
-import {formatDate} from 'date-fns/format';
-import {subMinutes} from 'date-fns/subMinutes';
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type PolicyData from '@hooks/usePolicyData/types';
+
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -101,12 +95,15 @@ import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhe
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNegatedAmountTransaction} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
+
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -153,6 +150,17 @@ import type {NotificationPreference} from '@src/types/onyx/Report';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+/* eslint-disable max-lines */
+import {addDays} from 'date-fns/addDays';
+import {formatDate} from 'date-fns/format';
+import {subMinutes} from 'date-fns/subMinutes';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -407,6 +415,13 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.policyAccountID;
 
+    if (hasDeleteWorkspaceExpensifyCardsError) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError'),
+        });
+        return;
+    }
+
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.POLICY
@@ -430,7 +445,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: {
                 avatarURL: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: hasDeleteWorkspaceExpensifyCardsError ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError') : null,
+                errors: null,
             },
         },
         {
@@ -613,16 +628,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
-
-        if (hasDeleteWorkspaceExpensifyCardsError) {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    errors: null,
-                },
-            });
-        }
 
         reportIDToOptimisticCloseReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
 
@@ -1579,6 +1584,7 @@ function createPolicyExpenseChats(
     reportActionsList?: OnyxCollection<ReportActions>,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    doesPersonalDetailExistByAccountID?: Record<number, boolean>,
 ): WorkspaceMembersChats {
     const {accountID: currentUserAccountID, displayName: currentUserDisplayName, email: currentUserEmail, avatar: currentUserAvatar} = currentUser;
     const workspaceMembersChats: WorkspaceMembersChats = {
@@ -1711,7 +1717,7 @@ function createPolicyExpenseChats(
                         createChat: null,
                     },
                     participants: {
-                        [accountID]: deprecatedAllPersonalDetails?.[accountID] ? {} : null,
+                        [accountID]: (doesPersonalDetailExistByAccountID?.[accountID] ?? !!deprecatedAllPersonalDetails?.[accountID]) ? {} : null,
                     },
                 },
             },
@@ -6190,15 +6196,22 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string, c
 }
 
 /**
- *
  * @param policyID
- * @param prohibitedExpense
+ * @param prohibitedExpenses - The full prohibited expenses values to save
+ * @param previousProhibitedExpenses - The previous prohibited expenses values from Onyx
  */
-function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses, currentProhibitedExpense: ProhibitedExpenses | undefined) {
-    const prohibitedExpenses = {
-        ...currentProhibitedExpense,
-        [prohibitedExpense]: !currentProhibitedExpense?.[prohibitedExpense],
-    };
+function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses, previousProhibitedExpenses: ProhibitedExpenses | undefined) {
+    const prohibitedExpenseKeys = Object.values(CONST.POLICY.PROHIBITED_EXPENSES);
+    const changedKeys = prohibitedExpenseKeys.filter((key) => prohibitedExpenses[key] !== previousProhibitedExpenses?.[key]);
+
+    if (changedKeys.length === 0) {
+        return;
+    }
+
+    const pendingFields = changedKeys.reduce<NonNullable<ProhibitedExpenses['pendingFields']>>((acc, key) => {
+        acc[key] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        return acc;
+    }, {});
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -6208,9 +6221,7 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
                 value: {
                     prohibitedExpenses: {
                         ...prohibitedExpenses,
-                        pendingFields: {
-                            [prohibitedExpense]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
+                        pendingFields,
                     },
                 },
             },
@@ -6221,9 +6232,7 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     prohibitedExpenses: {
-                        pendingFields: {
-                            [prohibitedExpense]: null,
-                        },
+                        pendingFields: Object.fromEntries(changedKeys.map((key) => [key, null])),
                     },
                     errorFields: null,
                 },
@@ -6234,21 +6243,34 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    prohibitedExpenses: currentProhibitedExpense,
+                    prohibitedExpenses: previousProhibitedExpenses,
                     errorFields: {prohibitedExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
         ],
     };
 
-    // Remove pendingFields before sending to the API
-    const {pendingFields, ...prohibitedExpensesWithoutPendingFields} = prohibitedExpenses;
+    const {pendingFields: pendingFieldsToRemove, ...prohibitedExpensesWithoutPendingFields} = prohibitedExpenses;
     const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
         prohibitedExpenses: JSON.stringify(prohibitedExpensesWithoutPendingFields),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, onyxData);
+}
+
+/**
+ *
+ * @param policyID
+ * @param prohibitedExpense
+ */
+function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses, currentProhibitedExpense: ProhibitedExpenses | undefined) {
+    const prohibitedExpenses = {
+        ...currentProhibitedExpense,
+        [prohibitedExpense]: !currentProhibitedExpense?.[prohibitedExpense],
+    };
+
+    setPolicyProhibitedExpenses(policyID, prohibitedExpenses, currentProhibitedExpense);
 }
 
 /**
@@ -6568,6 +6590,31 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     };
 
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
+/**
+ * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
+ * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
+ * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
+ */
+function getBillableExpensesPendingAction(policy: OnyxEntry<Policy>): PendingAction | undefined {
+    if (policy?.pendingFields?.defaultBillable) {
+        return policy.pendingFields.defaultBillable;
+    }
+
+    if (policy?.disabledFields?.defaultBillable && policy?.pendingFields?.disabledFields) {
+        return policy.pendingFields.disabledFields;
+    }
+
+    return undefined;
+}
+
+function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
+    if (policy?.disabledFields?.defaultBillable) {
+        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
+    } else if (policy) {
+        disableWorkspaceBillableExpenses(policy.id);
+    }
 }
 
 function getWorkspaceEReceiptsEnabledOnyxData(policyID: string, enabled: boolean, currentEnabled: boolean | undefined): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
@@ -7547,7 +7594,6 @@ export {
     deleteWorkspace,
     updateAddress,
     updateLastAccessedWorkspace,
-    clearDeleteWorkspaceError,
     dismissWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
@@ -7637,10 +7683,13 @@ export {
     setPolicyMaxExpenseAge,
     updateCustomRules,
     setPolicyProhibitedExpense,
+    setPolicyProhibitedExpenses,
     setDuplicateWorkspaceData,
     clearDuplicateWorkspace,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
+    getBillableExpensesPendingAction,
+    toggleBillableExpenses,
     setWorkspaceEReceiptsEnabled,
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,

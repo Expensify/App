@@ -1,6 +1,3 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -8,12 +5,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -22,11 +21,18 @@ import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/Re
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
@@ -54,6 +60,7 @@ function SearchEditMultiplePage() {
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -180,6 +187,7 @@ function SearchEditMultiplePage() {
                 reportActions: mergedReportActions,
                 policyCategories: allPolicyCategories,
                 policyTags: allPolicyTags,
+                violations: allTransactionViolations,
                 hash: currentSearchHash,
                 allPolicies: policies,
                 currentUserAccountID,
