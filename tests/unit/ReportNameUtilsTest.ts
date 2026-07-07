@@ -1262,7 +1262,7 @@ describe('ReportNameUtils', () => {
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
-            it('excludes participants with pending DELETE action from pendingChatMembers', async () => {
+            it('excludes participants whose accountIDs are in pendingDeleteMemberAccountIDs', async () => {
                 const report: Report = {
                     ...createRegularChat(1, [1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -1271,14 +1271,10 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-                const pendingChatMembers = [
-                    {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    {accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                ];
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers)).toEqual('One, Three');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, ['2', '4'])).toEqual('One, Three');
             });
 
-            it('includes all participants when pendingChatMembers has no DELETE actions', async () => {
+            it('includes all participants when pendingDeleteMemberAccountIDs is empty', async () => {
                 const report: Report = {
                     ...createRegularChat(1, [1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -1287,11 +1283,10 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-                const pendingChatMembers = [{accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, [])).toEqual('Four, One, Three, Two');
             });
 
-            it('uses passed pendingChatMembers instead of falling back to report metadata', async () => {
+            it('uses passed pendingDeleteMemberAccountIDs instead of falling back to report metadata', async () => {
                 const report: Report = {
                     ...createRegularChat(1, [1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -1303,8 +1298,7 @@ describe('ReportNameUtils', () => {
                     pendingChatMembers: [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
                 });
 
-                const pendingChatMembers = [{accountID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}];
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers)).toEqual('Four, One, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, ['3'])).toEqual('Four, One, Two');
             });
         });
     });

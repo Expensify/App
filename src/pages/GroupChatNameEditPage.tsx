@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {pendingChatMembersListSelector} from '@src/selectors/ReportMetaData';
+import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -41,13 +41,15 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
     const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
-    const [pendingChatMembers] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersListSelector});
+    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const existingReportName = report ? getGroupChatName(formatPhoneNumber, undefined, false, report, pendingChatMembers) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants);
+    const existingReportName = report
+        ? getGroupChatName(formatPhoneNumber, undefined, false, report, pendingDeleteMemberAccountIDs)
+        : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 

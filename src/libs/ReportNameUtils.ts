@@ -15,7 +15,6 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
-import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -263,7 +262,7 @@ function getGroupChatName(
     participants?: SelectedParticipant[],
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,
-    pendingChatMembers?: PendingChatMember[],
+    pendingDeleteMemberAccountIDs?: string[],
 ): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
@@ -271,11 +270,13 @@ function getGroupChatName(
     }
 
     // TODO: Remove the getReportMetadata fallback once https://github.com/Expensify/App/issues/66421 is done
-    const resolvedPendingChatMembers = pendingChatMembers ?? getReportMetadata(report?.reportID)?.pendingChatMembers;
+    const resolvedPendingDeleteMemberAccountIDs =
+        pendingDeleteMemberAccountIDs ??
+        getReportMetadata(report?.reportID)
+            ?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map((member) => member.accountID);
 
-    const pendingMemberAccountIDs = new Set(
-        resolvedPendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
-    );
+    const pendingMemberAccountIDs = new Set(resolvedPendingDeleteMemberAccountIDs);
     let participantAccountIDs =
         participants?.map((participant) => participant.accountID) ??
         Object.keys(report?.participants ?? {})
