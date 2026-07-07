@@ -1,11 +1,13 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
@@ -62,7 +64,6 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string)
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             value: {
                 isLoading: false,
-                errors: getMicroSecondOnyxErrorWithTranslationKey('travel.errorMessage'),
             },
         },
     ];

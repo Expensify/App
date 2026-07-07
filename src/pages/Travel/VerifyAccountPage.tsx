@@ -1,16 +1,21 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+
 import {requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+
+import React, {useCallback, useEffect} from 'react';
 
 type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 

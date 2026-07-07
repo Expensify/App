@@ -1,7 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,22 +5,32 @@ import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type DomainItem = ListItem & {
     value: string;

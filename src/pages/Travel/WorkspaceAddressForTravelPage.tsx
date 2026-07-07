@@ -1,21 +1,27 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+
 import AddressPage from '@pages/AddressPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateAddress} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React from 'react';
 
 type WorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_ADDRESS>;
 
