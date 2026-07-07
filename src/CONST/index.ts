@@ -8812,12 +8812,6 @@ const CONST = {
                 url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
                 publishedDate: '2026-06-24',
             },
-            {
-                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
-                publishedDate: '2026-06-08',
-            },
         ],
     },
 
