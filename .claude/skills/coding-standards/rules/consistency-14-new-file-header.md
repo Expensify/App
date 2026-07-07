@@ -7,7 +7,7 @@ title: Non-trivial new files start with a header description
 
 ### Reasoning
 
-Per the PR checklist, when a new file is added it should carry a short description of what it does and/or why it is needed at the top of the file, unless the code is self explanatory. A one-line header comment on a new library, hook, or util orients the next reader immediately instead of forcing them to reverse-engineer the module's purpose from its exports.
+Per the PR checklist, when a new file is added it should carry a short description of what it does and/or why it is needed at the top of the file, unless the code is self explanatory. A one-line header comment on a new module, component, hook, or util orients the next reader immediately instead of forcing them to reverse-engineer the file's purpose from its exports.
 
 ### Incorrect
 
@@ -40,7 +40,7 @@ function deriveLimit(card: Card): number {
 
 Flag ONLY when ALL of these are true:
 
-- The change **adds a new file** (not a modification of an existing one) under `src/libs/**`, `src/hooks/**`, or a comparable non-trivial module directory
+- The change **adds a new file** (not a modification of an existing one) under `src/**`
 - The file contains non-trivial logic (more than a few lines; not a pure re-export or a single constant)
 - Its first non-import, non-directive token is not a comment - there is no header comment describing the file
 
@@ -52,4 +52,4 @@ Flag ONLY when ALL of these are true:
 - A header comment is already present
 
 **Search Patterns** (hints for reviewers):
-- Newly added files under `src/libs/**` / `src/hooks/**` whose first line is `import`/`export` with no leading `/** */` or `//` header
+- Newly added files under `src/**` whose first line is `import`/`export` with no leading `/** */` or `//` header

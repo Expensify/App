@@ -26,7 +26,9 @@
 - [ ] I verified other components that can be impacted by these changes have been tested, and I retested again (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` have been tested & I retested again)
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
+    - [ ] All props are defined accurately
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
+    - [ ] The only data being stored in the state is data necessary for rendering and nothing else
     - [ ] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
