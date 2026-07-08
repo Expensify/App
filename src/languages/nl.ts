@@ -5069,6 +5069,7 @@ ${amount} voor ${merchant} - ${date}`,
                 oauth: 'Log in via Salesforce',
                 oauthDescription: 'Om de installatie te voltooien, moet je je aanmelden via Salesforce en Certinia.\n\nGebruik de knop hieronder om door te gaan.',
                 connectButton: 'Verbind met Certinia',
+                connectSandboxButton: 'Verbind met Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Rekeningschema',
@@ -6318,6 +6319,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
                 copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
             },
+            upgrade: {
+                title: 'Voor sommige functies is een Control-abonnement vereist',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} gebruikt ${features}, waarvoor een Control-abonnement nodig is.
+
+Wil je deze functies ook in je andere werkruimtes gebruiken, upgrade die dan om door te gaan.
+
+Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -7204,6 +7213,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            unlockFeatures: 'Ontgrendel deze functies!',
         },
         downgrade: {
             commonFeatures: {
@@ -8960,13 +8970,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Afwezigheid plannen',
         scheduleOOOTitle: 'Afwezigheid plannen',
-        date: 'Datum',
+        date: 'Startdatum',
+        endDate: 'Einddatum',
         time: 'Tijd (24-uursnotatie)',
         durationAmount: 'Duur',
         durationUnit: 'Eenheid',
         reason: 'Reden',
         workingPercentage: 'Werkpercentage',
-        dateRequired: 'Datum is verplicht.',
+        dateRequired: 'Startdatum is verplicht.',
+        endDateBeforeStart: 'Einddatum kan niet vóór de startdatum liggen.',
         invalidTimeFormat: 'Voer een geldige 24-uurs tijd in (bijv. 14:30).',
         enterANumber: 'Voer een getal in.',
         hour: 'uren',

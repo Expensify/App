@@ -2851,6 +2851,7 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    isPaidGroupPolicyByType,
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
