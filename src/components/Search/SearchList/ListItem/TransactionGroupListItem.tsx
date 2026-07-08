@@ -322,8 +322,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         onLongPressRow?.(transaction as unknown as TItem);
     };
 
-    const handleSelectionButtonPress = (val: TItem) => {
-        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
+    const handleSelectionButtonPress = (val: TItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };
 
     const onExpandIconPress = () => {
