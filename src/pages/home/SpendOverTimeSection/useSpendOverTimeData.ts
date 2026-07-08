@@ -1,18 +1,23 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {search} from '@libs/actions/Search';
 import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useEffectEvent} from 'react';
 
 const SPEND_OVER_TIME_STATE = {
     OFFLINE: 'offline',
@@ -99,6 +104,7 @@ function useSpendOverTimeData() {
                       bankAccountList: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
+                      reportAttributesDerivedValue: undefined,
                   })[0],
                   localeCompare,
                   translate,

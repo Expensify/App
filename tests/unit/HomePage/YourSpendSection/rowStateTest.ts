@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {getYourSpendRowState, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
+
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 // Helpers
 

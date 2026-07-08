@@ -1,8 +1,12 @@
-import React from 'react';
 import type {Filter, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
+
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import React from 'react';
+
 import type {FilterComponentsProps} from '..';
+
 import FilterComponents from '..';
 
 type CommonFilterContentProps = SearchFilterCommonProps<Exclude<FilterComponentsProps['value'], SearchAdvancedFiltersForm[SearchTextFilterKeys]>> & {

@@ -1,11 +1,16 @@
-import React from 'react';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getAllPolicyValuesMap} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
 type TaxRateSelectorProps = SearchFilterCommonProps<string[] | undefined> & {

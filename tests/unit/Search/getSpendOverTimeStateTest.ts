@@ -1,5 +1,7 @@
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+
 import {getSpendOverTimeState, SPEND_OVER_TIME_STATE} from '@pages/home/SpendOverTimeSection/useSpendOverTimeData';
+
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
 

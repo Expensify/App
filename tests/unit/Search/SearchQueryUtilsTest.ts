@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-// we need "dirty" object key names in these tests
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ASTNode, QueryFilter, SearchQueryJSON} from '@components/Search/types';
+
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import {
@@ -44,6 +43,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
+import {Connections} from '@src/types/onyx/Policy';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+// we need "dirty" object key names in these tests
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from 'tests/utils/createMock';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import {localeCompare, translateLocal} from '../../utils/TestHelper';
 
@@ -661,6 +668,28 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense withdrawalStatus:pending,cleared,failed');
         });
 
+        test('with single paid status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report paidStatus:markedAsPaid');
+        });
+
+        test('with multi-value paid status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report paidStatus:markedAsPaid,withdrawing,confirmed');
+        });
+
         test('with withdrawn filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1176,6 +1205,47 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+            });
+        });
+
+        test('paid status filter parses valid values and drops invalid ones', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            let queryString = 'sortBy:date sortOrder:desc type:expense-report paid-status:markedAsPaid,withdrawing,confirmed';
+            let queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense-report',
+                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            });
+
+            // invalid values are dropped, valid ones retained
+            queryString = 'sortBy:date sortOrder:desc type:expense-report paid-status:markedAsPaid,INVALID,confirmed';
+            queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense-report',
+                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.CONFIRMED],
             });
         });
 
@@ -3742,7 +3812,7 @@ describe('SearchQueryUtils', () => {
         });
 
         it('returns Set with connection name when policy has verified connection', () => {
-            const policyWithXero = createMock<Policy>({
+            const policyWithXero = createMock<OnyxTypes.Policy>({
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
@@ -3750,26 +3820,26 @@ describe('SearchQueryUtils', () => {
                     },
                 }),
             });
-            const policies: OnyxCollection<Policy> = {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
             };
             expect(getConnectedIntegrationNamesForPolicies(policies, undefined)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
         });
 
         it('filters by policyIDs when provided', () => {
-            const policy1WithQBO = createMock<Policy>({
+            const policy1WithQBO = createMock<OnyxTypes.Policy>({
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
                 }),
             });
-            const policy2WithXero = createMock<Policy>({
+            const policy2WithXero = createMock<OnyxTypes.Policy>({
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                 connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
                 }),
             });
-            const policies: OnyxCollection<Policy> = {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
             };
@@ -3777,21 +3847,21 @@ describe('SearchQueryUtils', () => {
         });
 
         it('returns all connection names when policies have different connections', () => {
-            const policy1 = createMock<Policy>({
+            const policy1 = createMock<OnyxTypes.Policy>({
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
                 }),
             });
 
-            const policy2 = createMock<Policy>({
+            const policy2 = createMock<OnyxTypes.Policy>({
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                 connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
                 }),
             });
 
-            const policies: OnyxCollection<Policy> = {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
             };

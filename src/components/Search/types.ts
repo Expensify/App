@@ -1,13 +1,17 @@
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
+
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
 import type {
     ReportActionListItemType,
     SearchListItem,
@@ -160,6 +164,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
+type SearchPaidStatus = Array<ValueOf<typeof CONST.SEARCH.PAID_STATUS>>;
 type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type SearchCustomColumnIds =
@@ -488,6 +493,7 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
+    SearchPaidStatus,
     UserFriendlyValue,
     SelectedReports,
     SearchTextFilterKeys,

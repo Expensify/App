@@ -1,9 +1,3 @@
-import type {ValueOf} from 'type-fest';
-import type ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
-import type ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
-import type TaskListItem from '@components/Search/SearchList/ListItem/TaskListItem';
-import type TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
-import type TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {
     ReportActionListItemType,
     TaskListItemType,
@@ -12,9 +6,13 @@ import type {
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import type {SearchGroupBy} from '@components/Search/types';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {ValueOf} from 'type-fest';
+
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
@@ -28,17 +26,6 @@ import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
-
-/** Model of search result list item */
-type ListItemType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
-    ? typeof ChatListItem
-    : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
-      ? typeof TaskListItem
-      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
-        ? typeof ExpenseReportListItem
-        : G extends SearchGroupBy
-          ? typeof TransactionGroupListItem
-          : typeof TransactionListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
@@ -342,7 +329,6 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    ListItemType,
     ListItemDataType,
     SearchTask,
     SearchTransactionAction,
