@@ -8587,6 +8587,49 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.topSpenders).toBe(true);
         });
 
+        test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
+            const adminEmail = 'admin@policy.com';
+            const eligiblePolicyID = 'GROUPWS01';
+            const ineligiblePolicyID = 'PERSONALWS02';
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${eligiblePolicyID}`]: {
+                    id: eligiblePolicyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+                // Personal (non-group) policy is not eligible for Top Spenders and must not be scoped in.
+                [`policy_${ineligiblePolicyID}`]: {
+                    id: ineligiblePolicyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+            expect(response.topSpendersPolicyIDs).toEqual([eligiblePolicyID]);
+
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, response.topSpendersPolicyIDs);
+            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
+            expect(topSpendersQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${eligiblePolicyID}`);
+            expect(topSpendersQuery).not.toContain(ineligiblePolicyID);
+        });
+
+        test('Should not add a policyID filter to the Top Spenders query when there are no eligible workspaces', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, []);
+            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
+            expect(topSpendersQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:`);
+        });
+
         test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
             const workflowApproverEmail = 'workflow-approver@policy.com';
             const policyKey = `policy_${policyID}`;
