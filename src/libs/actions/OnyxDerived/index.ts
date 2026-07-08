@@ -72,8 +72,10 @@ function init() {
 
             // Coalesce per-dependency recomputes from one logical change into a single compute on the next macrotask.
             let flushScheduled = false;
+
             // Dependency indexes that fired since the last flush; their deltas are reconstructed at flush time.
             const pendingDependencyIndexes = new Set<number>();
+
             // Snapshot of each collection dependency captured at the last flush. We diff the current snapshot
             // against it to reconstruct the changed-member delta, instead of relying on Onyx's sourceValue.
             const lastFlushedCollectionValues = new Array<OnyxCollection<unknown>>(totalConnections);
