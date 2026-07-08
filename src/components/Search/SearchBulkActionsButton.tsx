@@ -34,7 +34,7 @@ import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchSelectionContext} from './SearchContext';
+import {useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -46,7 +46,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -122,7 +123,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         }, 0);
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
-    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
+    const allMatchingSelectedItemsCount = Math.max((currentSearchResults?.search?.count ?? selectedItemsCount) - Object.keys(excludedTransactions).length, 0);
+    const selectionButtonText = areAllMatchingItemsSelected
+        ? translate('workspace.common.selected', {count: allMatchingSelectedItemsCount})
+        : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
         <>

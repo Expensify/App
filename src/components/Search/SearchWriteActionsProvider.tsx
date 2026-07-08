@@ -127,7 +127,7 @@ function useReconcileSelectionWithData({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
 }: ReconcileSelectionParams) {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
 
     useEffect(() => {
@@ -150,7 +150,7 @@ function useReconcileSelectionWithData({
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         continue;
                     }
-                    if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
+                    if (reportKey && (reportKey in selectedTransactions || (areAllMatchingItemsSelected && !excludedTransactions[reportKey]))) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
@@ -172,6 +172,9 @@ function useReconcileSelectionWithData({
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                    if (excludedTransactions[listKey] || excludedTransactions[transactionItem.transactionID]) {
+                        continue;
+                    }
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
@@ -218,6 +221,9 @@ function useReconcileSelectionWithData({
                     continue;
                 }
                 const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                if (excludedTransactions[listKey] || excludedTransactions[transactionItem.transactionID]) {
+                    continue;
+                }
                 if (!(listKey in selectedTransactions) && !(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
                     continue;
                 }
@@ -270,7 +276,7 @@ function useReconcileSelectionWithData({
         // hook doc above): including it would re-run this reconcile on every checkbox press. We only want it to
         // run when the underlying data, focus, or select-all state changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [filteredData, applySelection, areAllMatchingItemsSelected, excludedTransactions, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 }
 
 /** Turn mobile selection mode off once nothing is selected and the selection asked to exit the mode. */
@@ -349,6 +355,7 @@ function SearchWriteActionsProvider({
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection} = useSearchSelectionActions();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
@@ -392,7 +399,7 @@ function SearchWriteActionsProvider({
 
                     return updatedTransactions;
                 },
-                {totalSelectableItemsCount},
+                {totalSelectableItemsCount, shouldUseAllMatchingExclusions: areAllMatchingItemsSelected},
             );
             return;
         }
@@ -456,7 +463,7 @@ function SearchWriteActionsProvider({
                     ),
                 };
             },
-            {totalSelectableItemsCount},
+            {totalSelectableItemsCount, shouldUseAllMatchingExclusions: areAllMatchingItemsSelected},
         );
     };
 

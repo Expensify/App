@@ -212,6 +212,7 @@ type SearchResultsActionsValue = {
 type SearchSelectionContextValue = {
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
+    excludedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     shouldTurnOffSelectionMode: boolean;
@@ -236,7 +237,10 @@ type SearchSelectionActionsValue = {
      * thus re-rendering on — selection state. Passing `data` derives `selectedReports` in the same commit; passing
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
      */
-    applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
+    applySelection: (
+        updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
+        options?: {data?: SearchData; totalSelectableItemsCount?: number; shouldUseAllMatchingExclusions?: boolean},
+    ) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */

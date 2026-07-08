@@ -14,6 +14,7 @@ type SearchSelectionProviderProps = {
 
 type SelectionState = {
     selectedTransactions: SelectedTransactions;
+    excludedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     currentSelectedTransactionReportID: string | undefined;
@@ -23,6 +24,7 @@ type SelectionState = {
 
 const defaultSelectionState: SelectionState = {
     selectedTransactions: {},
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     currentSelectedTransactionReportID: undefined,
@@ -87,12 +89,28 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             }
 
             const totalSelectableItemsCount = options?.totalSelectableItemsCount;
+            const shouldUseAllMatchingExclusions = prevState.areAllMatchingItemsSelected && options?.shouldUseAllMatchingExclusions;
+            const excludedTransactions = {...prevState.excludedTransactions};
+            if (shouldUseAllMatchingExclusions) {
+                for (const key of Object.keys(selectedTransactions)) {
+                    delete excludedTransactions[key];
+                }
+
+                for (const [key, value] of Object.entries(prevState.selectedTransactions)) {
+                    if (!selectedTransactions[key]?.isSelected) {
+                        excludedTransactions[key] = value;
+                    }
+                }
+            }
             const areAllMatchingItemsSelected =
-                totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
+                !shouldUseAllMatchingExclusions && totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length
+                    ? false
+                    : prevState.areAllMatchingItemsSelected;
 
             return {
                 ...prevState,
                 selectedTransactions,
+                excludedTransactions: areAllMatchingItemsSelected ? excludedTransactions : {},
                 areAllMatchingItemsSelected,
                 selectedReports: options?.data ? deriveSelectedReports(selectedTransactions, options.data) : prevState.selectedReports,
                 shouldTurnOffSelectionMode: false,
@@ -132,6 +150,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             return {
                 ...prevState,
                 areAllMatchingItemsSelected: shouldSelectAll,
+                excludedTransactions: {},
             };
         });
     };
@@ -154,6 +173,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 ...prevState,
                 shouldTurnOffSelectionMode,
                 selectedTransactions: {},
+                excludedTransactions: {},
                 selectedReports: [],
                 areAllMatchingItemsSelected: false,
             };
@@ -191,7 +211,8 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         });
     };
 
-    const hasSelectedTransactions = selectionState.selectedTransactionIDs.length > 0 || Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
+    const hasSelectedTransactions =
+        selectionState.areAllMatchingItemsSelected || selectionState.selectedTransactionIDs.length > 0 || Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
 
     const selectionValue: SearchSelectionContextValue = {
         ...selectionState,
@@ -242,11 +263,11 @@ function useSyncSelectedReports(data: SearchData) {
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
 function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }
-    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+    return {isSelected: (areAllMatchingItemsSelected && !excludedTransactions[keyForList]) || !!selectedTransactions[keyForList]?.isSelected};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */
