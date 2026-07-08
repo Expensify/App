@@ -414,7 +414,6 @@ const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
 const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
     CONST.SEARCH.TABLE_COLUMNS.TYPE,
-    CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
