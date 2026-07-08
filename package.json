@@ -38,6 +38,7 @@
     "build-staging": "tsx ./node_modules/.bin/webpack-cli --config config/webpack/webpack.common.ts --env file=.env.staging && tsx ./scripts/combine-web-sourcemaps.ts",
     "build-adhoc": "tsx ./node_modules/.bin/webpack-cli --config config/webpack/webpack.common.ts --env file=.env.adhoc && tsx ./scripts/combine-web-sourcemaps.ts",
     "build-rspack": "NODE_OPTIONS=--max_old_space_size=8192 node_modules/.bin/rspack build --config config/webpack/webpack.common.rspack.ts --env file=.env.production && tsx ./scripts/combine-web-sourcemaps.ts",
+    "build-staging-rspack": "NODE_OPTIONS=--max_old_space_size=8192 node_modules/.bin/rspack build --config config/webpack/webpack.common.rspack.ts --env file=.env.staging && tsx ./scripts/combine-web-sourcemaps.ts",
     "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.ts",
     "generateAllowedUrls": "ts-node .github/scripts/generateAllowedUrls.ts",
     "detectRedirectCycle": "ts-node .github/scripts/detectRedirectCycle.ts",

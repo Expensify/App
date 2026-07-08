@@ -94,10 +94,19 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     },
                 ],
             },
-            // Rspack's incremental/persistent build cache is configured differently from webpack 5's
-            // `cache: {type: 'filesystem'}` — left out here deliberately; see contributingGuides note
-            // for the follow-up once we validate whether the default incremental rebuild is fast enough
-            // to skip it, or whether `experiments.cache` needs to be turned on explicitly.
+            // Rspack 2.x moved persistent cache out of the old `experiments.cache` flag into a top-level
+            // `cache` option (mirrors webpack 5's `cache: {type: 'filesystem'}`, just reshaped) — this
+            // persists the incremental-build cache to disk across dev-server restarts, so the *next*
+            // `npm run web-rspack` after a restart doesn't recompile from scratch.
+            cache: {
+                type: 'persistent',
+                buildDependencies: [__filename, path.join(__dirname, 'webpack.common.rspack.ts')],
+                snapshot: {
+                    // Mirrors webpack.dev.ts's snapshot.managedPaths: trust node_modules not to change
+                    // while running, except for packages we symlink/patch locally during development.
+                    managedPaths: [/([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/],
+                },
+            },
         });
 
         return config;
