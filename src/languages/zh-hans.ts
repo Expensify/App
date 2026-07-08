@@ -4920,6 +4920,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 oauth: '通过 Salesforce 登录',
                 oauthDescription: '要完成设置，您需要通过 Salesforce 和 Certinia 登录。\n\n请使用下方按钮继续。',
                 connectButton: '连接到 Certinia',
+                connectSandboxButton: '连接到 Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: '会计科目表',
