@@ -8937,6 +8937,7 @@ const translations = {
             pending: 'Pending',
             cleared: 'Cleared',
             failed: 'Failed',
+            never: 'Never',
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,

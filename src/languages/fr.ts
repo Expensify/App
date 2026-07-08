@@ -8898,6 +8898,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pending: 'En attente',
             cleared: 'Compensé',
             failed: 'Échec',
+            never: 'Jamais',
         },
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
