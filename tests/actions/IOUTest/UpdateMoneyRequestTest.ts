@@ -903,6 +903,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the date
             updateMoneyRequestDate({
+                personalPolicyOutputCurrency: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
@@ -1082,6 +1083,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
+                personalPolicyOutputCurrency: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1174,6 +1176,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
+                personalPolicyOutputCurrency: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1290,6 +1293,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
+                personalPolicyOutputCurrency: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1364,6 +1368,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
+                personalPolicyOutputCurrency: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1409,6 +1414,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
+                personalPolicyOutputCurrency: undefined,
                 transaction: fakeTransaction2,
                 transactionThreadReport,
                 parentReport,
@@ -1990,6 +1996,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                personalPolicyOutputCurrency: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2116,6 +2123,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                personalPolicyOutputCurrency: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2211,6 +2219,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                personalPolicyOutputCurrency: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2327,6 +2336,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                personalPolicyOutputCurrency: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2444,6 +2454,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                personalPolicyOutputCurrency: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: selfDMReport,

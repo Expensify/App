@@ -15,8 +15,9 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setPolicyBillableMode} from '@userActions/Policy/Policy';
+import {getBillableExpensesPendingAction, setPolicyBillableMode, toggleBillableExpenses} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -58,6 +59,9 @@ function RulesBillableDefaultPage({
     ];
 
     const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+    const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
+    const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;
+    const shouldShowBillableModeList = !isRevamp || (isBillableTrackingEnabled && !isTrackBillableToggleDisabled);
 
     const tagsPageLink = useMemo(() => {
         if (policy?.areTagsEnabled) {
@@ -82,20 +86,35 @@ function RulesBillableDefaultPage({
                     title={translate(isRevamp ? 'workspace.rules.generalTab.billableExpenses' : 'workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, styles.mb5]}>
+                <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, isRevamp ? styles.mb3 : styles.mb5]}>
                     <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', tagsPageLink)} />
                 </View>
-                <SelectionList
-                    data={billableModes}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={(item) => {
-                        setPolicyBillableMode(policyID, item.value, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
-                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-                    }}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                    addBottomSafeAreaPadding
-                />
+                {isRevamp && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.tags.trackBillable')}
+                        switchAccessibilityLabel={translate('workspace.tags.trackBillable')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mh5, styles.mv4]}
+                        isActive={isBillableTrackingEnabled}
+                        disabled={isTrackBillableToggleDisabled}
+                        showLockIcon={isTrackBillableToggleDisabled}
+                        pendingAction={getBillableExpensesPendingAction(policy)}
+                        onToggle={() => toggleBillableExpenses(policy)}
+                    />
+                )}
+                {shouldShowBillableModeList && (
+                    <SelectionList
+                        data={billableModes}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={(item) => {
+                            setPolicyBillableMode(policyID, item.value, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
+                            Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                        }}
+                        shouldSingleExecuteRowSelect
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        addBottomSafeAreaPadding
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

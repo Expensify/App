@@ -243,7 +243,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
