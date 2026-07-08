@@ -19,6 +19,7 @@ import type {TransactionViolations} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 
 import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
@@ -44,6 +45,7 @@ function ApproveActionButton() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
     const allTransactionValues = Object.values(reportTransactions);
@@ -79,6 +81,7 @@ function ApproveActionButton() {
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin,
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
