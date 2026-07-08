@@ -508,7 +508,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
-    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy) && !hasOnlyHeldExpenses(reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
