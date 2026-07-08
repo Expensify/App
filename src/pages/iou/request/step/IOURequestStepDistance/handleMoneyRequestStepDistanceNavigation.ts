@@ -283,6 +283,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         trackExpense({
                             report,
                             isDraftPolicy: false,
+                            isDraftChatReport: !!reportDraft,
                             existingTransaction: transaction,
                             participantParams: {
                                 payeeEmail: currentUserLogin,

@@ -191,6 +191,21 @@ describe('MoneyRequest', () => {
             expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
         });
 
+        it('should pass isDraftChatReport to trackExpense when provided', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+                isDraftChatReport: true,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    isDraftChatReport: true,
+                }),
+            );
+        });
+
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
             createTransaction({
                 ...baseParams,

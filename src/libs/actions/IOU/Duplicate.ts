@@ -772,6 +772,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    isDraftChatReport?: boolean;
 };
 
 function duplicateExpenseTransaction({
@@ -798,6 +799,7 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
     currentUserLocalCurrency,
+    isDraftChatReport,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -877,6 +879,7 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
+            isDraftChatReport,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             quickAction,

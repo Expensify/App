@@ -93,6 +93,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    isDraftChatReport?: boolean;
 };
 
 function createTransaction({
@@ -121,6 +122,7 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    isDraftChatReport,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -147,6 +149,7 @@ function createTransaction({
             trackExpense({
                 report,
                 isDraftPolicy: false,
+                isDraftChatReport,
                 existingTransaction: transaction,
                 participantParams: {
                     payeeEmail: currentUserEmail,
