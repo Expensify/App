@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -82,8 +83,10 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
 
     return (
         <View style={styles.flex1}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
-            {stepContent}
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
+                {stepContent}
+            </ScrollView>
             <FixedFooter
                 style={[styles.mtAuto]}
                 addBottomSafeAreaPadding

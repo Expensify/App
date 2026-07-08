@@ -315,7 +315,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                     <View style={styles.ml2}>
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            buttonSize={CONST.BUTTON_SIZE.SMALL}
                             shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}

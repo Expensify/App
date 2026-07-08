@@ -1072,18 +1072,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_END_DATE_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT]: DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.path,
-                        [SCREENS.WORKSPACE.TAGS_IMPORT]: {
-                            path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORT]: DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path,
                         [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.route,
                         },
                         [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: {
                             path: ROUTES.WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS.route,
                         },
-                        [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
-                            path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORTED]: DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORTED.path,
                         [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
@@ -1091,12 +1087,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_TAG_APPROVER]: DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAG_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.path,
-                        [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
-                            path: ROUTES.WORKSPACE_TAG_LIST_VIEW.route,
-                            parse: {
-                                orderWeight: Number,
-                            },
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW]: DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path,
                         [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
                         },
@@ -1567,9 +1558,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {
                     screens: {
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
-                            path: ROUTES.SETTINGS_TAGS_SETTINGS.route,
-                        },
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE]: DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path,
