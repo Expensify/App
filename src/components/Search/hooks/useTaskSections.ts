@@ -1,4 +1,5 @@
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import {stampSearchHighlights} from '@components/Search/searchSectionHighlights';
 import type {SearchData, SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -88,12 +89,7 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
             return EMPTY_DATA;
         }
         const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder).map((item) => {
-            if (item.shouldAnimateInHighlight === false && item.hash === hash) {
-                return item;
-            }
-            return {...item, shouldAnimateInHighlight: false, hash};
-        });
+        return stampSearchHighlights(getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder), hash, () => false);
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap.

@@ -1,5 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
-import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import {getTransactionRowShouldAnimate, stampSearchHighlights} from '@components/Search/searchSectionHighlights';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -143,30 +144,16 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
         convertToDisplayString,
     ]);
 
-    // Stage 2: sort the report sections, then stamp the post-create highlight on each row. Report rows are
-    // never chat variants, so the highlight matches on the report group's child transaction keys.
+    // Stage 2: sort the report sections, then stamp the post-create highlight on each row. Report rows carry
+    // a transactionID (and nested transactions), so they use the transaction highlight rule.
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
         const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder).map((item) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- report rows carry a transactionID
-            const transactionID = (item as TransactionListItemType).transactionID;
-            const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- report rows expose nested transactions
-            const groupTransactionsForHighlight = (item as TransactionGroupListItemType)?.transactions;
-            const isAnyTransactionMatch = groupTransactionsForHighlight?.some((transaction) => !!newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`));
-
-            const shouldAnimateInHighlight = isBaseKeyMatch || !!isAnyTransactionMatch;
-
-            if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
-                return item;
-            }
-            return {...item, shouldAnimateInHighlight, hash};
-        });
+        return stampSearchHighlights(getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
+            getTransactionRowShouldAnimate(item, newSearchResultKeys),
+        );
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap.

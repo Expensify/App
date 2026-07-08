@@ -1,5 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
-import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import {getTransactionRowShouldAnimate, stampSearchHighlights} from '@components/Search/searchSectionHighlights';
 import type {SearchData, SearchQueryJSON} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -128,27 +129,12 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
             return EMPTY_DATA;
         }
         const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, undefined, {
+        const sorted = getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, undefined, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
-        }).map((item) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- transaction rows carry a transactionID
-            const transactionID = (item as TransactionListItemType).transactionID;
-            const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group rows expose nested transactions
-            const groupTransactionsForHighlight = (item as TransactionGroupListItemType)?.transactions;
-            const isAnyTransactionMatch = groupTransactionsForHighlight?.some((transaction) => !!newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`));
-
-            const shouldAnimateInHighlight = isBaseKeyMatch || !!isAnyTransactionMatch;
-
-            if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
-                return item;
-            }
-            return {...item, shouldAnimateInHighlight, hash};
         });
+        return stampSearchHighlights(sorted, hash, (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys));
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, policyCategories, policyTags, policyForMovingExpensesID, newSearchResultKeys, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap.

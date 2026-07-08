@@ -1,4 +1,5 @@
-import type {ReportActionListItemType, SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import {getReportActionRowShouldAnimate, stampSearchHighlights} from '@components/Search/searchSectionHighlights';
 import type {SearchData, SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -6,7 +7,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 
 import {getReportActionsSections, getSortedSections} from '@libs/SearchUIUtils';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import {useMemo} from 'react';
@@ -76,17 +76,9 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
             return EMPTY_DATA;
         }
         const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder).map((item) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- chat rows carry a reportActionID
-            const reportActionID = (item as ReportActionListItemType).reportActionID;
-            const baseKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionID}`;
-            const shouldAnimateInHighlight = !!newSearchResultKeys?.has(baseKey);
-
-            if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
-                return item;
-            }
-            return {...item, shouldAnimateInHighlight, hash};
-        });
+        return stampSearchHighlights(getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
+            getReportActionRowShouldAnimate(item, newSearchResultKeys),
+        );
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap.
