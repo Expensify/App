@@ -210,6 +210,7 @@ function useReportSelectionActions({
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         allReports,
+                        personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -234,6 +235,7 @@ function useReportSelectionActions({
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
                     allReports,
+                    personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                 });
                 removeTransaction(transaction.transactionID);
             },

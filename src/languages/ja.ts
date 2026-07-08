@@ -2361,6 +2361,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '2 要素認証デバイスを変更',
         verifyOldDeviceTitle: '古い端末を確認',
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
+        verifyOldDeviceDescriptionWithRecovery: 'アカウントにアクセスできることを確認するために、有効な復旧コードを入力してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
@@ -2874,6 +2875,7 @@ ${date} の ${merchant} への ${amount}`,
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
             'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
+        copilotNote: 'このエージェントは、アカウントへのフルアクセス権を持つCopilotとして追加され、あなたの代わりに操作できるようになります。',
     },
     editAgentPage: {
         title: 'エージェントを編集',
@@ -4361,6 +4363,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         carRental: 'レンタカー',
         nightIn: '宿泊数',
         nightsIn: '泊（滞在先）',
+        taxID: {
+            title: '納税者番号',
+            subtitle: '現地通貨での出張費の請求を設定できるように、法人の納税者番号を入力してください。',
+            inputLabel: '法人納税者番号',
+            error: {required: '法的事業体の納税者番号を入力してください。'},
+        },
     },
     workspace: {
         common: {
@@ -5014,11 +5022,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 title: '接続する前に',
                 installBundle: 'Expensify バンドルをインストールします',
                 installBundlePSAHeader: 'PSA/SRP 接続の場合：',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">PSA/SRP Expensify バンドル（バージョン ${version}）をインストール</a>`,
+                installBundleDescription: 'このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：',
+                installBundlePSALink: ({version}: {version: string}) => `PSA/SRP Expensify バンドル（バージョン ${version}）をインストール`,
                 installBundleFFAHeader: 'FFA 接続用:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA 用 Expensify バンドルをインストール（バージョン ${version}）</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `FFA 用 Expensify バンドルをインストール（バージョン ${version}）`,
                 installBundleConfirm: 'バンドルをインストールしました',
                 setupContacts: 'ユーザーと連絡先を設定',
                 setupContactsBullet1:
@@ -6321,6 +6328,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 one: 'People 管理者にする',
                 other: 'People 管理者にする',
             }),
+            makePaymentsAdmin: () => ({
+                one: '支払い管理者にする',
+                other: '支払い管理者にする',
+            }),
             selectAll: 'すべて選択',
             error: {
                 genericAdd: 'このワークスペースメンバーを追加する際に問題が発生しました',
@@ -6354,6 +6365,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             makeCardAdmin: () => ({one: 'カード管理者にする', other: 'カード管理者に設定'}),
             cardAdmins: 'カード管理者',
             peopleAdmins: 'People 管理者',
+            paymentsAdmins: '支払い管理者',
             members: 'メンバー',
         },
         card: {
@@ -8729,6 +8741,7 @@ ${reportName}`,
             pending: '保留中',
             cleared: '支払済み',
             failed: '失敗しました',
+            never: 'なし',
         },
         failedError: ({link}: {link: string}) => `<a href="${link}">アカウントのロックを解除</a>すると、この精算を再試行します。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date}・出金 ID：${withdrawalID}`,
@@ -9624,6 +9637,7 @@ ${reportName}`,
             changesBasedOn: 'これは、お客様の Expensify カードの利用状況と、以下のサブスクリプションオプションによって変わります。',
             collectBillingDescription: 'Collect ワークスペースは、年間契約なしで、メンバーごとに毎月課金されます。',
             pricing: '料金',
+            editSubscription: 'サブスクリプションを編集',
         },
         cancelSubscription: {
             title: 'サブスクリプションをキャンセル',
@@ -9811,7 +9825,7 @@ ${reportName}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
-        accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
+        accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',

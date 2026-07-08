@@ -712,6 +712,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderRadiusCircle: {
+            borderRadius: 999,
+        },
+
         bottomTabBarSpacer: {
             height: variables.bottomTabHeight,
         },
@@ -1212,8 +1216,32 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
+        editableCellEditButtonContainer: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        editableCellEditButtonContainerLeft: {
+            left: 4,
+        },
+
+        editableCellEditButtonContainerRight: {
+            right: 4,
+        },
+
+        editableCellEditButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.componentBorderRadiusCircle,
+            backgroundColor: theme.buttonDefaultBG,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellEditButtonActive: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         editableCellFocus: {
@@ -1373,6 +1401,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         componentHeightLarge: {
             height: variables.inputHeight,
+        },
+
+        componentSizeNormal: {
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
         },
 
         calendarHeader: {
