@@ -19,7 +19,7 @@ const request: OnyxTypes.AnyRequest = {
 };
 
 test('Request.addMiddleware() can register a middleware and it will run', () => {
-    const testMiddleware = jest.fn<Middleware, Parameters<Middleware>>();
+    const testMiddleware = jest.fn<ReturnType<Middleware>, Parameters<Middleware>>().mockResolvedValue(undefined);
     Request.addMiddleware(testMiddleware as unknown as Middleware);
 
     Request.processWithMiddleware(request, true);
