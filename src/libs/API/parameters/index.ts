@@ -43,6 +43,8 @@ export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRille
 export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
 export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
 export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
+export type {default as UpdateRilletExportToMultipleAccountsParams} from './UpdateRilletExportToMultipleAccountsParams';
+export type {default as UpdateRilletCardProgramAccountParams} from './UpdateRilletCardProgramAccountParams';
 export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSyncParams';
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
