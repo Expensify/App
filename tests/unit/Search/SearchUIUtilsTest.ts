@@ -8594,24 +8594,24 @@ describe('SearchUIUtils', () => {
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`policy_${eligiblePolicyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     id: eligiblePolicyID,
-                    type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
                         'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
                     },
-                } as unknown as OnyxTypes.Policy,
+                },
                 // Personal (non-group) policy is not eligible for Top Spenders and must not be scoped in.
                 [`policy_${ineligiblePolicyID}`]: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
                     id: ineligiblePolicyID,
-                    type: CONST.POLICY.TYPE.PERSONAL,
                     role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
                         'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
                     },
-                } as unknown as OnyxTypes.Policy,
+                },
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
