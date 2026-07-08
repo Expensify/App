@@ -1086,9 +1086,9 @@ function getSuggestedSearchesVisibility(
 
     // Iterate every policy (rather than short-circuiting with .some) so we can collect the complete
     // list of Top Spenders-eligible policy IDs used to scope the suggested search query below.
-    Object.values(policies ?? {}).forEach((policy) => {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
-            return;
+            continue;
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
@@ -1148,7 +1148,7 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
-    });
+    }
 
     return {
         visibility: {
