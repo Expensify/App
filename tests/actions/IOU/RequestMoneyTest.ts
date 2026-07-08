@@ -1292,6 +1292,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1360,6 +1361,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1605,6 +1607,7 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+            const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)) ?? {};
 
             // When requesting money
             requestMoney({
@@ -1615,7 +1618,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {reportID: '1', isPolicyExpenseChat: true},
                 },
-                policyParams: {policyRecentlyUsedTags},
+                policyParams: {policyRecentlyUsedTags, policyTagList},
                 transactionParams: {
                     amount: 100,
                     attendees: [],
@@ -1884,6 +1887,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2661,6 +2665,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
 
             await waitForBatchedUpdates();
