@@ -1076,6 +1076,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            configureApprovals: 'Goedkeuringsworkflow instellen',
         },
         yourSpend: {
             title: 'Je uitgaven',

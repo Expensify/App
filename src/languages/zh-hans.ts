@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: '自定义控制并简化支出',
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
+            configureApprovals: '配置审批流程',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,

@@ -1078,6 +1078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalizza i controlli e semplifica le spese',
             setupRules: 'Configura le regole di spesa',
             inviteAccountant: 'Invita il tuo commercialista',
+            configureApprovals: 'Configura il flusso di approvazione',
         },
         yourSpend: {
             title: 'Le tue spese',

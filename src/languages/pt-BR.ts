@@ -1076,6 +1076,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalize os controles e simplifique os gastos',
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
+            configureApprovals: 'Configurar fluxo de aprovação',
         },
         yourSpend: {
             title: 'Seus gastos',
