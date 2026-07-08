@@ -28,7 +28,6 @@ import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplit
 let allTransactions: OnyxCollection<Transaction>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => (allTransactions = value),
 });
 
@@ -42,7 +41,6 @@ Onyx.connectWithoutView({
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
