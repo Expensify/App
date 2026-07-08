@@ -736,8 +736,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     ]);
 
     const icons = useMemo(
-        () => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isReportArchived),
-        [report, formatPhoneNumber, personalDetails, policy, isReportArchived],
+        () => getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived),
+        [report, formatPhoneNumber, translate, personalDetails, policy, isReportArchived],
     );
 
     const renderedAvatar = useMemo(() => {

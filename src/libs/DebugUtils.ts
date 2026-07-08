@@ -1480,7 +1480,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
