@@ -4401,6 +4401,12 @@ ${amount} für ${merchant} – ${date}`,
         carRental: 'Autovermietung',
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
+        taxID: {
+            title: 'Steuer-ID',
+            subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
+            inputLabel: 'Steuer-ID der juristischen Person',
+            error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
+        },
     },
     workspace: {
         common: {
@@ -5073,11 +5079,10 @@ ${amount} für ${merchant} – ${date}`,
                 title: 'Bevor Sie die Verbindung herstellen',
                 installBundle: 'Installieren Sie das Expensify-Paket',
                 installBundlePSAHeader: 'Für PSA/SRP-Verbindungen:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">PSA/SRP Expensify Bundle installieren (Version ${version})</a>`,
+                installBundleDescription: 'Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken:',
+                installBundlePSALink: ({version}: {version: string}) => `PSA/SRP Expensify Bundle installieren (Version ${version})`,
                 installBundleFFAHeader: 'Für FFA-Verbindungen:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">FFA-Expensify-Paket installieren (Version ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `FFA-Expensify-Paket installieren (Version ${version})`,
                 installBundleConfirm: 'Ich habe das Paket installiert',
                 setupContacts: 'Benutzer und Kontakte einrichten',
                 setupContactsBullet1:
@@ -8859,6 +8864,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             pending: 'Ausstehend',
             cleared: 'Ausgeglichen',
             failed: 'Fehlgeschlagen',
+            never: 'Nie',
         },
         failedError: ({link}: {link: string}) => `Wir versuchen diese Abrechnung erneut, sobald du <a href="${link}">dein Konto entsperrst</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
@@ -9957,7 +9963,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',
-        accountSwitcher: '<tooltip>Greifen Sie hier auf Ihre <strong>Copilot-Konten</strong> zu</tooltip>',
+        accountSwitcher: '<tooltip>Sie können jetzt als Copilot in ein anderes Konto einsteigen!</tooltip>',
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Sende diese Quittung, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
