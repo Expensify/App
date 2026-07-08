@@ -9,6 +9,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {
     AddExistingExpensesParamList,
     AddPersonalBankAccountNavigatorParamList,
+    AvatarCropNavigatorParamList,
     ChronosScheduleOOONavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -1286,6 +1287,10 @@ const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
     [SCREENS.DEBUG.TRANSACTION_VIOLATION]: () => require<ReactComponentModule>('../../../../pages/Debug/TransactionViolation/DebugTransactionViolationPage').default,
 });
 
+const AvatarCropModalStackNavigator = createModalStackNavigator<AvatarCropNavigatorParamList>({
+    [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+});
+
 const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallParamList>({
     [SCREENS.SCHEDULE_CALL.BOOK]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallPage').default,
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
@@ -1308,6 +1313,7 @@ const MultifactorAuthenticationStackNavigator = createModalStackNavigator<Multif
 export {
     AddPersonalBankAccountModalStackNavigator,
     AddExistingExpenseModalStackNavigator,
+    AvatarCropModalStackNavigator,
     CategoriesModalStackNavigator,
     DebugModalStackNavigator,
     DomainCardModalStackNavigator,
