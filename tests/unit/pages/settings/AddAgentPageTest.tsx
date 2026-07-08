@@ -56,9 +56,8 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 1})),
 }));
 
-// AddAgentPage subscribes to the agent-prompt collection to detect the newly created agent. Tests drive
-// this value and its load status directly and re-render to simulate the collection updating (useOnyx here is
-// not reactive).
+// AddAgentPage reads the agent-prompt collection to find the newly created agent. The mocked useOnyx does not
+// update on its own, so tests set this value and its load status and re-render to simulate collection updates.
 let mockAgentPrompts: Record<string, {pendingAction?: string; errors?: Record<string, string>}> | undefined;
 let mockAgentPromptsStatus: 'loading' | 'loaded' = 'loaded';
 
@@ -303,21 +302,21 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // Online we don't dismiss immediately — we wait for the real, server-assigned accountID.
+            // Online we don't go back yet. We wait for the real accountID from the server.
             expect(mockGoBack).not.toHaveBeenCalled();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // The optimistic placeholder lands; the effect captures its baseline from this loaded snapshot.
+            // The optimistic entry appears, so the effect records which agents already exist.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
             rerenderPage();
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // The real, server-created agent arrives (no ADD pending action).
+            // The created agent arrives from the server (no ADD pending action).
             mockAgentPrompts = {[realAgentKey]: {}};
             rerenderPage();
 
-            // The DM opens with the agent's real accountID — never the optimistic one — and dismisses the modal.
+            // The DM opens with the real accountID, not the optimistic one, and closes the modal.
             await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
             expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
             expect(mockGoBack).not.toHaveBeenCalled();
@@ -343,18 +342,18 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // Our optimistic placeholder lands and sets the baseline.
+            // The optimistic entry appears and records which agents already exist.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
             rerenderPage();
 
-            // A second agent the user created shows up as a *new* optimistic placeholder (pendingAction ADD).
-            // It must NOT be mistaken for the created agent.
+            // A second agent the user created shows up as a new optimistic entry (pendingAction ADD).
+            // It must not be picked as the created agent.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}, [otherOptimisticAgentKey]: {pendingAction: 'add'}};
             rerenderPage();
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // The real, server-created agent arrives without an ADD pending action.
+            // The created agent arrives from the server without an ADD pending action.
             mockAgentPrompts = {[otherOptimisticAgentKey]: {pendingAction: 'add'}, [realAgentKey]: {}};
             rerenderPage();
 
@@ -362,26 +361,26 @@ describe('AddAgentPage', () => {
         });
 
         it('does not treat an agent that hydrates after submit as the newly created one', async () => {
-            // Cold open / direct link: the collection has not hydrated yet at submit time.
+            // Cold open or direct link: the collection has not loaded yet at submit time.
             mockAgentPrompts = {};
             const {rerenderPage} = renderAddAgentPage({});
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // An existing agent hydrates before our optimistic placeholder / the CREATE_AGENT response. It must
-            // NOT be matched — the baseline isn't established until our placeholder is present.
+            // An existing agent loads before our optimistic entry and before the CREATE_AGENT response. It must
+            // not be picked, since we don't record existing agents until our entry is present.
             mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}};
             rerenderPage();
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // Our optimistic placeholder lands; the baseline now includes the pre-existing agent.
+            // The optimistic entry appears, so the existing agent is now recorded as already existing.
             mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [optimisticAgentKey]: {pendingAction: 'add'}};
             rerenderPage();
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // Only the actual created agent opens the DM.
+            // Only the created agent opens the DM.
             mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [realAgentKey]: {}};
             rerenderPage();
             await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
@@ -394,13 +393,13 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // While loading, even a real-looking agent alongside our placeholder must not be matched.
+            // While loading, an agent next to our entry must not be picked.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}, [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}};
             rerenderPage();
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // Once loaded, the baseline is captured (existing agent + our placeholder) and the created agent matches.
+            // Once loaded, existing agents are recorded (agent 555 and our entry), and the created agent matches.
             mockAgentPromptsStatus = 'loaded';
             rerenderPage();
             await waitForBatchedUpdates();
@@ -416,15 +415,15 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // Our optimistic placeholder lands and sets the baseline.
+            // The optimistic entry appears and records the existing agents.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
             rerenderPage();
 
-            // Creation failed: the optimistic entry now carries an error.
+            // Creation failed: the optimistic entry now has an error.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add', errors: {error: 'genericAdd'}}};
             rerenderPage();
 
-            // We dismiss and let the Agents list surface the error, without opening any DM.
+            // We go back so the error shows on the Agents list, and no DM opens.
             await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
             expect(mockChatWithAgent).not.toHaveBeenCalled();
         });
@@ -437,8 +436,8 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // We return to the Agents list right away but never open the DM — the real accountID only arrives on
-            // reconnect, long after the user has moved on, so we don't yank them into the DM.
+            // We go back to the Agents list right away and never open the DM. The real accountID only arrives on
+            // reconnect, after the user has moved on.
             expect(mockGoBack).toHaveBeenCalledTimes(1);
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();

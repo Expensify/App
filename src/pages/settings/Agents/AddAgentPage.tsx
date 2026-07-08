@@ -45,8 +45,8 @@ type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, ty
 
 type PendingCreatedAgent = {
     optimisticAccountID: number;
-    // Captured lazily from the first fully-loaded collection snapshot that includes our optimistic entry,
-    // so agents that hydrate late aren't mistaken for the one we just created. Null until then.
+    // The agents that already existed before this one was created. Null until the collection has loaded and
+    // includes our optimistic entry, so agents that load later aren't treated as the new one.
     knownAgentAccountIDs: Set<number> | null;
 };
 
@@ -72,9 +72,8 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
 
-    // Account IDs can't be generated optimistically (unlike report IDs), so an agent's real accountID only
-    // exists once CREATE_AGENT responds. When creating online we keep this page mounted until that happens,
-    // then open the DM.
+    // The client can't pick an agent's real accountID; it's set by the server. When creating online, keep this
+    // page open until the created agent shows up in the collection, then open its DM.
     const pendingCreatedAgentRef = useRef<PendingCreatedAgent | null>(null);
 
     useEffect(() => {
@@ -83,17 +82,15 @@ function AddAgentPage({route}: AddAgentPageProps) {
             return;
         }
 
-        // Never match against a partially-hydrated collection — an existing agent that hydrates late could be
-        // mistaken for the one we just created and open its DM instead.
+        // Wait for the collection to finish loading, or an existing agent could be matched as the new one.
         if (agentPromptsMetadata.status !== 'loaded') {
             return;
         }
 
         const optimisticAgentKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingCreatedAgent.optimisticAccountID}`;
 
-        // Establish the baseline from the first fully-loaded snapshot that already includes our optimistic entry.
-        // Every agent present alongside our placeholder at that point genuinely pre-existed, so capturing here
-        // (rather than at submit time, when the collection may not have hydrated) avoids false matches.
+        // Record which agents already exist, using the first loaded snapshot that includes our optimistic entry.
+        // Doing it here instead of on submit means agents that load later aren't treated as the new one.
         if (!pendingCreatedAgent.knownAgentAccountIDs) {
             if (!agentPrompts?.[optimisticAgentKey]) {
                 return;
@@ -103,7 +100,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
         }
         const {knownAgentAccountIDs} = pendingCreatedAgent;
 
-        // Creation failed: the optimistic entry now carries an error. Dismiss and let the Agents list surface it.
+        // Creation failed: the optimistic entry now has an error. Go back so the error shows on the Agents list.
         if (agentPrompts?.[optimisticAgentKey]?.errors) {
             pendingCreatedAgentRef.current = null;
             Navigation.goBack();
@@ -113,13 +110,13 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const createdAgentKey = Object.keys(agentPrompts ?? {}).find((key) => {
             const accountID = getAgentAccountIDFromKey(key);
 
-            // Ignore agents that already existed at baseline and this request's own optimistic placeholder.
+            // Skip agents that already existed and this request's own optimistic entry.
             if (accountID === pendingCreatedAgent.optimisticAccountID || knownAgentAccountIDs.has(accountID)) {
                 return false;
             }
 
-            // A real, server-created agent has no ADD pending action — that's the one we can open a DM with.
-            // Another agent the user created in the meantime is still an optimistic ADD placeholder.
+            // The created agent is the one from the server, which has no ADD pending action. Another agent the
+            // user just created still has one.
             return agentPrompts?.[key]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
         });
         if (!createdAgentKey) {
@@ -172,23 +169,21 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
-        // `createAgent` writes the agent optimistically (works offline) and returns the optimistic
-        // accountID it wrote into Onyx. The real, server-assigned accountID only arrives once CREATE_AGENT responds.
+        // createAgent writes the agent right away (works offline) and returns the optimistic accountID. The real
+        // accountID comes from the server once CREATE_AGENT responds.
         const {optimisticAccountID} = pendingFile
             ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        // Offline: the real accountID only arrives after reconnect, long after the user has moved on, so we
-        // don't wait — just return to the list with the optimistic agent for the user to open when they choose.
+        // Offline: the real accountID won't arrive until reconnect, so don't wait. Go back to the list; the user
+        // can open the agent themselves.
         if (getIsOffline()) {
             Navigation.goBack();
             return;
         }
 
-        // Online: opening the DM is the immediate continuation of tapping "Create", but it needs the real
-        // accountID. Stay on this page (showing the submit spinner) until the created agent appears in the
-        // collection, then the effect opens the DM. The baseline of existing agents is captured later, once the
-        // collection has loaded, so a partial snapshot here can't cause us to match an already-existing agent.
+        // Online: stay here with the submit spinner until the created agent appears, then the effect opens its DM.
+        // knownAgentAccountIDs is set later (see the effect), not now, in case the collection hasn't loaded yet.
         pendingCreatedAgentRef.current = {
             optimisticAccountID,
             knownAgentAccountIDs: null,
