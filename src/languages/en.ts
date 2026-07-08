@@ -7108,6 +7108,9 @@ const translations = {
             updateToUSD: 'Update to USD',
             updateWorkspaceCurrency: 'Update workspace currency',
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
+            notAllowedToAddBankAccountTitle: 'Not so fast',
+            notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
+                `Only ${currencyCode} bank accounts can be added. Please contact a workspace admin to adjust your permissions.`,
             yourWorkspace: `Your workspace is set to an unsupported currency. View the <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">list of supported currencies</a>.`,
             chooseAnExisting: 'Choose an existing bank account to pay expenses or add a new one.',
         },

@@ -6935,6 +6935,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             updateToUSD: 'Aggiorna a USD',
             updateWorkspaceCurrency: 'Aggiorna la valuta dello spazio di lavoro',
             workspaceCurrencyNotSupported: 'Valuta dello spazio di lavoro non supportata',
+            notAllowedToAddBankAccountTitle: 'Non così in fretta',
+            notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
+                `È possibile aggiungere solo conti bancari in ${currencyCode}. Contatta un amministratore dell’area di lavoro per modificare le tue autorizzazioni.`,
             yourWorkspace: `La tua area di lavoro è impostata su una valuta non supportata. Visualizza l’<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">elenco delle valute supportate</a>.`,
             chooseAnExisting: 'Scegli un conto bancario esistente per pagare le spese oppure aggiungine uno nuovo.',
         },

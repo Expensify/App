@@ -56,6 +56,7 @@ import {
     hasDynamicExternalWorkflow,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
+    isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -226,8 +227,17 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         if (!policy) {
             return;
         }
+        if (!isPolicyAdmin(policy, currentUserLogin)) {
+            showConfirmModal({
+                title: translate('workspace.bankAccount.notAllowedToAddBankAccountTitle'),
+                prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount', {currencyCode: policy.outputCurrency}),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
-    }, [policy]);
+    }, [currentUserLogin, policy, showConfirmModal, translate]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);

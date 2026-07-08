@@ -6952,6 +6952,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             updateToUSD: 'Auf USD aktualisieren',
             updateWorkspaceCurrency: 'Arbeitsbereichswährung aktualisieren',
             workspaceCurrencyNotSupported: 'Workspace-Währung wird nicht unterstützt',
+            notAllowedToAddBankAccountTitle: 'Nicht so schnell',
+            notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
+                `Es können nur ${currencyCode}-Bankkonten hinzugefügt werden. Bitte kontaktiere einen Workspace-Administrator, um deine Berechtigungen anzupassen.`,
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
         },
