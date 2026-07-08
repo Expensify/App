@@ -11,6 +11,7 @@
                 "config/webpack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
+                "tests/setupBunScripts.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
                 "eslint.changed.config.mjs",
