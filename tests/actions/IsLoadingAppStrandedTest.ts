@@ -19,9 +19,16 @@ describe('IS_LOADING_APP stranded true', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        // Onyx.clear does not reset these module-level singletons, so reset them explicitly
+        // to keep the tests order-independent: the request queue, the sequential queue, and
+        // the NetworkState offline flag (forced offline by the stranding test below).
+        await PersistedRequests.clear();
+        resetQueue();
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        await waitForBatchedUpdates();
     });
 
     it('stays true when the OpenApp that should clear it never settles, and is stranded once that request is lost', async () => {
@@ -58,9 +65,6 @@ describe('IS_LOADING_APP stranded true', () => {
     });
 
     it('is healed by the next successful ReconnectApp', async () => {
-        // Onyx.clear does not reset the NetworkState module flag, so undo the previous test's forced offline.
-        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
-
         // A previous session stranded the flag on disk and the app booted from it.
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);

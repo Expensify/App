@@ -71,6 +71,24 @@ describe('DelegateAccessHandler stuck isLoadingApp recovery', () => {
         expect(openApp).not.toHaveBeenCalled();
     });
 
+    it('keeps checking and recovers once a pending OpenApp is dropped without settling', async () => {
+        const pendingOpenApp: Request<never> = {command: 'OpenApp'};
+        await PersistedRequests.save(pendingOpenApp);
+
+        await renderWithStrandedState(true);
+        expect(openApp).not.toHaveBeenCalled();
+
+        // The pending request is removed without its finallyData ever applying, so the flag stays true.
+        // The effect dependencies do not change, so only the rescheduled check can catch this.
+        await PersistedRequests.clear();
+        act(() => {
+            jest.advanceTimersByTime(RECOVERY_DELAY_MS);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(openApp).toHaveBeenCalledTimes(1);
+    });
+
     it('does not re-fire when isLoadingApp already cleared to false', async () => {
         await renderWithStrandedState(false);
 

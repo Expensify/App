@@ -90,22 +90,26 @@ function DelegateAccessHandler() {
             return;
         }
 
-        const timeoutID = setTimeout(() => {
+        let timeoutID: ReturnType<typeof setTimeout>;
+        const checkStranded = () => {
             // A legitimate in-flight load still has a reconnect-family request pending; only the
-            // stranded case has none. Checking after the delay avoids racing the request being queued.
+            // stranded case has none. In that case check again later instead of giving up — the effect
+            // dependencies won't change if that request is later removed without applying its finallyData.
             const hasPendingReconnectRequest = [getOngoingRequest(), ...getAllPersistedRequests()].some(
                 (request) => request?.command === WRITE_COMMANDS.OPEN_APP || request?.command === WRITE_COMMANDS.RECONNECT_APP,
             );
             if (hasPendingReconnectRequest) {
+                timeoutID = setTimeout(checkStranded, STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS);
                 return;
             }
             hasHandledStrandedIsLoadingAppRef.current = true;
-            Log.info('[Onyx] isLoadingApp stranded true with no pending OpenApp, re-opening', false, {
+            Log.info('[Onyx] isLoadingApp stranded true with no pending OpenApp/ReconnectApp, re-opening', false, {
                 sessionAccountID,
                 hasLoadedApp: !!hasLoadedApp,
             });
             openApp();
-        }, STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS);
+        };
+        timeoutID = setTimeout(checkStranded, STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS);
 
         return () => clearTimeout(timeoutID);
     }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
