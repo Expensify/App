@@ -1648,9 +1648,11 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             continue;
         }
 
-        if (
-            hasAssignedCardMatching(workspaceCards, (card) => card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck))
-        ) {
+        const hasMatchingAssignedCard = hasAssignedCardMatching(
+            workspaceCards,
+            (card) => card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
+        );
+        if (hasMatchingAssignedCard) {
             return true;
         }
     }
