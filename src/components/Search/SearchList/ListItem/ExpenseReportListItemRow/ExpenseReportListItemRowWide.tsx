@@ -98,6 +98,27 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER)]}>
+                {!!item.firstApproverAccountID && (
+                    <UserInfoCell
+                        accountID={item.firstApproverAccountID}
+                        avatar={item.firstApproverAvatar}
+                        displayName={item.formattedFirstApprover ?? ''}
+                        isLargeScreenWidth
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)]}>
+                <DateCell
+                    date={item.firstApproved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
@@ -114,6 +135,14 @@ function ExpenseReportListItemRowWide({
                     statusNum={item.statusNum}
                     isPending={item.shouldShowStatusAsPending}
                     isSelected={isSelected}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS)]}>
+                <TextCell
+                    text={item.formattedPaidStatus ?? ''}
+                    isLargeScreenWidth
                 />
             </View>
         ),
@@ -219,7 +248,7 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <ReportSubmitToPopoverMeasurableAnchor>
+                <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
                     <DeferredActionCell
                         action={item.action}
                         onButtonPress={onButtonPress}

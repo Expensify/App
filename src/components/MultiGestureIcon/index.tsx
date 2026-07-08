@@ -44,18 +44,8 @@ type MultiGestureIconProps = {
 };
 
 /** Renders an icon inside a multi-gesture canvas for pinch, pan, and swipe interactions. */
-function MultiGestureIcon({
-    src,
-    width = variables.iconSizeNormal,
-    height = variables.iconSizeNormal,
-    fill = undefined,
-    additionalStyles = [],
-    hovered = false,
-    pressed = false,
-    testID = '',
-    contentFit = 'cover',
-}: MultiGestureIconProps) {
-    const {canvasSize, isCanvasLoading, updateCanvasSize} = useCanvasSize();
+function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered, isPressed, contentFit}: ContentSizedIconProps) {
+    const {canvasSize, updateCanvasSize} = useCanvasSize();
     const {pagerRef, isScrollEnabled, onTap, onSwipeDown} = useIconCarouselPager();
 
     if (!src) {
@@ -67,7 +57,7 @@ function MultiGestureIcon({
             style={StyleSheet.absoluteFill}
             onLayout={updateCanvasSize}
         >
-            {!isCanvasLoading && !!canvasSize && (
+            {!!canvasSize && (
                 <MultiGestureCanvas
                     isActive
                     canvasSize={canvasSize}
