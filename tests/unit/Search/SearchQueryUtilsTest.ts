@@ -1228,7 +1228,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense-report',
-                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
                 paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
             });
 
@@ -1244,7 +1243,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense-report',
-                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
                 paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.CONFIRMED],
             });
         });

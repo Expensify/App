@@ -5,22 +5,23 @@ import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate} from '@src/types/onyx';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockGetExportTemplates = jest.fn();
-const mockGetConnectedIntegrationNamesForPolicies = jest.fn(() => new Set<string>());
 
 jest.mock('@libs/actions/Search', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getExportTemplates: (...args: unknown[]) => mockGetExportTemplates(...args),
 }));
 
-jest.mock('@libs/SearchQueryUtils', () => ({
-    getConnectedIntegrationNamesForPolicies: () => mockGetConnectedIntegrationNamesForPolicies(),
-}));
+/** Builds a policy with a verified connection so getConnectedIntegrationNamesForPolicies detects it. */
+function buildPolicyWithConnection(policyID: string, connectionName: ConnectionName) {
+    return {id: policyID, connections: {[connectionName]: {lastSync: {isConnected: true}}}} as const;
+}
 
 describe('useExportedToFilterOptions', () => {
     const expenseLevelLabel = CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
@@ -35,7 +36,6 @@ describe('useExportedToFilterOptions', () => {
         await waitForBatchedUpdates();
         jest.clearAllMocks();
         mockGetExportTemplates.mockReturnValue([]);
-        mockGetConnectedIntegrationNamesForPolicies.mockReturnValue(new Set<string>());
     });
 
     it('returns empty options and templates when no policies and no export templates', () => {
@@ -54,8 +54,8 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.connectedIntegrationNames).toEqual(new Set());
     });
 
-    it('includes connected integration display name in options when policy has connection', () => {
-        mockGetConnectedIntegrationNamesForPolicies.mockReturnValue(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
+    it('includes connected integration display name in options when policy has connection', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.QBO));
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -111,12 +111,11 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.combinedUniqueExportTemplates.at(0)?.templateName).toBe(sameName);
     });
 
-    it('returns connectedIntegrationNames from getConnectedIntegrationNamesForPolicies', () => {
-        const connectedSet = new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]);
-        mockGetConnectedIntegrationNamesForPolicies.mockReturnValue(connectedSet);
+    it('returns connectedIntegrationNames from getConnectedIntegrationNamesForPolicies', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.XERO));
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
-        expect(result.current.connectedIntegrationNames).toBe(connectedSet);
+        expect(result.current.connectedIntegrationNames).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
     });
 });

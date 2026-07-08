@@ -6349,7 +6349,6 @@ describe('SearchUIUtils', () => {
 
             const ascendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...emptyPostedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6359,7 +6358,6 @@ describe('SearchUIUtils', () => {
             );
             const descendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...emptyPostedTransactions],
                 localeCompare,
                 translateLocal,

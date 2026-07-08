@@ -690,7 +690,6 @@ const tests = [
         query: 'type:expense-report paid-status:markedAsPaid',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -705,7 +704,6 @@ const tests = [
         query: 'type:expense-report paid-status:markedAsPaid,withdrawing,confirmed',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
