@@ -1928,6 +1928,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path,
                         [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.route,
                         [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
+                        [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: ROUTES.TRAVEL_LEGAL_ENTITY_TAX_ID.route,
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
@@ -2079,6 +2080,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.AVATAR_CROP]: {
+                    screens: {
+                        [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AVATAR_CROP.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {
