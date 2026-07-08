@@ -566,9 +566,11 @@ function updateSplitTransactions({
                 pendingAction: splitTransaction ? (splitTransaction.pendingAction ?? null) : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
-                taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
-                taxValue: originalTransactionDetails?.taxValue,
+                taxCode: splitExpense.taxCode ?? originalTransactionDetails?.taxCode,
+                taxAmount:
+                    splitExpense.taxAmount ??
+                    calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
@@ -607,9 +609,11 @@ function updateSplitTransactions({
                 tag: splitExpense.tags?.[0],
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
-                taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
-                taxValue: originalTransactionDetails?.taxValue,
+                taxCode: splitExpense.taxCode ?? originalTransactionDetails?.taxCode,
+                taxAmount:
+                    splitExpense.taxAmount ??
+                    calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
