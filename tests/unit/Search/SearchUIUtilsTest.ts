@@ -8588,7 +8588,6 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
-            const adminEmail = 'admin@policy.com';
             const eligiblePolicyID = 'GROUPWS01';
             const ineligiblePolicyID = 'PERSONALWS02';
 
