@@ -8582,7 +8582,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         expensifyCardStatementPDF: {
             title: 'Baixar extrato em PDF',
-            oneFeedAtATime: 'Selecione um feed do Expensify Card por vez.',
+            oneFeedAtATime: 'Selecione liquidações de um único feed do Expensify Card por vez.',
         },
         filtersHeader: 'Filtros',
         filters: {

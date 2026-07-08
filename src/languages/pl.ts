@@ -8576,7 +8576,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         expensifyCardStatementPDF: {
             title: 'Pobierz wyciąg PDF',
-            oneFeedAtATime: 'Wybierz jeden feed Expensify Card na raz.',
+            oneFeedAtATime: 'Wybieraj rozliczenia z jednego feedu Expensify Card na raz.',
         },
         filtersHeader: 'Filtry',
         filters: {

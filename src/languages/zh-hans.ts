@@ -8332,7 +8332,7 @@ ${reportName}`,
         },
         expensifyCardStatementPDF: {
             title: '下载账单 PDF',
-            oneFeedAtATime: '请一次只选择一个 Expensify Card 数据源。',
+            oneFeedAtATime: '请一次只选择来自一个 Expensify Card 数据源的结算。',
         },
         filtersHeader: '筛选器',
         filters: {

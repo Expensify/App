@@ -8635,7 +8635,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         expensifyCardStatementPDF: {
             title: 'Kontoauszug als PDF herunterladen',
-            oneFeedAtATime: 'Bitte wählen Sie jeweils nur einen Expensify Card-Feed aus.',
+            oneFeedAtATime: 'Bitte wählen Sie Abrechnungen aus jeweils nur einem Expensify Card-Feed aus.',
         },
         filtersHeader: 'Filter',
         filters: {

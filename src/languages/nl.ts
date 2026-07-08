@@ -8594,7 +8594,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         expensifyCardStatementPDF: {
             title: 'Afschrift als PDF downloaden',
-            oneFeedAtATime: 'Kies telkens slechts één Expensify Card-feed.',
+            oneFeedAtATime: 'Selecteer afrekeningen van telkens slechts één Expensify Card-feed.',
         },
         filtersHeader: 'Filters',
         filters: {

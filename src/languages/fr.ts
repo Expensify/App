@@ -8669,7 +8669,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         expensifyCardStatementPDF: {
             title: 'Télécharger le relevé PDF',
-            oneFeedAtATime: 'Veuillez sélectionner un seul flux Expensify Card à la fois.',
+            oneFeedAtATime: 'Veuillez sélectionner les règlements d’un seul flux Expensify Card à la fois.',
         },
         filtersHeader: 'Filtres',
         filters: {

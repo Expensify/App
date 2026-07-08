@@ -8625,7 +8625,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         expensifyCardStatementPDF: {
             title: 'Scarica estratto conto PDF',
-            oneFeedAtATime: 'Seleziona un feed Expensify Card alla volta.',
+            oneFeedAtATime: 'Seleziona le liquidazioni di un solo feed Expensify Card alla volta.',
         },
         filtersHeader: 'Filtri',
         filters: {

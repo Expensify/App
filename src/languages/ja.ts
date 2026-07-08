@@ -8510,7 +8510,7 @@ ${reportName}`,
         },
         expensifyCardStatementPDF: {
             title: '明細書PDFをダウンロード',
-            oneFeedAtATime: 'Expensify Cardのフィードは一度に1つだけ選択してください。',
+            oneFeedAtATime: '一度に1つのExpensify Cardフィードからのみ決済を選択してください。',
         },
         filtersHeader: 'フィルター',
         filters: {

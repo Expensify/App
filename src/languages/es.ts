@@ -8446,7 +8446,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         expensifyCardStatementPDF: {
             title: 'Descargar extracto en PDF',
-            oneFeedAtATime: 'Selecciona un feed de Expensify Card a la vez.',
+            oneFeedAtATime: 'Selecciona liquidaciones de un solo feed de Expensify Card a la vez.',
         },
         filtersHeader: 'Filtros',
         filters: {

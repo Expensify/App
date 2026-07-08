@@ -8727,7 +8727,7 @@ const translations = {
         },
         expensifyCardStatementPDF: {
             title: 'Download Statement PDF',
-            oneFeedAtATime: 'Please pick one Expensify Card feed at a time.',
+            oneFeedAtATime: 'Please select settlements from one Expensify Card feed at a time.',
         },
         filtersHeader: 'Filters',
         filters: {
