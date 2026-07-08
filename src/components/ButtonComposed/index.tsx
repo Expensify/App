@@ -34,3 +34,4 @@ const Button = Object.assign(withNavigationFallback(ButtonComponent), {
 });
 
 export default Button;
+export type {ButtonProps} from './types';
