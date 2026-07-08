@@ -53,7 +53,8 @@ function BaseSidebarScreen() {
     // full-page skeleton and mount SidebarLinksData immediately. Its inner cache-aware gate
     // (isLoadingReportData && !hasReportData) then handles any residual loading state without a flash.
     const [hasReportData = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasAnyReportSelector});
-    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading && !hasReportData;
+    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading && !(hasReportData && hasLoadedApp);
 
     return (
         <ScreenWrapper
@@ -75,7 +76,7 @@ function BaseSidebarScreen() {
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView
                                 shouldAnimate
-                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading, hasReportData} satisfies SkeletonSpanReasonAttributes}
+                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading, hasReportData, hasLoadedApp} satisfies SkeletonSpanReasonAttributes}
                             />
                         ) : (
                             <SidebarLinksData insets={insets} />

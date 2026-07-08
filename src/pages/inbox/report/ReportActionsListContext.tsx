@@ -86,7 +86,9 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
     // Don't flash the app-load skeleton when report actions are already cached in Onyx. hasCachedReportActions
-    // is false only on a genuinely cold load with no cached history (it excludes the synthetic CREATED action).
+    // is false on a genuinely cold load with no cached history: it excludes the synthetic CREATED action, and it
+    // also treats a lone real CREATED action as "no history" so a report whose messages have not been fetched yet
+    // still shows the skeleton (instead of just the creation row) while OpenReport is in flight.
     const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline && !hasCachedReportActions;
 
     // Show skeleton for the Concierge chat (side panel or main DM) until report
@@ -97,9 +99,9 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     // cached report actions persist in Onyx. For the main DM, render those cached
     // actions immediately (matching production) instead of flashing a skeleton on
     // every refresh; the side panel always opens fresh so it keeps gating on
-    // hasOnceLoadedReportActions only. hasCachedReportActions is false only on a
-    // genuinely cold load with no cached history (it excludes the synthetic CREATED
-    // action that is always injected for Concierge).
+    // hasOnceLoadedReportActions only. hasCachedReportActions is false on a
+    // genuinely cold load with no cached history: it excludes the synthetic CREATED
+    // action that is always injected for Concierge, as well as a lone real CREATED action.
     const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && hasCachedReportActions) && !isOffline;
 
     // When opening a linked message online, wait for the first load before rendering the list: the batch of

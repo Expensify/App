@@ -2,6 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import BaseSidebarScreen from '@pages/inbox/sidebar/BaseSidebarScreen';
 import SidebarLinksData from '@pages/inbox/sidebar/SidebarLinksData';
@@ -33,14 +34,30 @@ jest.mock('@pages/inbox/sidebar/InboxTabSelector', () => jest.fn(() => null));
 // The skeleton view is stubbed with a testID so it can be observed without rendering the SVG skeleton.
 jest.mock('@components/OptionsListSkeletonView', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    const {View} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
     return jest.fn(() => ReactModule.createElement(View, {testID: 'OptionsListSkeletonView'}));
 });
 jest.mock('@pages/inbox/sidebar/SidebarLinksData', () => jest.fn(() => null));
 
 const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
-const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
-const mockSidebarLinksData = SidebarLinksData as jest.MockedFunction<typeof SidebarLinksData>;
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
+const mockSidebarLinksData = jest.mocked(SidebarLinksData);
+
+/** Builds a complete ResponsiveLayoutResult so the mock return value matches the hook's contract without a narrowing assertion. */
+const buildResponsiveLayout = (overrides: Partial<ResponsiveLayoutResult> = {}): ResponsiveLayoutResult => ({
+    shouldUseNarrowLayout: false,
+    isSmallScreenWidth: false,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: false,
+    isExtraLargeScreenWidth: false,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: false,
+    onboardingIsMediumOrLargerScreenWidth: false,
+    isInLandscapeMode: false,
+    ...overrides,
+});
 
 /** Builds the keyed useOnyx mock BaseSidebarScreen reads: IS_LOADING_APP and the REPORT collection (via selector). */
 const setupUseOnyx = (options: {isLoadingApp?: boolean; hasReportData?: boolean} = {}) => {
@@ -68,7 +85,7 @@ describe('BaseSidebarScreen (outer skeleton gate)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false} as ReturnType<typeof useResponsiveLayout>);
+        mockUseResponsiveLayout.mockReturnValue(buildResponsiveLayout());
         setupUseOnyx();
     });
 
