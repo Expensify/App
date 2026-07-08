@@ -116,9 +116,9 @@ Additional columns can be enabled from the **Columns** picker:
   - Exchange rate
   - International reimbursement IDs
   - MCC
-  - Original amount
   - Per attendee
   - Posted
+  - Purchase amount
   - Tag
   - Tag GL code
   - Tax
