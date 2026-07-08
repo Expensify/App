@@ -70,7 +70,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
         splitExpenseDraftTransaction?.comment?.originalTransactionID,
     ]);
-    console.log('>>>>>>>>>>>>>>>>>>', splitExpenseDraftTransaction);
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
 
