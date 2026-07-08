@@ -7639,7 +7639,7 @@ const translations = {
             },
             requireFieldsRule: {
                 title: 'Field requirements',
-                subtitle: 'Require specific expense fields or waive requiring them for a category.',
+                subtitle: 'Require specific expense fields or waive requiring them.',
                 requireDirection: 'Require',
                 doNotRequireDirection: 'Do not require',
                 theFollowing: 'the following:',
