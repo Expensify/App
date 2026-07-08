@@ -52,10 +52,12 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
-    // Memoized explicitly: React Compiler caches the inline callbacks but NOT the getTaskSections call
-    // result, so without useMemo each render returns a fresh array. An unstable `filteredData` reference
-    // drives useStableOptimisticSortedData's setState effect into an infinite render loop during the
-    // optimistic-create flow ("Maximum update depth exceeded").
+    // Memoized explicitly for reference stability: React Compiler caches the inline callbacks but NOT the
+    // getTaskSections call result (it reads the Onyx global cache, so it's opaque to the compiler), so
+    // without useMemo each render returns a fresh array. That churn would propagate through the published
+    // context value and every downstream `filteredData`/`data` consumer. (The optimistic-create infinite loop
+    // that forces this in the transaction views can't occur here — task rows have no transactionID, so
+    // useStableOptimisticSortedData never tracks one.)
     const {filteredData, filteredDataLength, allDataLength} = useMemo<{
         filteredData: SearchData;
         filteredDataLength: number;
