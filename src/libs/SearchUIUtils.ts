@@ -260,7 +260,8 @@ type GetReportSectionsParams = {
     isOffline: boolean | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
-    queryJSON?: SearchQueryJSON;
+    queryType?: SearchDataTypes;
+    queryStatus?: SearchStatus;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
@@ -2807,7 +2808,8 @@ function getReportSections({
     isActionLoadingSet,
     bankAccountList,
     reportActions = {},
-    queryJSON,
+    queryType,
+    queryStatus,
     onyxPersonalDetailsList,
     convertToDisplayString,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number, boolean] {
@@ -2835,7 +2837,9 @@ function getReportSections({
         hasDeletedTransaction,
     } = classifyAndPreprocess(data);
 
-    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const fallbackQueryJSON = queryType === undefined && queryStatus === undefined ? getCurrentSearchQueryJSON() : undefined;
+    const resolvedQueryType = queryType ?? fallbackQueryJSON?.type;
+    const resolvedQueryStatus = queryStatus ?? fallbackQueryJSON?.status;
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
@@ -2853,9 +2857,9 @@ function getReportSections({
             let shouldShow = true;
 
             const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
-            if (currentQueryJSON && !isActionLoading) {
-                if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                    const status = currentQueryJSON.status;
+            if (resolvedQueryType !== undefined && !isActionLoading) {
+                if (resolvedQueryType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                    const status = resolvedQueryStatus;
 
                     if (Array.isArray(status)) {
                         shouldShow = status.some((expenseStatus) => {
@@ -3680,7 +3684,8 @@ function getSections({
             isActionLoadingSet,
             bankAccountList,
             reportActions,
-            queryJSON,
+            queryType: queryJSON?.type,
+            queryStatus: queryJSON?.status,
             onyxPersonalDetailsList,
             convertToDisplayString,
         });

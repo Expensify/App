@@ -119,7 +119,8 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
             isActionLoadingSet,
             bankAccountList,
             reportActions: exportReportActions,
-            queryJSON,
+            queryType: queryJSON?.type,
+            queryStatus: queryJSON?.status,
             onyxPersonalDetailsList,
             convertToDisplayString,
         });
@@ -142,7 +143,8 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
         isActionLoadingSet,
         bankAccountList,
         exportReportActions,
-        queryJSON,
+        queryJSON?.type,
+        queryJSON?.status,
         onyxPersonalDetailsList,
         convertToDisplayString,
     ]);
