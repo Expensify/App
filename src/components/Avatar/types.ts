@@ -89,4 +89,4 @@ type AvatarBranchCommonProps = {
     type: AvatarType;
 };
 
-export type {AvatarCommonProps, ResolvedAvatar, AvatarBranchCommonProps};
+export type {AvatarCommonProps, ResolvedAvatar, ResolvedImageAvatar, ResolvedIconAvatar, AvatarBranchCommonProps};

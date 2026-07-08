@@ -7,8 +7,8 @@ import React from 'react';
 
 import type {AvatarCommonProps} from './types';
 
-import AvatarUser from './AvatarUser';
-import AvatarWorkspace from './AvatarWorkspace';
+import UserAvatar from './UserAvatar';
+import WorkspaceAvatar from './WorkspaceAvatar';
 
 type AvatarProps = AvatarCommonProps & {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
@@ -24,11 +24,13 @@ type AvatarProps = AvatarCommonProps & {
     type: AvatarType;
 };
 
-/** Renders a user or workspace avatar depending on the `type` prop. */
+/** Renders a user or workspace avatar depending on the `type` prop.
+ * This wrapper exists for backward compatibility. If possible use WorkspaceAvatar and UserAvatar directly.
+ */
 function Avatar({type, name, fallbackIcon, fallbackIconTestID, source, imageStyles, iconAdditionalStyles, containerStyles, size, fill, testID, avatarID}: AvatarProps) {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return (
-            <AvatarWorkspace
+            <WorkspaceAvatar
                 name={name}
                 source={source}
                 imageStyles={imageStyles}
@@ -43,7 +45,7 @@ function Avatar({type, name, fallbackIcon, fallbackIconTestID, source, imageStyl
     }
 
     return (
-        <AvatarUser
+        <UserAvatar
             fallbackIcon={fallbackIcon}
             fallbackIconTestID={fallbackIconTestID}
             source={source}

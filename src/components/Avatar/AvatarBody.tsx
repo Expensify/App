@@ -8,15 +8,14 @@ import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 
-import type {ResolvedAvatar} from './types';
+import type {ResolvedIconAvatar, ResolvedImageAvatar} from './types';
 
 import AvatarIcon from './AvatarIcon';
 import AvatarImage from './AvatarImage';
-import AvatarInitials from './AvatarInitials';
 
 type AvatarBodyProps = {
     /** The resolved avatar model that selects which branch to render. */
-    resolvedAvatar: ResolvedAvatar;
+    resolvedAvatar: ResolvedImageAvatar | ResolvedIconAvatar;
 
     /** Set the size of Avatar */
     size: AvatarSizeName;
@@ -34,22 +33,9 @@ type AvatarBodyProps = {
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
-/** Renders a resolved avatar as a remote image, an SVG icon, or locally drawn initials. */
+/** Renders a resolved avatar as a remote image or an SVG icon. Initials are handled by the user path. */
 function AvatarBody({resolvedAvatar, size, type, imageStyles, iconAdditionalStyles, fill}: AvatarBodyProps) {
     const theme = useTheme();
-    if (resolvedAvatar.variant === 'initials') {
-        return (
-            <AvatarInitials
-                initials={resolvedAvatar.initials}
-                colors={resolvedAvatar.colors}
-                size={size}
-                type={type}
-                initialsContainerStyles={imageStyles}
-                initialsAdditionalStyles={iconAdditionalStyles}
-            />
-        );
-    }
-
     if (resolvedAvatar.variant === 'image') {
         return (
             <AvatarImage

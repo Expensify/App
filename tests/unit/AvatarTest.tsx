@@ -1,8 +1,8 @@
 import {render, screen} from '@testing-library/react-native';
 
 import Avatar from '@components/Avatar';
-import AvatarUser from '@components/Avatar/AvatarUser';
-import AvatarWorkspace from '@components/Avatar/AvatarWorkspace';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -297,11 +297,11 @@ describe('Avatar', () => {
         });
     });
 
-    describe('AvatarUser and AvatarWorkspace', () => {
-        it('AvatarUser renders the same as the back-compat default for user avatars', async () => {
+    describe('UserAvatar and WorkspaceAvatar', () => {
+        it('UserAvatar renders the same as the back-compat default for user avatars', async () => {
             render(
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
-                    <AvatarUser
+                    <UserAvatar
                         source={UPLOADED_AVATAR_URL}
                         avatarID={1}
                     />
@@ -314,12 +314,12 @@ describe('Avatar', () => {
             expect(screen.getByTestId(AVATAR_IMAGE_TEST_ID)).toBeTruthy();
         });
 
-        it('AvatarWorkspace renders the same as the back-compat default for workspace avatars', async () => {
+        it('WorkspaceAvatar renders the same as the back-compat default for workspace avatars', async () => {
             const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
 
             render(
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
-                    <AvatarWorkspace
+                    <WorkspaceAvatar
                         name={WORKSPACE_NAME}
                         avatarID="policy_123"
                     />

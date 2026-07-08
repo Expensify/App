@@ -16,6 +16,7 @@ type UseUserAvatarSourceParams = {
     fallbackIconTestID?: string;
 };
 
+/** Resolves a user avatar source into a renderable model: locally drawn initials, a remote image, or an SVG icon. */
 function useUserAvatarSource({source: originalSource, avatarID, fallbackIcon, fallbackIconTestID = ''}: UseUserAvatarSourceParams): ResolvedAvatar {
     const defaultAvatars = useDefaultAvatars();
     const theme = useTheme();
