@@ -15,9 +15,7 @@ import {
     getReportFieldMaps,
     isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isReportFieldDisabled,
     isReportFieldDisabledForUser,
-    isReportFieldOfTypeTitle,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 
@@ -40,9 +38,6 @@ type MoneyRequestViewReportFieldsProps = {
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
-
-    /** Indicates whether the IOU report is a combined report */
-    isCombinedReport?: boolean;
 
     /** Indicates whether we have any pending actions from parent component */
     pendingAction?: PendingAction;
@@ -89,7 +84,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
         </OfflineWithFeedback>
     );
 }
-function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
+function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -121,14 +116,10 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             });
     }, [policy, report, currentUserAccountID]);
 
-    const enabledReportFields = sortedPolicyReportFields.filter(
-        (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
-    );
-    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled;
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;
