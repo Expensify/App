@@ -389,9 +389,13 @@ function Button({
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                     extraSmall={extraSmall}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                     small={small}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                     medium={medium}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                     large={large}
                                     isButtonIcon
                                     accessibilityLabel={iconAccessibilityLabel}
@@ -405,9 +409,13 @@ function Button({
                             <Icon
                                 src={iconRight ?? icons.ArrowRight}
                                 fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                 extraSmall={extraSmall}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                 small={small}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                 medium={medium}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- keeping legacy sizing for now
                                 large={large}
                                 isButtonIcon
                             />
