@@ -5172,11 +5172,10 @@ const translations = {
                 title: 'Before you connect',
                 installBundle: 'Install the Expensify bundle',
                 installBundlePSAHeader: 'For PSA/SRP Connections:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install PSA/SRP Expensify Bundle (Version ${version})</a>`,
+                installBundleDescription: 'Install the Expensify bundle in Salesforce by clicking this link:',
+                installBundlePSALink: ({version}: {version: string}) => `Install PSA/SRP Expensify Bundle (Version ${version})`,
                 installBundleFFAHeader: 'For FFA Connections:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Install FFA Expensify Bundle (Version ${version})`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
                 setupContactsBullet1:
