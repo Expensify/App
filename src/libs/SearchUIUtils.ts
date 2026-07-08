@@ -720,6 +720,7 @@ function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
+    topSpendersPolicyIDs: string[] = [],
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
@@ -966,6 +967,7 @@ function getSuggestedSearches(
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    ...(topSpendersPolicyIDs.length > 0 ? {policyID: topSpendersPolicyIDs} : {}),
                     status: [
                         CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                         CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
@@ -1060,7 +1062,7 @@ function getSuggestedSearchesVisibility(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = false;
@@ -1075,12 +1077,13 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopMerchantsSuggestion = false;
     let hasGroupPoliciesWithExpenseChat = false;
     let shouldShowSpendOverTimeSuggestion = false;
+    const topSpendersPolicyIDs: string[] = [];
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
-    Object.values(policies ?? {}).some((policy) => {
+    Object.values(policies ?? {}).forEach((policy) => {
         if (!policy) {
-            return false;
+            return;
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
@@ -1128,6 +1131,9 @@ function getSuggestedSearchesVisibility(
         shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
         shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
         shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
+        if (isEligibleForTopSpendersSuggestion && policy.id) {
+            topSpendersPolicyIDs.push(policy.id);
+        }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
         hasGroupPoliciesWithExpenseChat ||=
@@ -1137,23 +1143,6 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
-
-        // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
-        return (
-            shouldShowSubmitSuggestion &&
-            shouldShowPaySuggestion &&
-            shouldShowApproveSuggestion &&
-            shouldShowExportSuggestion &&
-            shouldShowStatementsSuggestion &&
-            shouldShowUnapprovedCashSuggestion &&
-            shouldShowUnapprovedCardSuggestion &&
-            shouldShowExpensifyCardSuggestion &&
-            shouldShowReimbursementsSuggestion &&
-            shouldShowTopSpendersSuggestion &&
-            shouldShowTopCategoriesSuggestion &&
-            shouldShowTopMerchantsSuggestion &&
-            hasGroupPoliciesWithExpenseChat
-        );
     });
 
     return {
@@ -1175,6 +1164,7 @@ function getSuggestedSearchesVisibility(
         },
         hasGroupPoliciesWithExpenseChat,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
+        topSpendersPolicyIDs,
     };
 }
 
@@ -4602,8 +4592,9 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasGroupPoliciesWithExpenseChat,
         shouldShowExpensifyCard,
+        topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
@@ -4754,7 +4745,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentWithWorkflowsDisabled ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
+            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];

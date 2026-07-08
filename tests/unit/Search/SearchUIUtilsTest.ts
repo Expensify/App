@@ -7035,7 +7035,7 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
-        it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
+        it('should hide submit, approve, pay, and export for track intent users without workflows enabled', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -7104,7 +7104,12 @@ describe('SearchUIUtils', () => {
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
-            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
+
+            // Top Spenders is an insight (not a workflow todo), so it resurfaces for an eligible track-intent workspace
+            const topSpendersItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
+            expect(topSpendersItem).toBeDefined();
+            // The query is scoped to the eligible workspace so individual-chat/personal expenses are excluded
+            expect(topSpendersItem?.searchQuery).toContain('policyID:policy1');
         });
 
         it('should show submit, approve, pay, and export for track intent users when workflows are enabled', () => {
@@ -7435,6 +7440,10 @@ describe('SearchUIUtils', () => {
             expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES);
             expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
             expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME);
+
+            // Top Spenders is scoped to the eligible workspace so it never aggregates individual-chat/personal expenses
+            const topSpendersItem = insightsSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
+            expect(topSpendersItem?.searchQuery).toContain('policyID:policy1');
 
             // A Submit approver (policy approver / others submit to them) sees "Needs approval" (#94187)
             expect(allMenuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
@@ -8625,6 +8634,42 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
             expect(response.visibility.topSpenders).toBe(false);
+        });
+
+        test('Should collect the IDs of every Top Spenders eligible policy, excluding ineligible ones', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policy_eligibleA: {
+                    id: 'eligibleA',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {submitsTo: '', forwardsTo: ''},
+                        'member@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+                policy_eligibleB: {
+                    id: 'eligibleB',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {submitsTo: '', forwardsTo: ''},
+                        'member@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+                policy_singleMember: {
+                    id: 'singleMember',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+            expect(response.topSpendersPolicyIDs).toEqual(expect.arrayContaining(['eligibleA', 'eligibleB']));
+            expect(response.topSpendersPolicyIDs).toHaveLength(2);
         });
 
         test('Should show Unapproved Cash for Auditor role in paid policy with approvals and payments enabled', () => {
