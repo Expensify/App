@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,6 +25,7 @@ type CardAuthenticationViewProps = {
 
 function CardAuthenticationView({onSuccess, onClose}: CardAuthenticationViewProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [isLoading, setIsLoading] = useState(true);
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'CardAuthenticationView', isLoading};
@@ -51,7 +53,7 @@ function CardAuthenticationView({onSuccess, onClose}: CardAuthenticationViewProp
             {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
             <iframe
                 src={authenticationLink}
-                title="Card Authentication"
+                title={translate('subscription.authenticatePaymentCard')}
                 height="100%"
                 width="100%"
                 seamless
