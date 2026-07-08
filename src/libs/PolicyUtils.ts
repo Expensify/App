@@ -1772,7 +1772,7 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): number {
     const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin);
-    return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? -1) : -1;
+    return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
 function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
