@@ -183,6 +183,7 @@ import {
     temporary_getMoneyRequestOptions,
     updateReportPreview,
 } from '@libs/ReportUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -254,7 +255,6 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {groupTransactionsByReportID} from '../utils/ReportTestUtils';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -329,7 +329,7 @@ const computeReportName = (
         currentUserLogin: currentUserEmail,
         translate: translateLocal,
         conciergeReportID,
-        reportTransactions: groupTransactionsByReportID(transactions),
+        reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
     });
 const participantsPersonalDetails: PersonalDetailsList = {

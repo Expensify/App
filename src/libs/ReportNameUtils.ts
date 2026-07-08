@@ -1058,7 +1058,7 @@ function computeReportName({
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy, linkedTransactions: reportTransactions?.[report.reportID] ?? [], translate});
+        formattedName = getMoneyRequestReportName({report, policy, linkedTransactions: reportTransactions[report.reportID] ?? [], translate});
     }
 
     if (isInvoiceReport(report)) {
@@ -1069,7 +1069,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, reportTransactions?.[report.reportID] ?? [], translate, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {

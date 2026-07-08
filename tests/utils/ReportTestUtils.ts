@@ -1,8 +1,6 @@
 import CONST from '@src/CONST';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {}): ReportAction =>
     ({
@@ -60,16 +58,4 @@ const createMockReport = (overrides: Partial<Report> = {}): Report =>
         ...overrides,
     }) as Report;
 
-function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
-    const grouped: Record<string, Transaction[]> = {};
-    for (const transaction of Object.values(transactions ?? {})) {
-        if (!transaction?.reportID) {
-            continue;
-        }
-        grouped[transaction.reportID] ??= [];
-        grouped[transaction.reportID].push(transaction);
-    }
-    return grouped;
-}
-
-export {getFakeReportAction, getMockedSortedReportActions, createMockReport, groupTransactionsByReportID};
+export {getFakeReportAction, getMockedSortedReportActions, createMockReport};

@@ -6,6 +6,7 @@ import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -290,22 +291,13 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
-        // Only regroup transactions by reportID when the TRANSACTION collection itself changed - this reduce
+        // Only regroup transactions by reportID when the TRANSACTION collection itself changed - this rebuild
         // otherwise re-runs over every transaction on every recompute (e.g. a REPORT_ACTIONS-only update),
-        // even though the grouping it produces couldn't have changed.
-        if (!previousReportsTransactions || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, sourceValues)) {
-            previousReportsTransactions = transactions
-                ? Object.values(transactions).reduce<Record<string, Transaction[]>>((all, transaction) => {
-                      const reportsMap = all;
-                      if (!transaction?.reportID) {
-                          return reportsMap;
-                      }
-
-                      (reportsMap[transaction.reportID] ??= []).push(transaction);
-
-                      return all;
-                  }, {})
-                : {};
+        // even though the grouping it produces couldn't have changed. `!sourceValues` also forces a rebuild:
+        // it signals a full recompute (e.g. Onyx.clear() on logout), and without it this cache would keep
+        // serving the previous session's stale transaction groupings until a TRANSACTION update happened to fire.
+        if (!previousReportsTransactions || !sourceValues || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, sourceValues)) {
+            previousReportsTransactions = buildTransactionsByReportID(transactions);
         }
         const reportsTransactions = previousReportsTransactions;
 

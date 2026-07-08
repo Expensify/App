@@ -1241,11 +1241,7 @@ function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
 }
 
 function hasNonReimbursableTransactions(transactions?: Transaction[]): boolean {
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    return transactions.some((transaction) => !getReimbursable(transaction));
+    return !!transactions?.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
