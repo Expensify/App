@@ -86,4 +86,3 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
 }
 
 export {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText, buildNavigationSuggestions, MAX_NAVIGATION_SUGGESTIONS};
-export type {NavigationSuggestionSourceItem};

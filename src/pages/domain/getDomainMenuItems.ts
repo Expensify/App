@@ -52,4 +52,3 @@ function getDomainMenuItems({icons}: {icons: DomainMenuIconMap}): DomainMenuItem
 }
 
 export default getDomainMenuItems;
-export type {DomainMenuItem, DomainMenuIconMap};
