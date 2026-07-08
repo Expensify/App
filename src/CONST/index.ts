@@ -8250,6 +8250,7 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
+            GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',

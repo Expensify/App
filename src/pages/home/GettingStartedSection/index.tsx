@@ -1,5 +1,5 @@
+import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import WidgetContainer from '@components/WidgetContainer';
 
 import useLocalize from '@hooks/useLocalize';
@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getRoom} from '@libs/ReportUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +48,9 @@ function GettingStartedSection() {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: adminsRoomReportID, backTo: ROUTES.HOME}));
     };
 
+    const helpLinkText = translate(hasGuide ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge');
+    const footerHelpText = `${translate('homePage.gettingStartedSection.needHelp')} ${helpLinkText} ${translate('homePage.gettingStartedSection.forGuidedSetup')}`;
+
     if (!shouldShowSection) {
         return null;
     }
@@ -65,17 +66,18 @@ function GettingStartedSection() {
                 ))}
             </View>
             <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
-                <Text style={styles.textLabelSupporting}>
-                    {`${translate('homePage.gettingStartedSection.needHelp')} `}
-                    <TextLink
-                        onPress={openAdminsRoom}
-                        fontSize={variables.fontSizeLabel}
-                        style={styles.gettingStartedFooterLink}
-                    >
-                        {translate(hasGuide ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge')}
-                    </TextLink>
-                    {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
-                </Text>
+                <PressableWithoutFeedback
+                    onPress={openAdminsRoom}
+                    accessibilityLabel={footerHelpText}
+                    role={CONST.ROLE.LINK}
+                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_FOOTER_HELP}
+                >
+                    <Text style={[styles.textLabelSupporting, styles.gettingStartedFooterLink]}>
+                        {`${translate('homePage.gettingStartedSection.needHelp')} `}
+                        <Text style={styles.link}>{helpLinkText}</Text>
+                        {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
+                    </Text>
+                </PressableWithoutFeedback>
             </View>
         </WidgetContainer>
     );
