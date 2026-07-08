@@ -22,11 +22,11 @@ function recordedTimeEntry(time: string): AnyOnyxUpdate {
 }
 
 function buildRequest(command: string): Request<OnyxKey> {
-    return {command, successData: [recordedTimeEntry(CLIENT_NOW)], data: {}} as unknown as Request<OnyxKey>;
+    return {command, successData: [recordedTimeEntry(CLIENT_NOW)], data: {}};
 }
 
 function buildResponse(jsonCode: number): Response<OnyxKey> {
-    return {jsonCode, onyxData: [cutoffEntry(DELIVERED_CUTOFF)]} as unknown as Response<OnyxKey>;
+    return {jsonCode, onyxData: [cutoffEntry(DELIVERED_CUTOFF)]};
 }
 
 describe('RecordFullReconnectTime middleware', () => {

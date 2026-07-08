@@ -119,7 +119,8 @@ describe('FullReconnectUtils', () => {
 
                 recordFullReconnectTimeFromResponse(responseOnyxData, successData);
 
-                expect(shouldTriggerFullReconnect(responseOnyxData.at(0)?.value as string, deliveredCutoff)).toBe(false);
+                const recordedTime: unknown = responseOnyxData.at(0)?.value;
+                expect(shouldTriggerFullReconnect(typeof recordedTime === 'string' ? recordedTime : '', deliveredCutoff)).toBe(false);
             }
         });
     });

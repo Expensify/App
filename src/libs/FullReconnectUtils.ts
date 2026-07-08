@@ -55,9 +55,10 @@ function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], 
         return;
     }
 
-    const deliveredCutoff = (responseOnyxData.at(cutoffIndex)?.value as string | undefined) ?? '';
+    const deliveredCutoffValue: unknown = responseOnyxData.at(cutoffIndex)?.value;
+    const deliveredCutoff = typeof deliveredCutoffValue === 'string' ? deliveredCutoffValue : '';
     const timeForDeliveredCutoff = getLastFullReconnectTimeToRecord(deliveredCutoff);
-    const buildTimeValue = (recordedTimeEntry.value as string | undefined) ?? '';
+    const buildTimeValue = typeof recordedTimeEntry.value === 'string' ? recordedTimeEntry.value : '';
     const valueToRecord = timeForDeliveredCutoff >= buildTimeValue ? timeForDeliveredCutoff : buildTimeValue;
 
     recordedTimeEntry.value = valueToRecord;
