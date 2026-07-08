@@ -114,9 +114,8 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         return map;
     }, [localTransactions]);
 
-    // Locally-created expenses the snapshot hasn't confirmed yet. Holding a just-created expense here keeps it in the
-    // slot after `pendingAction` clears on sync but before the refreshed snapshot arrives (otherwise it briefly
-    // disappears and reappears).
+    // Holding a just-created expense here keeps it in the slot after `pendingAction` clears on sync but before the
+    // refreshed snapshot arrives (otherwise it briefly disappears and reappears).
     const [unconfirmedTransactionIDs, setUnconfirmedTransactionIDs] = useState(() => new Set<string>());
 
     const fireSearch = useEffectEvent(() => {
@@ -182,7 +181,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             return ownerAccountID === undefined || ownerAccountID === accountID;
         });
 
-        // Locally-created expenses the snapshot hasn't confirmed yet are merged in below (deduped by `transactionID`).
+        // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
         // A local optimistic ADD always belongs to the current user, so no ownership check is needed (unlike the snapshot path).
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
         const pendingAddIDs = Object.values(localTransactions ?? {})
