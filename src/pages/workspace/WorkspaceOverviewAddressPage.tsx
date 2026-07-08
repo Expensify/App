@@ -60,7 +60,7 @@ function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProp
         });
         Navigation.goBack(backPath);
     };
-    
+
     const requiresFullAddressForExclusions = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
     return (
