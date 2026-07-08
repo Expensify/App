@@ -7575,6 +7575,7 @@ const translations = {
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 importRulesTitle: 'Import merchant rules',
+                importRulesViaSpreadsheet: 'Import merchant rules via spreadsheet',
                 importColumnMerchantIs: 'Merchant is',
                 importColumnMerchantContains: 'Merchant contains',
                 importColumnUpdatedMerchant: 'Updated merchant',

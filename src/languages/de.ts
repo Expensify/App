@@ -7379,6 +7379,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
                 importRulesTitle: 'Händlerregeln importieren',
+                importRulesViaSpreadsheet: 'Händlerregeln per Tabellenkalkulation importieren',
                 importColumnMerchantIs: 'Händler ist',
                 importColumnMerchantContains: 'Händler enthält',
                 importColumnUpdatedMerchant: 'Aktualisierter Händler',
