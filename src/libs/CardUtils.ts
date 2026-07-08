@@ -1247,44 +1247,6 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
 }
 
 /**
- * Filter out the Expensify cards from the list of cards
- *
- * @param cards the list of cards to filter
- * @returns the list of cards without Expensify cards
- */
-function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
-    if (!cards) {
-        return {};
-    }
-
-    return Object.fromEntries(Object.entries(cards).filter(([key]) => !key.includes(CONST.EXPENSIFY_CARD.BANK)));
-}
-
-/**
- * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
- *
- * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
- * @param workspaceAccountID the workspace account id we want to get cards for
- * @param domainIDs the domain ids we want to get cards for
- */
-function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
-    if (!allCardsList) {
-        return;
-    }
-
-    return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
-        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
-            return acc;
-        }
-        const {cardList, ...feedCards} = cards ?? {};
-        const filteredCards = filterInactiveCards(feedCards);
-        Object.assign(acc, filteredCards);
-        return acc;
-    }, {});
-}
-
-/**
  * Check if the card has a broken connection
  *
  * @param card the card to check
@@ -1557,20 +1519,6 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
-/**
- * Get card which has a broken connection
- *
- * @param feedCards the list of the cards, related to one or several feeds
- * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
- */
-function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExclude?: string): Card | undefined {
-    if (!feedCards || isEmptyObject(feedCards)) {
-        return undefined;
-    }
-
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
-}
-
 /** Extract feed from feed with domainID */
 function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
     if (!feedWithDomainID) {
@@ -1592,11 +1540,6 @@ function isPersonalCard(card?: Card) {
     return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
-type SplitMaskedCardNumberResult = {
-    firstDigits?: string;
-    lastDigits?: string;
-};
-
 /**
  * Split masked card number into first and last digits
  *
@@ -1610,20 +1553,6 @@ function formatMaskedCardName(cardName: string): string {
     }
     const padded = cardName.padStart(16, 'X');
     return padded.match(/.{1,4}/g)?.join('-') ?? padded;
-}
-
-function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
-    if (!cardNumber) {
-        return {
-            firstDigits: undefined,
-            lastDigits: undefined,
-        };
-    }
-    const parts = cardNumber.split(maskChar);
-    return {
-        firstDigits: parts.at(0),
-        lastDigits: parts.at(-1),
-    };
 }
 
 function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number, feedName?: string): boolean {
@@ -2005,12 +1934,10 @@ export {
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
-    flattenWorkspaceCardsList,
     isCardConnectionBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
@@ -2043,7 +1970,6 @@ export {
     getCompanyCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
-    getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     isDirectFeed,
     feedHasCards,
@@ -2057,7 +1983,6 @@ export {
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     formatMaskedCardName,
-    splitMaskedCardNumber,
     isCardAlreadyAssigned,
     getCardDescriptionForSearchTable,
     generateCardID,
