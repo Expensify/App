@@ -1,6 +1,7 @@
 import {getOnboardingStepCounter} from '@libs/getOnboardingStepCounter';
 import type {OnboardingScreen, OnboardingStepResult} from '@libs/getOnboardingStepCounter';
 import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,6 +14,8 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {isBetaEnabled} = usePermissions();
 
     return getOnboardingStepCounter(page, {
@@ -21,7 +24,7 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
         hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
         purposeSelected: purposeSelected ?? undefined,
         isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
-        isAccountValidated: !!account?.validated,
+        isAccountValidated: isCurrentUserValidated(loginList, session?.email),
         hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026)) > 0,
     });
 }

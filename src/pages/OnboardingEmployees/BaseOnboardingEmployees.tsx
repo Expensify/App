@@ -18,6 +18,7 @@ import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
 import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 
@@ -48,6 +49,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {isBetaEnabled} = usePermissions();
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
@@ -58,18 +61,19 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
-            isAccountValidated: !!account?.validated,
+            isAccountValidated: isCurrentUserValidated(loginList, session?.email),
             hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026) > 0,
         }),
         [
             account?.hasAccessibleDomainPolicies,
             account?.isFromPublicDomain,
-            account?.validated,
             canUseSubmit2026,
             joinablePolicies,
+            loginList,
             onboardingValues?.isMergeAccountStepSkipped,
             onboardingValues?.signupQualifier,
             purposeSelected,
+            session?.email,
         ],
     );
 
