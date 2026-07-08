@@ -1,9 +1,8 @@
-import Checkbox from '@components/Checkbox';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import FieldRequirementsDirectionToggle from '@components/RequireFieldsRules/FieldRequirementsDirectionToggle';
+import FieldRequirementsToggleMenuItem from '@components/RequireFieldsRules/FieldRequirementsToggleMenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -15,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -25,7 +23,9 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {
+    deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFieldToggleUpdate,
     getRequireFieldsFormFromCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
@@ -59,7 +59,6 @@ type RequireFieldsRulePageBaseProps = {
 function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDirection, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -165,23 +164,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isAttendeeFieldApplicable);
 
     const handleToggleField = (fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean) => {
-        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT && value) {
-            updateDraftRequireFieldsRule({
-                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: true,
-                [INPUT_IDS.REQUIRE_RECEIPT]: true,
-            });
-            return;
-        }
-
-        if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && fieldKey === INPUT_IDS.REQUIRE_RECEIPT && !value) {
-            updateDraftRequireFieldsRule({
-                [INPUT_IDS.REQUIRE_RECEIPT]: false,
-                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: false,
-            });
-            return;
-        }
-
-        updateDraftRequireFieldsRule({[fieldKey]: value});
+        updateDraftRequireFieldsRule(getRequireFieldsFieldToggleUpdate(direction, fieldKey, value));
     };
 
     const handleDirectionChange = (newDirection: FieldRequirementsDirection) => {
@@ -198,6 +181,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         }
 
         const formToSave = getEffectiveRequireFieldsRuleForm(selectedCategory, form);
+        const editDirection = routeDirection ?? formToSave[INPUT_IDS.DIRECTION];
+
+        if (isEditing && categoryName && editDirection && formToSave[INPUT_IDS.CATEGORY] && formToSave[INPUT_IDS.CATEGORY] !== categoryName) {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(editDirection, categoryName));
+        }
+
         saveRequireFieldsRule(policyData, formToSave);
 
         if (!isEditing && isRulesRevampEnabled) {
@@ -229,6 +218,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     if (!isEditing && !!policy && !canWriteRules) {
         return <NotFoundPage />;
     }
+
+    const activeCategoryName = selectedCategoryName ?? categoryName;
+    const activeDirection = routeDirection ?? direction;
 
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
@@ -265,14 +257,17 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName, direction)) : undefined}
+                        onPress={
+                            canWriteRules
+                                ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? activeCategoryName : undefined, isEditing ? activeDirection : undefined))
+                                : undefined
+                        }
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
-                        disabled={isEditing}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
@@ -288,33 +283,17 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                     </View>
                     {fieldToggles
                         .filter((field) => field.isVisible)
-                        .map((field) => {
-                            const isChecked = !!effectiveForm?.[field.key];
-                            const toggleField = () => handleToggleField(field.key, !isChecked);
-
-                            return (
-                                <MenuItem
-                                    key={field.key}
-                                    title={field.label}
-                                    onPress={toggleField}
-                                    disabled={!canWriteRules}
-                                    interactive={canWriteRules}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={[styles.pointerEventsAuto, StyleUtils.getMenuItemIconStyle(true), styles.alignItemsEnd]}>
-                                            <Checkbox
-                                                isChecked={isChecked}
-                                                onPress={toggleField}
-                                                accessibilityLabel={field.label}
-                                                accessible={false}
-                                                disabled={!canWriteRules}
-                                            />
-                                        </View>
-                                    }
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_FIELD_TOGGLE}
-                                />
-                            );
-                        })}
+                        .map((field) => (
+                            <FieldRequirementsToggleMenuItem
+                                key={field.key}
+                                fieldKey={field.key}
+                                label={field.label}
+                                direction={direction}
+                                effectiveForm={effectiveForm}
+                                canWriteRules={canWriteRules}
+                                onToggle={handleToggleField}
+                            />
+                        ))}
                 </ScrollView>
                 {footer}
             </ScreenWrapper>

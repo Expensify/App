@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {categoryHasRequireFieldsRuleForDirection, getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasRequireFieldsRuleForDirection, getEffectiveRequireFieldsRuleForm, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -37,7 +37,14 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
-    const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
+    const selectedCategoryItem = selectedCategoryName
+        ? {
+              name: getDecodedCategoryName(selectedCategoryName),
+              value: selectedCategoryName,
+          }
+        : undefined;
+    const formDirection = form?.[INPUT_IDS.DIRECTION] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    const activeDirection = direction ?? formDirection;
 
     const categoryItems = Object.values(policyCategories ?? {})
         .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
@@ -46,11 +53,16 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute =
-        isEditing && categoryName && direction ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName, direction) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
+    const backToRoute = (selectedValue?: string) =>
+        getRequireFieldsRuleBackToRoute({
+            policyID,
+            isEditing,
+            categoryName,
+            direction: activeDirection,
+            selectedCategoryName: selectedValue ?? selectedCategoryName,
+        });
 
     const onSave = (value?: string) => {
-        const formDirection = form?.[INPUT_IDS.DIRECTION] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
         const selectedCategory = value ? policyCategories?.[value] : undefined;
         const draftForm = {
             ...form,
@@ -85,8 +97,9 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
                 selectedItem={selectedCategoryItem}
                 items={categoryItems}
                 onSave={onSave}
-                onBack={() => Navigation.goBack(backToRoute)}
+                onBack={() => Navigation.goBack(backToRoute())}
                 backToRoute={backToRoute}
+                allowNoneOption={false}
             />
         </AccessOrNotFoundWrapper>
     );

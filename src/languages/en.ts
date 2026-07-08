@@ -7639,7 +7639,7 @@ const translations = {
             },
             requireFieldsRule: {
                 title: 'Field requirements',
-                subtitle: 'Require receipts, categories, etc, when submitting.',
+                subtitle: 'Require specific expense fields or waive requiring them for a category.',
                 requireDirection: 'Require',
                 doNotRequireDirection: 'Do not require',
                 theFollowing: 'the following:',
@@ -7648,6 +7648,8 @@ const translations = {
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorField: 'Please select at least one field to require.',
                 confirmErrorDoNotRequireField: 'Please select at least one field.',
+                receiptDisabledWhenItemizedRequired: 'Receipts are always required when itemized receipts are also required.',
+                itemizedDisabledWhenReceiptWaived: "Itemized receipts aren't required if any receipt also isn't required.",
             },
             flagForReviewTable: {
                 tableColumnType: 'Type',

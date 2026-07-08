@@ -716,16 +716,94 @@ function getRequireFieldsTableData({
     });
 }
 
+type RequireFieldsRuleBackToRouteParams = {
+    policyID: string;
+    isEditing: boolean;
+    categoryName?: string;
+    direction?: FieldRequirementsDirection;
+    selectedCategoryName?: string;
+};
+
+function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName, direction, selectedCategoryName}: RequireFieldsRuleBackToRouteParams): Route {
+    const activeCategoryName = selectedCategoryName ?? categoryName;
+
+    if (isEditing && activeCategoryName && direction) {
+        return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, activeCategoryName, direction);
+    }
+
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
+}
+
+function getRequireFieldsFieldToggleUpdate(direction: FieldRequirementsDirection, fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean): Partial<RequireFieldsRuleForm> {
+    const isReceiptField = fieldKey === INPUT_IDS.REQUIRE_RECEIPT;
+    const isItemizedField = fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT;
+
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+        if (isItemizedField && value) {
+            return {
+                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: true,
+                [INPUT_IDS.REQUIRE_RECEIPT]: true,
+            };
+        }
+
+        if (isReceiptField && !value) {
+            return {
+                [INPUT_IDS.REQUIRE_RECEIPT]: false,
+                [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: false,
+            };
+        }
+    }
+
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE && isReceiptField) {
+        return {
+            [INPUT_IDS.REQUIRE_RECEIPT]: value,
+            [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: value,
+        };
+    }
+
+    return {[fieldKey]: value};
+}
+
+function isRequireFieldsFieldCouplingDisabled(fieldKey: RequireFieldsRuleToggleFieldKey, direction: FieldRequirementsDirection, effectiveForm: RequireFieldsRuleForm | undefined): boolean {
+    if (fieldKey === INPUT_IDS.REQUIRE_RECEIPT) {
+        return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && !!effectiveForm?.[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
+    }
+
+    if (fieldKey === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT) {
+        return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE && !!effectiveForm?.[INPUT_IDS.REQUIRE_RECEIPT];
+    }
+
+    return false;
+}
+
+type RequireFieldsFieldCouplingTooltipKey = 'receiptDisabledWhenItemizedRequired' | 'itemizedDisabledWhenReceiptWaived';
+
+function getRequireFieldsFieldCouplingTooltipKey(
+    fieldKey: RequireFieldsRuleToggleFieldKey,
+    direction: FieldRequirementsDirection,
+    effectiveForm: RequireFieldsRuleForm | undefined,
+): RequireFieldsFieldCouplingTooltipKey | undefined {
+    if (!isRequireFieldsFieldCouplingDisabled(fieldKey, direction, effectiveForm)) {
+        return undefined;
+    }
+
+    return fieldKey === INPUT_IDS.REQUIRE_RECEIPT ? 'receiptDisabledWhenItemizedRequired' : 'itemizedDisabledWhenReceiptWaived';
+}
+
 export {
     categoryHasRequireFieldsRuleForDirection,
     deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFieldCouplingTooltipKey,
+    getRequireFieldsFieldToggleUpdate,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleBackToRoute,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     getRequireFieldsTableData,
     inferFieldRequirementsDirection,
     isFieldRequirementsDirection,
+    isRequireFieldsFieldCouplingDisabled,
     saveRequireFieldsRule,
 };
 export type {FieldRequirementsDirection, RequireFieldsTableItem};
