@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -150,6 +154,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: '正在扫描',
         analyzing: '正在分析…',
         thinking: 'Concierge 正在思考...',
+        agentThinking: '正在思考中…',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',
@@ -395,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: '提现编号',
         internationalReimbursementIDs: '国际报销 ID',
         withdrawalStatus: '提现状态',
+        paidStatus: '已付款状态',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
         chooseFiles: '选择文件',
@@ -510,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        unableToDisplayChart: '无法显示图表',
+        webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
         apiKey: 'API 密钥',
     },
     socials: {
@@ -824,7 +832,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: '加入会话',
         leaveThread: '离开会话',
         copyOnyxData: '复制 Onyx 数据',
-        copyAgentZeroRequestID: '复制 AgentZero 请求 ID',
+        viewAgentZeroTrace: '查看 AgentZero 跟踪',
         flagAsOffensive: '标记为攻击性内容',
         menu: '菜单',
     },
@@ -951,6 +959,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: '钱包',
             },
+            addVirtualCardPersonalDetails: {title: '添加您的个人信息', subtitle: '添加您的详细信息以查看并开始使用 Expensify 卡。', cta: '添加详细信息'},
             enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
         },
         announcements: '公告',
@@ -1030,6 +1039,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: '连接会计系统',
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
+            issueExpensifyCards: '发放 Expensify 卡',
+            issueExpensifyCardsSubtitle: '自定义控制并简化支出',
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
         },
@@ -1175,7 +1186,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: '已批准',
         cash: '现金',
         card: '卡片',
-        original: '原始',
+        purchase: '购买',
         split: '拆分',
         splitExpense: '拆分报销',
         splitDates: '拆分日期',
@@ -2283,6 +2294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '更换双重验证设备',
         verifyOldDeviceTitle: '验证旧设备',
         verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
+        verifyOldDeviceDescriptionWithRecovery: '请输入有效的恢复代码以确认您能访问您的账户。',
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
@@ -2432,6 +2444,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: '未激活',
         assignedCards: '卡片',
         assignedCardsDescription: '已分配卡片的交易会自动同步。',
+        addVirtualCardPersonalDetails: {subtitle: '请输入您的个人信息以开始使用您的卡', cta: '添加详细信息'},
         expensifyCard: 'Expensify 卡',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再回来查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与 Concierge 聊天以获取进一步帮助。',
@@ -2706,7 +2719,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         activatePhysicalCard: '激活实体卡',
         error: {
             thatDidNotMatch: '这与您卡片的最后 4 位数字不匹配。请重试。',
-            throttled: '您多次错误输入 Expensify 卡的末 4 位数字。如果您确定数字无误，请联系 Concierge 解决。否则，请稍后再试。',
         },
     },
     getPhysicalCard: {
@@ -2783,6 +2795,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
+        copilotNote: '该代理将作为对你账户拥有完全访问权限的 Copilot 添加，以便代表你执行操作。',
     },
     editAgentPage: {
         title: '编辑代理',
@@ -4893,11 +4906,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: '在你连接之前',
                 installBundle: '安装 Expensify 捆绑包',
                 installBundlePSAHeader: '用于 PSA/SRP 连接：',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a>`,
+                installBundleDescription: '通过点击此链接在 Salesforce 中安装 Expensify 包：',
+                installBundlePSALink: ({version}: {version: string}) => `安装 PSA/SRP Expensify 包（版本 ${version}）`,
                 installBundleFFAHeader: '对于 FFA 连接：',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `安装 FFA Expensify 组件包（版本 ${version}）`,
                 installBundleConfirm: '我已安装此捆绑包',
                 setupContacts: '设置用户和联系人',
                 setupContactsBullet1: '如果 Certinia 中尚未为你创建用户和联系人，请为自己分别创建一个用户和一个联系人，并确保其电子邮箱与你在 Expensify 中的主要邮箱一致。',
@@ -5335,6 +5347,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
             noSubsidiariesFound: '未找到子公司',
             noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+            accountTypesDescription: '您的 Rillet 账户将被导入为类别。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
+            dimensionsImport: '所有 Rillet 维度将作为标签导入',
+            importDescription: '选择要从 Rillet 导入的编码配置。',
         },
         type: {
             free: '免费',
@@ -5570,6 +5587,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             changeCardSmartLimitTypeWarning: (limit: number | string) => `如果将此卡的限额类型更改为智能限额，新交易将被拒绝，因为未批准的 ${limit} 限额已达到上限。`,
             changeCardMonthlyLimitTypeWarning: (limit: number | string) => `如果您将此卡的限额类型更改为每月，新交易将被拒绝，因为已达到每月 ${limit} 的限额。`,
             addShippingDetails: '添加收货详情',
+            addPersonalDetails: '添加个人信息',
             issuedCard: (assignee: string) => `已为 ${assignee} 发放了一张 Expensify 卡！该卡将在 2–3 个工作日内送达。`,
             issuedCardNoShippingDetails: (assignee: string) => `已为 ${assignee} 发放了一张 Expensify 卡！在确认邮寄详情后将寄出该卡。`,
             issuedCardVirtual: (assignee: string, link: string) => `已向 ${assignee} 发放一张虚拟 Expensify 卡！${link} 可立即使用。`,
@@ -6064,6 +6082,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             importedFromAccountingSoftware: '以下税费是从您的',
             taxCode: '税码',
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
+            taxRates: '税率',
         },
         duplicateWorkspace: {
             title: '为你的新工作区命名',
@@ -6172,6 +6191,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为人员管理员',
                 other: '设为人员管理员',
             }),
+            makePaymentsAdmin: () => ({
+                one: '设为付款管理员',
+                other: '设为付款管理员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题',
@@ -6201,6 +6224,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             makeCardAdmin: () => ({one: '设为卡片管理员', other: '设为卡管理员'}),
             cardAdmins: '卡片管理员',
             peopleAdmins: '人员管理员',
+            paymentsAdmins: '付款管理员',
             members: '成员',
         },
         card: {
@@ -7552,6 +7576,10 @@ ${reportName}`,
                     `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
                 groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
             },
+            notSync: '未同步',
+            authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
+            reconnect: '重新连接',
+            reconnectLink: '重新连接。',
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
@@ -8137,6 +8165,46 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `自 ${date} 起`,
         customUnitRateDateRangeUntilEnd: (date: string) => `直到 ${date}`,
         customUnitRateDateRangeAllDates: () => `适用于所有日期`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制概览`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制成员`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个报表字段`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个报表字段`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制会计设置`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制收据合作方设置`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制人力资源设置`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个类别`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个类别`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个标签`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个标签`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个税率`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个税率`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制时间跟踪设置`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制工作流`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制规则`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 条商家规则`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 ${count} 条商户规则`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个里程费率`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个里程费率`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 1 个每日补贴标准`,
+                other: (count: number) => `已从<a href="${sourcePolicyURL}">${sourcePolicyName}</a>复制了${count}个每日津贴标准`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -8328,6 +8396,8 @@ ${reportName}`,
             past: '过去',
             submitted: '已提交',
             approved: '已批准',
+            firstApprover: '首位审批人',
+            firstApproved: '首次批准',
             paid: '已支付',
             exported: '已导出',
             posted: '已发布',
@@ -8478,6 +8548,7 @@ ${reportName}`,
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: '标记为已付款', withdrawing: '提现中', confirmed: '已确认'},
     reportLayout: {
         reportLayout: '报表布局',
         groupByLabel: '分组依据：',
@@ -9359,6 +9430,7 @@ ${reportName}`,
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
             collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
             pricing: '定价',
+            editSubscription: '编辑订阅',
         },
         cancelSubscription: {
             title: '取消订阅',
@@ -9523,6 +9595,7 @@ ${reportName}`,
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
             aBankAccountIsLocked: '银行账户已锁定',
             completeHrSetup: '完成人力资源设置',
+            theresAProblemWithAnHRConnection: 'HR 连接出现问题',
         },
     },
     emptySearchView: {
@@ -9542,7 +9615,7 @@ ${reportName}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',
-        accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
+        accountSwitcher: '<tooltip>您现在可以协同操作另一位用户的账户了！</tooltip>',
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',

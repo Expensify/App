@@ -1,13 +1,9 @@
-/* eslint-disable @typescript-eslint/prefer-for-of */
-import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
-import lodashOrderBy from 'lodash/orderBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {SetNonNullable} from 'type-fest';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
+
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
@@ -105,6 +101,7 @@ import {
     isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
+    isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -130,6 +127,7 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
+    getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -169,6 +167,7 @@ import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {getDescription, getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -192,7 +191,16 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SetNonNullable} from 'type-fest';
+
+/* eslint-disable @typescript-eslint/prefer-for-of */
+import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
+import lodashOrderBy from 'lodash/orderBy';
+import Onyx from 'react-native-onyx';
+
 import type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
@@ -213,6 +221,8 @@ import type {
     SearchOptionData,
     SectionForSearchTerm,
 } from './types';
+
+import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -567,26 +577,6 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
         memberDetails += ` ${personalDetail.phoneNumber}`;
     }
     return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
-}
-
-/**
- * Get IOU report ID of report last action if the action is report action preview
- */
-function getIOUReportIDOfLastAction(
-    report: OnyxEntry<Report>,
-    privateIsArchived: boolean | undefined,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-    lastAction?: OnyxEntry<ReportAction>,
-): string | undefined {
-    if (!report?.reportID) {
-        return;
-    }
-    const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const action = lastAction ?? getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
-    if (!isReportPreviewAction(action)) {
-        return;
-    }
-    return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(action))?.reportID;
 }
 
 function hasHiddenDisplayNames(accountIDs: number[]) {
@@ -1016,6 +1006,9 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
     }
+    if (isPolicyCopyReportAction(lastReportAction)) {
+        lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
+    }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
@@ -1131,6 +1124,7 @@ function createOption({
     sortedActions,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
+    const translateFn = translate ?? translateLocal;
 
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
@@ -1197,7 +1191,6 @@ function createOption({
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        const translateFn = translate ?? translateLocal;
         subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translateFn, true, result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
@@ -1254,6 +1247,7 @@ function createOption({
     result.icons = getIcons(
         report,
         formatPhoneNumberPhoneUtils,
+        translateFn,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,
@@ -2496,6 +2490,7 @@ function getValidOptions(
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ROOM &&
+                    report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.GROUP &&
                     !report.private_isArchived
                 ) {
@@ -2858,12 +2853,16 @@ function getFilteredRecentAttendees(
     currentUserEmail: string,
     currentUserAccountID: number,
 ): Option[] {
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail);
+    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail || attendee.login === currentUserEmail);
     if (!recentAttendeeHasCurrentUser && currentUserEmail) {
         const details = getPersonalDetailByEmail(currentUserEmail);
         recentAttendees.push({
             email: currentUserEmail,
+            login: currentUserEmail,
             displayName: details?.displayName ?? currentUserEmail,
+            accountID: currentUserAccountID,
+            text: details?.displayName ?? currentUserEmail,
+            searchText: details?.displayName ?? currentUserEmail,
             avatarUrl: details?.avatarThumbnail ?? '',
         });
     }
@@ -3375,7 +3374,6 @@ export {
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getIOUReportIDOfLastAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,

@@ -1,26 +1,16 @@
-import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
-import {differenceInDays} from 'date-fns';
-import {stopLocationUpdatesAsync} from 'expo-location';
-import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -35,12 +25,12 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
-import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,14 +39,17 @@ import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUt
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
+
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
+
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
-import variables from '@styles/variables';
+
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -64,12 +57,24 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {differenceInDays} from 'date-fns';
+import {stopLocationUpdatesAsync} from 'expo-location';
+import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import SettingsMenuItem from './SettingsMenuItem';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
@@ -119,7 +124,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Lightbulb',
         'Lock',
         'Users',
-        'Emoji',
         'CreditCard',
         'Wallet',
         'Bolt',
@@ -146,12 +150,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
@@ -178,6 +180,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const hasVirtualCardMissingDetails = hasVirtualExpensifyCardMissingPersonalDetails(allCards, privatePersonalDetails, isActingAsDelegate);
     let walletBrickRoadIndicator;
     if (
         hasLockedBankAccount ||
@@ -188,7 +192,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction || hasVirtualCardMissingDetails) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -504,32 +508,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     reasonAttributes={skeletonReasonAttributes}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
-                    <Tooltip text={translate('statusPage.status')}>
-                        <PressableWithFeedback
-                            accessibilityLabel={
-                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
-                            }
-                            accessibilityRole="button"
-                            accessible
-                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                {emojiCode ? (
-                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
-                                ) : (
-                                    <Icon
-                                        src={icons.Emoji}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                        fill={theme.icon}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    </Tooltip>
                 </View>
             )}
         </View>

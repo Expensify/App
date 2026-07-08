@@ -1,12 +1,16 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import startCase from 'lodash/startCase';
+
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
@@ -62,6 +66,10 @@ const translations = {
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Count',
         cancel: 'Cancel',
+        // @context Title shown in place of a chart when the device or browser can't render it.
+        unableToDisplayChart: 'Unable to display chart',
+        // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
+        webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
@@ -154,6 +162,8 @@ const translations = {
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
         thinking: 'Concierge is thinking...',
+        // @context Generic status text shown in custom-agent DMs while the agent prepares a response.
+        agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -416,6 +426,7 @@ const translations = {
         withdrawalID: 'Withdrawal ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         withdrawalStatus: 'Withdrawal status',
+        paidStatus: 'Paid status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -879,7 +890,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
-        copyAgentZeroRequestID: 'Copy AgentZero request ID',
+        viewAgentZeroTrace: 'View AgentZero trace',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -1003,6 +1014,11 @@ const translations = {
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'We need your personal details',
+                subtitle: 'Add your details to view and start using your Expensify Card.',
+                cta: 'Add details',
+            },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
                 subtitle: 'Account > Subscription',
@@ -1120,6 +1136,8 @@ const translations = {
             customizeCategories: 'Customize accounting categories',
             inviteAccountant: 'Invite your accountant',
             linkCompanyCards: 'Link company cards',
+            issueExpensifyCards: 'Issue Expensify cards',
+            issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             setupRules: 'Set up spend rules',
         },
         upcomingTravel: 'Upcoming travel',
@@ -1280,7 +1298,7 @@ const translations = {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
-        original: 'Original',
+        purchase: 'Purchase',
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
@@ -2444,6 +2462,7 @@ const translations = {
         replaceDeviceTitle: 'Replace two-factor device',
         verifyOldDeviceTitle: 'Verify old device',
         verifyOldDeviceDescription: 'Enter the six-digit code from your current authenticator app to confirm you have access to it.',
+        verifyOldDeviceDescriptionWithRecovery: 'Enter a valid recovery code to confirm you have access to your account.',
         verifyNewDeviceTitle: 'Set up new device',
         verifyNewDeviceDescription: 'Scan the QR code with your new device, then enter the code to complete setup.',
     },
@@ -2596,6 +2615,10 @@ const translations = {
         cardInactive: 'Inactive',
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Please enter your personal details to start using your card',
+            cta: 'Add details',
+        },
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2870,8 +2893,6 @@ const translations = {
         activatePhysicalCard: 'Activate physical card',
         error: {
             thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
-            throttled:
-                "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
     },
     getPhysicalCard: {
@@ -2948,6 +2969,7 @@ const translations = {
         defaultAgentName: (displayName: string) => `${displayName}'s Agent`,
         defaultPrompt:
             "Reject expenses that are for gambling, movies, or other obvious non-business reasons.\n\nRemind the user to always include a receipt image that makes the tip clear.\n\nApprove the report if it's very similar to previous reports from the same user.\n\nReject reports with more than $500 in travel expenses.",
+        copilotNote: 'This agent will be added as a full copilot of your account, so it can act on your behalf.',
     },
     editAgentPage: {
         title: 'Edit agent',
@@ -5150,11 +5172,10 @@ const translations = {
                 title: 'Before you connect',
                 installBundle: 'Install the Expensify bundle',
                 installBundlePSAHeader: 'For PSA/SRP Connections:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install PSA/SRP Expensify Bundle (Version ${version})</a>`,
+                installBundleDescription: 'Install the Expensify bundle in Salesforce by clicking this link:',
+                installBundlePSALink: ({version}: {version: string}) => `Install PSA/SRP Expensify Bundle (Version ${version})`,
                 installBundleFFAHeader: 'For FFA Connections:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Install FFA Expensify Bundle (Version ${version})`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
                 setupContactsBullet1:
@@ -5564,6 +5585,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+            accountTypesDescription: 'Your Rillet accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
+            dimensionsImport: 'All Rillet dimensions import as tags',
+            importDescription: 'Choose which coding configurations to import from Rillet.',
         },
         type: {
             free: 'Free',
@@ -5795,6 +5821,7 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addShippingDetails: 'Add shipping details',
+            addPersonalDetails: 'Add personal details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
             issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
             issuedCardVirtual: (assignee: string, link: string) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,
@@ -6288,6 +6315,7 @@ const translations = {
             value: 'Value',
             taxReclaimableOn: 'Tax reclaimable on',
             taxRate: 'Tax rate',
+            taxRates: 'Tax rates',
             findTaxRate: 'Find tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use',
@@ -6434,6 +6462,10 @@ const translations = {
                 one: 'Make people admin',
                 other: 'Make people admins',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Make payments admin',
+                other: 'Make payments admins',
+            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
@@ -6449,6 +6481,7 @@ const translations = {
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
             peopleAdmins: 'People Admins',
+            paymentsAdmins: 'Payments Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
@@ -6846,7 +6879,11 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnect.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             approvalMode: 'Approval mode',
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
@@ -8491,6 +8528,46 @@ const translations = {
         setMaxExpenseAge: (newValue: string) => `set max expense age to "${newValue}" days`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copied members from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 report field from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} report fields from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `copied accounting settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `copied receipt partner settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `copied HR settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 category from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} categories from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 tag from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} tags from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 tax rate from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} tax rates from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `copied time tracking settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `copied workflows from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `copied rules from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 merchant rule from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} merchant rules from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 distance rate from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} distance rates from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 per diem rate from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} per diem rates from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `copied invoice settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `copied travel settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -8717,6 +8794,8 @@ const translations = {
             past: 'Past',
             submitted: 'Submitted',
             approved: 'Approved',
+            firstApprover: 'First approver',
+            firstApproved: 'First approved',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
@@ -8853,6 +8932,11 @@ const translations = {
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
+    },
+    paidStatus: {
+        markedAsPaid: 'Marked as paid',
+        withdrawing: 'Withdrawing',
+        confirmed: 'Confirmed',
     },
     reportLayout: {
         reportLayout: 'Report layout',
@@ -9743,6 +9827,7 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Subscription settings',
+            editSubscription: 'Edit subscription',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
                 `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}${expensifyCode ? `, Expensify code: ${expensifyCode}` : ''}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
             none: 'none',
@@ -9933,6 +10018,7 @@ const translations = {
             theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
             aBankAccountIsLocked: 'A bank account is locked',
             completeHrSetup: 'Complete HR setup',
+            theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
         },
     },
     emptySearchView: {
@@ -9954,7 +10040,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
-        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",

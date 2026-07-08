@@ -1,17 +1,23 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
+
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback, useMemo} from 'react';
+
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';

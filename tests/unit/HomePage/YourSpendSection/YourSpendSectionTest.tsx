@@ -1,17 +1,22 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen, within} from '@testing-library/react-native';
-import type {ReactNode} from 'react';
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Pressable as RNPressable, Text as RNText, View as RNView} from 'react-native';
-import type {ValueOf} from 'type-fest';
+
 import type * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import YourSpendSection from '@pages/home/YourSpendSection';
 import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
+
 import ROUTES from '@src/ROUTES';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {ReactNode} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Pressable as RNPressable, Text as RNText, View as RNView} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),

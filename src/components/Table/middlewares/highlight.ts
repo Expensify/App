@@ -1,6 +1,9 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+
+import {useCallback, useEffect, useRef, useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 type HighlightingMethods = {

@@ -1,14 +1,11 @@
-import {CardStyleInterpolators} from '@react-navigation/stack';
-import {accountIDSelector, emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
@@ -18,6 +15,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
+
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
@@ -28,10 +26,19 @@ import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ValueOf} from 'type-fest';
+
+import {CardStyleInterpolators} from '@react-navigation/stack';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 

@@ -1,12 +1,15 @@
-import escapeRegExp from 'lodash/escapeRegExp';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import escapeRegExp from 'lodash/escapeRegExp';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
@@ -181,23 +184,6 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
-const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) => {
-    const currencies = new Set<string>();
-
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        currencies.add(policy.outputCurrency);
-        if (currencies.size > 1) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
@@ -321,8 +307,6 @@ function getReusablePoliciesConnectedTo(policies: OnyxCollection<Policy>, connec
 const reusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     getReusablePoliciesConnectedTo(policies, connectionName, currentPolicyID);
 
-const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
-
 const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     Object.values(policies ?? {}).some((policy) => isAdminPolicyConnectedTo(policy, connectionName) && isReusablePolicyConnection(policy, connectionName, currentPolicyID));
 
@@ -399,12 +383,10 @@ export {
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    hasMultipleOutputCurrenciesSelector,
     iouRequestPolicyCollectionSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
-    hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
