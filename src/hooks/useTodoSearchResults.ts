@@ -7,6 +7,8 @@ import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValue
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {shallowEqual} from 'fast-equals';
+import {useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -140,6 +142,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [stableData, setStableData] = useState<TodoSearchResultsData | undefined>(undefined);
 
     if (!searchKey) {
         return undefined;
@@ -164,7 +167,19 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const metadata = computeMetadata(reports, transactionsByReportID);
     const data = buildSearchResultsData(reports, transactionsByReportID, allPolicies, allReportActions, allReportNameValuePairs, personalDetailsList, allTransactionViolations);
 
-    return {data, metadata};
+    // Preserve the previous `data` reference when its contents are unchanged (same key set and referentially-equal
+    // entries) so unrelated Onyx collection writes don't churn the reference and force downstream section pipelines
+    // to recompute. The entries are individual Onyx values that stay reference-stable across unrelated writes.
+    // The cache lives in state (updated via a render-phase set) rather than a ref so it stays React-Compiler-safe
+    // while still returning the stable reference synchronously within the same render.
+    let dataToReturn = data;
+    if (stableData && shallowEqual(stableData, data)) {
+        dataToReturn = stableData;
+    } else if (data !== stableData) {
+        setStableData(data);
+    }
+
+    return {data: dataToReturn, metadata};
 }
 
 export default useTodoSearchResults;
