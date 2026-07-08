@@ -1055,7 +1055,7 @@ function getFilteredCardList(
     workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>,
     feedName?: CompanyCardFeedWithDomainID,
 ): UnassignedCard[] {
-    const customFeedCardsToAssign = list?.cardList;
+    const customFeedCardsToAssign = list?.[CONST.COMPANY_CARD.CARD_LIST];
     const assignedCards = new Set<string>();
     forEachAssignedCard(list, (card) => {
         if (!card.cardName) {
