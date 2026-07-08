@@ -69,9 +69,8 @@ type AddressFormProps = {
     enabledWhenOffline?: boolean;
 
     /**
-     * Whether to force the zip/postal code to be present. Defaults to off because most consumers
-     * treat it as optional, but workspace addresses backing the homeAndOffice commuter exclusions
-     * method require a complete address so the distance can be computed reliably.
+     * Whether to force the zip/postal code to be present. Workspace addresses for homeAndOffice commuter exclusions
+     * require a complete address
      */
     shouldRequireZip?: boolean;
 

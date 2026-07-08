@@ -1,39 +1,36 @@
-import {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import {useMemoizedLazyIllustrations} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
-type UseHomeAddressGateForDistanceResult = {
+type UseDistanceHomeAddressCheckResult = {
     /**
      * True when the destination workspace uses homeAndOffice commuter exclusions but the current
-     * user has no saved home address. Callers should bail (and call `promptForHomeAddress`) before
-     * starting any distance request submission while this is true.
+     * user has no saved home address.
      */
     needsHomeAddressPrompt: boolean;
 
     /**
-     * Show the blocking "Home address is required" modal. Confirming sends the user to the address
-     * section of their private personal details; the X dismiss just closes the modal.
+     * Show the blocking "Home address is required" modal.
      */
     promptForHomeAddress: () => void;
 };
 
-/**
- * Shared gate for distance-request flows: when the destination workspace uses the homeAndOffice
- * commuter-exclusion method the per-member commute can't be computed without a saved home address.
- * Used by every entry point that submits a distance request (start screen, confirmation step,
- * quick actions) so dismissing the proactive modal can't slip through to an actual API call.
- */
-function useHomeAddressGateForDistance(policy: OnyxEntry<Policy>): UseHomeAddressGateForDistanceResult {
+function useDistanceHomeAddressCheck(policy: OnyxEntry<Policy>): UseDistanceHomeAddressCheckResult {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['House']);
@@ -62,4 +59,4 @@ function useHomeAddressGateForDistance(policy: OnyxEntry<Policy>): UseHomeAddres
     return {needsHomeAddressPrompt, promptForHomeAddress};
 }
 
-export default useHomeAddressGateForDistance;
+export default useDistanceHomeAddressCheck;
