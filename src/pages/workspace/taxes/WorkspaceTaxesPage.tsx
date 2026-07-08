@@ -323,7 +323,6 @@ function WorkspaceTaxesPage({
                         />
                     )}
                     <ButtonWithDropdownMenu
-                        variant={undefined}
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}

@@ -247,7 +247,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 )}
                 {secondaryActions.length > 0 && (
                     <ButtonWithDropdownMenu
-                        variant={undefined}
                         onPress={() => {}}
                         customText={translate('common.more')}
                         options={secondaryActions}

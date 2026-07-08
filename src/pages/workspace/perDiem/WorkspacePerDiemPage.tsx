@@ -315,7 +315,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                 <ButtonWithDropdownMenu
-                    variant={undefined}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

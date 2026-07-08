@@ -924,7 +924,6 @@ function MoneyRequestReportTransactionList({
                             options={addExpenseDropdownOptions}
                             isSplitButton={false}
                             size={CONST.BUTTON_SIZE.SMALL}
-                            variant={undefined}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

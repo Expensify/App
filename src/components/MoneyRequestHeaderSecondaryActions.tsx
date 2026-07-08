@@ -571,7 +571,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         <>
             <ButtonWithDropdownMenu
                 ref={dropdownMenuRef}
-                variant={undefined}
                 onPress={() => {}}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}

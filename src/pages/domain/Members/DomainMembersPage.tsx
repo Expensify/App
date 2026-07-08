@@ -264,7 +264,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
                 />
                 <ButtonWithDropdownMenu
-                    variant={undefined}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

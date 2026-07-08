@@ -416,7 +416,6 @@ function PolicyDistanceRatesPage({
                         success
                     />
                     <ButtonWithDropdownMenu
-                        variant={undefined}
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}

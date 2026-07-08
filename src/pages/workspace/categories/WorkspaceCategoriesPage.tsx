@@ -558,7 +558,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
                 {secondaryActions.length > 0 && (
                     <ButtonWithDropdownMenu
-                        variant={undefined}
                         onPress={() => {}}
                         shouldAlwaysShowDropdownMenu
                         customText={translate('common.more')}

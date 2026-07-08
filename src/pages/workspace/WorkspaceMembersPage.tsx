@@ -718,7 +718,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 />
                 <ButtonWithDropdownMenu
-                    variant={undefined}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

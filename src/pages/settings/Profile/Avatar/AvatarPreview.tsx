@@ -174,7 +174,6 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
 
                     return (
                         <ButtonWithDropdownMenu
-                            variant={undefined}
                             shouldUseOptionIcon
                             isDisabled={isAvatarCropModalOpen}
                             onPress={() => {}}
