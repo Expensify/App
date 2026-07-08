@@ -6289,11 +6289,12 @@ describe('actions/Report', () => {
             expect(pendingResponse?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
             expect(pendingResponse?.displayAfter).toBeGreaterThan(Date.now() - CONCIERGE_RESPONSE_DELAY_MS);
 
-            const addCommentCalls = (global.fetch as MockFetch).mock.calls.filter((call) => call[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.ADD_COMMENT}?`);
-            const addCommentBody = (addCommentCalls.at(-1)?.at(1) as RequestInit)?.body;
-            const addCommentParams = addCommentBody instanceof FormData ? Object.fromEntries(addCommentBody) : {};
-            expect(addCommentParams.optimisticConciergeReportActionID).toBe(pendingResponse?.reportAction.reportActionID);
-            expect(addCommentParams.optimisticConciergeCreated).toBe(pendingResponse?.reportAction.created);
+            const addCommentBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.ADD_COMMENT).at(-1)?.[1]?.body;
+            if (!(addCommentBody instanceof FormData)) {
+                throw new Error('Expected ADD_COMMENT request body to be FormData');
+            }
+            expect(addCommentBody.get('optimisticConciergeReportActionID')).toBe(pendingResponse?.reportAction.reportActionID);
+            expect(addCommentBody.get('optimisticConciergeCreated')).toBe(pendingResponse?.reportAction.created);
 
             // Verify the client did NOT set REPORT_USER_IS_TYPING. The server-owned
             // agentZeroProcessingIndicator is the source of truth for the "Concierge is thinking..."
