@@ -269,4 +269,3 @@ function VerticalBarChart({
 }
 
 export default VerticalBarChart;
-export type {VerticalBarChartProps};

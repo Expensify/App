@@ -298,4 +298,3 @@ function HorizontalBarChart({
 }
 
 export default HorizontalBarChart;
-export type {HorizontalBarChartProps};
