@@ -5039,11 +5039,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Antes de conectar',
                 installBundle: 'Instalar o pacote do Expensify',
                 installBundlePSAHeader: 'Para conexões PSA/SRP:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote Expensify no Salesforce clicando neste link: <a href="${href}">Instalar pacote PSA/SRP Expensify (versão ${version})</a>`,
+                installBundleDescription: 'Instale o pacote Expensify no Salesforce clicando neste link:',
+                installBundlePSALink: ({version}: {version: string}) => `Instalar pacote PSA/SRP Expensify (versão ${version})`,
                 installBundleFFAHeader: 'Para conexões FFA:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar o pacote do Expensify para FFA (versão ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Instalar o pacote do Expensify para FFA (versão ${version})`,
                 installBundleConfirm: 'Eu instalei o pacote',
                 setupContacts: 'Configurar usuário e contatos',
                 setupContactsBullet1:
@@ -6365,6 +6364,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 one: 'Tornar administrador de pessoas',
                 other: 'Tornar administradores de pessoas',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Tornar administrador de pagamentos',
+                other: 'Tornar administradores de pagamentos',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Ocorreu um problema ao adicionar este membro do workspace',
@@ -6398,6 +6401,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
             cardAdmins: 'Administradores de cartões',
             peopleAdmins: 'Administradores de pessoas',
+            paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
         },
         card: {
@@ -9706,6 +9710,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
             collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
             pricing: 'Preços',
+            editSubscription: 'Editar assinatura',
         },
         cancelSubscription: {
             title: 'Cancelar assinatura',
