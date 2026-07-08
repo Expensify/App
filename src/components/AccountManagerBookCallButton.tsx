@@ -82,6 +82,4 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, is
     );
 }
 
-AccountManagerBookCallButton.displayName = 'AccountManagerBookCallButton';
-
 export default AccountManagerBookCallButton;
