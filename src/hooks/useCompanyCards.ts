@@ -156,8 +156,6 @@ function buildCompanyCardEntries(
         coveredNames.add(normalizedName);
     }
 
-    console.log(Array.from(entriesMap.values()));
-
     return Array.from(entriesMap.values());
 }
 
