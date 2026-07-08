@@ -23,6 +23,9 @@ type TravelProvisioning = {
 
     /** Legal entity tax ID collected before terms acceptance on non-USD workspaces, carried into the AcceptSpotnanaTerms call */
     taxID?: string;
+
+    /** Booking domain selected during the enable-travel flow when the admin belongs to multiple private domains */
+    domain?: string;
 };
 
 export default TravelProvisioning;

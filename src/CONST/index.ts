@@ -7877,6 +7877,16 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
+        ENABLE_FLOW: {
+            PAGE_NAME: {
+                LEGAL_NAME: 'legal-name',
+                VERIFY_ACCOUNT: 'verify-account',
+                DOMAIN_SELECTOR: 'domain-selector',
+                WORKSPACE_ADDRESS: 'workspace-address',
+                LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TERMS: 'terms',
+            },
+        },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
