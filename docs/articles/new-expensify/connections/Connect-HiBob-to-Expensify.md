@@ -1,96 +1,95 @@
 ---
 title: Connect HiBob to Expensify
-description: Learn how to connect HiBob to your Expensify workspace to automatically sync employees and manage approvals.
-keywords: [New Expensify, HiBob, Bob, HiBob integration, HR integration, employee sync, approval workflow, connect HiBob, HR tab, manual sync]
-internalScope: Audience is Workspace Admins on Control plans. Covers connecting HiBob via the HR tab using Merge Link, selecting companies to sync, configuring approval mode, viewing synced employees on the Members tab, and triggering manual re-syncs. Does not cover accounting integrations.
+description: Learn how to connect HiBob to your Expensify workspace, complete the initial setup, and automatically sync employees and approval workflows.
+keywords: [New Expensify, HiBob, HiBob integration, connect HiBob, HR integration, employee sync, approval workflow]
+internalScope: Audience is Workspace Admins on Control plans. Covers connecting HiBob, completing the initial setup, configuring approval mode, and running the initial employee sync. Does not cover accounting integrations.
 ---
 
 # Connect HiBob to Expensify
 
-Expensify's HiBob integration automates employee management by syncing employee data and approval workflows from HiBob into your Expensify workspace.
+Connect HiBob to your Expensify workspace to automatically sync employees and approval workflows. After the initial setup, Expensify keeps your workspace up to date with daily employee syncs.
 
 Once connected, the integration can:
 
-- **Create Expensify accounts** for active employees when they're hired in HiBob.
-- **Update approval workflows** based on manager relationships in HiBob.
-- **Remove employees** from the workspace when they are terminated in HiBob.
-- **Auto-sync daily** to keep your workspace members in sync with HiBob.
+- Add new employees to your Expensify workspace.
+- Update approval workflows based on manager relationships in HiBob.
+- Remove terminated employees from the workspace.
+- Automatically sync employee data every day.
 
 ---
 
 ## Who can connect HiBob to Expensify
 
-To connect HiBob, you must be a **Workspace Admin** on a workspace with the Control plan in Expensify and:
+To connect HiBob, you must:
 
-- Be an admin in HiBob.
-- Ensure every employee record in HiBob includes their work email address.
-- Have **HR** integrations enabled on your workspace. Enable **HR** under **More features** in the **Integrate** section.
+- Be a Workspace Admin on a Control workspace in Expensify.
+- Be an administrator in HiBob.
+- Ensure every employee in HiBob has a work email address.
+- Have **HR** enabled under **More features** in the workspace.
 
-HiBob syncs all employees to **one** Expensify workspace. If your company uses multiple workspaces, choose which one to connect during setup.
+HiBob syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting HiBobR.
 
 ---
 
 ## How to connect HiBob to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
-2. Click the name of the workspace you want to connect to HiBob.
+2. Click the workspace you want to connect to HiBob.
 3. In the left menu, select **HR**.
 4. Next to **HiBob**, click **Connect**.
-5. Authenticate with your HiBob admin credentials in the connection window that opens, and authorize Expensify to access your HiBob account.
-6. When prompted, select the companies you want to sync into this workspace.
-7. Wait for the initial sync to complete and for the sync results to appear.
+5. In the connection window that opens, sign in with your HiBob administrator account and authorize Expensify to access your HiBob account.
+6. Wait for the initial connection to complete.
+7. After the connection is established, HiBob displays a green status indicator.
+8. Click the green status indicator, then click **Complete setup**.
+9. Choose which HiBob data to sync with this workspace, then click **Save**.
+10. Wait for the initial sync to complete.
 
-<!-- SCREENSHOT:
-Suggestion: The HR tab showing the HiBob card with the Connect button.
-Location: How to connect HiBob to Expensify
-Purpose: Helps admins locate the HiBob card on the HR tab.
--->
+> **Note:** During the initial sync, you'll see a **Your connection is syncing** message. The initial sync can take several minutes to complete, especially for larger HiBob accounts, so keep the page open until the sync finishes.
 
 ---
 
 ## What happens after you connect HiBob to Expensify
 
-After the initial sync completes:
+After the initial sync finishes:
 
-- A sync results panel displays employees added, removed, and skipped.
-- If you leave the **HR** or **Members** tab before the sync finishes, the sync results are emailed to the workspace's technical contact instead of displaying in the app.
-- The **Members** tab displays employees synced from HiBob.
-- Active employees in HiBob are added to the Expensify workspace automatically.
-- Employees receive a welcome email with instructions to finish setting up their Expensify account.
-- Approval workflows can be managed using **Approval mode** and **Final approver** settings on the HiBob integration.
+- The HiBob connection displays the **Last synced** timestamp.
+- Active employees in HiBob are added to the workspace.
+- Employees who don't already have an Expensify account receive an email invitation to finish setting up their account.
+- The **Members** tab displays synced employees.
+- You can configure the workspace's **Approval mode** and **Final approver** from the **HR** page.
 
 Expensify also runs a daily auto-sync to keep employee data up to date:
 
-- Employee and manager data is updated to match HiBob.
+- Employee information and manager relationships are updated to match HiBob.
 - Terminated employees in HiBob are removed from the workspace automatically.
-
-A **Last synced** timestamp on the HiBob integration shows when the most recent sync ran.
-
+  
 ---
 
 ## How to configure the approval mode for HiBob
 
-After connecting HiBob, choose an approval mode that determines how expense reports are routed for approval:
+After the initial sync, choose how expense reports are routed for approval.
 
 - **Basic Approval** — All employees submit reports to a single final approver.
-- **Manager Approval** — Reports first go to the employee's direct manager (synced from HiBob), then to a final approver.
+- **Manager Approval** — Employees submit reports to their direct manager from HiBob before the final approver.
 - **Custom Approval** — Employees are synced from HiBob, but approval workflows are managed manually in Expensify.
 
-To change the approval mode or final approver on your workspace:
+Changes to **Approval mode** and **Final approver** are made from the **HR** page.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
-2. Click the name of the workspace connected to HiBob.
-3. In the left menu, click **HR**.
-4. Click **HiBob**.
-5. Click **Approval mode** or **Final approver** to update the settings.
-6. Click **Save**.
+---
 
-When **Manager Approval** is selected, approval workflows are automatically built from the manager relationships in HiBob. These approval workflows appear on the **Workflows** tab with a HiBob indicator. The **Approvals** toggle on the **Workflows** tab is locked on and cannot be turned off while HiBob is connected.
+## What happens to approval workflows after connecting HiBob
 
-When **Custom Approval** is selected, the **Workflows** tab remains fully editable. Workspace members are synced from HiBob, but approval workflows are configured manually by a Workspace Admin.
+When **Basic approval** or **Manager approval** is selected:
 
-To change approval settings, use the **HR** tab rather than the **Workflows** tab.
+- The **Approvals** setting under **Workflows** is locked on.
+- The page displays **Configure via HiBob**.
+- Approval workflows must be managed from the HiBob connection settings instead of the **Workflows** page.
 
+When **Custom approval** is selected:
+
+- Approval workflows remain editable in **Workflows**.
+- You can manage approval routing manually in Expensify.
+  
 ---
 
 ## How to manually refresh the HiBob sync
@@ -106,7 +105,7 @@ To refresh the sync manually:
 5. Select the three dots **(⋮)**, then click **Sync now**.
 6. Wait for the sync to complete. The sync results will display a summary of any changes.
 
-Manual syncs are limited to twice per day. After two manual syncs, a message confirms that the next sync will run the following day.
+Manual syncs are limited to two per day. If you've reached the limit, you'll see **You've reached your sync limit for the day**.
 
 ---
 
@@ -119,7 +118,7 @@ Manual syncs are limited to twice per day. After two manual syncs, a message con
 5. Select the three dots **(⋮)**, then click **Disconnect**.
 6. Confirm by clicking **Disconnect** again.
 
-Disconnecting HiBob unlocks the **Approvals** toggle on the **Workflows** tab, allowing you to manage approval workflows manually again. Disconnecting HiBob also stops future employee syncs and automatic removals. Existing workspace members are not removed.
+Disconnecting HiBob stops future employee syncs and unlocks the **Approvals** setting so approval workflows can be managed in Expensify again. Existing workspace members remain in the workspace.
 
 ---
 
@@ -137,14 +136,10 @@ Employees may be skipped if they do not have a work email address in HiBob, or i
 
 Yes. Each synced employee that is newly invited to a workspace receives a welcome email at their work email address with account setup instructions.
 
-## Can I change the approval mode after connecting?
+## Why is HiBob connected but my employees haven't synced?
 
-Yes. Go to the **HR** tab, click **HiBob**, and update the approval mode or final approver at any time.
+Connecting HiBob authorizes the integration. To start importing employees, click the green status indicator, select **Complete setup**, choose the data to sync, and click **Save**.
 
 ## Why can't I sync HiBob again today?
 
-Manual syncs are limited to twice per day. If you've already synced twice, the next sync runs automatically the following day.
-
-## Why can't I turn off Approvals on the Workflows tab?
-
-When HiBob is connected, the **Approvals** toggle is locked on because approval workflows are managed by the HiBob integration. To change approval settings, go to the **HR** tab. To unlock the toggle, disconnect HiBob.
+Manual syncs are limited to two per day. If you've already synced twice, the next sync runs automatically the following day.
