@@ -77,4 +77,20 @@ describe('handleRHPVariantNavigation', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
+
+    it('preserves the topmost report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+    });
+
+    it('navigates home for the trackExpensesWithConcierge variant when no report is topmost', () => {
+        handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+    });
 });

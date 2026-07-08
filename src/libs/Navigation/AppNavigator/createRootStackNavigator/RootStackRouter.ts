@@ -115,18 +115,20 @@ function handleNavigationGuards(
             return null;
         }
 
-        const isModalRedirect = redirectState.routes.some((r) => isModalGuardRedirectTarget(r.name));
+        const isModalGuardRedirect = redirectState.routes.some((r) => isModalGuardRedirectTarget(r.name));
         const focusedRouteName = state.routes[state.index]?.name;
         const redirectTargetName = redirectState.routes.at(-1)?.name;
 
-        // Idempotency guard against APP-7FR-style loops when multiple actions burst at cold-start.
-        // This is intentionally scoped to modal redirects so non-modal redirects like HOME can still
-        // reset nested state even when their root navigator is already focused.
-        if (isModalRedirect && focusedRouteName && redirectTargetName && focusedRouteName === redirectTargetName) {
+        // Skip re-applying a modal redirect whose target is already the focused route: re-running it
+        // produces a redundant state reset that re-triggers the guard - the same infinite navigation
+        // loop OnboardingGuard prevents (APP-7FR).
+        // Scoped to modal redirects only: a non-modal redirect like HOME must still apply even when
+        // HOME is already focused, so it can reset nested tab state.
+        if (isModalGuardRedirect && focusedRouteName && redirectTargetName && focusedRouteName === redirectTargetName) {
             return state;
         }
 
-        if (isModalRedirect) {
+        if (isModalGuardRedirect) {
             // Drop dismissible-modal routes (RHP, SignIn modal, CONCIERGE, etc.) and anything
             // above them so the new stack doesn't end up with two modals on top of
             // each other - regression #86258 (two Expensify logos when SignIn RHP was still
@@ -137,11 +139,12 @@ function handleNavigationGuards(
             const underlyingFullScreen = cleanedRoutes.findLast((r) => isFullScreenName(r.name));
             const redirectModal = redirectState.routes.findLast((r) => isModalGuardRedirectTarget(r.name));
 
-            // Invariant restored: exactly one fullscreen base under the modal. If no
-            // fullscreen survives (e.g. `/concierge` force-close leaves the stack as [CONCIERGE]),
-            // fall through to the unmodified redirectState.routes - that baseline is what
-            // SignInModal.tsx and navigateAfterOnboarding's Navigation.navigate(ROUTES.HOME)
-            // calls expect; removing them caused regression #90303.
+            // Rebuild the stack as [fullscreen report, onboarding modal] so the deep-linked report
+            // stays underneath the onboarding modal instead of being replaced by Home. If no
+            // fullscreen route survived the cleanup above (e.g. opening `/concierge` from a
+            // force-closed app leaves the stack as just [CONCIERGE]), skip this and fall through to
+            // the unmodified redirect state below, which restores the Home baseline the `/concierge`
+            // flow relies on - replacing it caused regression #90303.
             if (underlyingFullScreen && redirectModal) {
                 const redirectModalWithKey: StackNavigationState<ParamListBase>['routes'][number] = {
                     ...redirectModal,
