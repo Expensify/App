@@ -8,6 +8,8 @@
  *   - caps the list at CONST.HOME.SECTION_VISIBLE_LIMIT (5) rows
  *   - includes expenses regardless of report status (no recency-window / draft-only filter)
  *   - defensively excludes expenses owned by another account when the snapshot carries the parent report
+ *   - keeps a just-created expense visible after `pendingAction` clears but before the refreshed snapshot arrives,
+ *     then shows the snapshot copy once it lands - without dropping or duplicating the row
  */
 import {renderHook} from '@testing-library/react-native';
 
@@ -256,6 +258,26 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['synced']);
+    });
+
+    it('shows a just-created expense from creation through the snapshot catching up, without dropping or duplicating it', () => {
+        // Render 1: created offline, pending ADD, not yet in the snapshot.
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
+
+        // Render 2: synced, pendingAction cleared, but the refreshed snapshot hasn't landed yet.
+        setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
+
+        // Render 3: the refreshed snapshot now carries it (local copy still present), shown exactly once.
+        setupSnapshot([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
     });
 });
 
