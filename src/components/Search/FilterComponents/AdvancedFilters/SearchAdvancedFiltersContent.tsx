@@ -8,7 +8,6 @@ import React from 'react';
 
 import type {FilterComponentsProps} from '..';
 import type {AmountFilterContentProps} from './AmountFilterContent';
-import type {CommonFilterContentProps} from './CommonFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
@@ -17,7 +16,7 @@ type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'fil
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
+type CommonFilterContentWrapperProps = Omit<FilterComponentsProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
 type SearchAdvancedFiltersContentProps = {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;

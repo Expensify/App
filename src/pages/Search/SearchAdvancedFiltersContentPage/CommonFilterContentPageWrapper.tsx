@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
-import CommonFilterContent from '@components/Search/FilterComponents/AdvancedFilters/CommonFilterContent';
+import FilterComponents from '@components/Search/FilterComponents';
 import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +12,7 @@ function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, p
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
 
     return (
-        <CommonFilterContent
+        <FilterComponents
             filterKey={filterKey}
             value={value}
             type={type}
