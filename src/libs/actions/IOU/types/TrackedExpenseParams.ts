@@ -69,8 +69,7 @@ type TrackedExpenseParams = {
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
     currentUser: CurrentUser;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
+    reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     // Personal details list is optional here because we only use/pass it for SHARE case
     personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };

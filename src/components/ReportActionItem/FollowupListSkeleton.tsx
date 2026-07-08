@@ -43,7 +43,7 @@ function FollowupListSkeleton() {
 
     return (
         <Animated.View entering={FadeIn}>
-            <View style={[styles.gap2, styles.mt2, styles.flexColumn, styles.alignItemsStart]}>
+            <View style={[styles.gap2, styles.mt4, styles.flexColumn, styles.alignItemsStart]}>
                 {Array.from({length: BAR_COUNT}, (_, index) => (
                     <ActionableItemSkeleton key={index} />
                 ))}

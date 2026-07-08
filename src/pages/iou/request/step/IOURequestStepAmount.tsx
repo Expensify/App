@@ -3,29 +3,30 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
-import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID} from '@libs/IOUUtils';
+import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import type {MoneyRequestAmountFormHandle} from '@pages/iou/MoneyRequestAmountForm';
+
+import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,13 +39,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
+import type {AmountSubmitData} from './AmountSubmitDataSync';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-import {getIsP2PForAmount, submitAmount} from './AmountSubmission';
+import AmountSubmitDataSync from './AmountSubmitDataSync';
 import IOURequestStepCurrencyModal from './IOURequestStepCurrencyModal';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -69,7 +70,6 @@ function IOURequestStepAmount({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const delegateAccountID = useDelegateAccountID();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const amountFormRef = useRef<MoneyRequestAmountFormHandle | null>(null);
@@ -79,28 +79,20 @@ function IOURequestStepAmount({
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
 
-    const selfDMReport = useSelfDMReport();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const isIouReport = isMoneyRequestReport(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const iouOrExpenseReport = useReportOrReportDraft(report?.chatReportID);
     const actualChatReportID = iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) ? iouOrExpenseReport.chatReportID : undefined;
     const actualChatReport = useReportOrReportDraft(actualChatReportID);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const defaultExpensePolicy = useDefaultExpensePolicy();
-    const personalPolicy = usePersonalPolicy();
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
-    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(isEditing && transactionID ? [transactionID] : []);
+
+    // Owned by AmountSubmitDataSync below; keeps submit-only subs out of the render path.
+    const submitDataRef = useRef<AmountSubmitData | null>(null);
 
     // When editing, the `report` is the transaction thread which only has the current user as participant.
     // To correctly determine if this is a P2P expense, we need to traverse to the actual chat report
@@ -181,7 +173,34 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
+    const reportAttributesDerived = useReportAttributes();
+
+    const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
+    const participants = selectedParticipants.map((participant) => {
+        const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
+    });
+    const participant = participants.at(0);
+    const policyTags = useMoneyRequestPolicyTags({
+        moneyRequestReportID: isIouReport ? report?.reportID : undefined,
+        parentChatReportPolicyID: isMovingTransactionFromTrackExpense(action) ? undefined : report?.policyID,
+        participantReportID: participant?.reportID,
+    });
+
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
+        const submitData = submitDataRef.current;
+        if (!submitData) {
+            Log.hmmm('[IOURequestStepAmount] Skipping amount submit: submit data not ready');
+            return;
+        }
         notifySaving();
         submitAmount({
             report,
@@ -200,22 +219,11 @@ function IOURequestStepAmount({
             shouldSkipConfirmation,
             isReportArchived,
             currentUserPersonalDetails,
-            delegateAccountID,
-            selfDMReport,
-            defaultExpensePolicy,
-            personalPolicy,
             navigateBack,
             amount,
             paymentMethod,
-            transactionDrafts,
-            transactionViolations,
-            storedTransaction,
-            parentReportNextStep,
-            policyCategories,
-            userBillingGracePeriodEnds,
-            allReportNVPs,
-            duplicateTransactions,
-            duplicateTransactionViolations,
+            policyTags,
+            ...submitData,
         });
     };
 
@@ -245,6 +253,14 @@ function IOURequestStepAmount({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldEnableKeyboardAvoidingView={false}
         >
+            <AmountSubmitDataSync
+                report={report}
+                transaction={transaction}
+                transactionID={transactionID}
+                policyID={policyID}
+                isEditing={isEditing}
+                submitDataRef={submitDataRef}
+            />
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}
                 hidePickerModal={hideCurrencyPicker}
@@ -269,7 +285,10 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isP2P={getIsP2PForAmount({chatReportForP2P: chatReportForP2PCheck, currentUserAccountID: currentUserPersonalDetails.accountID})}
+                isP2P={getIsP2PForAmount({
+                    chatReportForP2P: chatReportForP2PCheck,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                })}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>

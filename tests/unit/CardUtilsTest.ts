@@ -12,10 +12,8 @@ import {
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
-    filterCardsByNonExpensify,
     filterInactiveCards,
     filterInactiveCardsForWorkspace,
-    flattenWorkspaceCardsList,
     formatCardExpiration,
     formatMaskedCardName,
     getAllCardsForWorkspace,
@@ -43,7 +41,6 @@ import {
     getDisplayableThirdPartyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
-    getFeedConnectionBrokenCard,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -72,7 +69,6 @@ import {
     maskCardNumber,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
-    splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
@@ -1979,24 +1975,6 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('flattenCompanyCards', () => {
-        it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
-            const workspaceAccountID = 11111111;
-            const flattenedCardsList = flattenWorkspaceCardsList(allCardsList, workspaceAccountID);
-            const {cardList, ...customCards} = customFeedCardsList;
-            expect(flattenedCardsList).toStrictEqual({
-                ...directFeedCardsMultipleList,
-                ...customCards,
-            });
-        });
-
-        it('should return undefined if not defined cards list was provided', () => {
-            const workspaceAccountID = 11111111;
-            const flattenedCardsList = flattenWorkspaceCardsList(undefined, workspaceAccountID);
-            expect(flattenedCardsList).toBeUndefined();
-        });
-    });
-
     describe('hasIssuedExpensifyCard', () => {
         it('should return true when Expensify Card was issued for given workspace', () => {
             const workspaceAccountID = 11111111;
@@ -3407,139 +3385,6 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('splitMaskedCardNumber', () => {
-        it('should split a masked card number correctly', () => {
-            const result = splitMaskedCardNumber('1234XXXX5678');
-            expect(result.firstDigits).toBe('1234');
-            expect(result.lastDigits).toBe('5678');
-        });
-
-        it('should handle card numbers with custom mask character', () => {
-            const result = splitMaskedCardNumber('1234****5678', '*');
-            expect(result.firstDigits).toBe('1234');
-            expect(result.lastDigits).toBe('5678');
-        });
-
-        it('should handle undefined card number', () => {
-            const result = splitMaskedCardNumber(undefined);
-            expect(result.firstDigits).toBeUndefined();
-            expect(result.lastDigits).toBeUndefined();
-        });
-
-        it('should handle card number with only first digits', () => {
-            const result = splitMaskedCardNumber('1234XXXX');
-            expect(result.firstDigits).toBe('1234');
-            expect(result.lastDigits).toBe('');
-        });
-
-        it('should handle card number with only last digits', () => {
-            const result = splitMaskedCardNumber('XXXX5678');
-            expect(result.firstDigits).toBe('');
-            expect(result.lastDigits).toBe('5678');
-        });
-    });
-
-    describe('filterCardsByNonExpensify', () => {
-        it('should filter out cards with Expensify bank key in their key', () => {
-            const cards: CardList = createMock<CardList>({
-                [`${CONST.EXPENSIFY_CARD.BANK}_card1`]: {
-                    cardID: 1,
-                    bank: CONST.EXPENSIFY_CARD.BANK,
-                    cardName: 'Expensify Card',
-                    domainName: 'test.exfy',
-                    fraud: 'none',
-                    lastFourPAN: '1234',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-                visa_card2: {
-                    cardID: 2,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Visa Card',
-                    domainName: 'test.exfy',
-                    fraud: 'none',
-                    lastFourPAN: '5678',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-                chase_card3: {
-                    cardID: 3,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                    cardName: 'Chase Card',
-                    domainName: 'test.exfy',
-                    fraud: 'none',
-                    lastFourPAN: '9012',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-            });
-
-            const result = filterCardsByNonExpensify(cards);
-            const keys = Object.keys(result);
-            expect(keys).toHaveLength(2);
-            expect(keys).toContain('visa_card2');
-            expect(keys).toContain('chase_card3');
-            expect(keys).not.toContain(`${CONST.EXPENSIFY_CARD.BANK}_card1`);
-        });
-
-        it('should return empty object when all cards are Expensify cards', () => {
-            const cards: CardList = createMock<CardList>({
-                [`${CONST.EXPENSIFY_CARD.BANK}_1`]: {
-                    cardID: 1,
-                    bank: CONST.EXPENSIFY_CARD.BANK,
-                    cardName: 'Expensify Card 1',
-                    domainName: 'test.exfy',
-                    fraud: 'none',
-                    lastFourPAN: '1111',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-            });
-
-            const result = filterCardsByNonExpensify(cards);
-            expect(Object.keys(result)).toHaveLength(0);
-        });
-
-        it('should return empty object when undefined is passed', () => {
-            const result = filterCardsByNonExpensify(undefined);
-            expect(result).toEqual({});
-        });
-
-        it('should return all cards when none are Expensify cards', () => {
-            const cards: CardList = createMock<CardList>({
-                visa_1: {
-                    cardID: 1,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Visa',
-                    domainName: 'test.exfy',
-                    fraud: 'none',
-                    lastFourPAN: '1111',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-                chase_2: {
-                    cardID: 2,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                    cardName: 'Chase',
-                    domainName: 'test.exfy',
-                    fraud: 'none',
-                    lastFourPAN: '2222',
-                    lastScrape: '',
-                    lastUpdated: '',
-                    state: 3,
-                },
-            });
-
-            const result = filterCardsByNonExpensify(cards);
-            expect(Object.keys(result)).toHaveLength(2);
-        });
-    });
-
     describe('filterAllInactiveCards', () => {
         it('should filter out closed, deactivated and suspended cards', () => {
             const cards: CardList = createMock<CardList>({
@@ -4288,75 +4133,6 @@ describe('CardUtils', () => {
         it('parses the DB datetime format and dismisses a long-broken connection without mocking', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
-        });
-    });
-
-    describe('getFeedConnectionBrokenCard', () => {
-        it('Should return undefined when feedCards is undefined', () => {
-            expect(getFeedConnectionBrokenCard(undefined)).toBeUndefined();
-        });
-
-        it('Should return undefined when feedCards is empty', () => {
-            expect(getFeedConnectionBrokenCard({})).toBeUndefined();
-        });
-
-        it('Should return the card with a broken connection status', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            const result = getFeedConnectionBrokenCard(feedCards);
-            expect(result).toBeDefined();
-            expect(result?.cardID).toBe(1);
-        });
-
-        it('Should return undefined when all cards have ignored statuses (200, 434, etc.)', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 200, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-                card2: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 434, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
-        });
-
-        it('Should return undefined when cards have no lastScrapeResult', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({bank: 'oauth.chase.com', cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
-        });
-
-        it('Should exclude cards matching feedToExclude', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
-        });
-
-        it('Should return a broken card from a different feed when feedToExclude is set', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-                card2: createMock<Card>({bank: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            const result = getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com');
-            expect(result).toBeDefined();
-            expect(result?.cardID).toBe(2);
-        });
-
-        it('Should skip empty card objects', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({}),
-                card2: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            const result = getFeedConnectionBrokenCard(feedCards);
-            expect(result).toBeDefined();
-            expect(result?.cardID).toBe(2);
-        });
-
-        it('Should return undefined when all non-ignored statuses belong to excluded feed', () => {
-            const feedCards: CardList = {
-                card1: createMock<Card>({bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-                card2: createMock<Card>({bank: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, lastScrapeResult: 200, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            };
-            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
         });
     });
 

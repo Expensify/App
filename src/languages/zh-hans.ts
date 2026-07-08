@@ -400,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: '提现编号',
         internationalReimbursementIDs: '国际报销 ID',
         withdrawalStatus: '提现状态',
+        paidStatus: '已付款状态',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
         chooseFiles: '选择文件',
@@ -2293,6 +2294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '更换双重验证设备',
         verifyOldDeviceTitle: '验证旧设备',
         verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
+        verifyOldDeviceDescriptionWithRecovery: '请输入有效的恢复代码以确认您能访问您的账户。',
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
@@ -2793,6 +2795,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
+        copilotNote: '该代理将作为对你账户拥有完全访问权限的 Copilot 添加，以便代表你执行操作。',
     },
     editAgentPage: {
         title: '编辑代理',
@@ -5345,6 +5348,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
             noSubsidiariesFound: '未找到子公司',
             noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+            accountTypesDescription: '您的 Rillet 账户将被导入为类别。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
+            dimensionsImport: '所有 Rillet 维度将作为标签导入',
+            importDescription: '选择要从 Rillet 导入的编码配置。',
         },
         type: {
             free: '免费',
@@ -6075,6 +6083,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             importedFromAccountingSoftware: '以下税费是从您的',
             taxCode: '税码',
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
+            taxRates: '税率',
         },
         duplicateWorkspace: {
             title: '为你的新工作区命名',
@@ -6183,6 +6192,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为人员管理员',
                 other: '设为人员管理员',
             }),
+            makePaymentsAdmin: () => ({
+                one: '设为付款管理员',
+                other: '设为付款管理员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题',
@@ -6212,6 +6225,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             makeCardAdmin: () => ({one: '设为卡片管理员', other: '设为卡管理员'}),
             cardAdmins: '卡片管理员',
             peopleAdmins: '人员管理员',
+            paymentsAdmins: '付款管理员',
             members: '成员',
         },
         card: {
@@ -8535,6 +8549,7 @@ ${reportName}`,
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: '标记为已付款', withdrawing: '提现中', confirmed: '已确认'},
     reportLayout: {
         reportLayout: '报表布局',
         groupByLabel: '分组依据：',
@@ -9416,6 +9431,7 @@ ${reportName}`,
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
             collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
             pricing: '定价',
+            editSubscription: '编辑订阅',
         },
         cancelSubscription: {
             title: '取消订阅',
