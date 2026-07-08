@@ -63,8 +63,7 @@ function SearchActionsBarCreateButton() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],

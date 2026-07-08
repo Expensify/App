@@ -5546,6 +5546,7 @@ describe('actions/Policy', () => {
 
             // Then the payer should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.achAccount?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
             expect(updatedPolicy?.errorFields?.reimburser).toBeTruthy();
@@ -5594,6 +5595,26 @@ describe('actions/Policy', () => {
 
             expect(isPolicyPayer(policy, 'owner@test.com')).toBe(true);
             expect(isPolicyPayer(policy, 'other-admin@test.com')).toBe(false);
+        });
+
+        it('returns true for payments admin designated as payer via policy.reimburser without achAccount', () => {
+            const paymentsAdminEmail = 'payments-admin@test.com';
+            const policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                owner: 'owner@test.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: paymentsAdminEmail,
+                employeeList: {
+                    [paymentsAdminEmail]: {
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    },
+                },
+            };
+
+            expect(isPolicyPayer(policy, paymentsAdminEmail)).toBe(true);
+            expect(isPolicyPayer(policy, 'owner@test.com')).toBe(false);
         });
     });
 
