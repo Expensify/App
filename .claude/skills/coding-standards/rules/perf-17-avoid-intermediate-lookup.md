@@ -1,9 +1,9 @@
 ---
 ruleId: PERF-17
-title: Don't create unnecessary intermediate lookup layers
+title: Avoid intermediate lookup layers
 ---
 
-## [PERF-17] Don't create unnecessary intermediate lookup layers
+## [PERF-17] Avoid intermediate lookup layers
 
 ### Reasoning
 
