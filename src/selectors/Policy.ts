@@ -1,6 +1,6 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
