@@ -1,12 +1,17 @@
-import React, {lazy, Suspense, useEffect, useState} from 'react';
-import {ErrorBoundary} from 'react-error-boundary';
 import ActivityIndicator from '@components/ActivityIndicator';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import React, {lazy, Suspense, useEffect, useState} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+
 import type {MapViewProps} from './MapViewTypes';
+
 import PendingMapView from './PendingMapView';
 
 const MapViewImpl = lazy(() => import('./MapViewImpl.web'));
