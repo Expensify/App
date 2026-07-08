@@ -59,13 +59,17 @@ const buildResponsiveLayout = (overrides: Partial<ResponsiveLayoutResult> = {}):
     ...overrides,
 });
 
-/** Builds the keyed useOnyx mock BaseSidebarScreen reads: IS_LOADING_APP and the REPORT collection (via selector). */
-const setupUseOnyx = (options: {isLoadingApp?: boolean; hasReportData?: boolean} = {}) => {
+/** Builds the keyed useOnyx mock BaseSidebarScreen reads: IS_LOADING_APP, HAS_LOADED_APP and the REPORT collection (via selector). */
+const setupUseOnyx = (options: {isLoadingApp?: boolean; hasReportData?: boolean; hasLoadedApp?: boolean} = {}) => {
     const isLoadingApp = options.isLoadingApp ?? false;
     const hasReportData = options.hasReportData ?? false;
+    const hasLoadedApp = options.hasLoadedApp ?? false;
     mockUseOnyx.mockImplementation((key: string, onyxOptions?: {selector?: (value: unknown) => unknown}) => {
         if (key === ONYXKEYS.IS_LOADING_APP) {
             return [isLoadingApp, {status: 'loaded'}];
+        }
+        if (key === ONYXKEYS.HAS_LOADED_APP) {
+            return [hasLoadedApp, {status: 'loaded'}];
         }
         if (key === ONYXKEYS.COLLECTION.REPORT) {
             // BaseSidebarScreen passes a selector that reduces the collection to a boolean. Feed it a
@@ -103,8 +107,8 @@ describe('BaseSidebarScreen (outer skeleton gate)', () => {
         expect(mockSidebarLinksData).not.toHaveBeenCalled();
     });
 
-    it('does not show the full-page skeleton when reports are already cached, even while the app is loading', () => {
-        setupUseOnyx({isLoadingApp: true, hasReportData: true});
+    it('does not show the full-page skeleton when reports are cached from a prior full load, even while the app is loading', () => {
+        setupUseOnyx({isLoadingApp: true, hasReportData: true, hasLoadedApp: true});
 
         render(<BaseSidebarScreen />);
 
@@ -112,8 +116,17 @@ describe('BaseSidebarScreen (outer skeleton gate)', () => {
         expect(mockSidebarLinksData).toHaveBeenCalled();
     });
 
+    it('shows the full-page skeleton when reports are present but the app has never finished loading', () => {
+        setupUseOnyx({isLoadingApp: true, hasReportData: true, hasLoadedApp: false});
+
+        render(<BaseSidebarScreen />);
+
+        expect(screen.getByTestId('OptionsListSkeletonView')).toBeTruthy();
+        expect(mockSidebarLinksData).not.toHaveBeenCalled();
+    });
+
     it('mounts SidebarLinksData once the app has finished loading', () => {
-        setupUseOnyx({isLoadingApp: false, hasReportData: true});
+        setupUseOnyx({isLoadingApp: false, hasReportData: true, hasLoadedApp: true});
 
         render(<BaseSidebarScreen />);
 
