@@ -1090,7 +1090,16 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
-            participantsPolicyTags: {[policyID]: {[tagName]: {name: tagName}} as unknown as PolicyTagLists},
+            participantsPolicyTags: {
+                [policyID]: {
+                    [tagName]: {
+                        name: tagName,
+                        required: false,
+                        orderWeight: 0,
+                        tags: {[tagName]: {name: tagName, enabled: true}},
+                    },
+                },
+            },
         });
 
         waitForBatchedUpdates();

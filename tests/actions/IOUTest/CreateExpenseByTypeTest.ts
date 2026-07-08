@@ -134,21 +134,42 @@ describe('actions/IOU/createExpenseByType', () => {
         return {transaction, transactionDetails, params};
     }
 
+    function callCreateExpenseByType(
+        overrides: Partial<Parameters<typeof createExpenseByType>[0]> & Pick<Parameters<typeof createExpenseByType>[0], 'transactionType' | 'params' | 'transaction' | 'transactionDetails'>,
+    ) {
+        return createExpenseByType({
+            waypoints: undefined,
+            participants: [],
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            personalDetails: {},
+            recentWaypoints: undefined,
+            ...overrides,
+        });
+    }
+
+    function getLastDistanceRequestParams() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
+        return distanceParams;
+    }
+
+    function getLastPerDiemParams() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+        return perDiemParams;
+    }
+
     describe('default expense type', () => {
         it('calls requestMoney for CASH type', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CASH,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
@@ -159,17 +180,11 @@ describe('actions/IOU/createExpenseByType', () => {
         it('passes the original params plus the resolved policyTagList to requestMoney', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CASH,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith({
@@ -181,17 +196,11 @@ describe('actions/IOU/createExpenseByType', () => {
         it('calls requestMoney for an unrecognized transaction type (fallthrough default)', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: 'unknownType',
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
@@ -211,17 +220,13 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: 'road trip', customUnit: {distanceUnit: 'mi'}},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                 params,
                 transaction,
                 transactionDetails,
                 waypoints,
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledTimes(1);
@@ -232,60 +237,45 @@ describe('actions/IOU/createExpenseByType', () => {
         it('sets created to empty string on the existingTransaction', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                 params,
                 transaction,
                 transactionDetails,
                 waypoints,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const distanceParams = getLastDistanceRequestParams();
             expect(distanceParams.existingTransaction?.created).toBe('');
         });
 
         it('passes waypoints into existingTransaction.comment.waypoints', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                 params,
                 transaction,
                 transactionDetails,
                 waypoints,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const distanceParams = getLastDistanceRequestParams();
             expect(distanceParams.existingTransaction?.comment?.waypoints).toEqual(waypoints);
         });
 
         it('sets transactionParams.validWaypoints from waypoints', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                 params,
                 transaction,
                 transactionDetails,
                 waypoints,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const distanceParams = getLastDistanceRequestParams();
             expect(distanceParams.transactionParams.validWaypoints).toEqual(waypoints);
         });
 
@@ -294,20 +284,15 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: 'held trip', hold: 'someHold', originalTransactionID: 'origTx'},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                 params,
                 transaction,
                 transactionDetails,
                 waypoints,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const distanceParams = getLastDistanceRequestParams();
             expect(distanceParams.existingTransaction?.comment?.hold).toBeUndefined();
             expect(distanceParams.existingTransaction?.comment?.originalTransactionID).toBeUndefined();
         });
@@ -325,17 +310,12 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: 'conference', customUnit},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
             expect(PerDiem.submitPerDiemExpense).toHaveBeenCalledTimes(1);
@@ -348,20 +328,14 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: 'days away', customUnit},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const perDiemParams = getLastPerDiemParams();
             expect(perDiemParams.hasViolations).toBe(false);
         });
 
@@ -370,20 +344,14 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: 'offsite', customUnit},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const perDiemParams = getLastPerDiemParams();
             expect(perDiemParams.transactionParams.customUnit).toEqual(customUnit);
         });
 
@@ -393,20 +361,14 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: rawComment, customUnit},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const perDiemParams = getLastPerDiemParams();
             // transactionDetails.comment comes from getDescription which returns the raw comment field
             expect(perDiemParams.transactionParams.comment).toBe(transactionDetails?.comment);
         });
@@ -416,20 +378,14 @@ describe('actions/IOU/createExpenseByType', () => {
                 comment: {comment: 'no custom unit'},
             });
 
-            createExpenseByType({
+            callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
                 params,
                 transaction,
                 transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const perDiemParams = getLastPerDiemParams();
             expect(perDiemParams.transactionParams.customUnit).toEqual({});
         });
     });
