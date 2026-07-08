@@ -1,4 +1,4 @@
-import {getIsP2PForAmount, getReportOrReportDraftForAmount, submitAmount} from '@pages/iou/request/step/AmountSubmission';
+import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,52 +103,6 @@ describe('AmountSubmission', () => {
         await waitForBatchedUpdates();
     });
 
-    describe('getReportOrReportDraftForAmount', () => {
-        it('returns undefined when reportID is undefined', () => {
-            expect(getReportOrReportDraftForAmount(undefined)).toBeUndefined();
-        });
-
-        it('returns undefined when reportID is an empty string', () => {
-            expect(getReportOrReportDraftForAmount('')).toBeUndefined();
-        });
-
-        it('returns the report from COLLECTION.REPORT when it exists', async () => {
-            const reportID = 'report-1';
-            const testReport: Report = {...createRandomReport(1, undefined), reportID};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, testReport);
-            await waitForBatchedUpdates();
-
-            const result = getReportOrReportDraftForAmount(reportID);
-            expect(result?.reportID).toBe(reportID);
-        });
-
-        it('falls back to COLLECTION.REPORT_DRAFT when not in REPORT', async () => {
-            const reportID = 'draft-1';
-            const draftReport: Report = {...createRandomReport(2, undefined), reportID};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, draftReport);
-            await waitForBatchedUpdates();
-
-            const result = getReportOrReportDraftForAmount(reportID);
-            expect(result?.reportID).toBe(reportID);
-        });
-
-        it('prefers COLLECTION.REPORT over COLLECTION.REPORT_DRAFT when both have the reportID', async () => {
-            const reportID = 'both-1';
-            const realReport: Report = {...createRandomReport(3, undefined), reportID, reportName: 'real'};
-            const draftReport: Report = {...createRandomReport(4, undefined), reportID, reportName: 'draft'};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, realReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, draftReport);
-            await waitForBatchedUpdates();
-
-            const result = getReportOrReportDraftForAmount(reportID);
-            expect(result?.reportName).toBe('real');
-        });
-
-        it('returns undefined when neither collection has the reportID', () => {
-            expect(getReportOrReportDraftForAmount('nonexistent')).toBeUndefined();
-        });
-    });
-
     describe('getIsP2PForAmount', () => {
         it('returns true for a P2P chat with another participant', () => {
             const p2pChat: Report = {
@@ -216,6 +170,7 @@ describe('AmountSubmission', () => {
                 transaction: undefined,
                 splitDraftTransaction: undefined,
                 policy: undefined,
+                policyTags: undefined,
                 isDraftChatReport: undefined,
                 selectedCurrency: CONST.CURRENCY.USD,
                 decimals: 2,
@@ -236,15 +191,29 @@ describe('AmountSubmission', () => {
                 navigateBack: jest.fn(),
                 amount: '10',
                 paymentMethod: undefined,
+                allPersonalDetails: {},
+                allReports: {},
+                allReportDrafts: {},
+                allReportNVPs: {},
                 transactionDrafts: {},
                 transactionViolations: {},
                 storedTransaction: undefined,
                 parentReportNextStep: undefined,
                 policyCategories: undefined,
                 userBillingGracePeriodEnds: {},
-                allReportNVPs: {},
                 duplicateTransactions: {},
                 duplicateTransactionViolations: {},
+                reportAttributesDerivedValue: undefined,
+                betas: [],
+                betaConfiguration: undefined,
+                quickAction: undefined,
+                onboarding: undefined,
+                introSelected: undefined,
+                recentWaypoints: undefined,
+                policyRecentlyUsedCurrencies: undefined,
+                amountOwed: undefined,
+                ownerBillingGracePeriodEnd: undefined,
+                conciergeReportID: undefined,
                 ...overrides,
             };
         };

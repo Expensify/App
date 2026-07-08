@@ -374,7 +374,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
                         customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         isSplitButton={false}

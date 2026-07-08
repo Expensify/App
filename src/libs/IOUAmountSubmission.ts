@@ -1,38 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {
-    calculateDefaultReimbursable,
-    getExistingTransactionID,
-    isMovingTransactionFromTrackExpense,
-    isParticipantP2P,
-    navigateToConfirmationPage,
-    navigateToParticipantPage,
-    resolveOptimisticChatReportID,
-} from '@libs/IOUUtils';
-import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
-import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
-import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
-import Navigation from '@libs/Navigation/Navigation';
-import {rand64} from '@libs/NumberUtils';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
-import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
-import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from '@libs/TransactionUtils';
-
-import {
-    getMoneyRequestParticipantsFromReport,
-    setMoneyRequestAmount,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
-} from '@userActions/IOU/MoneyRequest';
-import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
-import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
-import {requestMoney, trackExpense} from '@userActions/IOU/TrackExpense';
-import {updateMoneyRequestAmountAndCurrency} from '@userActions/IOU/UpdateMoneyRequest';
-import {setTransactionReport} from '@userActions/Transaction';
+import {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -47,96 +13,40 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
 
-// The values below are only consumed by submit-time helpers in this module, never during render.
-// Onyx.connectWithoutView is appropriate. If React components need these values, use useOnyx instead.
+import type {WriteOverrides} from './Navigation/helpers/submitWithDismissFirst';
 
-let allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => (allPersonalDetails = value),
-});
-
-let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
-let allReportDrafts: OnyxCollection<OnyxTypes.Report>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReportDrafts = value),
-});
-
-let quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (value) => (quickAction = value),
-});
-
-let introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (introSelected = value),
-});
-
-let onboarding: OnyxEntry<OnyxTypes.Onboarding>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => (onboarding = value),
-});
-
-let betas: OnyxEntry<OnyxTypes.Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (betas = value),
-});
-
-let betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETA_CONFIGURATION,
-    callback: (value) => (betaConfiguration = value),
-});
-
-let amountOwed: OnyxEntry<number>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (amountOwed = value),
-});
-
-let ownerBillingGracePeriodEnd: OnyxEntry<number>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (ownerBillingGracePeriodEnd = value),
-});
-
-let policyRecentlyUsedCurrencies: OnyxEntry<string[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-    callback: (value) => (policyRecentlyUsedCurrencies = value),
-});
-
-let recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (value) => (recentWaypoints = value),
-});
-
-let conciergeReportID: OnyxEntry<string>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => (conciergeReportID = value),
-});
-
-let reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => (reportAttributesDerivedValue = value),
-});
+import {
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestAmount,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+} from './actions/IOU/MoneyRequest';
+import {sendMoneyElsewhere, sendMoneyWithWallet} from './actions/IOU/SendMoney';
+import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from './actions/IOU/Split';
+import {requestMoney, trackExpense} from './actions/IOU/TrackExpense';
+import {updateMoneyRequestAmountAndCurrency} from './actions/IOU/UpdateMoneyRequest';
+import {setTransactionReport} from './actions/Transaction';
+import {convertToBackendAmount} from './CurrencyUtils';
+import {
+    calculateDefaultReimbursable,
+    getExistingTransactionID,
+    isMovingTransactionFromTrackExpense,
+    isParticipantP2P,
+    navigateToConfirmationPage,
+    navigateToParticipantPage,
+    resolveOptimisticChatReportID,
+} from './IOUUtils';
+import cleanupAfterSkipConfirmSubmit from './Navigation/helpers/cleanupAfterSkipConfirmSubmit';
+import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirst';
+import Navigation from './Navigation/Navigation';
+import {rand64} from './NumberUtils';
+import {getParticipantsOption, getReportOption} from './OptionsListUtils';
+import Permissions from './Permissions';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
+import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -144,6 +54,7 @@ type SubmitAmountArgs = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -165,27 +76,41 @@ type SubmitAmountArgs = {
     amount: string;
     paymentMethod?: PaymentMethodType;
 
-    // Submit-time collection data — passed in by the screen until follow-up PRs cache these at module scope.
+    // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
+    allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    allReports: OnyxCollection<OnyxTypes.Report>;
+    allReportDrafts: OnyxCollection<OnyxTypes.Report>;
+    allReportNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     transactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     storedTransaction: OnyxEntry<OnyxTypes.Transaction>;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    allReportNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    onboarding: OnyxEntry<OnyxTypes.Onboarding>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    policyRecentlyUsedCurrencies: OnyxEntry<string[]>;
+    amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    conciergeReportID: OnyxEntry<string>;
 };
 
 /**
- * Look up a report by ID across the cached `COLLECTION.REPORT` and `COLLECTION.REPORT_DRAFT`
+ * Look up a report by ID across the supplied `COLLECTION.REPORT` and `COLLECTION.REPORT_DRAFT`
  * collections. Returns the report-draft entry when no concrete report exists for the ID.
- *
- * Intended for submit-time call sites (e.g. inside `navigateToNextPage`) where the caches are
- * guaranteed to be hydrated. For render-time reads where a stale cache would silently misreport
- * a value, use `useReportOrReportDraft` instead so the screen re-renders when the report arrives.
  */
-function getReportOrReportDraftForAmount(reportID: string | undefined): OnyxEntry<OnyxTypes.Report> {
+function getReportOrReportDraftForAmount(
+    reportID: string | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report>,
+    allReportDrafts: OnyxCollection<OnyxTypes.Report>,
+): OnyxEntry<OnyxTypes.Report> {
     if (!reportID) {
         return undefined;
     }
@@ -210,8 +135,8 @@ function getIsP2PForAmount({chatReportForP2P, currentUserAccountID}: GetIsP2PFor
 
 /**
  * Submission orchestration for `IOURequestStepAmount`. Verbatim port of the previous inline
- * `saveAmountAndCurrency` + `navigateToNextPage` handlers. All submit-only Onyx values are read
- * from the module-scoped `connectWithoutView` caches above.
+ * `saveAmountAndCurrency` + `navigateToNextPage` handlers. All submit-only Onyx values are
+ * passed in via the args object — the screen sources them from `AmountSubmitDataSync`.
  *
  * Branches:
  * - Non-edit path → delegate to nested `navigateToNextPage` (skip-confirm PAY / SEND / TRACK /
@@ -224,6 +149,7 @@ function submitAmount({
     transaction,
     splitDraftTransaction,
     policy,
+    policyTags,
     isDraftChatReport,
     selectedCurrency,
     decimals,
@@ -244,16 +170,30 @@ function submitAmount({
     navigateBack,
     amount,
     paymentMethod,
+    allPersonalDetails,
+    allReports,
+    allReportDrafts,
+    allReportNVPs,
     transactionDrafts,
     transactionViolations,
     storedTransaction,
     parentReportNextStep,
     policyCategories,
     userBillingGracePeriodEnds,
-    allReportNVPs,
     duplicateTransactions,
     duplicateTransactionViolations,
     translate,
+    reportAttributesDerivedValue,
+    betas,
+    betaConfiguration,
+    quickAction,
+    onboarding,
+    introSelected,
+    recentWaypoints,
+    policyRecentlyUsedCurrencies,
+    amountOwed,
+    ownerBillingGracePeriodEnd,
+    conciergeReportID,
 }: SubmitAmountArgs): void {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -309,9 +249,9 @@ function submitAmount({
                     : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
+            const participant = participants.at(0);
 
             if (shouldSkipConfirmation) {
-                const participant = participants.at(0);
                 const defaultReimbursable = calculateDefaultReimbursable({
                     iouType,
                     policy,
@@ -375,7 +315,7 @@ function submitAmount({
                             participantParams: {
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                             },
                             transactionParams: {
                                 amount: backendAmount,
@@ -396,6 +336,7 @@ function submitAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            reportActionsList: undefined,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -403,7 +344,7 @@ function submitAmount({
                             report,
                             betas,
                             participantParams: {
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
                             },
@@ -416,6 +357,7 @@ function submitAmount({
                                 reimbursable: defaultReimbursable,
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                             },
+                            policyParams: {policyTagList: policyTags},
                             shouldGenerateTransactionThreadReport: false,
                             isASAPSubmitBetaEnabled,
                             currentUserAccountIDParam,
@@ -494,7 +436,7 @@ function submitAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const transactionAssociatedReport = getReportOrReportDraftForAmount(transaction?.reportID);
+                const transactionAssociatedReport = getReportOrReportDraftForAmount(transaction?.reportID, allReports, allReportDrafts);
                 const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : transactionAssociatedReport;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
@@ -548,11 +490,6 @@ function submitAmount({
         resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, false);
     }
 
-    // `parentReport` is read from the module-scope REPORT cache (introduced in PR 3); the rest
-    // of the edit-branch collection data (`parentReportNextStep`, `policyCategories`,
-    // `duplicateTransactions`, `duplicateTransactionViolations`) comes in via args until the
-    // follow-up PR caches `NEXT_STEP`, `POLICY_CATEGORIES`, `TRANSACTION`, and
-    // `TRANSACTION_VIOLATIONS` at module scope.
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
@@ -578,4 +515,5 @@ function submitAmount({
     navigateBack();
 }
 
-export {submitAmount, getIsP2PForAmount, getReportOrReportDraftForAmount};
+export {submitAmount, getIsP2PForAmount};
+export type {SubmitAmountArgs};

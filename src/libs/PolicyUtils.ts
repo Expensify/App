@@ -673,17 +673,22 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isReimburser = policy.reimburser === currentUserLogin;
+    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
-    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-        return policy.reimburser ? isReimburser : isAdmin;
+    // Reimbursement is disabled for this workspace.
+    if (!isAutoReimbursement && !isManualReimbursement) {
+        return false;
     }
 
-    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+    const reimburserEmail = policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+
+    // No designated reimburser means any workspace admin can pay.
+    if (!reimburserEmail) {
         return isAdmin;
     }
 
-    return false;
+    return isAdmin && currentUserLogin === reimburserEmail;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
@@ -1478,10 +1483,6 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-}
-
-function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
-    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -2703,6 +2704,10 @@ function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSetting
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
 }
 
+function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
+}
+
 /**
  * Determines which travel step should be shown based on policy state
  */
@@ -2876,7 +2881,6 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
-    hasApprovalFlow,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -2979,6 +2983,7 @@ export {
     isPerDiemEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
+    isNonUSDPolicy,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,

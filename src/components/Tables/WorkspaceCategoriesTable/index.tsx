@@ -10,7 +10,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -163,7 +162,7 @@ export default function WorkspaceCategoriesTable({
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
+                    <Table.FilterBar label={translate('workspace.categories.findCategory')} />
                     <Table.Header />
                     <Table.Body />
                 </>
