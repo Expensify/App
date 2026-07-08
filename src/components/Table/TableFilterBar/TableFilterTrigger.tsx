@@ -57,7 +57,7 @@ export default function TableFilterTrigger() {
                         ref={ref}
                         size={CONST.BUTTON_SIZE.SMALL}
                         accessibilityLabel={translate('search.filtersHeader')}
-                        style={isExpanded ? styles.buttonHoveredBG : undefined}
+                        style={isExpanded ? [styles.buttonHoveredBG, styles.mt0Half] : [styles.mt0Half]}
                         onPress={onPress}
                     >
                         <Button.Icon src={icons.Filter} />
