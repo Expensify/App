@@ -1604,6 +1604,7 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+            const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)) ?? {};
 
             // When requesting money
             requestMoney({
@@ -1614,7 +1615,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {reportID: '1', isPolicyExpenseChat: true},
                 },
-                policyParams: {policyRecentlyUsedTags},
+                policyParams: {policyRecentlyUsedTags, policyTagList},
                 transactionParams: {
                     amount: 100,
                     attendees: [],
@@ -1849,7 +1850,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 

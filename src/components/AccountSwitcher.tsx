@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -34,10 +33,9 @@ import {View} from 'react-native';
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import Avatar from './Avatar';
-import Icon from './Icon';
+import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
-import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
 import Tooltip from './Tooltip';
@@ -49,10 +47,9 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown']);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -67,7 +64,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-    const buttonRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<View>(null);
     const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
@@ -122,13 +119,18 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                  // Right-align so the tooltip opens leftward into the sidebar (matching the design mockup),
+                  // instead of overflowing past the Switch button into the central pane.
+                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
               shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
+              // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
+              // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
+              shouldHideOnNavigate: false,
           }
         : {
               text: translate('delegate.copilotAccess'),
@@ -230,71 +232,64 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     return (
         <>
-            <TooltipToRender {...tooltipProps}>
-                <PressableWithFeedback
-                    accessible
-                    accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
-                    onPress={onPressSwitcher}
-                    ref={buttonRef}
-                    interactive={canSwitchAccounts}
-                    pressDimmingValue={canSwitchAccounts ? undefined : 1}
-                    wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
-                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                >
-                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        <Avatar
-                            type={CONST.ICON_TYPE_AVATAR}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                            avatarID={currentUserPersonalDetails?.accountID}
-                            source={currentUserPersonalDetails?.avatar}
-                            fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                        />
-                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
-                            <View style={[styles.flexRow, styles.gap1]}>
-                                {doesDisplayNameContainEmojis ? (
-                                    <Text numberOfLines={1}>
-                                        <TextWithEmojiFragment
-                                            message={displayName}
-                                            style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
-                                        />
-                                    </Text>
-                                ) : (
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
-                                    >
-                                        {formatPhoneNumber(displayName)}
-                                    </Text>
-                                )}
-                                {!!canSwitchAccounts && (
-                                    <View style={styles.justifyContentCenter}>
-                                        <Icon
-                                            fill={theme.icon}
-                                            src={icons.CaretUpDown}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                        />
-                                    </View>
-                                )}
-                            </View>
+            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
+                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
+                    <Avatar
+                        type={CONST.ICON_TYPE_AVATAR}
+                        size={CONST.AVATAR_SIZE.DEFAULT}
+                        avatarID={currentUserPersonalDetails?.accountID}
+                        source={currentUserPersonalDetails?.avatar}
+                        fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                    />
+                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                        {doesDisplayNameContainEmojis ? (
+                            <Text numberOfLines={1}>
+                                <TextWithEmojiFragment
+                                    message={displayName}
+                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                />
+                            </Text>
+                        ) : (
                             <Text
                                 numberOfLines={1}
-                                style={[styles.colorMuted, styles.fontSizeLabel]}
+                                style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
                             >
-                                {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                                {formatPhoneNumber(displayName)}
                             </Text>
-                            {!!isDebugModeEnabled && (
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
-                                    numberOfLines={1}
-                                >
-                                    AccountID: {accountID}
-                                </Text>
-                            )}
-                        </View>
+                        )}
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.colorMuted, styles.fontSizeLabel]}
+                        >
+                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                        </Text>
+                        {!!isDebugModeEnabled && (
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                numberOfLines={1}
+                            >
+                                AccountID: {accountID}
+                            </Text>
+                        )}
                     </View>
-                </PressableWithFeedback>
-            </TooltipToRender>
+                </View>
+                {!!canSwitchAccounts && (
+                    <TooltipToRender {...tooltipProps}>
+                        {/* View wrapper forwards the hover events Tooltip injects; Button doesn't pass them to its underlying pressable, so the tooltip wouldn't show without it */}
+                        <View>
+                            <Button
+                                small
+                                ref={buttonRef}
+                                text={translate('delegate.switch')}
+                                onPress={onPressSwitcher}
+                                sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
+                                shouldShowRightIcon
+                                iconRight={icons.CaretUpDown}
+                            />
+                        </View>
+                    </TooltipToRender>
+                )}
+            </View>
 
             {!!canSwitchAccounts && (
                 <PopoverMenu

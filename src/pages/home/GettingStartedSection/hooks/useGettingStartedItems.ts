@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -22,8 +21,6 @@ import {
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
-import {enableCompanyCards, enableExpensifyCard, enablePolicyConnections} from '@userActions/Policy/Policy';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -39,8 +36,6 @@ type GettingStartedItem = {
     subtitle?: string;
     isComplete: boolean;
     route: Route;
-    isFeatureEnabled?: boolean;
-    enableFeature?: () => void;
 };
 
 type UseGettingStartedItemsResult = {
@@ -119,8 +114,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 label: translate('homePage.gettingStartedSection.customizeCategories'),
                 isComplete: hasCustomCategories(policyCategories),
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-                isFeatureEnabled: policy.areCategoriesEnabled,
-                enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
+            });
+        }
+
+        if (policy.areCompanyCardsEnabled) {
+            items.push({
+                key: 'linkCompanyCards',
+                label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+                isComplete: hasCompanyCardFeeds(allCardFeeds),
+                route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
             });
         }
 
@@ -150,8 +152,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areConnectionsEnabled,
-            enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({
@@ -159,8 +159,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: translate('homePage.gettingStartedSection.customizeCategories'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
         });
     }
 
@@ -171,8 +169,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: translate('homePage.gettingStartedSection.linkCompanyCards'),
             isComplete: hasCompanyCardFeeds(allCardFeeds),
             route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCompanyCardsEnabled,
-            enableFeature: () => enableCompanyCards(activePolicyID, true, false),
         });
     }
 
@@ -183,8 +179,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             subtitle: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
             isComplete: hasIssuedExpensifyCard,
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areExpensifyCardsEnabled,
-            enableFeature: () => enableExpensifyCard(activePolicyID, true, false),
         });
     }
 
