@@ -13,10 +13,6 @@ function MultiGestureIcon({additionalStyles, src, contentSize, fill}: CommonIcon
     const {canvasSize, updateCanvasSize} = useCanvasSize();
     const {pagerRef, isScrollEnabled, onTap, onSwipeDown} = useIconCarouselPager();
 
-    if (!src) {
-        return null;
-    }
-
     return (
         <View
             style={StyleSheet.absoluteFill}
