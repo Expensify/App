@@ -425,6 +425,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
                     CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
+                    // s77rt handle card programs accounts correctly and add handdling for card accounts
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
