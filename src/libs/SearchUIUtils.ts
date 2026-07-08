@@ -6567,5 +6567,6 @@ export {
     isTransactionSearchType,
     splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
+    getReportSections,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
