@@ -50,7 +50,7 @@ Revenue share payments are automatically deposited into your default connected U
 
 Once you've met the eligibility requirements and connected a US business bank account, Expensify automatically calculates your revenue share based on your clients' eligible Expensify Card spend.
 
-Revenue share payments are deposited into your default connected US business bank account each momth. No additional action is required as long as you remain eligible.
+Revenue share payments are deposited into your default connected US business bank account each month. No additional action is required as long as you remain eligible.
 
 --
 
