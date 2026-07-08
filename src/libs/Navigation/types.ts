@@ -2702,6 +2702,10 @@ type TravelNavigatorParamList = {
         backTo?: Routes;
         policyID?: string;
     };
+    [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: {
+        domain: string;
+        policyID?: string;
+    };
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: {
         policyID?: string;
     };

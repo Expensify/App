@@ -124,7 +124,7 @@ import type {
 } from './types/TrackedExpenseParams';
 
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
@@ -1735,15 +1735,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
-        policyParams: {
-            ...policyParams,
-            policyTagList: getMoneyRequestPolicyTags({
-                existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-                participant: participantParams.participant,
-            }),
-        },
+        policyParams,
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,

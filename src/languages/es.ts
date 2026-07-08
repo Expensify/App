@@ -4215,6 +4215,12 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
             recommended: 'Recomendado',
         },
+        taxID: {
+            title: 'ID fiscal',
+            subtitle: 'Introduce el NIF de tu entidad legal para que podamos configurar la facturación de viajes en tu moneda local.',
+            inputLabel: 'ID fiscal de la entidad jurídica',
+            error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
+        },
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain) =>
@@ -4949,11 +4955,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Antes de conectarte',
                 installBundle: 'Instala el paquete de Expensify',
                 installBundlePSAHeader: 'Para conexiones PSA/SRP:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instala el paquete de Expensify en Salesforce haciendo clic en este enlace: <a href="${href}">Instalar paquete Expensify PSA/SRP (Versión ${version})</a>`,
+                installBundleDescription: 'Instala el paquete de Expensify en Salesforce haciendo clic en este enlace:',
+                installBundlePSALink: ({version}: {version: string}) => `Instalar paquete Expensify PSA/SRP (Versión ${version})`,
                 installBundleFFAHeader: 'Para conexiones FFA:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instala el paquete de Expensify en Salesforce haciendo clic en este enlace: <a href="${href}">Instalar el paquete de Expensify para FFA (versión ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Instalar el paquete de Expensify para FFA (versión ${version})`,
                 installBundleConfirm: 'He instalado el paquete',
                 setupContacts: 'Configura usuario y contactos',
                 setupContactsBullet1:
@@ -10107,7 +10112,7 @@ ${amount} para ${merchant} - ${date}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
-        accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
+        accountSwitcher: '<tooltip>¡Ahora puedes copilotar en otra cuenta!</tooltip>',
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',

@@ -38,14 +38,15 @@ import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation'> & {
+type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency'> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
+    personalPolicyOutputCurrency?: string;
 };
 
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, ...rest});
 }
 
 const topMostReportID = '23423423';
@@ -342,6 +343,96 @@ describe('actions/Transaction', () => {
             expect(updatedExpenseReport?.nonReimbursableTotal).toBe(-amount);
             expect(updatedExpenseReport?.total).toBe(-amount);
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
+        });
+
+        it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
+            // Given a destination workspace whose default distance rate is defined in GBP (200/mi)
+            const policyID = generatePolicyID();
+            const distanceCustomUnitID = 'CU_DISTANCE';
+            const workspaceRateID = 'RATE_GBP';
+            const mockPolicy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM, 'Distance Workspace'),
+                id: policyID,
+                outputCurrency: CONST.CURRENCY.USD,
+                customUnits: {
+                    [distanceCustomUnitID]: {
+                        customUnitID: distanceCustomUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {
+                            [workspaceRateID]: {
+                                customUnitRateID: workspaceRateID,
+                                currency: 'GBP',
+                                rate: 200,
+                                enabled: true,
+                                name: 'Default Rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+
+            // And a 10-mile distance expense in USD whose current rate does not exist on that workspace,
+            // which forces changeTransactionsReport to reselect the workspace's default rate and calculation.
+            const transactionID = 'txn-distance-move';
+            const transaction: Transaction = {
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: '10.00 mi @ $1.00 / mi',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate-not-on-destination-workspace',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            const expenseReport = {
+                reportID: 'dest-expense-report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID: 'dest-chat-report',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When the expense is moved to the workspace report
+            changeTransactionsReport({
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                newReport: expenseReport,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+                personalPolicyOutputCurrency: 'EUR',
+            });
+            await waitForBatchedUpdates();
+
+            // Then it adopts the workspace's default rate and recomputes amount/merchant/currency from it:
+            // 10 mi × 200 = 2000, currency GBP (from the rate, not the expense's original USD).
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updated?.comment?.customUnit?.customUnitRateID).toBe(workspaceRateID);
+            expect(updated?.modifiedCurrency).toBe('GBP');
+            expect(Math.abs(Number(updated?.modifiedAmount ?? 0))).toBe(2000);
+            expect(updated?.modifiedMerchant).toContain('mi');
         });
 
         describe('updateSplitTransactionsFromSplitExpensesFlow', () => {

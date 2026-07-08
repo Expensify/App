@@ -1485,10 +1485,6 @@ function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
-function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
-    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-}
-
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
@@ -2708,6 +2704,10 @@ function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSetting
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
 }
 
+function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
+}
+
 /**
  * Determines which travel step should be shown based on policy state
  */
@@ -2881,7 +2881,6 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
-    hasApprovalFlow,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -2984,6 +2983,7 @@ export {
     isPerDiemEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
+    isNonUSDPolicy,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,
