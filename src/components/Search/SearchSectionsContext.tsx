@@ -1,0 +1,113 @@
+import CONST from '@src/CONST';
+import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {createContext, useContext} from 'react';
+
+import type {SearchSections} from './hooks/useExpenseReportSections';
+import type {SearchShell, UseSearchShellParams} from './hooks/useSearchShell';
+import type {SearchQueryJSON} from './types';
+
+import useExpenseReportSections from './hooks/useExpenseReportSections';
+import useSearchShell from './hooks/useSearchShell';
+import useSearchSnapshot from './hooks/useSearchSnapshot';
+
+/** The tracking carriers `<Search>` reads for its deferral/focus effects (independent of the section outputs). */
+type SearchTrackingCarriers = Pick<
+    SearchShell,
+    'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
+>;
+
+/**
+ * What the per-type section provider publishes: the sorted/joined section outputs plus the shared
+ * optimistic-tracking carriers. Matches the section half of the legacy `useSearchSnapshot` return so the
+ * `<Search>` body reads it exactly as before.
+ */
+type SearchSectionsContextValue = SearchSections & SearchTrackingCarriers;
+
+const SearchSectionsContext = createContext<SearchSectionsContextValue | null>(null);
+
+/** Read the active search's section outputs + tracking carriers. Throws if used outside the provider. */
+function useSearchSections(): SearchSectionsContextValue {
+    const value = useContext(SearchSectionsContext);
+    if (!value) {
+        throw new Error('useSearchSections must be used within a SearchSectionsProvider');
+    }
+    return value;
+}
+
+type SectionsProviderProps = {
+    queryJSON: Readonly<SearchQueryJSON>;
+    searchResults: SearchResults | undefined;
+    newSearchResultKeys: Set<string> | null | undefined;
+    transactions: UseSearchShellParams['transactions'];
+    reportActions: UseSearchShellParams['reportActions'];
+    children: ReactNode;
+};
+
+const pickTrackingCarriers = (shellOrSnapshot: SearchTrackingCarriers): SearchTrackingCarriers => ({
+    showPendingExpensePlaceholder: shellOrSnapshot.showPendingExpensePlaceholder,
+    shouldDeferHeavySearchWork: shellOrSnapshot.shouldDeferHeavySearchWork,
+    setShouldDeferHeavySearchWork: shellOrSnapshot.setShouldDeferHeavySearchWork,
+    hasPendingWriteOnMountRef: shellOrSnapshot.hasPendingWriteOnMountRef,
+    skipDeferralOnFocusRef: shellOrSnapshot.skipDeferralOnFocusRef,
+    rearmTracking: shellOrSnapshot.rearmTracking,
+});
+
+/**
+ * Section provider for the expense-report view. Owns only the report-type slice of Onyx (via the scoped
+ * shell + leaf), so every other search type mounts a different provider and never opens these subscriptions.
+ */
+function ExpenseReportSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
+    const sections = useExpenseReportSections({shell, queryJSON, searchResults, newSearchResultKeys});
+    const value: SearchSectionsContextValue = {...sections, ...pickTrackingCarriers(shell)};
+    return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
+}
+
+/**
+ * Section provider for every not-yet-scoped search type. Keeps the legacy monolithic `useSearchSnapshot`
+ * (which subscribes to the union of every type's data) until each type gets its own scoped leaf.
+ */
+function LegacySectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const snapshot = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
+    const value: SearchSectionsContextValue = {
+        data: snapshot.data,
+        chartData: snapshot.chartData,
+        filteredData: snapshot.filteredData,
+        filteredDataLength: snapshot.filteredDataLength,
+        allDataLength: snapshot.allDataLength,
+        hasDeletedTransaction: snapshot.hasDeletedTransaction,
+        columns: snapshot.columns,
+        hasLoadedAllTransactions: snapshot.hasLoadedAllTransactions,
+        hasCachedOptimisticItem: snapshot.hasCachedOptimisticItem,
+        ...pickTrackingCarriers(snapshot),
+    };
+    return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
+}
+
+/**
+ * Mounts the section provider that matches the active search type. The switch is a component boundary (not
+ * a conditional hook), so only the active provider's subscriptions are ever live — the whole point of the
+ * scoping effort.
+ */
+function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const Provider = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? ExpenseReportSectionsProvider : LegacySectionsProvider;
+    return (
+        <Provider
+            queryJSON={queryJSON}
+            searchResults={searchResults}
+            newSearchResultKeys={newSearchResultKeys}
+            transactions={transactions}
+            reportActions={reportActions}
+        >
+            {children}
+        </Provider>
+    );
+}
+
+export default SearchSectionsProvider;
+export {useSearchSections};
+export type {SearchSectionsContextValue};

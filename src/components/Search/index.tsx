@@ -73,14 +73,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {SaveSearch} from '@src/types/onyx';
+import type {SaveSearch, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+import type {Dispatch, SetStateAction} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
@@ -96,11 +97,11 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
-import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchSectionsProvider, {useSearchSections} from './SearchSectionsContext';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
 import TaskSearchView from './TaskSearchView';
@@ -124,7 +125,21 @@ type SearchProps = {
 
 type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
-function Search({
+type SearchContentProps = SearchProps & {
+    /** Pagination offset, lifted to the gate so it survives the per-type provider remount. */
+    offset: number;
+    setOffset: Dispatch<SetStateAction<number>>;
+    /** Full transactions collection, subscribed once by the gate and threaded down. */
+    transactions: OnyxCollection<Transaction>;
+    /** Post-create highlight outputs, produced by the gate's useSearchHighlightAndScroll. */
+    newTransactions: Transaction[];
+    handleSelectionListScroll: ReturnType<typeof useSearchHighlightAndScroll>['handleSelectionListScroll'];
+    hasQueuedHighlights: boolean;
+    /** Whether the next search request should recompute totals (gate-owned, feeds the search-trigger effects). */
+    shouldCalculateTotals: boolean;
+};
+
+function SearchContent({
     queryJSON,
     hasFilterBars,
     searchResults,
@@ -136,7 +151,14 @@ function Search({
     searchRequestResponseStatusCode,
     onContentReady,
     onDestinationVisible,
-}: SearchProps) {
+    offset,
+    setOffset,
+    transactions,
+    newTransactions,
+    handleSelectionListScroll,
+    hasQueuedHighlights,
+    shouldCalculateTotals,
+}: SearchContentProps) {
     const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -154,15 +176,11 @@ function Search({
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const [offset, setOffset] = useState(0);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
-    const previousTransactions = usePrevious(transactions);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -179,9 +197,7 @@ function Search({
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
 
-    const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
@@ -206,19 +222,6 @@ function Search({
         clearSelectedTransactions();
     }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
-        searchResults,
-        transactions,
-        previousTransactions,
-        queryJSON,
-        searchKey: currentSearchKey,
-        offset,
-        shouldCalculateTotals,
-        reportActions,
-        previousReportActions,
-        shouldUseLiveData,
-    });
-
     const {
         data: stableSortedData,
         chartData: sortedData,
@@ -235,7 +238,7 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
-    } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
+    } = useSearchSections();
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
     // (which has empty deps) can read the latest value without re-creating its callback.
@@ -731,7 +734,7 @@ function Search({
         }
 
         setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength, setOffset]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -1122,6 +1125,65 @@ function Search({
                 <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>
+    );
+}
+
+SearchContent.displayName = 'SearchContent';
+
+/**
+ * Thin gate over the Search screen. Owns the universal inputs that the per-type section provider needs but
+ * that must live above the provider boundary: the full transactions/report-actions collections, the
+ * pagination offset, and the post-create highlight tracking. It then mounts the type-matched section
+ * provider (which owns the type-specific Onyx subscriptions) around the `SearchContent` body, so the body
+ * reads its sections from context and no search type subscribes to data it does not use.
+ */
+function Search(props: SearchProps) {
+    const {queryJSON, searchResults} = props;
+    const {hash} = queryJSON;
+
+    const {currentSearchKey} = useSearchQueryContext();
+    const {shouldUseLiveData} = useSearchResultsContext();
+
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const previousTransactions = usePrevious(transactions);
+    const previousReportActions = usePrevious(reportActions);
+
+    const [offset, setOffset] = useState(0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
+
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
+        searchResults,
+        transactions,
+        previousTransactions,
+        queryJSON,
+        searchKey: currentSearchKey,
+        offset,
+        shouldCalculateTotals,
+        reportActions,
+        previousReportActions,
+        shouldUseLiveData,
+    });
+
+    return (
+        <SearchSectionsProvider
+            queryJSON={queryJSON}
+            searchResults={searchResults}
+            newSearchResultKeys={newSearchResultKeys}
+            transactions={transactions}
+            reportActions={reportActions}
+        >
+            <SearchContent
+                {...props}
+                offset={offset}
+                setOffset={setOffset}
+                transactions={transactions}
+                newTransactions={newTransactions}
+                handleSelectionListScroll={handleSelectionListScroll}
+                hasQueuedHighlights={hasQueuedHighlights}
+                shouldCalculateTotals={shouldCalculateTotals}
+            />
+        </SearchSectionsProvider>
     );
 }
 
