@@ -1827,7 +1827,6 @@
 "../../tests/navigation/getStateForDynamicRouteTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	27
 "../../tests/navigation/getStateFromPathTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/navigation/isActiveRouteTests.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/navigation/isDynamicRouteScreenTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/navigation/linkToHelpersTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/navigation/useDynamicBackPathTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/perf-test/ReportActionsUtils.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1994,7 +1993,6 @@
 "../../tests/unit/MoneyRequestReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/MoneyRequestUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/Navigation/createRootStackNavigator/handleReplaceFullscreenUnderRHP.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../tests/unit/Navigation/getCreateReportRouteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/Navigation/getReportRouteForCurrentContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Navigation/guards/OnboardingGuard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/Navigation/routerExtensions/addPushParamsRouterExtension.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	130
@@ -2089,7 +2087,6 @@
 "../../tests/unit/awaitStagingDeploysTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
 "../../tests/unit/checkDeployBlockersTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/checkFileExistsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/chunkLoadErrorRecoveryTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/cleanupAfterExpenseCreateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/cleanupAfterSkipConfirmSubmitTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -2109,7 +2106,6 @@
 "../../tests/unit/findUnusedStylesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/generateTranslationsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/getChartSkiaTypefaceTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/getOnboardingRouteFromScreenTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/getPullRequestIncrementalChangesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/getReportPreviewSenderIDTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/getTimeDifferenceIntervalsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -2203,8 +2199,6 @@
 "../../tests/unit/pages/settings/EditAgentPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/pages/settings/EditNamePageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/pages/settings/EditPromptPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/pages/workspace/accounting/qbo/utilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/parseAndCollectJSONsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/popReportsSplitNavigatorToReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/postOrReplaceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/reportAttributesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	24
@@ -2229,7 +2223,6 @@
 "../../tests/unit/useGetExpensifyCardFromReportActionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/useGroupDraftRestoreTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/unit/useIndicatorStatusTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/useLastWorkspaceNumberTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/usePersonalDetailSearchSelectorTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/usePolicyIndicatorChecksTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
