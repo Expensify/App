@@ -12,7 +12,7 @@ declare module 'scheduler' {
 
     export const unstable_IdlePriority: number;
 
-    export function unstable_scheduleCallback(priorityLevel: number, callback: SchedulerCallback, options?: {delay?: number; timeout?: number}): CallbackNode;
+    export function unstable_scheduleCallback(priorityLevel: number, callback: SchedulerCallback, options?: {delay?: number}): CallbackNode;
 
     export function unstable_cancelCallback(task: CallbackNode): void;
 }

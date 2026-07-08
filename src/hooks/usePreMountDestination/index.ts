@@ -25,13 +25,10 @@ type TransitionCancelHandle = {
  * dismiss creates a visible gap (narrow) or flashes the previous page (wide) while React mounts the destination tree.
  */
 function usePreMountDestination(route: Route | undefined, options?: UsePreMountDestinationOptions): UsePreMountDestinationResult {
-    const shouldPreInsert = options?.preInsert ?? true;
-    const preInsertTiming = options?.preInsertTiming ?? 'idle';
     const shouldPreservePreInsertedRouteOnUnmount = options?.shouldPreservePreInsertedRouteOnUnmount;
 
     const shouldUseNarrowLayoutAtFlowStartRef = useRef(getIsNarrowLayout());
     const preInsertTaskRef = useRef<IdlePreInsertTask | undefined>(undefined);
-    const preInsertTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const transitionCancelHandleRef = useRef<TransitionCancelHandle | undefined>(undefined);
     const hasRevealBeenCalledRef = useRef(false);
     const preInsertedRouteRef = useRef<Route | undefined>(undefined);
@@ -42,8 +39,6 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         transitionCancelHandleRef.current = undefined;
         preInsertTaskRef.current?.cancel();
         preInsertTaskRef.current = undefined;
-        clearTimeout(preInsertTimerRef.current);
-        preInsertTimerRef.current = undefined;
     }
 
     function removePreInsertedRouteIfNeeded() {
@@ -82,13 +77,12 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
     useEffect(() => {
         // Layout is intentionally treated as a flow-start decision. If the window is resized
         // mid-flow, finish using the strategy selected when this hook mounted.
-        if (!shouldPreInsert || !route || !shouldUseNarrowLayoutAtFlowStartRef.current || preInsertedRouteRef.current === route) {
+        if (!route || !shouldUseNarrowLayoutAtFlowStartRef.current || preInsertedRouteRef.current === route) {
             return;
         }
 
         const runPreInsert = () => {
             preInsertTaskRef.current = undefined;
-            preInsertTimerRef.current = undefined;
 
             if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
                 return;
@@ -102,31 +96,16 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
             }
         };
 
-        const schedulePreInsertWork = (work: () => void) => {
-            const runScheduledWork = () => {
-                preInsertTaskRef.current = undefined;
-                preInsertTimerRef.current = undefined;
-                work();
-            };
-
-            if (preInsertTiming === 'idle') {
-                preInsertTaskRef.current = schedulePreInsertWhenIdle(runScheduledWork);
-                return;
-            }
-
-            preInsertTimerRef.current = setTimeout(runScheduledWork, preInsertTiming);
-        };
-
         transitionCancelHandleRef.current = TransitionTracker.runAfterTransitions({
             callback: () => {
-                schedulePreInsertWork(runPreInsert);
+                preInsertTaskRef.current = schedulePreInsertWhenIdle(runPreInsert);
             },
             maxWaitForUpcomingTransitionMs: PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS,
             waitForUpcomingTransition: true,
         });
 
         return cancelPreInsert;
-    }, [preInsertTiming, route, shouldPreInsert]);
+    }, [route]);
 
     function revealDestination(afterTransition?: AfterTransition) {
         hasRevealBeenCalledRef.current = true;

@@ -9,7 +9,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
-const LEGACY_PRE_INSERT_DELAY = 300;
 const PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS = 500;
 const PRE_INSERT_STARTED_NARROW_OPTIONS = {shouldIgnoreLayout: true};
 
@@ -137,42 +136,7 @@ describe('usePreMountDestination', () => {
             expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route, PRE_INSERT_STARTED_NARROW_OPTIONS);
         });
 
-        it('supports timeout scheduling for IOURequestStepConfirmation parity', () => {
-            const {finishOpenTransition} = mockOpenTransitionWait();
-
-            renderHook(() =>
-                usePreMountDestination(route, {
-                    preInsertTiming: LEGACY_PRE_INSERT_DELAY,
-                }),
-            );
-
-            act(() => {
-                jest.advanceTimersByTime(LEGACY_PRE_INSERT_DELAY);
-            });
-            expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
-
-            act(() => {
-                finishOpenTransition();
-            });
-            expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
-
-            act(() => {
-                jest.advanceTimersByTime(LEGACY_PRE_INSERT_DELAY - 1);
-            });
-            expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
-
-            act(() => {
-                jest.advanceTimersByTime(1);
-            });
-
-            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route, PRE_INSERT_STARTED_NARROW_OPTIONS);
-        });
-
-        it('does not pre-insert when preInsert is false or on wide layout', () => {
-            renderHook(() => usePreMountDestination(route, {preInsert: false}));
-            expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
-            expect(schedulePreInsertWhenIdle).not.toHaveBeenCalled();
-
+        it('does not pre-insert on wide layout', () => {
             mockGetIsNarrowLayout.mockReturnValue(false);
             renderHook(() => usePreMountDestination(route));
             expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
@@ -204,28 +168,6 @@ describe('usePreMountDestination', () => {
             });
 
             expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route, PRE_INSERT_STARTED_NARROW_OPTIONS);
-        });
-
-        it('keeps a pre-inserted route when preInsert later becomes false for the same route', () => {
-            const {finishOpenTransition} = mockOpenTransitionWait();
-            mockSuccessfulPreInsert();
-
-            const {rerender} = renderHook(({preInsert}) => usePreMountDestination(route, {preInsert}), {
-                initialProps: {preInsert: true},
-            });
-
-            act(() => {
-                finishOpenTransition();
-                flushPendingIdlePreInserts();
-            });
-
-            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route, PRE_INSERT_STARTED_NARROW_OPTIONS);
-
-            jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
-
-            rerender({preInsert: false});
-
-            expect(Navigation.removePreInsertedFullscreenIfNeeded).not.toHaveBeenCalled();
         });
 
         it('cleans up pending pre-insert on unmount and preserves route after submit ref', () => {

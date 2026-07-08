@@ -1059,6 +1059,10 @@ let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
 
 type PreInsertFullscreenUnderRHPOptions = {
+    /**
+     * Allows callers that already made a narrow-layout flow decision to finish that strategy
+     * even if the viewport changes before delayed pre-insert work runs.
+     */
     shouldIgnoreLayout?: boolean;
 };
 
