@@ -141,7 +141,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
                 <Icon
                     src={expensifyIcons.CircularArrowBackwards}
                     fill={theme.textSupporting}
-                    extraSmall
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     additionalStyles={styles.mr1}
                 />
                 <Text style={[styles.buttonSmallText, styles.textSupporting]}>{label}</Text>
