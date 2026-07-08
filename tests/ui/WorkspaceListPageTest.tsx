@@ -159,6 +159,10 @@ describe('WorkspaceListPage', () => {
 
         expect(screen.getByText('Pending Workspace')).toBeOnTheScreen();
         expect(screen.getByText(new RegExp(OWNER_EMAIL))).toBeOnTheScreen();
+        // The workspace default icon is derived from nonMemberDetails.name ("Pending Workspace"), so the
+        // rendered SVG test ID is keyed by its first alphanumeric character. The icon is decorative and
+        // hidden from accessibility, so the query must include hidden elements.
+        expect(screen.getByTestId('SvgDefaultAvatar_p Icon', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     it('should show a "New workspace" button when there are workspaces but no domains', async () => {

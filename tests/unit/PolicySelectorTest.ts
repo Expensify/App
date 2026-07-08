@@ -1,3 +1,5 @@
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -352,6 +354,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
                     name: 'External WS',
                     type: CONST.POLICY.TYPE.CORPORATE,
                     ownerAccountID: 99,
+                    ownerEmail: 'owner@example.com',
                     avatar: 'https://img/ext.png',
                 },
             },
@@ -364,6 +367,8 @@ describe('createWorkspaceListPoliciesSelector', () => {
             name: 'External WS',
             type: CONST.POLICY.TYPE.CORPORATE,
             ownerAccountID: 99,
+            ownerEmail: 'owner@example.com',
+            ownerDefaultAvatar: getDefaultAvatarURL({accountID: 99, accountEmail: 'owner@example.com'}),
             avatar: 'https://img/ext.png',
         });
     });

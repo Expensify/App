@@ -1,6 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +82,12 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     isJoinRequestPending: boolean;
 
     /** Projection of policyDetailsForNonMembers for join-request-pending policies */
-    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'ownerEmail' | 'avatar'> & {policyID: string};
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'ownerEmail' | 'avatar'> & {
+        policyID: string;
+
+        /** Default avatar URL for the owner, derived here so the page doesn't re-hash the email on every render */
+        ownerDefaultAvatar?: string;
+    };
 };
 
 /**
@@ -110,6 +116,8 @@ const createWorkspaceListPoliciesSelector =
                         type: details.type,
                         ownerAccountID: details.ownerAccountID,
                         ownerEmail: details.ownerEmail,
+                        ownerDefaultAvatar:
+                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
                         avatar: details.avatar,
                     };
                 }

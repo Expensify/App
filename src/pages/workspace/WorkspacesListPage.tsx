@@ -27,7 +27,6 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -100,7 +99,7 @@ function WorkspacesListPage() {
 
     for (const policy of workspaceListPolicies ?? []) {
         if (policy.isJoinRequestPending && policy.nonMemberDetails) {
-            const {policyID, ownerAccountID, ownerEmail} = policy.nonMemberDetails;
+            const {policyID, ownerAccountID, ownerEmail, ownerDefaultAvatar} = policy.nonMemberDetails;
             let ownerDetails = ownerAccountID ? ownerDisplayDetails?.[ownerAccountID] : undefined;
 
             // The owner of a policy the user only requested to join is usually not in the personal details list,
@@ -110,7 +109,7 @@ function WorkspacesListPage() {
                     accountID: ownerAccountID,
                     login: ownerEmail,
                     displayName: ownerEmail,
-                    avatar: getDefaultAvatarURL({accountID: ownerAccountID, accountEmail: ownerEmail}),
+                    avatar: ownerDefaultAvatar,
                 };
             }
 
