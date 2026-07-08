@@ -477,7 +477,7 @@ function MoneyRequestReportTransactionList({
     const rangeApi = useShiftRangeSelection<OnyxTypes.Transaction>({
         items: visualOrderTransactions,
         getItemKey: (t) => t.transactionID ?? null,
-        getSelectedKeys: () => selectedTransactionIDs,
+        isItemSelected: (t) => selectedTransactionIDs.includes(t.transactionID),
         isDisabledItem: (t) => isTransactionPendingDelete(t),
         onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (t) => t.transactionID)),
     });

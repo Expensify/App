@@ -29,6 +29,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddExistingExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -471,6 +472,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 ref={selectionListRef}
                 onSelectRow={onSelectRow}
                 onSelectAll={onSelectAll}
+                onShiftRangeApply={(batch) => setSelectedIds((prev) => new Set(applyShiftRangeBatchToKeySet(batch, [...prev], (t) => t.transactionID)))}
                 customListHeader={customListHeader}
                 style={{listHeaderWrapperStyle: styles.ph8}}
                 textInputOptions={textInputOptions}

@@ -385,9 +385,21 @@ function SearchWriteActionsProvider({
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
+    // One lookup policy (search snapshot first, live Onyx fallback — what the reconcile effect uses when it rebuilds the selection) so a
+    // row's action flags (canDelete/canHold/…) can't differ by selection gesture.
+    const resolveTransactionRefs = (item: TransactionListItemType) => {
+        const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] ??
+            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]) as OnyxEntry<Transaction>;
+        const originalItemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`]) as OnyxEntry<Transaction>;
+        const parentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
+        return {itemTransaction, originalItemTransaction, parentReport};
+    };
+
     // Shared selection-entry builder so the toggle / select-all / range call sites can't drift apart.
-    const buildSelectedEntry = (item: TransactionListItemType, itemTransaction: OnyxEntry<Transaction>, originalItemTransaction: OnyxEntry<Transaction>, parentReport: OnyxEntry<Report>) =>
-        mapTransactionItemToSelectedEntry({
+    const buildSelectedEntry = (item: TransactionListItemType) => {
+        const {itemTransaction, originalItemTransaction, parentReport} = resolveTransactionRefs(item);
+        return mapTransactionItemToSelectedEntry({
             item,
             itemTransaction,
             originalItemTransaction,
@@ -400,6 +412,7 @@ function SearchWriteActionsProvider({
             allowNegativeAmount: true,
             parentReport,
         });
+    };
 
     // Expense-report rows are the selectable unit (never headers); only real group-by rows are separators whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
@@ -428,12 +441,7 @@ function SearchWriteActionsProvider({
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
-                    const txRef = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] ?? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`];
-                    const originalRef =
-                        searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txRef?.comment?.originalTransactionID}`] ??
-                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txRef?.comment?.originalTransactionID}`];
-                    const parentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${tx.report?.parentReportID}`] as OnyxEntry<Report>;
-                    const [key, info] = buildSelectedEntry(tx, txRef as OnyxEntry<Transaction>, originalRef, parentReport);
+                    const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = parentGroupKeyByTransactionKey.get(tx.keyForList);
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
                 };
@@ -479,24 +487,16 @@ function SearchWriteActionsProvider({
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
         items: flattenedShiftRangeItems,
         getItemKey: (item) => item.keyForList,
-        getSelectedKeys: () => {
+        // A report row stores its selection under its child transactions, so it counts as selected when any child is.
+        isItemSelected: (item) => {
             const selected = getSelectedTransactions();
-            const keys = new Set<string>();
-            for (const rangeItem of flattenedShiftRangeItems) {
-                if (!rangeItem.keyForList) {
-                    continue;
-                }
-                const rowSelected =
-                    isTransactionGroupListItemType(rangeItem) && rangeItem.transactions.length > 0
-                        ? rangeItem.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected)
-                        : selected[rangeItem.keyForList]?.isSelected;
-                if (rowSelected) {
-                    keys.add(rangeItem.keyForList);
-                }
+            if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
+                return item.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected);
             }
-            return keys;
+            return !!(item.keyForList && selected[item.keyForList]?.isSelected);
         },
-        isDisabledItem: (item) => isTransactionListItemType(item) && isTransactionPendingDelete(item),
+        // Pending-delete rows (kept rendered offline) can't be toggled, so they can't anchor or join a range either.
+        isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         onApplyRange: applyShiftRangeBatch,
         isHeaderItem: isShiftRangeHeaderItem,
     });
@@ -530,8 +530,13 @@ function SearchWriteActionsProvider({
             }
             rangeApi.seedRangeFromSelection(selectedKeys);
         } else if (!isShiftRangeHeaderItem(item)) {
-            // Non-header rows seed the anchor so a later shift+click continues from here.
-            rangeApi.notifyAnchor(item);
+            // Non-header rows seed the anchor so a later shift+click continues from here — unless the click is a no-op (pending-delete rows bail in the reducers below), which must not move the anchor.
+            const isNoOpPendingDeleteClick = isTransactionListItemType(item)
+                ? isTransactionPendingDelete(item)
+                : (itemTransactions ?? item.transactions ?? []).length === 0 && item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            if (!isNoOpPendingDeleteClick) {
+                rangeApi.notifyAnchor(item);
+            }
         }
 
         if (isTransactionListItemType(item)) {
@@ -540,9 +545,7 @@ function SearchWriteActionsProvider({
             }
             applySelection(
                 (selectedTransactions) => {
-                    const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
+                    const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
                     const updatedTransactions = prepareTransactionsList({
                         item,
                         itemTransaction,
@@ -607,13 +610,7 @@ function SearchWriteActionsProvider({
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
                             .map((transactionItem) => {
-                                const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                                const originalItemTransaction =
-                                    searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport);
+                                const [key, entry] = buildSelectedEntry(transactionItem);
                                 return [key, {...entry, groupKey: item.keyForList}];
                             }),
                     ),
@@ -649,10 +646,7 @@ function SearchWriteActionsProvider({
                             if (isTransactionPendingDelete(transactionItem)) {
                                 continue;
                             }
-                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            const [key, entry] = buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport);
+                            const [key, entry] = buildSelectedEntry(transactionItem);
                             entries.push([key, {...entry, groupKey: item.keyForList}]);
                         }
                         return entries;
@@ -669,10 +663,7 @@ function SearchWriteActionsProvider({
                     if (isTransactionPendingDelete(transactionItem)) {
                         continue;
                     }
-                    const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                    entries.push(buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport));
+                    entries.push(buildSelectedEntry(transactionItem));
                 }
                 return Object.fromEntries(entries);
             },

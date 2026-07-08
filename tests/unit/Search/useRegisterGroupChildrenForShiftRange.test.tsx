@@ -77,11 +77,19 @@ describe('useRegisterGroupChildrenForShiftRange', () => {
         expect(unregisterGroupChildren).toHaveBeenCalledWith('group-1');
     });
 
-    it('unregisters on unmount so a collapsed/removed group leaves the range source', () => {
+    it('keeps the registration on unmount — FlashList recycling must not drop an off-screen expanded group from the range source', () => {
         const {unregisterGroupChildren, wrapper} = setup();
         const {unmount} = renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true), {wrapper});
         unmount();
-        expect(unregisterGroupChildren).toHaveBeenCalledWith('group-1');
+        expect(unregisterGroupChildren).not.toHaveBeenCalled();
+    });
+
+    it('keeps the old group registered when the row is recycled to render another group', () => {
+        const {registerGroupChildren, unregisterGroupChildren, wrapper} = setup();
+        const {rerender} = renderHook(({groupKey}) => useRegisterGroupChildrenForShiftRange(groupKey, CHILDREN, true), {wrapper, initialProps: {groupKey: 'group-1'}});
+        rerender({groupKey: 'group-2'});
+        expect(registerGroupChildren).toHaveBeenLastCalledWith('group-2', CHILDREN);
+        expect(unregisterGroupChildren).not.toHaveBeenCalled();
     });
 
     it('re-registers when the children change', () => {

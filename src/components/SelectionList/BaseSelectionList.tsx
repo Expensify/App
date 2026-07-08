@@ -131,36 +131,10 @@ function BaseSelectionList<TItem extends ListItem>({
     const rangeApi = useShiftRangeSelection<TItem>({
         items: data,
         getItemKey: (item) => item.keyForList ?? null,
-        getSelectedKeys: () => {
-            // Mirror isItemSelected so custom isSelected callers still get an anchor.
-            const keys = new Set<string>();
-            for (const item of data) {
-                if (item.keyForList && isItemSelected(item)) {
-                    keys.add(item.keyForList);
-                }
-            }
-            return keys;
-        },
+        isItemSelected,
         isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
         onApplyRange: onShiftRangeApply,
     });
-
-    const handleSelectionButtonPress = useCallback(
-        (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
-            if (shiftRangeEnabled && rangeApi.applyShiftClick(item, shiftKey)) {
-                return;
-            }
-            if (onSelectionButtonPress) {
-                onSelectionButtonPress(item, itemTransactions, shiftKey);
-            } else {
-                onSelectRow(item);
-            }
-            if (shiftRangeEnabled) {
-                rangeApi.notifyAnchor(item);
-            }
-        },
-        [shiftRangeEnabled, rangeApi, onSelectionButtonPress, onSelectRow],
-    );
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
@@ -226,6 +200,54 @@ function BaseSelectionList<TItem extends ListItem>({
     // This prevents "index out of bounds" errors when filtering reduces the list size
     const extraData = useMemo(() => [data.length], [data.length]);
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
+
+    // Checkbox presses run the same guarded pipeline as row presses (focus guard, debounce, input clearing/refocus) — only the action differs.
+    const handleSelectionButtonPress = useCallback(
+        (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+            if (!isFocused) {
+                return;
+            }
+            if (shiftRangeEnabled && rangeApi.applyShiftClick(item, shiftKey)) {
+                return;
+            }
+            const executePress = () => {
+                if (canSelectMultiple && shouldShowTextInput && shouldClearInputOnSelect) {
+                    textInputOptions?.onChangeText?.('');
+                }
+                if (onSelectionButtonPress) {
+                    onSelectionButtonPress(item, itemTransactions, shiftKey);
+                } else {
+                    onSelectRow(item);
+                }
+                if (shiftRangeEnabled) {
+                    rangeApi.notifyAnchor(item);
+                }
+                if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
+                    focusTextInput();
+                }
+            };
+            if (shouldSingleExecuteRowSelect) {
+                singleExecution(executePress)();
+            } else {
+                executePress();
+            }
+        },
+        [
+            isFocused,
+            shiftRangeEnabled,
+            rangeApi,
+            canSelectMultiple,
+            shouldShowTextInput,
+            shouldClearInputOnSelect,
+            textInputOptions,
+            onSelectionButtonPress,
+            onSelectRow,
+            shouldPreventDefaultFocusOnSelectRow,
+            focusTextInput,
+            shouldSingleExecuteRowSelect,
+            singleExecution,
+        ],
+    );
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number, shiftKey?: boolean) => {

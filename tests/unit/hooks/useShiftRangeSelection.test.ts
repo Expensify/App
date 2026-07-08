@@ -27,6 +27,7 @@ const [MIXED_A, MIXED_B, MIXED_C, , MIXED_E] = MIXED;
 function makeParams(overrides: Partial<Parameters<typeof useShiftRangeSelection<Row>>[0]> = {}): Parameters<typeof useShiftRangeSelection<Row>>[0] {
     return {
         items: ROWS,
+        getItemKey: (row) => row.keyForList,
         onApplyRange: jest.fn(),
         ...overrides,
     };
@@ -83,17 +84,31 @@ describe('useShiftRangeSelection', () => {
             expect(onApplyRange).not.toHaveBeenCalled();
         });
 
-        it("returns false when the target row's key is empty", () => {
+        it("returns false when the target row's key is missing", () => {
             const onApplyRange = makeApplyMock();
             const missingKeyRow: Row = {keyForList: ''};
             const itemsWithMissingKey: Row[] = [...ROWS, missingKeyRow];
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: itemsWithMissingKey, onApplyRange})));
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: itemsWithMissingKey, getItemKey: (row) => row.keyForList || null, onApplyRange})));
             act(() => result.current.notifyAnchor(ROW_A));
             let applied = true;
             act(() => {
                 applied = result.current.applyShiftClick(missingKeyRow, true);
             });
             expect(applied).toBe(false);
+        });
+
+        it('treats an empty-string key as valid — only null/undefined mean missing', () => {
+            const onApplyRange = makeApplyMock();
+            const emptyKeyRow: Row = {keyForList: ''};
+            const itemsWithEmptyKey: Row[] = [...ROWS, emptyKeyRow];
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: itemsWithEmptyKey, onApplyRange})));
+            act(() => result.current.notifyAnchor(ROW_E));
+            let applied = false;
+            act(() => {
+                applied = result.current.applyShiftClick(emptyKeyRow, true);
+            });
+            expect(applied).toBe(true);
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['e', ''], toDeselect: []});
         });
     });
 
@@ -114,23 +129,7 @@ describe('useShiftRangeSelection', () => {
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
                     makeParams({
-                        getSelectedKeys: () => new Set(['c']),
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => {
-                result.current.applyShiftClick(ROW_E, true);
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd', 'e'], toDeselect: []});
-        });
-
-        it('accepts an array from getSelectedKeys in addition to a Set', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        getSelectedKeys: () => ['c'],
+                        isItemSelected: (row) => row.keyForList === 'c',
                         onApplyRange,
                     }),
                 ),
@@ -174,7 +173,7 @@ describe('useShiftRangeSelection', () => {
                     makeParams({
                         items: GROUPED,
                         isHeaderItem: (r) => !!r.isHeader,
-                        getSelectedKeys: () => new Set(['c']),
+                        isItemSelected: (row) => row.keyForList === 'c',
                         onApplyRange,
                     }),
                 ),
@@ -427,24 +426,44 @@ describe('useShiftRangeSelection', () => {
     });
 
     describe('direction-aware (deselect) ranges', () => {
-        const ALL_SELECTED = () => new Set(['a', 'b', 'c', 'd', 'e']);
+        /** A live selection the tests mutate to mirror the toggle each click commits — the hook reads it pre-click (notify) and post-click (apply). */
+        function makeSelection(...keys: string[]) {
+            const selected = new Set(keys);
+            return {selected, isItemSelected: (row: Row) => selected.has(row.keyForList)};
+        }
 
         it('extends the deselection when the anchor row was just removed by a plain click', () => {
             const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
-            // 'a' is selected, so clicking it seeds a deselecting anchor.
+            const {selected, isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
+            // 'a' is selected, so clicking it removes it — a deselecting anchor.
             act(() => result.current.notifyAnchor(ROW_A));
+            selected.delete('a');
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: [], toDeselect: ['a', 'b', 'c', 'd']});
         });
 
+        it('keeps selecting when the anchor click left the row selected (a row press that navigates, not toggles)', () => {
+            const onApplyRange = makeApplyMock();
+            const {isItemSelected} = makeSelection('b');
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
+            // 'b' is selected and the click doesn't change that (e.g. opening the row's details) — the next shift+click must still select.
+            act(() => result.current.notifyAnchor(ROW_B));
+            act(() => {
+                result.current.applyShiftClick(ROW_D, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+        });
+
         it('still selects the range when the anchor row was just added, even if other rows are selected', () => {
             const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: () => new Set(['c']), onApplyRange})));
-            // 'a' isn't selected, so it seeds a selecting anchor; the unrelated 'c' must not flip direction.
+            const {selected, isItemSelected} = makeSelection('c');
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
+            // 'a' isn't selected, so clicking it adds it — a selecting anchor; the unrelated 'c' must not flip direction.
             act(() => result.current.notifyAnchor(ROW_A));
+            selected.add('a');
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
@@ -453,8 +472,10 @@ describe('useShiftRangeSelection', () => {
 
         it('re-selects the collapsed tail when a deselecting range shrinks on the second shift+click', () => {
             const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            const {selected, isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
             act(() => result.current.notifyAnchor(ROW_A));
+            selected.delete('a');
             act(() => {
                 result.current.applyShiftClick(ROW_E, true);
             });
@@ -467,9 +488,11 @@ describe('useShiftRangeSelection', () => {
 
         it('extends the deselection after select-all when a row is removed then shift+clicked (the reported flow)', () => {
             const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            const {selected, isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
             act(() => result.current.seedFullRange());
             act(() => result.current.notifyAnchor(ROW_B));
+            selected.delete('b');
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
@@ -479,7 +502,8 @@ describe('useShiftRangeSelection', () => {
 
         it('a cold shift+click selects even when every row is already selected (no deselecting anchor without a click)', () => {
             const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            const {isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
@@ -521,9 +545,12 @@ describe('useShiftRangeSelection', () => {
         it('falls back to a selected row when the ranging anchor disappears between shift+clicks', () => {
             const onApplyRange = makeApplyMock();
             // Selection includes 'c' which survives the items change — that becomes the fresh anchor.
-            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange, getSelectedKeys: () => ['c']})), {
-                initialProps: {items: [...ROWS]},
-            });
+            const {result, rerender} = renderHook(
+                ({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange, isItemSelected: (row) => row.keyForList === 'c'})),
+                {
+                    initialProps: {items: [...ROWS]},
+                },
+            );
             act(() => result.current.notifyAnchor(ROW_A));
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);

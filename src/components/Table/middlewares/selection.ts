@@ -84,7 +84,7 @@ export default function useSelection<DataType extends TableData>({
     const rangeApi = useShiftRangeSelection<DataType>({
         items: data,
         getItemKey: (item) => item.keyForList,
-        getSelectedKeys: () => selectedKeys,
+        isItemSelected: (item) => selectedKeys.includes(item.keyForList),
         isDisabledItem: (item) => !!item.disabled || !!item.isSelectionDisabled,
         onApplyRange: (batch) => onRowSelectionChange?.(applyShiftRangeBatchToKeySet(batch, selectedKeys, (item) => item.keyForList)),
     });

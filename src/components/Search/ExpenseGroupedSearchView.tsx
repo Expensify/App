@@ -15,7 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -24,6 +24,7 @@ import type {SearchQueryJSON, SelectedTransactions} from './types';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
+import {useSearchShiftRangeChildren} from './SearchContext';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
@@ -131,6 +132,18 @@ function ExpenseGroupedSearchView({
             }
             return next;
         });
+
+    // Collapse pruning lives here (the expansion owner): collapse unmounts the registering content, and registrations deliberately survive unmounts (FlashList recycling).
+    const {unregisterGroupChildren} = useSearchShiftRangeChildren();
+    const previouslyExpandedGroupsRef = useRef(expandedGroups);
+    useEffect(() => {
+        for (const key of previouslyExpandedGroupsRef.current) {
+            if (!expandedGroups.has(key)) {
+                unregisterGroupChildren(key);
+            }
+        }
+        previouslyExpandedGroupsRef.current = expandedGroups;
+    }, [expandedGroups, unregisterGroupChildren]);
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);

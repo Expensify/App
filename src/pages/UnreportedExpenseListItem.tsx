@@ -89,9 +89,9 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        onCheckboxPress={(_id, options) => {
+                        onCheckboxPress={(_id, shiftKey) => {
                             if (onSelectionButtonPress) {
-                                onSelectionButtonPress(item, undefined, options);
+                                onSelectionButtonPress(item, undefined, shiftKey);
                                 return;
                             }
                             onSelectRow(item);

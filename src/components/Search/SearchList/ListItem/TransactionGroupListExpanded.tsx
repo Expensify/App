@@ -370,7 +370,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                                    onCheckboxPress={(_transactionID, options) => onSelectionButtonPress?.(transaction as unknown as TItem, undefined, options)}
+                                    onCheckboxPress={(_transactionID, shiftKey) => onSelectionButtonPress?.(transaction as unknown as TItem, undefined, shiftKey)}
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
                                     style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}

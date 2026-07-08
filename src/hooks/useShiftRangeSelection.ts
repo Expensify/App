@@ -2,12 +2,10 @@ import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 import {useEffect, useRef, useState} from 'react';
 
-type ItemWithKey = {keyForList?: string | null};
-
 type Params<TItem> = {
     items: TItem[];
-    getItemKey?: (item: TItem) => string | null | undefined;
-    getSelectedKeys?: () => ReadonlySet<string> | readonly string[];
+    getItemKey: (item: TItem) => string | null | undefined;
+    isItemSelected?: (item: TItem) => boolean;
     isHeaderItem?: (item: TItem) => boolean;
     isDisabledItem?: (item: TItem) => boolean;
     onApplyRange?: (batch: ShiftRangeBatch<TItem>) => void;
@@ -21,8 +19,9 @@ type Api<TItem> = {
     clearAnchor: () => void;
 };
 
-// `deselect` makes ranges direction-aware: an anchor seeded by a click that *removed* a row extends the deselection on the next shift+click instead of re-selecting it.
-type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string; deselect: boolean} | {kind: 'ranging'; anchor: string; prevEnd: string; deselect: boolean};
+// `anchorWasSelected` records the anchor's pre-click selection; direction derives at apply time — an anchor its click removed (was selected,
+// no longer is) extends the deselection, while a click that left the row unchanged (e.g. a row press that navigates) still selects.
+type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string; anchorWasSelected: boolean} | {kind: 'ranging'; anchor: string; prevEnd: string; anchorWasSelected: boolean};
 
 const IDLE: SessionState = {kind: 'idle'};
 
@@ -50,19 +49,18 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             }
             // A successful result always spans at least the target row, so the batch is never empty — apply it unconditionally.
             currentParams.onApplyRange?.(result.batch);
-            sessionRef.current = {kind: 'ranging', anchor: result.anchor, prevEnd: result.prevEnd, deselect: result.deselect};
+            sessionRef.current = {kind: 'ranging', anchor: result.anchor, prevEnd: result.prevEnd, anchorWasSelected: result.anchorWasSelected};
             return true;
         },
         notifyAnchor: (item) => {
             const currentParams = paramsRef.current;
             const key = keyOf(currentParams, item);
-            if (!key) {
+            if (key == null) {
                 return;
             }
-            // Direction is read from live selection, so callers MUST call this BEFORE applying the toggle: clicking an already-selected
-            // row is about to remove it → seed a deselecting anchor so the next shift+click extends the deselection.
-            const deselect = isSelected(currentParams, key);
-            sessionRef.current = {kind: 'anchored', anchor: key, deselect};
+            // Pre-toggle read — callers MUST call this BEFORE applying the toggle so "was selected and no longer is" identifies a real removal.
+            const anchorWasSelected = currentParams.isItemSelected?.(item) ?? false;
+            sessionRef.current = {kind: 'anchored', anchor: key, anchorWasSelected};
         },
         seedRangeFromSelection: (selectedKeys) => {
             // Keys are passed in rather than read from state: the caller's selection is optimistic, so reading it here would see the pre-toggle set.
@@ -86,7 +84,7 @@ type ShiftRangeResult<TItem> = {
     batch: ShiftRangeBatch<TItem>;
     anchor: string;
     prevEnd: string;
-    deselect: boolean;
+    anchorWasSelected: boolean;
 };
 
 /** Built once per shift+click so the anchor/target/prevEnd lookups are O(1) instead of repeated linear scans. */
@@ -125,14 +123,14 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
     const anchor = keyOf(params, first);
     const prevEnd = keyOf(params, last);
     if (anchor !== null && prevEnd !== null) {
-        return {kind: 'ranging', anchor, prevEnd, deselect: false};
+        return {kind: 'ranging', anchor, prevEnd, anchorWasSelected: false};
     }
     return IDLE;
 }
 
 function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem): ShiftRangeResult<TItem> | null {
     const targetKey = keyOf(params, target);
-    if (!targetKey || isExcluded(params, target)) {
+    if (targetKey == null || isExcluded(params, target)) {
         return null;
     }
 
@@ -140,12 +138,12 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
 
     const seed = state.kind === 'idle' ? null : state.anchor;
     const anchor = resolveAnchor(params, keyToIndex, seed);
-    if (!anchor) {
+    if (anchor == null) {
         return null;
     }
-    // Keep the direction and prior range only while the same anchor survives; a re-resolved or cold anchor starts a fresh selecting range.
+    // Keep the pre-click state and prior range only while the same anchor survives; a re-resolved or cold anchor starts a fresh selecting range.
     const sameAnchor = state.kind !== 'idle' && anchor === state.anchor;
-    const deselect = sameAnchor ? state.deselect : false;
+    const anchorWasSelected = sameAnchor && state.anchorWasSelected;
     const prevEnd = state.kind === 'ranging' && sameAnchor ? state.prevEnd : null;
 
     const anchorIdx = keyToIndex.get(anchor);
@@ -153,6 +151,10 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     if (anchorIdx === undefined || targetIdx === undefined) {
         return null;
     }
+
+    // Deselect only when the anchor's click actually removed it (was selected, no longer is) — not when the click left it selected (navigation).
+    const anchorRow = params.items.at(anchorIdx);
+    const deselect = anchorWasSelected && anchorRow != null && !(params.isItemSelected?.(anchorRow) ?? false);
 
     const newRange = orderedRange(anchorIdx, targetIdx);
     const prevEndIdx = prevEnd != null ? keyToIndex.get(prevEnd) : undefined;
@@ -180,29 +182,14 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     }
 
     const batch: ShiftRangeBatch<TItem> = deselect ? {toSelect: collapseRows, toDeselect: rangeRows} : {toSelect: rangeRows, toDeselect: collapseRows};
-    return {batch, anchor, prevEnd: targetKey, deselect};
-}
-
-function hasKeyForList(item: unknown): item is ItemWithKey {
-    return typeof item === 'object' && item !== null && 'keyForList' in item;
+    return {batch, anchor, prevEnd: targetKey, anchorWasSelected};
 }
 
 function keyOf<TItem>(params: Params<TItem>, item: TItem | null | undefined): string | null {
     if (item == null) {
         return null;
     }
-    if (params.getItemKey) {
-        return params.getItemKey(item) ?? null;
-    }
-    return hasKeyForList(item) ? (item.keyForList ?? null) : null;
-}
-
-function isSelected<TItem>(params: Params<TItem>, key: string): boolean {
-    const selected = params.getSelectedKeys?.();
-    if (!selected) {
-        return false;
-    }
-    return (selected instanceof Set ? selected : new Set(selected)).has(key);
+    return params.getItemKey(item) ?? null;
 }
 
 function isExcluded<TItem>(params: Params<TItem>, item: TItem | null | undefined): boolean {
@@ -229,18 +216,14 @@ function resolveAnchor<TItem>(params: Params<TItem>, keyToIndex: Map<string, num
             return source;
         }
     }
-    if (params.getSelectedKeys) {
-        const selected = params.getSelectedKeys();
-        const set: ReadonlySet<string> = selected instanceof Set ? selected : new Set(selected);
-        if (set.size) {
-            for (const row of params.items) {
-                if (isExcluded(params, row)) {
-                    continue;
-                }
-                const key = keyOf(params, row);
-                if (key && set.has(key)) {
-                    return key;
-                }
+    if (params.isItemSelected) {
+        for (const row of params.items) {
+            if (isExcluded(params, row)) {
+                continue;
+            }
+            const key = keyOf(params, row);
+            if (key != null && params.isItemSelected(row)) {
+                return key;
             }
         }
     }
@@ -250,7 +233,7 @@ function resolveAnchor<TItem>(params: Params<TItem>, keyToIndex: Map<string, num
             continue;
         }
         const key = keyOf(params, row);
-        if (key) {
+        if (key != null) {
             return key;
         }
     }
