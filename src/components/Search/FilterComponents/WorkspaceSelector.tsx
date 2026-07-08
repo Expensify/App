@@ -28,8 +28,9 @@ import {View} from 'react-native';
 
 import type {MultiSelectItem} from './MultiSelect';
 
-type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 import ListFilterView from './ListFilterViewWrapper';
+
+type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();

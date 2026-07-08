@@ -1,4 +1,4 @@
-import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -26,7 +26,7 @@ import TypeSelector from './TypeSelector';
 import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
-type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
+type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
 type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
     filterKey: FilterKeys;
     type?: SearchDataTypes;
@@ -120,9 +120,12 @@ function FilterComponents({filterKey, value, type, policyID, selectionListTextIn
             );
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE: {
+            const isTypeFilterValue = (v: FilterComponentsProps['value']): v is SearchDataTypes => {
+                return typeof v === 'string';
+            };
             return (
                 <TypeSelector
-                    value={typeof value === 'string' ? value : undefined}
+                    value={isTypeFilterValue(value) ? value : undefined}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
                     onChange={onChange}

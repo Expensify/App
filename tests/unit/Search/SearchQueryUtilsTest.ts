@@ -43,7 +43,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
-import {Connections} from '@src/types/onyx/Policy';
+import type {Connections} from '@src/types/onyx/Policy';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests

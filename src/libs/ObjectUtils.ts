@@ -42,4 +42,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export {shallowCompare, getObjectValues, filterObject, isRecord, getObjectKeys};
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
+function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): key is keyof T {
+    return key in obj;
+}
+
+export {shallowCompare, getObjectValues, filterObject, isRecord, getObjectKeys, hasKey};

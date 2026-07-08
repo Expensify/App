@@ -85,7 +85,6 @@ import type {
     SearchWithdrawalIDGroup,
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
-import hasKey from '@src/types/utils/hasKey';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 
@@ -113,6 +112,7 @@ import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
+import {hasKey} from './ObjectUtils';
 import Parser from './Parser';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
@@ -5494,13 +5494,15 @@ function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
     isNegated: boolean;
     value: SearchAdvancedFiltersForm[K] | undefined;
 } {
-    if (!isFilterNegatable(filterKey)) {
+    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
+    if (!isFilterNegatable(filterKey) || !values || !hasKey(values, negatedFilterKey)) {
         return {isNegated: false, value: values?.[filterKey]};
     }
-    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
-    const negatedValue = values && hasKey(values, negatedFilterKey) ? values[negatedFilterKey] : undefined;
-    const value = negatedValue ?? values?.[filterKey];
-    return {isNegated: !!negatedValue, value};
+
+    // A negatable filter's negated key always shares the value type of its base key (e.g. `policyID` and `policyIDNot` are both `string[]`),
+    // so read it through a view of the form that reflects that relationship instead of the full value union.
+    const negatedValues = values as Partial<Record<typeof negatedFilterKey, SearchAdvancedFiltersForm[K]>>;
+    return {isNegated: true, value: negatedValues[negatedFilterKey]};
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
