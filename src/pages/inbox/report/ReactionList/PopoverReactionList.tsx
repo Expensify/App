@@ -9,10 +9,11 @@ import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 
@@ -39,13 +40,9 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
 
-    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: multiPersonalDetailsSelector(isReady ? userAccountIDs : []),
-        },
-        [isReady, userAccountIDs],
-    );
+    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? userAccountIDs : getEmptyArray<number>())(personalDetailsList),
+    });
 
     // Hide the list when all reactions are removed
     useEffect(() => {
