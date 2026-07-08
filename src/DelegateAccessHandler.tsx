@@ -13,8 +13,7 @@ import {accountIDSelector, emailSelector} from './selectors/Session';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 // How long IS_LOADING_APP may stay `true` before we treat it as stranded. A legitimate OpenApp settles
-// well under this; anything longer means the request that would clear the flag is gone (offline blip,
-// reload, a 407 that aborted it, or a dropped/deduped request).
+// well under this; anything longer means the request that would clear the flag is no longer around.
 const STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS = 10000;
 
 /**
@@ -80,19 +79,19 @@ function DelegateAccessHandler() {
         openApp();
     }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
 
-    // Recovery: isLoadingApp can be stranded at `true` when the OpenApp that should clear it never
-    // settles. The delegate/copilot transition seeds this key `true` as a standalone write, and only
-    // OpenApp's finallyData sets it back to `false` — the backend never touches it. The recovery above
-    // handles the `undefined` case but not a stranded `true`, which blocks Inbox and Workspaces
-    // indefinitely (Search keeps working because it is a separate request). When it stays `true` while
-    // the app is loaded and online with no OpenApp/ReconnectApp left to clear it, re-open the app.
+    // Recovery: isLoadingApp is only ever cleared by finallyData of the OpenApp/ReconnectApp family — the
+    // backend never writes this key. The optimistic `true` persists immediately while the clearing
+    // finallyData is held in memory until the sequential queue flushes, so if the session is interrupted
+    // in that window, `true` survives reloads with nothing left to reset it. The recovery above only
+    // covers the `undefined` case, so when the flag stays `true` while the app is loaded and online with
+    // no reconnect-family request pending, re-open the app.
     useEffect(() => {
         if (hasHandledStrandedIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== true || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
             return;
         }
 
         const timeoutID = setTimeout(() => {
-            // A legitimate in-flight transition still has a reconnect-family request pending; only the
+            // A legitimate in-flight load still has a reconnect-family request pending; only the
             // stranded case has none. Checking after the delay avoids racing the request being queued.
             const hasPendingReconnectRequest = [getOngoingRequest(), ...getAllPersistedRequests()].some(
                 (request) => request?.command === WRITE_COMMANDS.OPEN_APP || request?.command === WRITE_COMMANDS.RECONNECT_APP,

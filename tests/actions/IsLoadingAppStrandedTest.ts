@@ -25,18 +25,18 @@ describe('IS_LOADING_APP stranded true', () => {
     });
 
     it('stays true when the OpenApp that should clear it never settles, and is stranded once that request is lost', async () => {
-        // The app was already loaded before a delegate/copilot transition, and the client is offline
-        // (AU-afternoon flaky network, or kicked to SAML mid flow).
+        // The app was already loaded in a previous session and the client is offline.
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
 
-        // The delegate transition seeds IS_LOADING_APP=true as a standalone persisted write
-        // (clearOnyxForDelegateTransition). The only writer that clears it is OpenApp's finallyData.
+        // IS_LOADING_APP=true is persisted as a standalone write, decoupled from any request (this is how
+        // both openApp's optimisticData and clearOnyxForDelegateTransition write it). Only finallyData of
+        // the OpenApp/ReconnectApp family clears it.
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
         await waitForBatchedUpdates();
         expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(true);
 
-        // The transition fires OpenApp to clear the flag. Offline, so it persists but never flushes.
+        // An OpenApp is queued to clear the flag. Offline, so it persists but never flushes.
         App.openApp();
         await waitForBatchedUpdates();
 
@@ -45,14 +45,14 @@ describe('IS_LOADING_APP stranded true', () => {
         // ... but the flag is still true because finallyData has not run.
         expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(true);
 
-        // The queued OpenApp is lost before it ever settles: a reload, a dedup 'replace' whose
-        // survivor never completes, or a 407 that aborts the request. Nothing is left to clear the flag.
+        // The queued OpenApp is lost before it ever settles (e.g. the session was interrupted after the
+        // request left the queue but before its finallyData was applied). Nothing is left to clear the flag.
         await PersistedRequests.clear();
         resetQueue();
         await waitForBatchedUpdates();
 
         // Stranded: no OpenApp left in the queue, the backend never sets this key, and the app is
-        // "loaded" so nothing re-fires OpenApp. Inbox and Workspaces stay blocked while Search still works.
+        // "loaded" so nothing re-fires OpenApp.
         expect(PersistedRequests.getAll().some((request) => request.command === WRITE_COMMANDS.OPEN_APP)).toBe(false);
         expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(true);
     });
