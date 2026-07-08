@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -50,11 +50,12 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                     addOfflineIndicatorBottomSafeAreaPadding
                 >
                     <Button
-                        success
-                        large
-                        text={translate('workspace.companyCards.addWorkEmailButton')}
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.companyCards.addWorkEmailButton')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
