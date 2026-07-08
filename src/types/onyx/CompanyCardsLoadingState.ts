@@ -1,16 +1,16 @@
 import type {CardFeedWithNumber} from './CardFeeds';
 
+type CompanyCardsFeedLoadingState = {
+    /** Whether this feed has been fetched at least once in this session */
+    hasOnceLoaded?: boolean;
+};
+
 /**
  * Session-scoped loading state for company cards.
  *
  * Frontend-owned and RAM-only so backend SET responses on SHARED_NVP_PRIVATE_DOMAIN_MEMBER
  * cannot wipe hasOnceLoaded flags. Used to gate skeleton UI without blocking refresh requests.
  */
-type CompanyCardsFeedLoadingState = {
-    /** Whether this feed has been fetched at least once in this session */
-    hasOnceLoaded?: boolean;
-};
-
 type CompanyCardsLoadingState = {
     /** Whether workspace company card feeds have been fetched at least once in this session */
     hasOnceLoadedPage?: boolean;
@@ -20,3 +20,4 @@ type CompanyCardsLoadingState = {
 };
 
 export default CompanyCardsLoadingState;
+export type {CompanyCardsFeedLoadingState};
