@@ -6183,6 +6183,16 @@ describe('actions/Report', () => {
         });
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_EMAIL = 'test@example.com';
+        let apiWriteSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            apiWriteSpy = jest.spyOn(API, 'write');
+        });
+
+        afterEach(() => {
+            apiWriteSpy.mockRestore();
+        });
+
         it('should do nothing when reportAction has no unresolved followups', async () => {
             const htmlMessage = '<p>Just a regular message</p>';
             const reportAction = createMock<OnyxTypes.ReportAction>({
@@ -6289,12 +6299,14 @@ describe('actions/Report', () => {
             expect(pendingResponse?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
             expect(pendingResponse?.displayAfter).toBeGreaterThan(Date.now() - CONCIERGE_RESPONSE_DELAY_MS);
 
-            const addCommentBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.ADD_COMMENT).at(-1)?.[1]?.body;
-            if (!(addCommentBody instanceof FormData)) {
-                throw new Error('Expected ADD_COMMENT request body to be FormData');
-            }
-            expect(addCommentBody.get('optimisticConciergeReportActionID')).toBe(pendingResponse?.reportAction.reportActionID);
-            expect(addCommentBody.get('optimisticConciergeCreated')).toBe(pendingResponse?.reportAction.created);
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.ADD_COMMENT,
+                expect.objectContaining({
+                    optimisticConciergeReportActionID: pendingResponse?.reportAction.reportActionID,
+                    optimisticConciergeCreated: pendingResponse?.reportAction.created,
+                }),
+                expect.anything(),
+            );
 
             // Verify the client did NOT set REPORT_USER_IS_TYPING. The server-owned
             // agentZeroProcessingIndicator is the source of truth for the "Concierge is thinking..."
