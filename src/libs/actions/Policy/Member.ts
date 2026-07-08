@@ -828,10 +828,9 @@ function buildAddMembersToWorkspaceOnyxData(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -982,9 +981,8 @@ function addMembersToWorkspace(
         formatPhoneNumber,
         personalDetailsList,
         currentUser,
-        approverEmail,
-        undefined,
         reportActionsList,
+        approverEmail,
     );
 
     const params: AddMembersToWorkspaceParams = {
