@@ -128,15 +128,14 @@ function buildCompanyCardEntries(
         }
 
         existingNames.add(normalizedName);
-        if (encryptedCardNumber !== cardName) {
-            existingEncryptedCardNumbers.add(encryptedCardNumber);
-        }
+        existingEncryptedCardNumbers.add(encryptedCardNumber);
     }
 
     // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
     for (const [cardName, encryptedCardNumber] of cardListEntries) {
         const normalizedName = normalizeCardName(cardName);
-        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber) || entriesMap.has(encryptedCardNumber)) {
+
+        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber)) {
             continue;
         }
 
@@ -149,9 +148,10 @@ function buildCompanyCardEntries(
         const normalizedName = normalizeCardName(cardName);
         const encryptedCardNumber = cardList?.[cardName] ?? cardName;
 
-        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber) || entriesMap.has(normalizedName)) {
+        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber)) {
             continue;
         }
+
         entriesMap.set(normalizedName, {cardName, encryptedCardNumber, isAssigned: false});
         existingNames.add(normalizedName);
     }
