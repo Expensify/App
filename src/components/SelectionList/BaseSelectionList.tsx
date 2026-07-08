@@ -125,8 +125,8 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
-    // Opt-in per screen: onShiftRangeApply sets the whole range atomically. A per-item fan-out would drop rows for closure-based setters.
-    const shiftRangeEnabled = !!onShiftRangeApply;
+    // Atomic opt-in (a per-item fan-out drops rows for closure-based setters), gated on canSelectMultiple so Shift can't hijack a row action when multi-select is off.
+    const shiftRangeEnabled = !!onShiftRangeApply && canSelectMultiple;
 
     const rangeApi = useShiftRangeSelection<TItem>({
         items: data,
