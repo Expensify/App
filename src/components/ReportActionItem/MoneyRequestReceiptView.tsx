@@ -152,13 +152,9 @@ function MoneyRequestReceiptView({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: conciergePersonalDetailSelector,
-    });
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
     const chatReportOwnerSelector = useMemo(() => personalDetailsSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
@@ -248,14 +244,7 @@ function MoneyRequestReceiptView({
 
     const canEditReceipt =
         isEditable &&
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
-            isChatReportArchived,
-            transaction,
-            report: moneyRequestReport,
-            policy,
-        });
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
         if (!report?.reportID) {
@@ -713,9 +702,7 @@ function MoneyRequestReceiptView({
                                                         openPicker({
                                                             onPicked: (files) => {
                                                                 onPickerClosed();
-                                                                validateFiles(files, undefined, {
-                                                                    isValidatingReceipts: false,
-                                                                });
+                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
                                                             },
                                                             onCanceled: onPickerClosed,
                                                         });

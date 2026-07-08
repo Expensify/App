@@ -380,9 +380,7 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [transactionThreadPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${transactionThreadReport?.policyID}`, {
-        selector: policyTypeSelector,
-    });
+    const [transactionThreadPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${transactionThreadReport?.policyID}`, {selector: policyTypeSelector});
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
@@ -395,34 +393,15 @@ function MoneyRequestView({
     const canEditAmount =
         !isGPSDistanceRequest &&
         isEditable &&
-        (canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
-            isChatReportArchived,
-            transaction,
-        }) ||
+        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, isChatReportArchived, transaction}) ||
             (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
         isEditable &&
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT,
-            isChatReportArchived,
-            transaction,
-            report: moneyRequestReport,
-            policy,
-        });
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const canEditDate =
         isEditable &&
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE,
-            isChatReportArchived,
-            transaction,
-            report: moneyRequestReport,
-            policy,
-        });
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isTrackExpense || isP2PDistanceRequest;
 
@@ -613,9 +592,7 @@ function MoneyRequestView({
 
     const renderGoogleMerchantSearchLink = () => (
         <PressableWithoutFeedback
-            accessibilityLabel={translate('common.searchOnGoogle', {
-                merchant: originalMerchantForGoogleSearch,
-            })}
+            accessibilityLabel={translate('common.searchOnGoogle', {merchant: originalMerchantForGoogleSearch})}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.GOOGLE_MERCHANT_SEARCH_BUTTON}
             onPress={(event) => {
@@ -624,11 +601,7 @@ function MoneyRequestView({
             }}
             style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
         >
-            <Text style={styles.textLabelSupporting}>
-                {translate('common.googleThisMerchant', {
-                    merchant: originalMerchantForGoogleSearch,
-                })}
-            </Text>
+            <Text style={styles.textLabelSupporting}>{translate('common.googleThisMerchant', {merchant: originalMerchantForGoogleSearch})}</Text>
             <Icon
                 src={icons.NewWindow}
                 height={variables.iconSizeExtraSmall}
