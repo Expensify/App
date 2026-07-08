@@ -73,7 +73,6 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        // search() handles its own rejections internally (APP-5J), so this page-load fire is safe to float.
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
 
