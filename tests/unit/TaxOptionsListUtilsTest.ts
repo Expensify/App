@@ -156,8 +156,6 @@ describe('TaxOptionsListUtils', () => {
         });
         expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
 
-        // A rate that is currently selected AND pending deletion must still render struck-through and non-selectable.
-        // getTaxRatesSection forwards the underlying rate's pendingAction, which forces isDisabled: true in getTaxRatesOptions.
         const selectedDeletedResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
