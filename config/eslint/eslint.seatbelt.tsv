@@ -915,7 +915,7 @@
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
-"../../src/libs/actions/Policy/Tag.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/actions/Policy/Tag.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Travel.ts"	"no-restricted-syntax"	2
