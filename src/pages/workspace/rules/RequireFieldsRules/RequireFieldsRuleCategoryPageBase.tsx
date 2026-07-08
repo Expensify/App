@@ -53,14 +53,22 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute = (selectedValue?: string) =>
-        getRequireFieldsRuleBackToRoute({
+    const backToRoute = (selectedValue?: string) => {
+        const activeCategoryName = selectedValue ?? selectedCategoryName;
+        const selectedCategory = activeCategoryName ? policyCategories?.[activeCategoryName] : undefined;
+
+        if (!isEditing && activeCategoryName && selectedCategory && categoryHasRequireFieldsRuleForDirection(selectedCategory, formDirection)) {
+            return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, activeCategoryName, formDirection);
+        }
+
+        return getRequireFieldsRuleBackToRoute({
             policyID,
             isEditing,
             categoryName,
             direction: activeDirection,
-            selectedCategoryName: selectedValue ?? selectedCategoryName,
+            selectedCategoryName: activeCategoryName,
         });
+    };
 
     const onSave = (value?: string) => {
         const selectedCategory = value ? policyCategories?.[value] : undefined;
@@ -76,7 +84,6 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
                 [INPUT_IDS.CATEGORY]: value,
                 [INPUT_IDS.DIRECTION]: formDirection,
             });
-            Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, value, formDirection));
             return;
         }
 

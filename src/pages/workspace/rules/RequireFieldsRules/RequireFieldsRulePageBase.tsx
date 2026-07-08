@@ -181,10 +181,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         }
 
         const formToSave = getEffectiveRequireFieldsRuleForm(selectedCategory, form);
-        const editDirection = routeDirection ?? formToSave[INPUT_IDS.DIRECTION];
+        const savedCategory = formToSave[INPUT_IDS.CATEGORY];
+        const savedDirection = formToSave[INPUT_IDS.DIRECTION];
 
-        if (isEditing && categoryName && editDirection && formToSave[INPUT_IDS.CATEGORY] && formToSave[INPUT_IDS.CATEGORY] !== categoryName) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(editDirection, categoryName));
+        if (isEditing && categoryName && routeDirection && savedCategory && (savedCategory !== categoryName || savedDirection !== routeDirection)) {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(routeDirection, categoryName));
         }
 
         saveRequireFieldsRule(policyData, formToSave);
