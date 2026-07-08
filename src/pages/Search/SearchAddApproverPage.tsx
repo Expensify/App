@@ -104,7 +104,7 @@ function SearchAddApproverPage() {
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails});
+                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, translate});
                 return {
                     text: displayName,
                     alternateText: email,

@@ -3507,6 +3507,7 @@ function getDisplayNameForParticipant({
     personalDetailsData = allPersonalDetails,
     shouldRemoveDomain = false,
     formatPhoneNumber,
+    translate,
 }: {
     accountID?: number;
     shouldUseShortForm?: boolean;
@@ -3515,6 +3516,7 @@ function getDisplayNameForParticipant({
     personalDetailsData?: Partial<PersonalDetailsList>;
     shouldRemoveDomain?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    translate?: LocaleContextProps['translate'];
 }): string {
     if (!accountID) {
         return '';
@@ -3552,7 +3554,7 @@ function getDisplayNameForParticipant({
     }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === hiddenTranslation) {
+    if (shouldFallbackToHidden && longName === (translate ? translate('common.hidden') : hiddenTranslation)) {
         return longName;
     }
 
