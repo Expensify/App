@@ -1,13 +1,36 @@
 import ImageSVG from '@components/ImageSVG';
 
+import type {ImageContentFit} from 'expo-image';
+
 import React from 'react';
 import {View} from 'react-native';
 
-import type {BaseIconProps} from './types';
+import type {CommonIconProps} from './types';
 
-type BaseIconComponentProps = BaseIconProps & {
+type BaseIconComponentProps = CommonIconProps & {
+    /** Test identifier for end-to-end tests. */
+    testID?: string;
+
     /** When set, exposes the icon to assistive tech with this label. */
     accessibilityLabel?: string;
+
+    /** Rendered width of the SVG content. */
+    iconWidth?: number | `${number}%` | 'auto';
+
+    /** Rendered height of the SVG content. */
+    iconHeight?: number | `${number}%` | 'auto';
+
+    /** Fill color passed to the SVG. */
+    fill?: string;
+
+    /** Whether the icon is in a hovered state. */
+    isHovered?: boolean;
+
+    /** Whether the icon is in a pressed state. */
+    isPressed?: boolean;
+
+    /** How the SVG content should fit its container. */
+    contentFit?: ImageContentFit;
 };
 
 /** Renders a standard icon with optional accessibility support. */

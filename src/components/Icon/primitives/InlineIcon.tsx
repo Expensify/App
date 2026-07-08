@@ -7,10 +7,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ContentSizedIconProps} from './types';
+import type {BaseIconProps, ContentSizedIcon} from './types';
 
 /** Renders an icon positioned inline within surrounding text. */
-function InlineIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered, isPressed, contentFit}: ContentSizedIconProps) {
+function InlineIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered = false, isPressed = false, contentFit}: BaseIconProps & ContentSizedIcon) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(contentSize.width ?? 0, contentSize.height), IconWrapperStyles, styles.pAbsolute, additionalStyles];

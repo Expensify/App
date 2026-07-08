@@ -9,13 +9,27 @@ import type {ValueOf} from 'type-fest';
 /** Preset icon size values from `CONST.ICON_SIZE`. */
 type IconSize = ValueOf<typeof CONST.ICON_SIZE>;
 
-/** Shared render props for icon primitive components. */
-type BaseIconProps = {
-    /** Test identifier for end-to-end tests. */
-    testID: string;
-
+type CommonIconProps = {
     /** Additional styles applied to the icon wrapper. */
     additionalStyles: StyleProp<ViewStyle>;
+
+    /** Icon asset to render. */
+    src: IconAsset;
+
+    /** Fill color passed to the SVG. */
+    fill?: string;
+};
+
+/** Shared props for primitives that also receive a measured or layout content size. */
+type ContentSizedIcon = {
+    /** Layout size for inline icons, or intrinsic content size for gesture canvases. */
+    contentSize: Dimensions;
+};
+
+/** Shared render props for icon primitive components. */
+type BaseIconProps = CommonIconProps & {
+    /** Test identifier for end-to-end tests. */
+    testID?: string;
 
     /** Icon asset to render. */
     src: IconAsset;
@@ -25,9 +39,6 @@ type BaseIconProps = {
 
     /** Rendered height of the SVG content. */
     iconHeight?: number | `${number}%` | 'auto';
-
-    /** Fill color passed to the SVG. */
-    fill?: string;
 
     /** Whether the icon is in a hovered state. */
     isHovered: boolean;
@@ -39,10 +50,4 @@ type BaseIconProps = {
     contentFit: ImageContentFit;
 };
 
-/** Shared props for primitives that also receive a measured or layout content size. */
-type ContentSizedIconProps = BaseIconProps & {
-    /** Layout size for inline icons. */
-    contentSize: Dimensions;
-};
-
-export type {BaseIconProps, ContentSizedIconProps, IconSize};
+export type {ContentSizedIcon, CommonIconProps, IconSize, BaseIconProps};

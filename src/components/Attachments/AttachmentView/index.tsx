@@ -212,10 +212,19 @@ function AttachmentView({
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
 
-        const IconComponent = canUseTouchScreen() ? MultiGestureIcon : Icon;
+        if (canUseTouchScreen()) {
+            return (
+                <MultiGestureIcon
+                    src={source}
+                    contentSize={{width: variables.defaultAvatarPreviewSize, height: variables.defaultAvatarPreviewSize}}
+                    fill={iconFillColor}
+                    additionalStyles={additionalStyles}
+                />
+            );
+        }
 
         return (
-            <IconComponent
+            <Icon
                 src={source}
                 height={variables.defaultAvatarPreviewSize}
                 width={variables.defaultAvatarPreviewSize}
