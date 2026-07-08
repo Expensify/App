@@ -30,8 +30,6 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -267,7 +265,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
             {
                 icon: icons.Table,
-                text: translate('workspace.rules.merchantRules.importRulesViaSpreadsheet'),
+                text: translate('workspace.rules.merchantRules.importRulesTitle'),
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
                 onSelected: () => {
                     if (!canWriteRules) {
@@ -289,7 +287,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     customText={translate('common.more')}
                     options={moreOptions}
                     isSplitButton={false}
-                    containerStyles={{width: variables.popoverWidth}}
                     wrapperStyle={styles.flexGrow0}
                 />
             </View>

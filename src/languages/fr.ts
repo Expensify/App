@@ -7410,7 +7410,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 importRulesTitle: 'Importer des règles de marchand',
-                importRulesViaSpreadsheet: 'Importer des règles de marchand via un tableau',
                 importColumnMerchantIs: 'Le marchand est',
                 importColumnMerchantContains: 'Le marchand contient',
                 importColumnUpdatedMerchant: 'Marchand mis à jour',

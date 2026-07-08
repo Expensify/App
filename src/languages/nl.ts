@@ -7347,7 +7347,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
                 importRulesTitle: 'Handelaarregels importeren',
-                importRulesViaSpreadsheet: 'Handelaarregels importeren via spreadsheet',
                 importColumnMerchantIs: 'Handelaar is',
                 importColumnMerchantContains: 'Handelaar bevat',
                 importColumnUpdatedMerchant: 'Bijgewerkte handelaar',
