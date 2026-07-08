@@ -21,6 +21,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
+let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -289,21 +290,24 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
-        const reportsTransactions =
-            transactions &&
-            Object.values(transactions).reduce<Record<string, Transaction[]>>((all, transaction) => {
-                const reportsMap = all;
-                if (!transaction?.reportID) {
-                    return reportsMap;
-                }
+        // Only regroup transactions by reportID when the TRANSACTION collection itself changed - this reduce
+        // otherwise re-runs over every transaction on every recompute (e.g. a REPORT_ACTIONS-only update),
+        // even though the grouping it produces couldn't have changed.
+        if (!previousReportsTransactions || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, sourceValues)) {
+            previousReportsTransactions = transactions
+                ? Object.values(transactions).reduce<Record<string, Transaction[]>>((all, transaction) => {
+                      const reportsMap = all;
+                      if (!transaction?.reportID) {
+                          return reportsMap;
+                      }
 
-                if (!reportsMap[transaction.reportID]) {
-                    reportsMap[transaction.reportID] = [];
-                }
-                reportsMap[transaction.reportID].push(transaction);
+                      (reportsMap[transaction.reportID] ??= []).push(transaction);
 
-                return all;
-            }, {});
+                      return all;
+                  }, {})
+                : {};
+        }
+        const reportsTransactions = previousReportsTransactions;
 
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
             (acc, key) => {

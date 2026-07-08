@@ -254,6 +254,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {groupTransactionsByReportID} from '../utils/ReportTestUtils';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -301,18 +302,6 @@ jest.mock('@libs/PolicyUtils', () => {
 });
 
 const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
-
-function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
-    const grouped: Record<string, Transaction[]> = {};
-    for (const transaction of Object.values(transactions ?? {})) {
-        if (!transaction?.reportID) {
-            continue;
-        }
-        grouped[transaction.reportID] ??= [];
-        grouped[transaction.reportID].push(transaction);
-    }
-    return grouped;
-}
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';

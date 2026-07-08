@@ -26,20 +26,9 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {groupTransactionsByReportID} from '../utils/ReportTestUtils';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
-    const grouped: Record<string, Transaction[]> = {};
-    for (const transaction of Object.values(transactions ?? {})) {
-        if (!transaction?.reportID) {
-            continue;
-        }
-        grouped[transaction.reportID] ??= [];
-        grouped[transaction.reportID].push(transaction);
-    }
-    return grouped;
-}
 
 const currentUserLogin = 'lagertha2@vikings.net';
 describe('ReportNameUtils', () => {

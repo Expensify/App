@@ -183,7 +183,7 @@ function MoneyRequestReportPreviewProvider({
     // recompute these values when the report's transactions change.
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(transactions);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
