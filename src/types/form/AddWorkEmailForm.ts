@@ -16,4 +16,3 @@ type AddWorkEmailForm = Form<
 >;
 
 export type {AddWorkEmailForm};
-export default INPUT_IDS;
