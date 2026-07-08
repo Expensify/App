@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {DeviceBiometrics} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const hasAcceptedSoftPromptSelector = (deviceBiometrics: OnyxEntry<DeviceBiometrics>) => deviceBiometrics?.hasAcceptedSoftPrompt;
 

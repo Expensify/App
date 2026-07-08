@@ -1,5 +1,6 @@
-import type {Observer} from 'xstate';
 import createBufferedObserver from '@libs/XStateInspector/createBufferedObserver';
+
+import type {Observer} from 'xstate';
 
 function createRecordingObserver() {
     const received: number[] = [];

@@ -1,5 +1,6 @@
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationInitEvent} from '@components/MultifactorAuthentication/machine/types';
+
 import CONST from '@src/CONST';
 
 const MFA_TEST_SCENARIO_NAME = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST;

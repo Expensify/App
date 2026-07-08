@@ -1,7 +1,9 @@
 import type {InspectionEvent} from 'xstate';
-import createBufferedObserver from './createBufferedObserver';
+
 import type {LoadedInspector} from './types';
 import type XStateInspector from './types';
+
+import createBufferedObserver from './createBufferedObserver';
 
 /**
  * Builds the dev-only inspector handle. The dynamic `import()` calls stay inline under the `__DEV__`

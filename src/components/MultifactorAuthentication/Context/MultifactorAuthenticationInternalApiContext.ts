@@ -1,5 +1,6 @@
-import {createContext, useContext} from 'react';
 import type {MfaState} from '@components/MultifactorAuthentication/machine';
+
+import {createContext, useContext} from 'react';
 
 /**
  * The flow-internal API for the screens and navigator hosting an active MFA flow. Every method is a

@@ -1,4 +1,3 @@
-import type {AuthorizeResult, RegisterResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
@@ -11,30 +10,24 @@ import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthenti
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 
-import {requestValidateCodeAction} from '@libs/actions/User';
-import {getErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
-import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
-import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
-import Navigation from '@libs/Navigation/Navigation';
 
-import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
-import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
-import type {DeviceBiometrics} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import Onyx from 'react-native-onyx';
+import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
+import React from 'react';
 
-import {useMultifactorAuthenticationActions} from './MultifactorAuthenticationActionsContext';
-import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
+import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
+import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
+
+import MultifactorAuthenticationExternalAPIContext from './MultifactorAuthenticationExternalApiContext';
+import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 

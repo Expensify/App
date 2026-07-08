@@ -1,6 +1,9 @@
-import React, {use} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import type {LoadedInspector} from '@libs/XStateInspector/types';
+
+import React, {use} from 'react';
+
 import Button from './Button';
 import TestToolRow from './TestToolRow';
 

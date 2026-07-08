@@ -1,4 +1,5 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
+
 import type Navigation from '@libs/Navigation/Navigation';
 
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on

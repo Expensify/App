@@ -1,4 +1,5 @@
 import {CIRCULAR_MARKER, maskInspectionEvent, MAX_DEPTH_MARKER, SENSITIVE_VALUE_MASK} from '@libs/XStateInspector/maskSensitive';
+
 import CONST from '@src/CONST';
 
 describe('maskInspectionEvent', () => {

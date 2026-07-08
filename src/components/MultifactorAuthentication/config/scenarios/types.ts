@@ -1,11 +1,14 @@
-import type {EmptyObject} from 'type-fest';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+
 import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
+
+import type {EmptyObject} from 'type-fest';
+
 import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransaction';
 import type {Payload as ChangePINPayload} from './ChangePIN';
 import type {SCENARIO_NAMES} from './names';
-import type {Payload as RevealCardDetailsPayload} from './RevealCardDetails';
 import type {Payload as RevealPINPayload} from './RevealPIN';
+import type {Payload as SetPersonalDetailsAndRevealCardDetailsPayload} from './SetPersonalDetailsAndRevealCardDetails';
 import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';
 
 /**
@@ -22,7 +25,7 @@ type ScenarioPayloadMap = {
     [SCENARIO_NAMES.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
     [SCENARIO_NAMES.REVEAL_PIN]: RevealPINPayload;
     [SCENARIO_NAMES.CHANGE_PIN]: ChangePINPayload;
-    [SCENARIO_NAMES.REVEAL_CARD_DETAILS]: RevealCardDetailsPayload;
+    [SCENARIO_NAMES.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS]: SetPersonalDetailsAndRevealCardDetailsPayload;
 };
 
 type ScenarioPayloadMapMismatchError =

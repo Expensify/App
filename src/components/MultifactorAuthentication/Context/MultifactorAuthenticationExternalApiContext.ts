@@ -1,5 +1,6 @@
-import {createContext, useContext} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+
+import {createContext, useContext} from 'react';
 
 /**
  * Trailing args for {@link MultifactorAuthenticationExternalAPI.executeScenario}: the params object is

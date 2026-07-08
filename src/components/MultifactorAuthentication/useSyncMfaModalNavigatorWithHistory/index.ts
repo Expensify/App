@@ -1,3 +1,5 @@
+import type {MfaModalState} from '@components/MultifactorAuthentication/machine';
+
 import getPlatform from '@libs/getPlatform';
 import {cancelPendingMfaMarkerReattach, isMfaMarkerStripInProgress, toggleMfaMarker} from '@libs/Navigation/helpers/mfaModalMarkerPreservation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,6 +9,8 @@ import CONST from '@src/CONST';
 
 import {useEffect} from 'react';
 import {BackHandler} from 'react-native';
+
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 function dispatchToggle(isVisible: boolean) {
     Navigation.isNavigationReady().then(() => toggleMfaMarker(isVisible));

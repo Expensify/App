@@ -1,5 +1,7 @@
-import type {SnapshotFrom} from 'xstate';
 import CONST from '@src/CONST';
+
+import type {SnapshotFrom} from 'xstate';
+
 import type MFAMachine from './mfaMachine';
 import type {MfaContext, MfaModalState} from './types';
 

@@ -1,7 +1,9 @@
+import xstateInspector from '@libs/XStateInspector';
+
+import type {ActorOptions, AnyStateMachine} from 'xstate';
+
 // eslint-disable-next-line no-restricted-imports
 import {useMachine} from '@xstate/react';
-import type {ActorOptions, AnyStateMachine} from 'xstate';
-import xstateInspector from '@libs/XStateInspector';
 
 /**
  * A drop-in replacement for `useMachine` that also wires up the dev-only Stately inspector. Use it

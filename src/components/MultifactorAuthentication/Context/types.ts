@@ -1,13 +1,9 @@
-import type {
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioConfig,
-    MultifactorAuthenticationScenarioResponse,
-} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
+
 import type {MultifactorAuthenticationState} from './state';
 
 type Action =

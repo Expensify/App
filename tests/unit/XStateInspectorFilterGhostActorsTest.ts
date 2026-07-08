@@ -1,6 +1,8 @@
-import type {InspectionEvent, Observer} from 'xstate';
-import {createActor, createMachine} from 'xstate';
 import filterGhostActorRegistrations from '@libs/XStateInspector/filterGhostActorRegistrations';
+
+import type {InspectionEvent, Observer} from 'xstate';
+
+import {createActor, createMachine} from 'xstate';
 
 const machine = createMachine({
     id: 'test',

@@ -1,10 +1,13 @@
 import {render} from '@testing-library/react-native';
-import React, {useEffect} from 'react';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {MultifactorAuthenticationContextProviders, useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import MultifactorAuthenticationModalNavigator from '@navigation/AppNavigator/Navigators/MultifactorAuthenticationModalNavigator';
+
+import React, {useEffect} from 'react';
 
 type MfaUiControls = {
     executeScenario: ReturnType<typeof useMultifactorAuthentication>['executeScenario'];

@@ -1,5 +1,6 @@
-import type {StatelyInspectionEvent} from '@statelyai/inspect';
 import CONST from '@src/CONST';
+
+import type {StatelyInspectionEvent} from '@statelyai/inspect';
 
 const SENSITIVE_VALUE_MASK = '***';
 const CIRCULAR_MARKER = '[Circular]';

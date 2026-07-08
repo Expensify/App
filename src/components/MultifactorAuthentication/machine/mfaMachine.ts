@@ -1,8 +1,12 @@
-import {assign, setup} from 'xstate';
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+import {assign, setup} from 'xstate';
+
 import type {MfaContext, MfaEvent} from './types';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;

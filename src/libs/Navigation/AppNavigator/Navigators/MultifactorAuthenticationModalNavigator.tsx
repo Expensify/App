@@ -32,9 +32,9 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-type Phase = 'open' | 'closing' | 'closed';
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
 

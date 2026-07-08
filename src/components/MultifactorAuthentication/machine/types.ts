@@ -4,7 +4,9 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParams,
 } from '@components/MultifactorAuthentication/config/types';
+
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
 import type CONST from '@src/CONST';
 
 /**

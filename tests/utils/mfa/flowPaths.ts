@@ -1,9 +1,13 @@
-import type {SnapshotFrom} from 'xstate';
-import {matchesState} from 'xstate';
-import {getShortestPaths, TestModel} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
+
 import CONST from '@src/CONST';
+
+import type {SnapshotFrom} from 'xstate';
+
+import {matchesState} from 'xstate';
+import {getShortestPaths, TestModel} from 'xstate/graph';
+
 import createInitEvent from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;

@@ -11,6 +11,7 @@ import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthenticatio
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 import {useEffect, useRef, useState} from 'react';
 
 import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';

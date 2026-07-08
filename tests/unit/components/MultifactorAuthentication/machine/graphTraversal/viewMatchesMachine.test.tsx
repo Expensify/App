@@ -1,17 +1,21 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
+
+import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
+import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
+import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
+
+import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
+
+import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
+
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
-import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
-import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
-import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
-import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
 // This file tests that the rendered modal matches the machine: it mounts the production providers and
 // navigator, drives each machine event as a real gesture, and asserts the UI markers of the reached

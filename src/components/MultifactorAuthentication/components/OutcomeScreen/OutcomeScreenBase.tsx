@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Parser from '@libs/Parser';
+
 import CONST from '@src/CONST';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
