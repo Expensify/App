@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import variables from '@styles/variables';
 
@@ -42,7 +42,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const theme = useTheme();
     const session = useSession();
 
-    const cardholderName = getDisplayNameOrDefault(item.cardholder);
+    const cardholderName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate});
     const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
@@ -65,7 +65,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             <Icon
                 src={icons.FreezeCard}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
             <Text
                 numberOfLines={1}
