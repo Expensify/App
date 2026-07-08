@@ -41,13 +41,14 @@ const EMPTY_FILTERED_DATA: SearchData = [];
 const EMPTY_COLUMNS: SearchColumnType[] = [];
 
 /**
- * Section builder for the flat expense search view (`type === EXPENSE`, no group-by).
+ * Section builder for the flat transaction search views (`type` of expense/invoice/trip, no group-by). These
+ * types all route through `getTransactionsSections` and share the same sort/columns path.
  *
  * Subscribes to ONLY the slice the transaction builder reads (report actions, bank accounts, visible
  * columns, and the policy category/tag lookups needed for GL-code sorting) and reads locale/account from
  * context directly. Because this hook mounts only inside `TransactionSectionsContainer` — i.e. only when a
- * flat expense search is active — those subscriptions are closed for every other search type. It reuses the
- * shared optimistic tracking + gate from `shell`.
+ * flat transaction search is active — those subscriptions are closed for every other search type. It reuses
+ * the shared optimistic tracking + gate from `shell`.
  */
 function useTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseTransactionSectionsParams): SearchSections {
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
