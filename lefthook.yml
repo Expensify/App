@@ -8,7 +8,7 @@ pre-commit:
         - '*.{j,mj,cj}s'
         - '*.{ts,tsx,mts,cts}'
         - '*.{yml,yaml}'
-      run: npx oxfmt --write {staged_files}
+      run: npx oxfmt --write --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true
 
     gh-actions-build:
