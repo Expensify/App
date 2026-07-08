@@ -1,8 +1,8 @@
 import type {ShiftRangeBatch} from './types';
 
 /**
- * Apply a shift-range batch to a list of primitive keys, preserving prev order and deduping. No selectability filter here — the range
- * hook already excludes header/disabled rows when it builds the batch, so it stays the single source of truth.
+ * Apply a shift-range batch to a list of primitive keys, preserving prev order and deduping. No filtering here — the range hook
+ * already excludes header/disabled rows when it builds the batch, so it stays the single source of truth on what is selectable.
  */
 function applyShiftRangeBatchToKeySet<TItem, TKey extends string | number>(
     batch: ShiftRangeBatch<TItem>,
