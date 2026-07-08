@@ -541,6 +541,10 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                   statusNum: predictedNextStatus,
                   managerID,
                   nextStep: optimisticNextStep ?? undefined,
+                  // The current user just approved this report, so it no longer awaits their action.
+                  // Clear the expense report's own outstanding-child flag so the LHN green dot disappears
+                  // optimistically instead of lingering until OpenReport refetches the server's false value.
+                  hasOutstandingChildRequest: false,
                   pendingFields: {
                       partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                       nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -659,6 +663,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 statusNum: expenseReport.statusNum,
                 stateNum: expenseReport.stateNum,
                 nextStep: expenseReport.nextStep ?? null,
+                hasOutstandingChildRequest: expenseReport.hasOutstandingChildRequest,
                 pendingFields: {
                     partial: null,
                     nextStep: null,
