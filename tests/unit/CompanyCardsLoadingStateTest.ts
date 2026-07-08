@@ -15,7 +15,8 @@ jest.mock('@libs/API', () => ({
 
 const mockRead = jest.mocked(API.read);
 
-const translate: LocaleContextProps['translate'] = (path, ..._parameters) => String(path);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+const mockTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
 
 describe('CompanyCards RAM-only loading state updates', () => {
     beforeEach(() => {
@@ -26,7 +27,7 @@ describe('CompanyCards RAM-only loading state updates', () => {
         const policyID = 'policy123';
         const domainOrWorkspaceAccountID = 11111111;
 
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, [], translate);
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, [], mockTranslate);
 
         expect(mockRead).toHaveBeenCalledWith(
             READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
@@ -60,7 +61,7 @@ describe('CompanyCards RAM-only loading state updates', () => {
         const domainAccountID = 11111111;
         const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
 
-        openPolicyCompanyCardsFeed(domainAccountID, policyID, feed, translate);
+        openPolicyCompanyCardsFeed(domainAccountID, policyID, feed, mockTranslate);
 
         expect(mockRead).toHaveBeenCalledWith(
             READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED,
@@ -101,7 +102,7 @@ describe('CompanyCards RAM-only loading state updates', () => {
     });
 
     it('openPolicyCompanyCardsPage skips loading state updates when domainOrWorkspaceAccountID is 0', () => {
-        openPolicyCompanyCardsPage('policy123', CONST.DEFAULT_NUMBER_ID, [], translate);
+        openPolicyCompanyCardsPage('policy123', CONST.DEFAULT_NUMBER_ID, [], mockTranslate);
 
         expect(mockRead).toHaveBeenCalledWith(
             READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
