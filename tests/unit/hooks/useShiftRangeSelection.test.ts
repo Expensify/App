@@ -664,16 +664,6 @@ describe('applyShiftRangeBatchToKeySet', () => {
         expect(out).toEqual(['a', 'c', 'b']);
     });
 
-    it('skips items where isSelectable returns false', () => {
-        const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'b'}, {keyForList: 'c'}], toDeselect: []}, ['a'], getKey, (i) => i.keyForList !== 'b');
-        expect(out).toEqual(['a', 'c']);
-    });
-
-    it('skips items with isDisabled or isDisabledCheckbox by default', () => {
-        const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'b', isDisabled: true}, {keyForList: 'c'}], toDeselect: []}, ['a'], getKey);
-        expect(out).toEqual(['a', 'c']);
-    });
-
     it('skips items whose key is null/undefined', () => {
         type WithNullKey = {keyForList: string | null};
         const out = applyShiftRangeBatchToKeySet<WithNullKey, string>({toSelect: [{keyForList: null}, {keyForList: 'c'}], toDeselect: []}, ['a'], (i) => i.keyForList);

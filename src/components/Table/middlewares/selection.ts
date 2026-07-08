@@ -86,15 +86,7 @@ export default function useSelection<DataType extends TableData>({
         getItemKey: (item) => item.keyForList,
         getSelectedKeys: () => selectedKeys,
         isDisabledItem: (item) => !!item.disabled || !!item.isSelectionDisabled,
-        onApplyRange: (batch) =>
-            onRowSelectionChange?.(
-                applyShiftRangeBatchToKeySet(
-                    batch,
-                    selectedKeys,
-                    (item) => item.keyForList,
-                    (item) => !item.disabled && !item.isSelectionDisabled,
-                ),
-            ),
+        onApplyRange: (batch) => onRowSelectionChange?.(applyShiftRangeBatchToKeySet(batch, selectedKeys, (item) => item.keyForList)),
     });
 
     const clearSelection = useCallback(() => {

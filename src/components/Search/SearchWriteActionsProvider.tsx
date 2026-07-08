@@ -367,22 +367,21 @@ function SearchWriteActionsProvider({
     // Group-by children load lazily in `GroupChildrenContent`, which publishes them here for the shift-range source.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
-    // These stay referentially stable (they close over only setGroupChildrenByKey, so the React Compiler memoizes them). GroupChildrenContent's
-    // register effect lists them as deps, so an unstable identity would loop register↔unregister; the compliance gate keeps them stable.
-    const registerGroupChildren = (groupKey: string, groupChildren: TransactionListItemType[]) => {
-        setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren}));
-    };
-    const unregisterGroupChildren = (groupKey: string) => {
-        setGroupChildrenByKey((prev) => {
-            if (!(groupKey in prev)) {
-                return prev;
-            }
-            const next = {...prev};
-            delete next[groupKey];
-            return next;
-        });
-    };
-    const shiftRangeChildrenActions: SearchShiftRangeChildrenActions = {registerGroupChildren, unregisterGroupChildren};
+    // Built once (useState lazy-init closes over only the stable setter), so the register effect in GroupChildrenContent has genuinely
+    // stable deps by construction — not by React Compiler memoization. Correctness depends on this: an unstable identity would loop
+    // register↔unregister, so leaning on the compiler (which is a perf optimization, not a stability contract) would be fragile.
+    const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
+        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren})),
+        unregisterGroupChildren: (groupKey) =>
+            setGroupChildrenByKey((prev) => {
+                if (!(groupKey in prev)) {
+                    return prev;
+                }
+                const next = {...prev};
+                delete next[groupKey];
+                return next;
+            }),
+    }));
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';

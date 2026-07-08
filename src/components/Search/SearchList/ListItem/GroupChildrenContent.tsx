@@ -57,7 +57,10 @@ function GroupChildrenContent({
 
     const selectedTransactionIDsSet = useMemo(() => new Set(Object.keys(selectedTransactions)), [selectedTransactions]);
 
-    const transactions: TransactionListItemType[] = useMemo(() => {
+    // The children in visual order, independent of selection — this is what shift-range registers and what the render projection below
+    // derives from. Keeping selection out of it means the expensive getSections runs only on load/expand, not on every checkbox click,
+    // and the registered range source stays referentially stable across selection changes (see the register effect / SearchWriteActionsProvider).
+    const rangeChildren: TransactionListItemType[] = useMemo(() => {
         if (isExpenseReportType) {
             return groupItem.transactions;
         }
@@ -77,10 +80,7 @@ function GroupChildrenContent({
             conciergeReportID,
             convertToDisplayString,
         }) as [TransactionListItemType[], number, boolean];
-        return sectionData.map((transactionItem) => ({
-            ...transactionItem,
-            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
-        }));
+        return sectionData;
     }, [
         isExpenseReportType,
         groupItem.transactions,
@@ -94,21 +94,27 @@ function GroupChildrenContent({
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
-        selectedTransactionIDsSet,
     ]);
 
-    const isEmpty = transactions.length === 0;
+    // Render projection: stamp live selection onto each row for the checkbox visual. Expense-report rows already carry it upstream.
+    const transactions: TransactionListItemType[] = useMemo(
+        () =>
+            isExpenseReportType ? rangeChildren : rangeChildren.map((transactionItem) => ({...transactionItem, isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID)})),
+        [isExpenseReportType, rangeChildren, selectedTransactionIDsSet],
+    );
+
+    const isEmpty = rangeChildren.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     // Register this group's lazily-loaded children (group-by only) under its original key — groupKeyForList, since this container's keyForList is prefixed — so shift+click can span them.
     useEffect(() => {
-        if (isExpenseReportType || !isExpanded || transactions.length === 0) {
+        if (isExpenseReportType || !isExpanded || rangeChildren.length === 0) {
             unregisterGroupChildren(groupItem.groupKeyForList);
             return;
         }
-        registerGroupChildren(groupItem.groupKeyForList, transactions);
+        registerGroupChildren(groupItem.groupKeyForList, rangeChildren);
         return () => unregisterGroupChildren(groupItem.groupKeyForList);
-    }, [isExpenseReportType, isExpanded, transactions, groupItem.groupKeyForList, registerGroupChildren, unregisterGroupChildren]);
+    }, [isExpenseReportType, isExpanded, rangeChildren, groupItem.groupKeyForList, registerGroupChildren, unregisterGroupChildren]);
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {

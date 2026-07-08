@@ -24,24 +24,7 @@ type Api<TItem> = {
 // `deselect` makes ranges direction-aware: an anchor seeded by a click that *removed* a row extends the deselection on the next shift+click instead of re-selecting it.
 type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string; deselect: boolean} | {kind: 'ranging'; anchor: string; prevEnd: string; deselect: boolean};
 
-type SessionEvent = {type: 'notify'; key: string; deselect: boolean} | {type: 'clear'} | {type: 'range'; anchor: string; prevEnd: string; deselect: boolean};
-
 const IDLE: SessionState = {kind: 'idle'};
-
-function sessionReducer(state: SessionState, event: SessionEvent): SessionState {
-    switch (event.type) {
-        case 'notify':
-            return {kind: 'anchored', anchor: event.key, deselect: event.deselect};
-        case 'clear':
-            return IDLE;
-        case 'range':
-            return {kind: 'ranging', anchor: event.anchor, prevEnd: event.prevEnd, deselect: event.deselect};
-        default: {
-            const exhaustive: never = event;
-            return exhaustive;
-        }
-    }
-}
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
@@ -65,10 +48,9 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             if (!result) {
                 return false;
             }
-            if (result.batch.toSelect.length || result.batch.toDeselect.length) {
-                currentParams.onApplyRange?.(result.batch);
-            }
-            sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: result.anchor, prevEnd: result.prevEnd, deselect: result.deselect});
+            // A successful result always spans at least the target row, so the batch is never empty — apply it unconditionally.
+            currentParams.onApplyRange?.(result.batch);
+            sessionRef.current = {kind: 'ranging', anchor: result.anchor, prevEnd: result.prevEnd, deselect: result.deselect};
             return true;
         },
         notifyAnchor: (item) => {
@@ -77,29 +59,23 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             if (!key) {
                 return;
             }
-            // Clicking an already-selected row removes it → seed a deselecting anchor so the next shift+click extends the deselection.
+            // Direction is read from live selection, so callers MUST call this BEFORE applying the toggle: clicking an already-selected
+            // row is about to remove it → seed a deselecting anchor so the next shift+click extends the deselection.
             const deselect = isSelected(currentParams, key);
-            sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key, deselect});
+            sessionRef.current = {kind: 'anchored', anchor: key, deselect};
         },
         seedRangeFromSelection: (selectedKeys) => {
             // Keys are passed in rather than read from state: the caller's selection is optimistic, so reading it here would see the pre-toggle set.
             const currentParams = paramsRef.current;
             const set = selectedKeys instanceof Set ? selectedKeys : new Set(selectedKeys);
-            sessionRef.current = sessionReducer(
-                sessionRef.current,
-                seedRangeEvent(currentParams, (key) => set.has(key)),
-            );
+            sessionRef.current = seedRangeState(currentParams, (key) => set.has(key));
         },
         seedFullRange: () => {
             // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.
-            const currentParams = paramsRef.current;
-            sessionRef.current = sessionReducer(
-                sessionRef.current,
-                seedRangeEvent(currentParams, () => true),
-            );
+            sessionRef.current = seedRangeState(paramsRef.current, () => true);
         },
         clearAnchor: () => {
-            sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
+            sessionRef.current = IDLE;
         },
     }));
 
@@ -126,10 +102,11 @@ function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
 }
 
 /**
- * Builds a `range` event spanning the first→last selectable item that passes `isIncluded`, or `clear` when none qualify.
+ * Builds a `ranging` state spanning the first→last selectable item that passes `isIncluded`, or `IDLE` when none qualify. Callers must
+ * pass a contiguous selection: a sparse set (e.g. {A, E}) seeds the outer span A..E, so a later shift+click treats the gap as filled.
  * Shared by `seedFullRange` (all selectable) and `seedRangeFromSelection` (the selected subset).
  */
-function seedRangeEvent<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): SessionEvent {
+function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): SessionState {
     let first: TItem | null = null;
     let last: TItem | null = null;
     for (const item of params.items) {
@@ -148,9 +125,9 @@ function seedRangeEvent<TItem>(params: Params<TItem>, isIncluded: (key: string) 
     const anchor = keyOf(params, first);
     const prevEnd = keyOf(params, last);
     if (anchor !== null && prevEnd !== null) {
-        return {type: 'range', anchor, prevEnd, deselect: false};
+        return {kind: 'ranging', anchor, prevEnd, deselect: false};
     }
-    return {type: 'clear'};
+    return IDLE;
 }
 
 function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem): ShiftRangeResult<TItem> | null {

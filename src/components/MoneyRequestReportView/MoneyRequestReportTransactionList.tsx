@@ -476,15 +476,7 @@ function MoneyRequestReportTransactionList({
         getItemKey: (t) => t.transactionID ?? null,
         getSelectedKeys: () => selectedTransactionIDs,
         isDisabledItem: (t) => isTransactionPendingDelete(t),
-        onApplyRange: (batch) =>
-            setSelectedTransactions(
-                applyShiftRangeBatchToKeySet(
-                    batch,
-                    selectedTransactionIDs,
-                    (t) => t.transactionID,
-                    (t) => !isTransactionPendingDelete(t),
-                ),
-            ),
+        onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (t) => t.transactionID)),
     });
 
     const toggleTransaction = useCallback(
