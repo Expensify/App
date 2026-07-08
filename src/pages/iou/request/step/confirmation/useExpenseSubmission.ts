@@ -314,7 +314,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         navigateBackToReport,
         lastOptimisticTransactionID,
         preResolvedChatTarget,
-        reportForCleanup,
     }: {
         participant: Participant;
         shouldHandleNavigation: boolean;
@@ -323,8 +322,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         navigateBackToReport: string | undefined;
         lastOptimisticTransactionID: string | undefined;
         preResolvedChatTarget?: {report: OnyxEntry<Report>; chatReportID: string};
-        /** Overrides the report used to resolve the post-submit nav target (self-DM track forces the self-DM here). */
-        reportForCleanup?: OnyxEntry<Report>;
     }) {
         const lastTransaction = transactions.at(-1);
         // Action bailed mid-batch — keep drafts for retry.
@@ -341,7 +338,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                report: reportForCleanup ?? report,
+                report,
                 fallbackOptimisticChatReportID,
                 action,
             });
@@ -725,7 +722,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             fallbackOptimisticChatReportID: optimisticSelfDMReportID,
             navigateBackToReport: undefined,
             lastOptimisticTransactionID,
-            reportForCleanup: isSelfDMDestination ? selfDMReport : undefined,
+            // trackExpense wrote to optimisticSelfDMReportID, so resolve the self-DM nav target directly. This
+            // suppresses the route-report fallback in resolveChatTargetForSubmitCleanup, which would otherwise keep a
+            // policy/group/source route report as the target when the self-DM report isn't loaded yet (fresh account
+            // or before Onyx hydration) — leaving first-time self-DM creates navigating against the wrong report.
+            preResolvedChatTarget: isSelfDMDestination ? {report: selfDMReport, chatReportID: optimisticSelfDMReportID} : undefined,
         });
     }
 
