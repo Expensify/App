@@ -185,7 +185,7 @@ function IOURequestStepAmount({
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
-            ? getParticipantsOption(participant, personalDetails)
+            ? getParticipantsOption(participant, personalDetails, translate)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
     const participant = participants.at(0);
@@ -203,6 +203,7 @@ function IOURequestStepAmount({
         }
         notifySaving();
         submitAmount({
+            translate,
             report,
             transaction,
             splitDraftTransaction,
