@@ -275,7 +275,8 @@ type GetTransactionSectionsParams = {
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
-    queryJSON?: SearchQueryJSON;
+    queryType?: SearchDataTypes;
+    queryStatus?: SearchStatus;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
 };
@@ -2087,7 +2088,8 @@ function getTransactionsSections({
     isActionLoadingSet,
     bankAccountList,
     reportActions = {},
-    queryJSON,
+    queryType,
+    queryStatus,
     isAttendeesEnabledForMovingPolicy,
     optimisticTransactionID,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
@@ -2112,7 +2114,9 @@ function getTransactionsSections({
 
     const transactionsSections: TransactionListItemType[] = [];
 
-    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const fallbackQueryJSON = queryType === undefined && queryStatus === undefined ? getCurrentSearchQueryJSON() : undefined;
+    const resolvedQueryType = queryType ?? fallbackQueryJSON?.type;
+    const resolvedQueryStatus = queryStatus ?? fallbackQueryJSON?.status;
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2126,9 +2130,9 @@ function getTransactionsSections({
         // transaction ID to avoid leaking unrelated pending items into wrong
         // status tabs (e.g. offline-queued expenses appearing in "approved").
         const isTrackedOptimisticItem = !!optimisticTransactionID && transactionItem.transactionID === optimisticTransactionID;
-        if (currentQueryJSON && !isActionLoading && !isTrackedOptimisticItem) {
-            if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                const status = currentQueryJSON.status;
+        if (resolvedQueryType !== undefined && !isActionLoading && !isTrackedOptimisticItem) {
+            if (resolvedQueryType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                const status = resolvedQueryStatus;
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
                         return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID) : false;
@@ -3728,7 +3732,8 @@ function getSections({
         isActionLoadingSet,
         bankAccountList,
         reportActions,
-        queryJSON,
+        queryType: queryJSON?.type,
+        queryStatus: queryJSON?.status,
         isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
     });
@@ -6573,5 +6578,6 @@ export {
     splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
     getReportSections,
+    getTransactionsSections,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};

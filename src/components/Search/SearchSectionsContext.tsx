@@ -1,10 +1,11 @@
+import {getValidGroupBy} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
-import {createContext, useContext} from 'react';
+import React, {createContext, useContext} from 'react';
 
 import type {SearchSections} from './hooks/useExpenseReportSections';
 import type {SearchShell, UseSearchShellParams} from './hooks/useSearchShell';
@@ -13,6 +14,7 @@ import type {SearchQueryJSON} from './types';
 import useExpenseReportSections from './hooks/useExpenseReportSections';
 import useSearchShell from './hooks/useSearchShell';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useTransactionSections from './hooks/useTransactionSections';
 
 /** The tracking carriers `<Search>` reads for its deferral/focus effects (independent of the section outputs). */
 type SearchTrackingCarriers = Pick<
@@ -68,6 +70,18 @@ function ExpenseReportSectionsProvider({queryJSON, searchResults, newSearchResul
 }
 
 /**
+ * Section provider for the flat expense view (`type === EXPENSE`, no group-by). Owns only the transaction-type
+ * slice of Onyx (via the scoped shell + leaf), so every other search type mounts a different provider and
+ * never opens these subscriptions.
+ */
+function TransactionSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
+    const sections = useTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys});
+    const value: SearchSectionsContextValue = {...sections, ...pickTrackingCarriers(shell)};
+    return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
+}
+
+/**
  * Section provider for every not-yet-scoped search type. Keeps the legacy monolithic `useSearchSnapshot`
  * (which subscribes to the union of every type's data) until each type gets its own scoped leaf.
  */
@@ -93,8 +107,17 @@ function LegacySectionsProvider({queryJSON, searchResults, newSearchResultKeys, 
  * a conditional hook), so only the active provider's subscriptions are ever live — the whole point of the
  * scoping effort.
  */
+// Only the non-grouped flat expense view is scoped; grouped expense views still need the monolith's
+// per-group sub-snapshot enrichment, so they stay on the legacy provider.
+const isFlatExpenseSearch = (queryJSON: Readonly<SearchQueryJSON>) => queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !getValidGroupBy(queryJSON.groupBy);
+
 function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
-    const Provider = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? ExpenseReportSectionsProvider : LegacySectionsProvider;
+    let Provider = LegacySectionsProvider;
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        Provider = ExpenseReportSectionsProvider;
+    } else if (isFlatExpenseSearch(queryJSON)) {
+        Provider = TransactionSectionsProvider;
+    }
     return (
         <Provider
             queryJSON={queryJSON}
