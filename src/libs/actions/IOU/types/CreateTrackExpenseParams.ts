@@ -27,6 +27,14 @@ type CreateTrackExpenseParams = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     /**
+     * Only read when shouldHandleNavigation is false. Defaults to true: navigation is owned by the
+     * orchestrator (dismiss-first paths), which has already navigated, so the action surfaces the
+     * post-create feedback (growl/row highlight). Pass false when the caller owns the whole
+     * post-create flow - navigation AND feedback - and the action must stay fully silent
+     * (e.g. the Share flow, which navigates after the action returns).
+     */
+    shouldShowPostCreateFeedback?: boolean;
+    /**
      * When a confirmation submits several transactions, the orchestrator calls this action once per
      * transaction in a loop. Post-create navigation + the "Expense added" growl are owned by the
      * action, so they must fire only once - for the final transaction of the batch. Defaults to true

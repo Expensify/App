@@ -1631,6 +1631,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         action,
         shouldPlaySound = true,
         shouldHandleNavigation = true,
+        shouldShowPostCreateFeedback = true,
         isLastTransactionOfBatch = true,
         backToReport,
         optimisticChatReportID,
@@ -1934,7 +1935,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 isFromGlobalCreate,
                 shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
             });
-        } else {
+        } else if (shouldShowPostCreateFeedback) {
             // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
             // wherever the user lands: highlight the new row for in-report adds, otherwise the
             // "Expense added" growl with a "View" deep link.
@@ -2369,6 +2370,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionParams: transactionData,
         accountantParams,
         shouldHandleNavigation = true,
+        shouldShowPostCreateFeedback = true,
         isLastTransactionOfBatch = true,
         shouldPlaySound = true,
         optimisticChatReportID,
@@ -2786,7 +2788,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 // it - pending IDs are the fallback highlight path (see useNewTransactions).
                 shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
             });
-        } else {
+        } else if (shouldShowPostCreateFeedback) {
             // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
             // wherever the user lands: highlight the new row for in-report adds, otherwise the growl.
             surfaceExpenseCreatedFeedback({

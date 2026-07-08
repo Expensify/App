@@ -6427,52 +6427,6 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
     return {splitData, stickyHeaderIndices};
 }
 
-/**
- * Checks whether a transaction belongs to the given group list item, based on the active groupBy.
- */
-function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined): boolean {
-    if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-        return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-        return !!transaction.transactionID;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
-        return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
-        return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
-        const monthGroup = groupItem as TransactionMonthGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        return DateUtils.isDateStringInMonth(transactionDateString, monthGroup.year, monthGroup.month);
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
-        const weekGroup = groupItem as TransactionWeekGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        const datePart = transactionDateString.substring(0, 10);
-        const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
-        return datePart >= weekStart && datePart <= weekEnd;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.YEAR) {
-        const yearGroup = groupItem as TransactionYearGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
-        return transactionYear === yearGroup.year;
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.QUARTER) {
-        const quarterGroup = groupItem as TransactionQuarterGroupListItemType;
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
-        const transactionMonth = parseInt(transactionDateString.substring(5, 7), 10);
-        // Calculate which quarter the transaction belongs to (1-4)
-        const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
-        return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
-    }
-    return false;
-}
-
 export {
     getSearchBulkEditPolicyID,
     getSuggestedSearches,

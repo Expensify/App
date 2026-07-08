@@ -184,10 +184,13 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
 
     // Fast path: the thread is already resolvable, so show the growl immediately instead of waiting on
     // the reportActions subscription (which would otherwise hit the 8s safety timeout). This covers:
-    // - personal tracked expenses (unreported/self-DM): there's no iouReportID, but the thread ID is
-    //   passed in directly, so we can build from it right away;
+    // - personal tracked expenses (unreported/self-DM): there's no iouReportID to subscribe to, and the
+    //   thread ID passed in directly is the only handle we'll ever get, so build from it right away;
     // - the iouAction already being in Onyx (retry / non-deferred edge cases).
-    if (providedTransactionThreadReportID || (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID)) {
+    // When an iouReportID exists but the iouAction hasn't landed yet (deferred write), a provided thread
+    // ID is NOT enough - its optimistic report data is inside the deferred write too, so "View" would
+    // open a broken RHP. Fall through to the subscription and wait for the action instead.
+    if ((providedTransactionThreadReportID && !iouReportID) || (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID)) {
         const threadReportID = buildThreadFromOnyx();
         showGrowl(threadReportID);
         return;

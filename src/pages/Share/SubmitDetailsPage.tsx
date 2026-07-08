@@ -249,6 +249,7 @@ function SubmitDetailsPage({
 
         // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
         const optimisticTransactionID = existingTransactionID ?? rand64();
+        let iouReportID: string | undefined;
 
         if (isSelfDM(report)) {
             trackExpense({
@@ -290,14 +291,16 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                // Navigation is owned by cleanupAndNavigateAfterExpenseCreate below; don't let the action navigate too.
+                // The whole post-create flow (navigation + feedback) is owned by cleanupAndNavigateAfterExpenseCreate below,
+                // which runs after this action returns - keep the action fully silent.
                 shouldHandleNavigation: false,
+                shouldShowPostCreateFeedback: false,
                 reportActionsList: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            requestMoney({
+            const {iouReport} = requestMoney({
                 report: reportToSubmit,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
@@ -337,15 +340,19 @@ function SubmitDetailsPage({
                 betas,
                 personalDetails,
                 optimisticTransactionID,
-                // Navigation is owned by cleanupAndNavigateAfterExpenseCreate below; don't let the action navigate too.
+                // The whole post-create flow (navigation + feedback) is owned by cleanupAndNavigateAfterExpenseCreate below,
+                // which runs after this action returns - keep the action fully silent.
                 shouldHandleNavigation: false,
+                shouldShowPostCreateFeedback: false,
             });
+            iouReportID = iouReport?.reportID;
         }
         cleanupAndNavigateAfterExpenseCreate({
             report: isSelfDM(report) ? report : reportToSubmit,
             action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
             transactionID: optimisticTransactionID,
+            iouReportID,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             optimisticChatReportID: reportOrAccountID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,

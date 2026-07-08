@@ -13,6 +13,10 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     report: OnyxEntry<Report>;
     draftTransactionIDs: string[] | undefined;
     transactionID: string | undefined;
+
+    /** IOU report the expense landed in; lets the "Expense added" growl resolve its "View" deep link. */
+    iouReportID?: string;
+    transactionThreadReportID?: string;
     isFromGlobalCreate: boolean | undefined;
     backToReport?: string;
     optimisticChatReportID?: string;
@@ -25,6 +29,8 @@ function cleanupAndNavigateAfterExpenseCreate({
     report,
     draftTransactionIDs,
     transactionID,
+    iouReportID,
+    transactionThreadReportID,
     isFromGlobalCreate,
     backToReport,
     optimisticChatReportID,
@@ -46,7 +52,9 @@ function cleanupAndNavigateAfterExpenseCreate({
 
     navigateAfterExpenseCreate({
         activeReportID: finalActiveReportID,
+        iouReportID,
         transactionID,
+        transactionThreadReportID,
         isFromGlobalCreate,
         isInvoice,
         hasMultipleTransactions,
