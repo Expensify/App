@@ -2012,6 +2012,7 @@ export {
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     hasAssignedCardMatching,
+    forEachAssignedCard,
     isActiveCard,
     filterInactiveCards,
     filterInactiveCardsForWorkspace,
