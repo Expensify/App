@@ -558,7 +558,13 @@ function MoneyRequestReportTransactionList({
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
             const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
             setSelectedTransactions(nextSelectedIDs);
-            rangeApi.seedRangeFromSelection(nextSelectedIDs);
+            if (anySelected) {
+                // Deselecting paints no block — reset so the next shift+click cold-resolves instead of collapsing a stale span.
+                rangeApi.clearAnchor();
+            } else {
+                // Seed only the just-selected contiguous group block — seeding the whole selection would span to unrelated pre-selected rows and deselect them.
+                rangeApi.seedRangeFromSelection(groupTransactionIDs);
+            }
         },
         [groupedTransactions, selectedTransactionIDs, setSelectedTransactions, rangeApi],
     );

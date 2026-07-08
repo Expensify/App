@@ -516,19 +516,13 @@ function SearchWriteActionsProvider({
             const groupChildren = groupChildrenByKey[item.keyForList] ?? item.transactions ?? [];
             const selected = getSelectedTransactions();
             const groupWasSelected = groupChildren.some((child) => !!selected[child.keyForList]?.isSelected);
-            // The toggle hasn't committed yet, so fold this group's children into the selected set to get the post-click extent.
-            const selectedKeys = new Set(Object.keys(selected).filter((key) => selected[key]?.isSelected));
-            for (const child of groupChildren) {
-                if (!child.keyForList) {
-                    continue;
-                }
-                if (groupWasSelected) {
-                    selectedKeys.delete(child.keyForList);
-                } else {
-                    selectedKeys.add(child.keyForList);
-                }
+            if (groupWasSelected) {
+                // Deselecting paints no block — reset so the next shift+click cold-resolves instead of collapsing a stale span.
+                rangeApi.clearAnchor();
+            } else {
+                // Seed only the just-selected contiguous group block — seeding the whole selection would span to unrelated pre-selected rows and deselect them.
+                rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
             }
-            rangeApi.seedRangeFromSelection(selectedKeys);
         } else if (!isShiftRangeHeaderItem(item)) {
             // Non-header rows seed the anchor so a later shift+click continues from here — unless the click is a no-op (pending-delete rows bail in the reducers below), which must not move the anchor.
             const isNoOpPendingDeleteClick = isTransactionListItemType(item)
