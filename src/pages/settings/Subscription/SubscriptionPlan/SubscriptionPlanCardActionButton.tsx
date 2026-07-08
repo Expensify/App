@@ -1,22 +1,31 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
@@ -68,7 +77,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) ||
             isSubscriptionTypeOfInvoicing(privateSubscription?.type)
         ) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
             return;
         }
 
@@ -137,14 +146,22 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
 
     return (
-        <MenuItemWithTopDescription
-            description={translate('subscription.subscriptionSettings.title')}
-            style={style}
-            shouldShowRightIcon
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
-            numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
-        />
+        <View>
+            <MenuItemWithTopDescription
+                description={translate('subscription.subscriptionSettings.title')}
+                style={style}
+                interactive={false}
+                numberOfLinesTitle={3}
+                title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
+            />
+            <View style={[style, styles.mt2]}>
+                <Button
+                    text={translate('subscription.subscriptionSettings.editSubscription')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+                    style={styles.alignSelfStart}
+                />
+            </View>
+        </View>
     );
 }
 

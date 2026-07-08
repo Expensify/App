@@ -1,15 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CertiniaPrerequisitesStepProps = SubPageProps & {
     onConnect: () => void;
@@ -29,18 +33,28 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
         ? ('workspace.certinia.prerequisites.connectButton' as TranslationPaths)
         : (`workspace.certinia.prerequisites.${currentPageName}Confirm` as TranslationPaths);
 
-    const bundleInstallHref = CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION;
-
     let stepContent;
     if (currentPageName === pageNames.INSTALL_BUNDLE) {
         stepContent = (
             <View style={[styles.flex1, styles.mb3, styles.ph5]}>
-                <RenderHTML
-                    html={translate('workspace.certinia.prerequisites.installBundleDescription', {
-                        href: bundleInstallHref,
-                        version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
-                    })}
-                />
+                <View>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
+                    <Text style={styles.textNormal}>
+                        {translate('workspace.certinia.prerequisites.installBundleDescription')}{' '}
+                        <TextLink href={CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION}>
+                            {translate('workspace.certinia.prerequisites.installBundlePSALink', {version: CONST.CERTINIA_PSA_BUNDLE_VERSION})}
+                        </TextLink>
+                    </Text>
+                </View>
+                <View style={styles.mt5}>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
+                    <Text style={styles.textNormal}>
+                        {translate('workspace.certinia.prerequisites.installBundleDescription')}{' '}
+                        <TextLink href={CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION}>
+                            {translate('workspace.certinia.prerequisites.installBundleFFALink', {version: CONST.CERTINIA_FFA_BUNDLE_VERSION})}
+                        </TextLink>
+                    </Text>
+                </View>
             </View>
         );
     } else if (currentPageName === pageNames.SETUP_CONTACTS) {
@@ -69,9 +83,14 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
 
     return (
         <View style={styles.flex1}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
-            {stepContent}
-            <FixedFooter style={[styles.mtAuto]}>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
+                {stepContent}
+            </ScrollView>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     success
                     large

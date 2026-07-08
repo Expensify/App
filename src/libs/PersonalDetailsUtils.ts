@@ -1,7 +1,5 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
@@ -10,6 +8,12 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -199,7 +203,11 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+    if (!accountIDs) {
+        return [];
+    }
+
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
         const detail = getPersonalDetailsByID(accountID, personalDetails);
@@ -212,18 +220,20 @@ function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxE
     return result;
 }
 
-function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
-    return accountIDs.reduce((acc, accountID) => {
-        if (!accountID) {
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined> | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return (
+        accountIDs?.reduce((acc, accountID) => {
+            if (!accountID) {
+                return acc;
+            }
+            const detail = personalDetails?.[accountID];
+            if (!detail) {
+                return acc;
+            }
+            acc[accountID] = detail;
             return acc;
-        }
-        const detail = personalDetails?.[accountID];
-        if (!detail) {
-            return acc;
-        }
-        acc[accountID] = detail;
-        return acc;
-    }, {} as PersonalDetailsList);
+        }, {} as PersonalDetailsList) ?? {}
+    );
 }
 
 /**
@@ -253,6 +263,15 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
 }
 
 /**
+ * Returns the accountID for a login only when it exists in personal details.
+ * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
+ */
+function getKnownAccountIDByLogin(login: string | undefined): number | undefined {
+    const accountID = getPersonalDetailByEmail(login)?.accountID;
+    return accountID !== undefined ? Number(accountID) : undefined;
+}
+
+/**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
  * @param logins Array of user logins
@@ -279,27 +298,30 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): string[] {
-    return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentLogin = getLoginByAccountID(accountID);
-        if (currentLogin) {
-            foundLogins.push(currentLogin);
-        }
-        return foundLogins;
-    }, []);
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+    return (
+        accountIDs?.reduce((foundLogins: string[], accountID) => {
+            const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
+            if (currentLogin) {
+                foundLogins.push(currentLogin);
+            }
+            return foundLogins;
+        }, []) ?? []
+    );
 }
 
 /**
  * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
+function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[], personalDetailsList: OnyxEntry<PersonalDetailsList>) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
     for (const [index, login] of logins.entries()) {
         const accountID = accountIDs.at(index) ?? -1;
-        if (isEmptyObject(allPersonalDetails?.[accountID])) {
+        if (isEmptyObject(personalDetailsList?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
         }
@@ -546,19 +568,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 /**
- * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
- * This is useful when you need to look up personal details by accountID multiple times
- * to avoid O(n) .find() calls in loops.
- */
-function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
-    const map: Record<number, PersonalDetails> = {};
-    for (const detail of details) {
-        map[detail.accountID] = detail;
-    }
-    return map;
-}
-
-/**
  * Checks whether any personal details are missing
  */
 function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -570,6 +579,21 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0
     );
+}
+
+/**
+ * Checks whether the personal details required for Expensify Card flows (ship + reveal)
+ * are missing. Stricter than {@link arePersonalDetailsMissing}: also requires individual
+ * address sub-fields (street, city, zip, country) that the backend asserts on those
+ * commands. Without this, a user whose `addresses[0]` exists but has empty fields would
+ * skip the missing-details prompt and hit a backend error on submit.
+ */
+function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (arePersonalDetailsMissing(privatePersonalDetails)) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
 }
 
 /**
@@ -588,6 +612,7 @@ export {
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
+    getKnownAccountIDByLogin,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
@@ -605,7 +630,7 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,
 };

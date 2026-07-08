@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -10,20 +8,29 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
 import Navigation from '@navigation/Navigation';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+
 import {navigateToBankAccountRoute, prepareNewBankAccountSetup, requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ConnectedVerifiedBankAccountProps = {
     /** Bank account currently in setup */
@@ -61,7 +68,6 @@ function ConnectedVerifiedBankAccount({
     const bankAccountOwnerName = reimbursementAccount?.achData?.addressName;
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
-    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['Bank', 'Close']);
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -82,6 +88,13 @@ function ConnectedVerifiedBankAccount({
         prepareNewBankAccountSetup(currency);
         navigateToBankAccountRoute({});
     };
+
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace,
+        setShouldShowConnectedVerifiedBankAccount,
+        setUSDBankAccountStep,
+    });
 
     return (
         <ScreenWrapper
@@ -136,14 +149,6 @@ function ConnectedVerifiedBankAccount({
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
-            {shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={isNonUSDWorkspace}
-                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                />
-            )}
         </ScreenWrapper>
     );
 }
