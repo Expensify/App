@@ -178,7 +178,7 @@ function ForYouSection() {
         </View>
     );
 
-    const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
+    const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
 
     // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
