@@ -223,21 +223,25 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         getPaymentMethods();
     }, [route.params.policyID]);
 
+    const showNotAllowedToAddBankAccountModal = useCallback(() => {
+        if (!policy) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('supportalNoAccess.title'),
+            prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount', {currencyCode: policy.outputCurrency}),
+            confirmText: translate('common.ok'),
+            shouldShowCancelButton: false,
+        });
+    }, [policy, showConfirmModal, translate]);
+
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
             return;
         }
-        if (!isPolicyAdmin(policy, currentUserLogin)) {
-            showConfirmModal({
-                title: translate('workspace.bankAccount.notAllowedToAddBankAccountTitle'),
-                prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount', {currencyCode: policy.outputCurrency}),
-                confirmText: translate('common.ok'),
-                shouldShowCancelButton: false,
-            });
-            return;
-        }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
-    }, [currentUserLogin, policy, showConfirmModal, translate]);
+    }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -762,6 +766,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                       return;
                                                   }
                                                   if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                                                      if (!isPolicyAdmin(policy, currentUserLogin)) {
+                                                          showNotAllowedToAddBankAccountModal();
+                                                          return;
+                                                      }
                                                       showConfirmModal({
                                                           title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
                                                           prompt: updateWorkspaceCurrencyPrompt,

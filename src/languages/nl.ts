@@ -6918,7 +6918,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             updateToUSD: 'Bijwerken naar USD',
             updateWorkspaceCurrency: 'Werkruimtevaluta bijwerken',
             workspaceCurrencyNotSupported: 'Werkruimtevaluta wordt niet ondersteund',
-            notAllowedToAddBankAccountTitle: 'Niet zo snel',
             notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
                 `Alleen ${currencyCode}-bankrekeningen kunnen worden toegevoegd. Neem contact op met een werkruimtebeheerder om je rechten aan te passen.`,
             yourWorkspace: `Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,

@@ -6864,7 +6864,6 @@ ${amount} para ${merchant} - ${date}`,
             updateToUSD: 'Actualizar a USD',
             updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
-            notAllowedToAddBankAccountTitle: 'No tan rápido',
             notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
                 `Solo se pueden agregar cuentas bancarias en ${currencyCode}. Ponte en contacto con un administrador del espacio de trabajo para ajustar tus permisos.`,
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,

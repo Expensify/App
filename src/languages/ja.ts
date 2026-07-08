@@ -6854,7 +6854,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateToUSD: 'USD に更新',
             updateWorkspaceCurrency: 'ワークスペースの通貨を更新',
             workspaceCurrencyNotSupported: 'ワークスペースの通貨はサポートされていません',
-            notAllowedToAddBankAccountTitle: 'ちょっと待ってください',
             notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
                 `追加できるのは${currencyCode}の銀行口座のみです。権限を調整するには、ワークスペース管理者にお問い合わせください。`,
             yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,

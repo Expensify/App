@@ -6910,7 +6910,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             updateToUSD: 'Atualizar para USD',
             updateWorkspaceCurrency: 'Atualizar moeda do espaço de trabalho',
             workspaceCurrencyNotSupported: 'Moeda do workspace não suportada',
-            notAllowedToAddBankAccountTitle: 'Não tão rápido',
             notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
                 `Somente contas bancárias em ${currencyCode} podem ser adicionadas. Entre em contato com um administrador do workspace para ajustar suas permissões.`,
             yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de moedas compatíveis</a>.`,

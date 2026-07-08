@@ -6901,7 +6901,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             updateToUSD: 'Zaktualizuj na USD',
             updateWorkspaceCurrency: 'Zaktualizuj walutę przestrzeni roboczej',
             workspaceCurrencyNotSupported: 'Waluta przestrzeni roboczej nie jest obsługiwana',
-            notAllowedToAddBankAccountTitle: 'Nie tak szybko',
             notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
                 `Można dodać tylko konta bankowe w walucie ${currencyCode}. Skontaktuj się z administratorem obszaru roboczego, aby dostosować swoje uprawnienia.`,
             yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">listę obsługiwanych walut</a>.`,

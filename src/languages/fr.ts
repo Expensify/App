@@ -6978,7 +6978,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             updateToUSD: 'Mettre à jour en USD',
             updateWorkspaceCurrency: 'Mettre à jour la devise de l’espace de travail',
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
-            notAllowedToAddBankAccountTitle: 'Pas si vite',
             notAllowedToAddBankAccount: ({currencyCode}: {currencyCode: string}) =>
                 `Seuls les comptes bancaires en ${currencyCode} peuvent être ajoutés. Veuillez contacter un administrateur de l’espace de travail pour ajuster vos autorisations.`,
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
