@@ -13,8 +13,8 @@ import type {SearchQueryJSON} from './types';
 
 import useChatSections from './hooks/useChatSections';
 import useExpenseReportSections from './hooks/useExpenseReportSections';
+import useGroupedTransactionSections from './hooks/useGroupedTransactionSections';
 import useSearchShell from './hooks/useSearchShell';
-import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useTaskSections from './hooks/useTaskSections';
 import useTransactionSections from './hooks/useTransactionSections';
 
@@ -106,23 +106,14 @@ function TaskSectionsProvider({queryJSON, searchResults, newSearchResultKeys, tr
 }
 
 /**
- * Section provider for every not-yet-scoped search type. Keeps the legacy monolithic `useSearchSnapshot`
- * (which subscribes to the union of every type's data) until each type gets its own scoped leaf.
+ * Section provider for the grouped transaction views (`type` of expense/invoice/trip WITH a valid group-by).
+ * Owns the heavy grouped slice of Onyx + the per-group sub-snapshot enrichment (via the scoped shell + leaf),
+ * so every other search type mounts a different provider and never opens these subscriptions.
  */
-function LegacySectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
-    const snapshot = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
-    const value: SearchSectionsContextValue = {
-        data: snapshot.data,
-        chartData: snapshot.chartData,
-        filteredData: snapshot.filteredData,
-        filteredDataLength: snapshot.filteredDataLength,
-        allDataLength: snapshot.allDataLength,
-        hasDeletedTransaction: snapshot.hasDeletedTransaction,
-        columns: snapshot.columns,
-        hasLoadedAllTransactions: snapshot.hasLoadedAllTransactions,
-        hasCachedOptimisticItem: snapshot.hasCachedOptimisticItem,
-        ...pickTrackingCarriers(snapshot),
-    };
+function GroupedTransactionSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
+    const sections = useGroupedTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys});
+    const value: SearchSectionsContextValue = {...sections, ...pickTrackingCarriers(shell)};
     return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
 }
 
@@ -131,22 +122,19 @@ function LegacySectionsProvider({queryJSON, searchResults, newSearchResultKeys, 
  * a conditional hook), so only the active provider's subscriptions are ever live — the whole point of the
  * scoping effort.
  */
-// The flat transaction types (expense/invoice/trip) all route through `getTransactionsSections` and share
-// the same sort/columns path, so a single scoped provider handles them — but only when NOT grouped. Grouped
-// views still need the monolith's per-group sub-snapshot enrichment, so they stay on the legacy provider.
-const FLAT_TRANSACTION_TYPES = new Set<SearchQueryJSON['type']>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP]);
-const isFlatTransactionSearch = (queryJSON: Readonly<SearchQueryJSON>) => FLAT_TRANSACTION_TYPES.has(queryJSON.type) && !getValidGroupBy(queryJSON.groupBy);
-
+// Mirrors the dispatch order of `getSections`: chat/task/expense-report short-circuit on type (their groupBy
+// is ignored), then a valid group-by selects the grouped provider, and everything else falls through to the
+// flat transaction provider (`getTransactionsSections`) — the same fall-through default `getSections` uses.
 function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
-    let Provider = LegacySectionsProvider;
+    let Provider = TransactionSectionsProvider;
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         Provider = ExpenseReportSectionsProvider;
     } else if (queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         Provider = ChatSectionsProvider;
     } else if (queryJSON.type === CONST.SEARCH.DATA_TYPES.TASK) {
         Provider = TaskSectionsProvider;
-    } else if (isFlatTransactionSearch(queryJSON)) {
-        Provider = TransactionSectionsProvider;
+    } else if (getValidGroupBy(queryJSON.groupBy)) {
+        Provider = GroupedTransactionSectionsProvider;
     }
     return (
         <Provider

@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useSearchSnapshot from '@components/Search/hooks/useSearchSnapshot';
+import useGroupedTransactionSections from '@components/Search/hooks/useGroupedTransactionSections';
+import type {SearchShell} from '@components/Search/hooks/useSearchShell';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
@@ -79,7 +80,6 @@ const mockGetSections = jest.fn();
 const mockGetSortedSections = jest.fn();
 const mockGetColumnsToShow = jest.fn();
 const mockGetValidGroupBy = jest.fn();
-const mockIsSearchDataLoaded = jest.fn();
 jest.mock('@libs/SearchUIUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getSections: (...args: unknown[]) => mockGetSections(...args),
@@ -89,19 +89,11 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getColumnsToShow: (...args: unknown[]) => mockGetColumnsToShow(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getValidGroupBy: (...args: unknown[]) => mockGetValidGroupBy(...args),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
 }));
 
-// The optimistic-tracking hooks are mocked so this suite exercises the hook's WIRING (correct inputs in,
-// their outputs forwarded). Their own logic is covered by their dedicated hook tests + getSections tests.
-const mockUseOptimisticSearchTracking = jest.fn();
+// The optimistic re-injection hook is mocked so this suite exercises the leaf's WIRING (correct inputs in,
+// their outputs forwarded). Its own logic is covered by its dedicated hook test.
 const mockUseStableOptimisticSortedData = jest.fn();
-jest.mock('@components/Search/hooks/useOptimisticSearchTracking', () => ({
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    default: (...args: unknown[]) => mockUseOptimisticSearchTracking(...args),
-}));
 jest.mock('@components/Search/hooks/useStableOptimisticSortedData', () => ({
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -136,21 +128,28 @@ function makeSearchResults(overrides: Partial<SearchResults['search']> = {}): Se
     } as unknown as SearchResults;
 }
 
-// Default optimistic-tracking return: no pending write, snapshot data passed through unchanged.
-function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimisticWatchKey?: string, shouldDeferHeavySearchWork = false) {
+// Builds the type-agnostic `shell` the grouped leaf consumes. In production this comes from useSearchShell;
+// here we hand it the pieces the leaf reads directly so the suite stays focused on the leaf's projection.
+function makeShell(
+    searchDataWithOptimisticTransaction: unknown,
+    {shouldComputeSections = true, optimisticWatchKey, optimisticTransactionID}: {shouldComputeSections?: boolean; optimisticWatchKey?: string; optimisticTransactionID?: string} = {},
+): SearchShell {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {
+        shouldComputeSections,
         searchDataWithOptimisticTransaction,
         trackingState: {optimisticWatchKey},
+        optimisticTransactionID,
         showPendingExpensePlaceholder: false,
-        shouldDeferHeavySearchWork,
+        shouldDeferHeavySearchWork: false,
         setShouldDeferHeavySearchWork: jest.fn(),
         hasPendingWriteOnMountRef: {current: {hasPendingWriteOnMount: false}},
         skipDeferralOnFocusRef: {current: false},
         rearmTracking: jest.fn(),
-    };
+    } as unknown as SearchShell;
 }
 
-describe('useSearchSnapshot', () => {
+describe('useGroupedTransactionSections', () => {
     beforeEach(() => {
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
@@ -160,8 +159,6 @@ describe('useSearchSnapshot', () => {
         mockGetSortedSections.mockReset().mockReturnValue([]);
         mockGetColumnsToShow.mockReset().mockReturnValue([]);
         mockGetValidGroupBy.mockReset().mockImplementation((groupBy: unknown) => groupBy);
-        mockIsSearchDataLoaded.mockReset().mockReturnValue(true);
-        mockUseOptimisticSearchTracking.mockReset().mockReturnValue(trackingReturn(undefined));
         mockUseStableOptimisticSortedData.mockReset().mockImplementation((sortedData: unknown) => ({
             stableSortedData: sortedData,
             hasCachedOptimisticItem: false,
@@ -170,19 +167,17 @@ describe('useSearchSnapshot', () => {
 
     it('projects sorted data + columns + meta from the snapshot', () => {
         const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         const sorted = [{transactionID: '1', keyForList: '1'}];
         mockGetSections.mockReturnValue([[{transactionID: '1'}], 1, false]);
         mockGetSortedSections.mockReturnValue(sorted);
         mockGetColumnsToShow.mockReturnValue(['merchant']);
 
         const {result} = renderHook(() =>
-            useSearchSnapshot({
+            useGroupedTransactionSections({
+                shell: makeShell(searchResults.data),
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
             }),
         );
 
@@ -193,8 +188,6 @@ describe('useSearchSnapshot', () => {
         // data is the stabilized passthrough of the (highlight-stamped) chartData in this mock setup.
         expect(result.current.data).toBe(result.current.chartData);
         expect(result.current.columns).toEqual(['merchant']);
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.hasMore).toBe(false);
         expect(result.current.hasLoadedAllTransactions).toBe(true);
         expect(result.current.allDataLength).toBe(1);
         expect(result.current.hasDeletedTransaction).toBe(false);
@@ -203,12 +196,11 @@ describe('useSearchSnapshot', () => {
     it('returns empty data and skips getSections when there is no augmented snapshot', () => {
         // searchDataWithOptimisticTransaction undefined (no snapshot / deep-link before search ran).
         const {result} = renderHook(() =>
-            useSearchSnapshot({
+            useGroupedTransactionSections({
+                shell: makeShell(undefined),
                 queryJSON: makeQueryJSON(),
                 searchResults: undefined,
                 newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
             }),
         );
 
@@ -217,88 +209,21 @@ describe('useSearchSnapshot', () => {
         expect(result.current.filteredDataLength).toBe(0);
     });
 
-    it('skips getSections while heavy work is deferred (defer gating)', () => {
+    it('skips getSections when the shell gate is closed', () => {
+        // The gate (defer / not-yet-loaded / invalid group-by-on-chat) is owned by useSearchShell; the leaf
+        // only honors the resulting boolean.
         const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data, undefined, true));
-
         const {result} = renderHook(() =>
-            useSearchSnapshot({
+            useGroupedTransactionSections({
+                shell: makeShell(searchResults.data, {shouldComputeSections: false}),
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
             }),
         );
 
         expect(mockGetSections).not.toHaveBeenCalled();
         expect(result.current.data).toEqual([]);
-        expect(result.current.shouldDeferHeavySearchWork).toBe(true);
-    });
-
-    it('skips getSections until the snapshot is data-loaded (race guard)', () => {
-        const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        mockIsSearchDataLoaded.mockReturnValue(false);
-
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON(),
-                searchResults,
-                newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
-            }),
-        );
-
-        expect(mockGetSections).not.toHaveBeenCalled();
-        expect(result.current.data).toEqual([]);
-    });
-
-    it('skips getSections for the invalid group-by-on-chat combo', () => {
-        const searchResults = makeSearchResults({
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-        });
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON({
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                }),
-                searchResults,
-                newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
-            }),
-        );
-
-        expect(mockGetSections).not.toHaveBeenCalled();
-        expect(result.current.data).toEqual([]);
-    });
-
-    it('derives meta from the snapshot search block', () => {
-        const searchResults = makeSearchResults({
-            isLoading: true,
-            hasMoreResults: true,
-        });
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON(),
-                searchResults,
-                newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
-            }),
-        );
-
-        expect(result.current.isLoading).toBe(true);
-        expect(result.current.hasMore).toBe(true);
-        // Flat (no group-by) is always considered fully loaded.
-        expect(result.current.hasLoadedAllTransactions).toBe(true);
     });
 
     it('feeds the optimistic-augmented data and watch key into getSections', () => {
@@ -308,15 +233,13 @@ describe('useSearchSnapshot', () => {
             },
         };
         const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(augmented, `${ONYXKEYS.COLLECTION.TRANSACTION}999`));
 
         renderHook(() =>
-            useSearchSnapshot({
+            useGroupedTransactionSections({
+                shell: makeShell(augmented, {optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}999`, optimisticTransactionID: '999'}),
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
             }),
         );
 
@@ -330,7 +253,6 @@ describe('useSearchSnapshot', () => {
 
     it('returns the stabilized data, not the raw sorted data', () => {
         const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         mockGetSortedSections.mockReturnValue([{keyForList: 'sorted'}]);
         const stabilized = [{keyForList: 'sorted'}, {keyForList: 'optimistic-extra'}];
         mockUseStableOptimisticSortedData.mockReturnValue({
@@ -339,12 +261,11 @@ describe('useSearchSnapshot', () => {
         });
 
         const {result} = renderHook(() =>
-            useSearchSnapshot({
+            useGroupedTransactionSections({
+                shell: makeShell(searchResults.data),
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
-                transactions: undefined,
-                reportActions: undefined,
             }),
         );
 
@@ -354,42 +275,32 @@ describe('useSearchSnapshot', () => {
 
     it('stamps the post-create highlight on matching rows (newSearchResultKeys)', () => {
         const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         mockGetSortedSections.mockReturnValue([{transactionID: '7', keyForList: '7'}]);
 
         const {result} = renderHook(() =>
-            useSearchSnapshot({
+            useGroupedTransactionSections({
+                shell: makeShell(searchResults.data),
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}7`]),
-                transactions: undefined,
-                reportActions: undefined,
             }),
         );
 
         expect(result.current.chartData.at(0)).toEqual(expect.objectContaining({shouldAnimateInHighlight: true}));
     });
 
-    it('passes the query type through to getSortedSections for each variant shape', () => {
-        const variants = [
-            CONST.SEARCH.DATA_TYPES.CHAT,
-            CONST.SEARCH.DATA_TYPES.TASK,
-            CONST.SEARCH.DATA_TYPES.EXPENSE,
-            CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            CONST.SEARCH.DATA_TYPES.INVOICE,
-        ];
+    it('passes the query type through to getSortedSections for each transaction variant', () => {
+        const variants = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP];
         for (const type of variants) {
             const searchResults = makeSearchResults({type});
-            mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
             mockGetSortedSections.mockClear();
 
             renderHook(() =>
-                useSearchSnapshot({
+                useGroupedTransactionSections({
+                    shell: makeShell(searchResults.data),
                     queryJSON: makeQueryJSON({type}),
                     searchResults,
                     newSearchResultKeys: undefined,
-                    transactions: undefined,
-                    reportActions: undefined,
                 }),
             );
 
@@ -407,20 +318,18 @@ describe('useSearchSnapshot', () => {
         // useStableOptimisticSortedData's setState effect into an infinite loop on the optimistic-create
         // path. The stages must be memoized so the reference only changes when inputs change.
         const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         mockGetSections.mockReturnValue([[{transactionID: '1'}], 1, false]);
         mockGetSortedSections.mockReturnValue([{transactionID: '1', keyForList: '1'}]);
 
         // Stable props captured from closure so the re-render below passes identical inputs.
         const props = {
+            shell: makeShell(searchResults.data),
             queryJSON: makeQueryJSON(),
             searchResults,
             newSearchResultKeys: undefined,
-            transactions: undefined,
-            reportActions: undefined,
         };
 
-        const {result, rerender} = renderHook(() => useSearchSnapshot(props));
+        const {result, rerender} = renderHook(() => useGroupedTransactionSections(props));
 
         const firstChartData = result.current.chartData;
         const firstData = result.current.data;

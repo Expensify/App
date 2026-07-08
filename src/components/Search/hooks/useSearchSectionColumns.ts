@@ -1,5 +1,5 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -19,13 +19,14 @@ const EMPTY_COLUMNS: SearchColumnType[] = [];
  * Columns to render for a scoped Search section view.
  *
  * This computation is identical across every per-type section leaf (expense-report, transaction, chat,
- * task), so it lives here once. It owns the small slice it needs — visible columns and the moving-expenses
- * policy id — and reads account/query/live-data from context.
+ * task, grouped-transaction), so it lives here once. It owns the small slice it needs — visible columns and
+ * the moving-expenses policy id — and reads account/query/live-data from context. The grouped-transaction
+ * leaf passes its `groupBy`; the non-grouped leaves omit it (defaults to undefined, identical to before).
  *
  * Not memoized: the returned array is stabilized downstream by `columnsToShow` in <Search> (which preserves
  * the previous reference when contents are equal), so a fresh array per render is fine.
  */
-function useSearchSectionColumns(queryJSON: Readonly<SearchQueryJSON>, searchResults: SearchResults | undefined): SearchColumnType[] {
+function useSearchSectionColumns(queryJSON: Readonly<SearchQueryJSON>, searchResults: SearchResults | undefined, groupBy?: SearchGroupBy): SearchColumnType[] {
     const {accountID} = useCurrentUserPersonalDetails();
     const {currentSearchKey} = useSearchQueryContext();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -41,6 +42,7 @@ function useSearchSectionColumns(queryJSON: Readonly<SearchQueryJSON>, searchRes
         data: searchResults.data,
         visibleColumns,
         type: searchDataType,
+        groupBy,
         shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
         fallbackPolicyID: policyForMovingExpensesID,
     });
