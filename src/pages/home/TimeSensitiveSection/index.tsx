@@ -1,11 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -13,14 +7,27 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {getConnectedHRProvider} from '@libs/HRUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
@@ -32,6 +39,7 @@ import ActivateCard from './items/ActivateCard';
 import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
+import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
 import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
@@ -76,7 +84,16 @@ function TimeSensitiveSection() {
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
-    const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
+    const {
+        shouldShowAddShippingAddress,
+        shouldShowActivateCard,
+        shouldShowReviewCardFraud,
+        shouldShowAddVirtualCardPersonalDetails,
+        cardsNeedingShippingAddress,
+        cardsNeedingActivation,
+        cardsWithFraud,
+        virtualCardsNeedingPersonalDetails,
+    } = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
@@ -158,7 +175,8 @@ function TimeSensitiveSection() {
         hasBrokenPersonalCards ||
         hasBrokenPolicyConnections ||
         shouldShowAddShippingAddress ||
-        shouldShowActivateCard;
+        shouldShowActivateCard ||
+        shouldShowAddVirtualCardPersonalDetails;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
@@ -176,6 +194,7 @@ function TimeSensitiveSection() {
     // 9. Broken policy connections (accounting + HR)
     // 10. Expensify card shipping
     // 11. Expensify card activation
+    // 12. Virtual Expensify card needs personal details
     const items: React.ReactNode[] = [];
 
     // Priority 1: Validate account
@@ -286,6 +305,17 @@ function TimeSensitiveSection() {
             items.push(
                 <ActivateCard
                     key={`activate-${card.cardID}`}
+                    card={card}
+                />,
+            );
+        }
+    }
+    // Priority 11: Virtual Expensify card needs personal details before reveal
+    if (shouldShowAddVirtualCardPersonalDetails) {
+        for (const card of virtualCardsNeedingPersonalDetails) {
+            items.push(
+                <AddVirtualCardPersonalDetails
+                    key={`virtual-card-details-${card.cardID}`}
                     card={card}
                 />,
             );

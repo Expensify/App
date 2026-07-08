@@ -1,8 +1,10 @@
-import {FlashList as ShopifyFlashList} from '@shopify/flash-list';
-import type {FlashListProps} from '@shopify/flash-list';
-import React from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
+
+import type {FlashListProps} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+import {FlashList as ShopifyFlashList} from '@shopify/flash-list';
+import React from 'react';
 
 function FlashList<T>({onScroll: onScrollProp, inverted, ...restProps}: FlashListProps<T>) {
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted});

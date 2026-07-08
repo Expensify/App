@@ -15,6 +15,7 @@ const defaultMockPaymentContextValue = {
     userBillingGracePeriodEnds: undefined,
     amountOwed: undefined,
     ownerBillingGracePeriodEnd: undefined,
+    delegateEmail: undefined,
 };
 
 function createMockUsePaymentContextModule(overrides: MockPaymentContextOverrides = {}) {
