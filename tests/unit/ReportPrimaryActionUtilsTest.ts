@@ -653,7 +653,7 @@ describe('getPrimaryAction', () => {
             isWaitingOnBankAccount: false,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.CORPORATE,
             role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
@@ -668,7 +668,7 @@ describe('getPrimaryAction', () => {
                     role: CONST.POLICY.ROLE.ADMIN,
                 },
             },
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -683,7 +683,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
