@@ -120,6 +120,10 @@ function TroubleshootPage() {
     const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
     const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
+        if (shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP)) {
+            return null;
+        }
+
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
             icon: icons.ExpensifyLogoNew,
