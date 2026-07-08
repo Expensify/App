@@ -178,6 +178,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                conciergeReportID: undefined,
             });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
@@ -232,6 +233,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);
@@ -2288,7 +2290,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2589,7 +2591,7 @@ describe('actions/IOU/TrackExpense', () => {
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 

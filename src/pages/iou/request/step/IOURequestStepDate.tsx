@@ -136,6 +136,7 @@ function IOURequestStepDate({
                 isOffline,
                 delegateAccountID,
                 distanceOriginalPolicy,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));

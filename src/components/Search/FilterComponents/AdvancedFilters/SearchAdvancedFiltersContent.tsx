@@ -1,4 +1,4 @@
-import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
+import {isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -42,14 +42,7 @@ function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filter
 function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
 
-    if (
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
-    ) {
+    if (isTextFilterKey(filterKey)) {
         return (
             <TextFilter
                 key={filterKey}
