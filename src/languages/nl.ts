@@ -1076,6 +1076,9 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            customizeSpendCategories: 'Uitgaven­categorieën aanpassen',
+            createExpense: 'Maak een uitgave',
+            linkPersonalCard: 'Koppel persoonlijke kaart',
         },
         yourSpend: {
             title: 'Je uitgaven',

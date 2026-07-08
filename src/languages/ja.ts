@@ -1060,6 +1060,9 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            customizeSpendCategories: '支出カテゴリをカスタマイズする',
+            createExpense: '経費を作成',
+            linkPersonalCard: '個人カードをリンクする',
         },
         yourSpend: {
             title: 'あなたの支出',

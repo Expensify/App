@@ -1030,6 +1030,9 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            customizeSpendCategories: 'Personaliza las categorías de gasto',
+            createExpense: 'Crear un gasto',
+            linkPersonalCard: 'Vincular tarjeta personal',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {

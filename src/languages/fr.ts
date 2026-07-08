@@ -1080,6 +1080,9 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+            customizeSpendCategories: 'Personnaliser les catégories de dépenses',
+            createExpense: 'Créer une dépense',
+            linkPersonalCard: 'Lier une carte personnelle',
         },
         yourSpend: {
             title: 'Vos dépenses',
