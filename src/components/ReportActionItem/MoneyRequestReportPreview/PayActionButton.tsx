@@ -13,6 +13,7 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -31,15 +32,12 @@ import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
+import type {Transaction} from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 
@@ -81,14 +79,7 @@ function PayActionButton() {
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 
-    // Subscribe only to the violations of this report's transactions instead of the whole collection,
-    // so a violation change in an unrelated report does not re-render this button.
-    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
-    const selectTransactionViolations = useCallback(
-        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
-        [transactionIDs],
-    );
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
+    const [transactionViolations] = useReportTransactionViolations(transactions);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);

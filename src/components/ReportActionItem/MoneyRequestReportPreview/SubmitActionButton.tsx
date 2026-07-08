@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -20,14 +21,11 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
+import type {Transaction} from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
 
@@ -79,14 +77,7 @@ function SubmitActionButtonContent() {
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 
-    // Subscribe only to the violations of this report's transactions instead of the whole collection,
-    // so a violation change in an unrelated report does not re-render this button.
-    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
-    const selectTransactionViolations = useCallback(
-        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
-        [transactionIDs],
-    );
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
+    const [transactionViolations] = useReportTransactionViolations(transactions);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
