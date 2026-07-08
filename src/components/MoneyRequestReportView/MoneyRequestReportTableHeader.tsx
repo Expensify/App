@@ -16,6 +16,7 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
+    postedColumnSize: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
@@ -27,6 +28,7 @@ function MoneyRequestReportTableHeader({
     sortOrder,
     onSortPress,
     dateColumnSize,
+    postedColumnSize,
     shouldShowSorting,
     columns,
     amountColumnSize,
@@ -86,6 +88,7 @@ function MoneyRequestReportTableHeader({
                 columns={orderedColumnConfig}
                 shouldShowColumn={shouldShowColumn}
                 dateColumnSize={dateColumnSize}
+                postedColumnSize={postedColumnSize}
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}
                 shouldShowSorting={shouldShowSorting}
