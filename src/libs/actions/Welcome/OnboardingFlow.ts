@@ -141,7 +141,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
     if (isUserFromPublicDomain && isAccountValidated && initialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
         if (isVsb) {
-            return `/${ROUTES.ONBOARDING_INTERESTED_FEATURES.route}`;
+            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }
         if (isSmb) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
@@ -157,7 +157,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isVsb) {
-        return `/${ROUTES.ONBOARDING_INTERESTED_FEATURES.route}`;
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     if (isSmb) {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;

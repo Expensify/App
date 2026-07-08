@@ -52,12 +52,10 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading} = useCompleteOnboarding();
-    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     const features: Feature[] = useMemo(() => {
         return ONBOARDING_FEATURES.map((feature) => {
@@ -248,7 +246,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isVsb}
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}

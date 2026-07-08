@@ -440,7 +440,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding interested features page when skip is pressed and user is routed app via vsb', async () => {
+    it('should navigate to Onboarding employees page when skip is pressed and user is routed app via vsb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -457,14 +457,14 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(screen.getByTestId('onboardingPrivateEmailSkipButton'));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
         });
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate VSB users to Onboarding interested features page when merge is blocked and Got it is pressed', async () => {
+    it('should navigate VSB users to Onboarding employees page when merge is blocked and Got it is pressed', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -494,7 +494,7 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(gotItButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
         });
 
         unmount();
@@ -852,7 +852,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding interested features page when validate code step is successful and user is routed app via vsb', async () => {
+    it('should navigate to Onboarding employees page when validate code step is successful and user is routed app via vsb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -875,7 +875,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -937,7 +937,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate VSB users to Onboarding interested features page from validation when merge is blocked and Got it is pressed', async () => {
+    it('should navigate VSB users to Onboarding employees page from validation when merge is blocked and Got it is pressed', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -968,7 +968,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         fireEvent.press(gotItButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
         });
 
         unmount();
@@ -1043,7 +1043,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should redirect a public-domain VSB user away to the interested features step', async () => {
+    it('should redirect a public-domain VSB user away to the employees step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -1059,7 +1059,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
         });
 
         unmount();
