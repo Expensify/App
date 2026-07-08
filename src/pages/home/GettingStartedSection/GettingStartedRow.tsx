@@ -36,9 +36,6 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
             item.onPress();
             return;
         }
-        if (!item.isFeatureEnabled) {
-            item.enableFeature?.();
-        }
         const {route} = item;
         if (!route) {
             return;
