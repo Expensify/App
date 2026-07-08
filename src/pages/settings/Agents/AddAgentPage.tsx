@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {navigateToReport} from '@libs/actions/Report';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
@@ -46,7 +47,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
-    const {displayName} = useCurrentUserPersonalDetails();
+    const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -97,16 +98,14 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
-        // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
-        // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
-        // screen and let it render the agent with opacity until CREATE_AGENT resolves.
-        if (pendingFile) {
-            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
-        } else {
-            createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
-        }
+        // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
+        // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
+        // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
+        const {optimisticReportID} = pendingFile
+            ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, pendingFile.file, pendingFile.uri, policyID)
+            : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        Navigation.goBack();
+        navigateToReport(optimisticReportID, {shouldDismissModal: true});
     };
 
     return (

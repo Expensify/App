@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
+import {navigateToReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -9,14 +10,24 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
 
+import {createAgent} from '@userActions/Agent';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
-    createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),
+    createAgent: jest.fn(),
 }));
+
+const mockCreateAgent = jest.mocked(createAgent);
+
+jest.mock('@libs/actions/Report', () => ({
+    navigateToReport: jest.fn(),
+}));
+
+const mockNavigateToReport = jest.mocked(navigateToReport);
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
 
@@ -42,8 +53,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: jest.fn(() => ({AiBot: 1})),
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 1})),
 }));
-
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -114,7 +123,6 @@ jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
 const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
 const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
-const mockGoBack = jest.mocked(Navigation.goBack);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -123,10 +131,15 @@ function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp 
     return {name: '', key: '', params} as unknown as AddAgentRouteProp;
 }
 
+const OWNER_ACCOUNT_ID = 999;
+const OWNER_LOGIN = 'owner@test.com';
+const OPTIMISTIC_REPORT_ID = '4567890123456789';
+
 describe('AddAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
+        mockCreateAgent.mockReturnValue({optimisticAccountID: -123456, avatarURI: undefined, optimisticReportID: OPTIMISTIC_REPORT_ID});
         mockAvatarOnPress = undefined;
     });
 
@@ -142,7 +155,7 @@ describe('AddAgentPage', () => {
     });
 
     it('translates default agent name using current user displayName', () => {
-        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0, displayName: 'Nicolas'});
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN, displayName: 'Nicolas'});
 
         render(
             <AddAgentPage
@@ -155,7 +168,7 @@ describe('AddAgentPage', () => {
     });
 
     it('sets default agent name as InputWrapper defaultValue when displayName exists', () => {
-        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0, displayName: 'Nicolas'});
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN, displayName: 'Nicolas'});
 
         const {toJSON} = render(
             <AddAgentPage
@@ -168,8 +181,6 @@ describe('AddAgentPage', () => {
     });
 
     it('sets no default agent name when displayName is absent', () => {
-        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
-
         const {toJSON} = render(
             <AddAgentPage
                 route={makeRoute()}
@@ -235,7 +246,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit = undefined;
         });
 
-        it('goes back when policyID is absent in route params', () => {
+        it('creates the agent with the owner accountID and login, then navigates to the optimistic DM report and dismisses the modal', () => {
             render(
                 <AddAgentPage
                     route={makeRoute({})}
@@ -245,11 +256,12 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).not.toHaveBeenCalled();
+            // The 5th arg (selected preset avatar ID) is randomized on mount, so only assert the args that matter here.
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, expect.anything(), undefined, undefined, undefined);
+            expect(mockNavigateToReport).toHaveBeenCalledWith(OPTIMISTIC_REPORT_ID, {shouldDismissModal: true});
         });
 
-        it('goes back when policyID is present without navigating to a workflow editor', () => {
+        it('forwards policyID from route params to createAgent', () => {
             render(
                 <AddAgentPage
                     route={makeRoute({policyID: 'POL_42'})}
@@ -259,8 +271,8 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).not.toHaveBeenCalled();
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, expect.anything(), undefined, undefined, 'POL_42');
+            expect(mockNavigateToReport).toHaveBeenCalledWith(OPTIMISTIC_REPORT_ID, {shouldDismissModal: true});
         });
     });
 });

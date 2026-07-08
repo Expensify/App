@@ -8014,6 +8014,7 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndCreateGroupChat,
+    navigateToReport,
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
