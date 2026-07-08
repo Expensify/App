@@ -29,7 +29,7 @@ function SearchRouterModal() {
             return;
         }
 
-        const subscription = Dimensions.addEventListener('change', closeSearchRouter);
+        const subscription = Dimensions.addEventListener('change', () => closeSearchRouter());
 
         return () => {
             subscription.remove();

@@ -8,8 +8,7 @@ function SearchRouterPage() {
     const {closeSearchRouter} = useSearchRouterActions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const closeSearchRouterAndRunAction = (afterClose?: () => void) => {
-        closeSearchRouter();
-        afterClose?.();
+        closeSearchRouter(afterClose);
     };
 
     return (

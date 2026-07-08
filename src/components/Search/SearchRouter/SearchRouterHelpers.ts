@@ -62,8 +62,9 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
     const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
+    // Allow "hr" as a short query since it's a common workspace feature search term
     const isAllowedShortQuery = /^hr$/i.test(matchQuery);
-    if (trimmedQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly && !isAllowedShortQuery) {
+    if (matchQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly && !isAllowedShortQuery) {
         return [];
     }
 
