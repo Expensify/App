@@ -797,20 +797,19 @@ function deleteSavedSearch(hash: number) {
 }
 
 // Each "Edit filters" click requests ONE open of the filters UI. Consumed exactly once (read-and-clear), so nothing
-// can replay it on remounts, browser back or stale Onyx emissions; the TTL discards a request that never became openable.
-let pendingOpenEditFiltersAt: number | undefined;
-const PENDING_OPEN_EDIT_FILTERS_TTL_MS = 10000;
+// can replay it on remounts, browser back or stale Onyx emissions.
+let hasPendingOpenEditFilters = false;
 
 /** Read-and-clear the pending "Edit filters" open request. Returns true exactly once per click. */
 function consumePendingOpenEditFilters(): boolean {
-    const isFresh = pendingOpenEditFiltersAt !== undefined && Date.now() - pendingOpenEditFiltersAt <= PENDING_OPEN_EDIT_FILTERS_TTL_MS;
-    pendingOpenEditFiltersAt = undefined;
-    return isFresh;
+    const hasPending = hasPendingOpenEditFilters;
+    hasPendingOpenEditFilters = false;
+    return hasPending;
 }
 
 /** Enters "Edit filters" mode: flags the view as being edited and re-executes its query so filters can be tweaked. */
 function enterSavedViewEditMode({hash, name, query}: EditingSavedSearch) {
-    pendingOpenEditFiltersAt = Date.now();
+    hasPendingOpenEditFilters = true;
     Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, {hash, name, query});
     setSearchContext(false);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name}));
@@ -818,13 +817,13 @@ function enterSavedViewEditMode({hash, name, query}: EditingSavedSearch) {
 
 /** Clears the "Edit filters" mode. Used when the filters popover is dismissed (click-outside acts as "leave editing"). */
 function clearSavedViewEditMode() {
-    pendingOpenEditFiltersAt = undefined;
+    hasPendingOpenEditFilters = false;
     Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
 }
 
 /** Cancels "Edit filters" mode and re-executes the view's original query so the table returns to the saved filters. */
 function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
-    pendingOpenEditFiltersAt = undefined;
+    hasPendingOpenEditFilters = false;
     Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: editingSavedView.query, name: editingSavedView.name}));
 }
