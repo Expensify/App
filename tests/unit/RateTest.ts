@@ -1,6 +1,9 @@
 import {getCorrectedAutoReportingFrequency} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import createRandomPolicy from '../utils/collections/policies';
 
 /**
  * #95373 — "Rate field is not disabled when submission frequency is off".
@@ -21,9 +24,9 @@ const fixedGate = (rate: number | undefined, isReadOnly: boolean, iouType: strin
     currentGate(rate, isReadOnly, iouType) && !isSubmissionFrequencyOff(policy, isPolicyExpenseChat);
 
 // submissions OFF: immediate + harvesting disabled  →  getCorrectedAutoReportingFrequency === MANUAL
-const policySubmissionsOff = {autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, harvesting: {enabled: false}} as unknown as Policy;
+const policySubmissionsOff: Policy = {...createRandomPolicy(1), autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, harvesting: {enabled: false}};
 // submissions ON: immediate + harvesting enabled  →  getCorrectedAutoReportingFrequency === IMMEDIATE
-const policySubmissionsOn = {autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, harvesting: {enabled: true}} as unknown as Policy;
+const policySubmissionsOn: Policy = {...createRandomPolicy(2), autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE, harvesting: {enabled: true}};
 
 const RATE = 100;
 
