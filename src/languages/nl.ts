@@ -6372,6 +6372,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'People-beheerder maken',
                 other: 'People-beheerders maken',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Betalingsbeheerder maken',
+                other: 'Betalingsbeheerders maken',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er is een probleem opgetreden bij het toevoegen van dit werkruimtelid',
@@ -6405,6 +6409,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
             peopleAdmins: 'People-beheerders',
+            paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
         },
         card: {

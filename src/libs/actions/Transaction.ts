@@ -841,6 +841,7 @@ type ChangeTransactionsReportProps = {
     allReports: OnyxCollection<Report>;
     /** Report IDs that should be skipped when generating Onyx updates (e.g. because they are being deleted) */
     skippedReportIDs?: string[];
+    personalPolicyOutputCurrency: string | undefined;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -857,6 +858,7 @@ function getChangeTransactionsReportOnyxData({
     allTransactionViolation = {},
     allReports: allReportsParam,
     skippedReportIDs,
+    personalPolicyOutputCurrency,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1236,7 +1238,7 @@ function getChangeTransactionsReportOnyxData({
                     };
 
                     if (!isFetchingWaypointsFromServer(transaction)) {
-                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
                         const {unit, rate} = updatedMileageRate;
                         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
                         const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
