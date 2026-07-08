@@ -43,6 +43,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
+import getImportMerchantRulesOption from './getImportMerchantRulesOption';
 import RulesCardRestrictionsTab from './tabs/RulesCardRestrictionsTab';
 import RulesExpenseDefaultsTab from './tabs/RulesExpenseDefaultsTab';
 import RulesFlagForReviewTab from './tabs/RulesFlagForReviewTab';
@@ -263,18 +264,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         }
 
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-            {
-                icon: icons.Table,
-                text: translate('workspace.rules.merchantRules.importRulesTitle'),
-                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-                onSelected: () => {
-                    if (!canWriteRules) {
-                        showReadOnlyModal();
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID));
-                },
-            },
+            getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
         ];
 
         return (

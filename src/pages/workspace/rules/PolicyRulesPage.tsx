@@ -36,6 +36,7 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 import AgentRulesSection from './AgentRulesSection';
+import getImportMerchantRulesOption from './getImportMerchantRulesOption';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
 import PolicyRulesPageRevamp from './PolicyRulesPageRevamp';
@@ -78,18 +79,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     }
 
     const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-        {
-            icon: icons.Table,
-            text: translate('workspace.rules.merchantRules.importRulesTitle'),
-            value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-            onSelected: () => {
-                if (!canWriteRules) {
-                    showReadOnlyModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID));
-            },
-        },
+        getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
     ];
 
     const headerButtons = (

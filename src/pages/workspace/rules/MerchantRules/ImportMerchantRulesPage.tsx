@@ -21,6 +21,8 @@ function ImportMerchantRulesPage({route}: ImportMerchantRulesPageProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ImportSpreadsheet
                 backTo={ROUTES.WORKSPACE_RULES.getRoute(policyID)}
