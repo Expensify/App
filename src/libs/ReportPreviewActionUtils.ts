@@ -33,7 +33,7 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
+import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -56,6 +56,10 @@ function canSubmit(
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     if (hasSmartScanFailedWithMissingFields(transactions ?? [], report)) {
+        return false;
+    }
+
+    if (hasOnlyPendingCardTransactions(transactions ?? [])) {
         return false;
     }
 

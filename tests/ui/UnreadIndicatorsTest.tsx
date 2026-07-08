@@ -803,6 +803,7 @@ describe('Unread Indicators', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
 

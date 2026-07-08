@@ -6462,6 +6462,10 @@ const translations = {
                 one: 'Make people admin',
                 other: 'Make people admins',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Make payments admin',
+                other: 'Make payments admins',
+            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
@@ -6477,6 +6481,7 @@ const translations = {
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
             peopleAdmins: 'People Admins',
+            paymentsAdmins: 'Payments Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
@@ -9822,6 +9827,7 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Subscription settings',
+            editSubscription: 'Edit subscription',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
                 `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}${expensifyCode ? `, Expensify code: ${expensifyCode}` : ''}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
             none: 'none',
