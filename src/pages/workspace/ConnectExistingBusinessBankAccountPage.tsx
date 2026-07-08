@@ -44,7 +44,9 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
-    const connectedAccountBankAccountID = policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isBankAccountFullySetup = !!policy?.achAccount && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+    const connectedBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
+    const connectedAccountBankAccountID = (isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : connectedBankAccount?.methodID) ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
