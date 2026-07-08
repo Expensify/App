@@ -148,10 +148,7 @@ export default function DomainMembersTable({members, selectionEnabled, selectedK
             )}
 
             <Table.FilterBar label={translate('domain.members.findMember')} />
-            <Table.NoResultsState
-                title={translate('domain.members.emptyMembers.title')}
-                subtitle={translate('domain.members.emptyMembers.subtitle')}
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>
