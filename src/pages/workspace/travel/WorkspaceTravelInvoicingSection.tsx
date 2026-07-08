@@ -230,6 +230,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      * When turning OFF: show confirmation modal, then call deactivateTravelInvoicing.
      */
     const handleToggle = (isEnabled: boolean) => {
+        // Block toggling while a card-settings request is in flight here rather than through `disabled`, which would flash the lock icon on the toggle.
+        if (isLoading) {
+            return;
+        }
+
         // Check if user is on a public domain - Travel Invoicing requires a private domain
         if (account?.isFromPublicDomain) {
             const hasPolicyIDInActiveRoute = getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
@@ -418,7 +423,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')}
                     onToggle={handleToggle}
                     isActive={isTravelInvoicingEnabled}
-                    disabled={!canWriteMoreFeatures || isLoading || isOnWaitlist}
+                    disabled={!canWriteMoreFeatures || isOnWaitlist}
                     disabledAction={getToggleDisabledAction()}
                     showLockIcon={!canWriteMoreFeatures || isOnWaitlist || hasOutstandingBalance}
                     pendingAction={togglePendingAction}
