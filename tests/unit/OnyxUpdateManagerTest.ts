@@ -528,6 +528,33 @@ describe('OnyxUpdateManager', () => {
         expect(App.reconnectApp).toHaveBeenCalledTimes(1);
     });
 
+    it('should retry the gap fetch and escalate again after the back-off expires when the client still has not advanced', async () => {
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // Within the back-off window a gap push from the same client state is skipped entirely.
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // One useless answer only proves the server could not serve the range at that moment, and the
+        // escalated reconnect is not guaranteed to survive its retries. Once the back-off expires the
+        // normal flow must fetch again, and a repeat stall must escalate again.
+        const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + 61000);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        await OnyxUpdateManager.queryPromise;
+        dateNowSpy.mockRestore();
+
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenLastCalledWith(1);
+    });
+
     it('should not escalate to ReconnectApp when the gap fetch advances the client', async () => {
         OnyxUpdateManager.handleMissingOnyxUpdates(update3);
         await OnyxUpdateManager.queryPromise;
