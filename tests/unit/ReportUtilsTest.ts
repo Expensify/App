@@ -8685,6 +8685,27 @@ describe('ReportUtils', () => {
             expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(true);
         });
 
+        it('should return true for payments admin designated as payer via policy.reimburser without achAccount', () => {
+            const paymentsAdminEmail = 'payments-admin@manual-test.com';
+            const paymentsAdminAccountID = 704;
+
+            const manualPolicyWithPaymentsAdminPayer: Policy = {
+                ...policyTest,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: 'owner@manual-test.com',
+                role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: paymentsAdminEmail,
+                employeeList: {
+                    [paymentsAdminEmail]: {
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    },
+                },
+            };
+
+            expect(isPayer(paymentsAdminAccountID, paymentsAdminEmail, approvedReport, undefined, manualPolicyWithPaymentsAdminPayer, false)).toBe(true);
+        });
+
         it('should return false for non-reimburser admin in manual reimbursement mode with designated payer', () => {
             const otherAdminEmail = 'other-admin@manual-test.com';
             const otherAdminAccountID = 701;

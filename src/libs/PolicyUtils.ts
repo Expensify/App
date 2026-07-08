@@ -681,14 +681,16 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
         return false;
     }
 
-    const reimburserEmail = policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+    const reimburserEmail = policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
 
     // No designated reimburser means any workspace admin can pay.
     if (!reimburserEmail) {
         return isAdmin;
     }
 
-    return isAdmin && currentUserLogin === reimburserEmail;
+    const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+
+    return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
