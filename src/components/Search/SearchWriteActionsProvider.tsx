@@ -367,9 +367,7 @@ function SearchWriteActionsProvider({
     // Group-by children load lazily in `GroupChildrenContent`, which publishes them here for the shift-range source.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
-    // Built once (useState lazy-init closes over only the stable setter), so the register effect in GroupChildrenContent has genuinely
-    // stable deps by construction — not by React Compiler memoization. Correctness depends on this: an unstable identity would loop
-    // register↔unregister, so leaning on the compiler (which is a perf optimization, not a stability contract) would be fragile.
+    // Built once (stable by construction, not via React Compiler) so GroupChildrenContent's register effect can't loop register↔unregister.
     const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
         registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren})),
         unregisterGroupChildren: (groupKey) =>

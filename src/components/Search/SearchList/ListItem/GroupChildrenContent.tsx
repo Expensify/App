@@ -57,9 +57,7 @@ function GroupChildrenContent({
 
     const selectedTransactionIDsSet = useMemo(() => new Set(Object.keys(selectedTransactions)), [selectedTransactions]);
 
-    // The children in visual order, independent of selection — this is what shift-range registers and what the render projection below
-    // derives from. Keeping selection out of it means the expensive getSections runs only on load/expand, not on every checkbox click,
-    // and the registered range source stays referentially stable across selection changes (see the register effect / SearchWriteActionsProvider).
+    // Selection-independent on purpose (don't fold isSelected in) so the registered shift-range source stays stable across selection changes.
     const rangeChildren: TransactionListItemType[] = useMemo(() => {
         if (isExpenseReportType) {
             return groupItem.transactions;
@@ -79,6 +77,7 @@ function GroupChildrenContent({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         return sectionData;
     }, [

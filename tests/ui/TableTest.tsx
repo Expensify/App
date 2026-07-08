@@ -1,10 +1,12 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
 import type Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -160,9 +162,21 @@ type TestColumnKey = 'name' | 'category' | 'value';
 const mockData: TestItem[] = [
     {keyForList: '1', id: '1', name: 'Apple', category: 'fruit', value: 100},
     {keyForList: '2', id: '2', name: 'Banana', category: 'fruit', value: 200},
-    {keyForList: '3', id: '3', name: 'Carrot', category: 'vegetable', value: 50},
+    {
+        keyForList: '3',
+        id: '3',
+        name: 'Carrot',
+        category: 'vegetable',
+        value: 50,
+    },
     {keyForList: '4', id: '4', name: 'Date', category: 'fruit', value: 150},
-    {keyForList: '5', id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
+    {
+        keyForList: '5',
+        id: '5',
+        name: 'Eggplant',
+        category: 'vegetable',
+        value: 75,
+    },
 ];
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [
@@ -301,7 +315,12 @@ describe('Table', () => {
             const props = createDefaultProps();
             const customColumns: Array<TableColumn<TestColumnKey>> = [
                 {key: 'name', label: 'Name', styling: {flex: 2}, sortable: true},
-                {key: 'category', label: 'Category', styling: {flex: 1}, sortable: true},
+                {
+                    key: 'category',
+                    label: 'Category',
+                    styling: {flex: 1},
+                    sortable: true,
+                },
                 {key: 'value', label: 'Value', styling: {flex: 1}, sortable: true},
             ];
 
@@ -324,7 +343,7 @@ describe('Table', () => {
     });
 
     describe('search functionality', () => {
-        it('should render search bar when SearchBar component is used', () => {
+        it('should render search bar when FilterBar component is used', () => {
             const props = createDefaultProps();
             render(
                 <Table<TestItem, TestColumnKey>
@@ -334,7 +353,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -352,7 +371,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -375,7 +394,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -398,7 +417,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -423,7 +442,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -449,7 +468,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -473,7 +492,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -495,13 +514,12 @@ describe('Table', () => {
             const filterConfig: FilterConfig = {
                 category: {
                     label: 'test',
-                    filterType: 'single-select',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
                         {label: 'Vegetable', value: 'vegetable'},
                     ],
-                    default: 'all',
                 },
             };
 
@@ -707,7 +725,7 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
-        it('should work with SearchBar and Body', () => {
+        it('should work with FilterBar and Body', () => {
             const props = createDefaultProps();
             render(
                 <Table<TestItem, TestColumnKey>
@@ -717,7 +735,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -732,9 +750,8 @@ describe('Table', () => {
             const filterConfig: FilterConfig = {
                 category: {
                     label: 'test',
-                    filterType: 'single-select',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [{label: 'All', value: 'all'}],
-                    default: 'all',
                 },
             };
 
@@ -749,8 +766,7 @@ describe('Table', () => {
                         compareItems={props.compareItems}
                         filters={filterConfig}
                     >
-                        <Table.SearchBar label="Search" />
-                        <Table.FilterButtons />
+                        <Table.FilterBar label="Search" />
                         <Table.Header />
                         <Table.Body />
                     </Table>
@@ -773,7 +789,7 @@ describe('Table', () => {
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.Header />
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -788,16 +804,16 @@ describe('Table', () => {
     describe('combined search and filter', () => {
         it('should apply both search and filter together', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
 
-            const filterConfig: FilterConfig = {
+            const filterConfig: FilterConfig<'category'> = {
                 category: {
                     label: 'test',
-                    filterType: 'single-select',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
                     ],
-                    default: 'fruit',
                 },
             };
 
@@ -809,19 +825,26 @@ describe('Table', () => {
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    filters={filterConfig}
-                    isItemInFilter={isItemInFilter}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.SearchBar label="Search" />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey, 'category'>
+                        ref={tableRef}
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        filters={filterConfig}
+                        isItemInFilter={isItemInFilter}
+                        isItemInSearch={props.isItemInSearch}
+                    >
+                        <Table.FilterBar label="Search" />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['fruit']});
+            });
 
             const searchInput = screen.getByTestId('search-input');
 
@@ -876,7 +899,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -900,7 +923,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );

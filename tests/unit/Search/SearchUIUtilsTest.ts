@@ -1116,6 +1116,7 @@ const transactionReportGroupListItems = [
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
+        formattedPaidStatus: '',
         formattedTo: '',
         from: {
             accountID: 18439984,
@@ -1241,6 +1242,7 @@ const transactionReportGroupListItems = [
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
+        formattedPaidStatus: '',
         formattedTo: 'Admin',
         from: {
             accountID: 18439984,
@@ -1375,6 +1377,7 @@ const transactionReportGroupListItems = [
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
+        formattedPaidStatus: '',
         formattedTo: 'Approver',
         hasVisibleViolations: false,
         isActionColumnWide: false,
@@ -1582,6 +1585,7 @@ const transactionReportGroupListItems = [
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
+        formattedPaidStatus: '',
         formattedTo: '',
         from: {
             accountID: 18439984,
@@ -2555,6 +2559,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
             expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2572,6 +2577,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             const reportSection = (sections as TransactionReportGroupListItemType[]).find((item) => item.reportID === reportID);
             expect(reportSection?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2590,6 +2596,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
             expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2608,6 +2615,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
             expect(allReportActionsLength).toBe(6);
@@ -2625,6 +2633,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toEqual(transactionsListItems);
         });
@@ -2653,6 +2662,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
@@ -2688,6 +2698,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
@@ -2717,6 +2728,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
@@ -2743,6 +2755,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             })[0] as TransactionReportGroupListItemType[];
 
             expect(result.find((item) => item.reportID === reportID2)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -2780,6 +2793,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
@@ -2796,6 +2810,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             expect(resultWithOnyx.at(0)?.primaryAvatar?.source).toBe(customAvatarUrl);
@@ -2836,6 +2851,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             expect(result?.at(0)?.primaryAvatar?.source).toBe(apiAvatarUrl);
@@ -2878,6 +2894,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID2);
@@ -2894,6 +2911,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID2);
@@ -2927,6 +2945,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportGroupWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID);
@@ -2944,6 +2963,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportGroupWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID);
@@ -2985,6 +3005,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportGroup = result.find((item) => item.reportID === reportID);
@@ -3031,6 +3052,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -3042,6 +3064,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             })[0];
 
             expect(resultTransactionFirst).toBeDefined();
@@ -3067,6 +3090,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
@@ -3085,6 +3109,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
 
             expect(result.length).toBeGreaterThan(0);
@@ -3115,6 +3140,7 @@ describe('SearchUIUtils', () => {
                     cardFeeds: mockCardFeeds,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
@@ -3209,6 +3235,7 @@ describe('SearchUIUtils', () => {
                 nonPersonalAndWorkspaceCardList,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             }) as [TransactionCardGroupListItemType[], number, boolean];
 
             const feedNameByCardID = new Map(sections.map((section) => [section.cardID, section.formattedFeedName]));
@@ -3234,6 +3261,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
@@ -3260,6 +3288,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionWithdrawalIDGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(0);
@@ -3278,6 +3307,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionCategoryGroupListItems);
         });
@@ -3310,6 +3340,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -3375,6 +3406,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionMonthGroupListItems);
         });
@@ -3409,6 +3441,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMonthGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -3428,6 +3461,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMonthGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -3509,6 +3543,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionYearGroupListItems);
         });
@@ -3541,6 +3576,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionYearGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -3560,6 +3596,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionYearGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -3941,6 +3978,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionQuarterGroupListItems);
         });
@@ -3975,6 +4013,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionQuarterGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -3994,6 +4033,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionQuarterGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -4056,6 +4096,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionWeekGroupListItems);
         });
@@ -4088,6 +4129,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionWeekGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -4144,6 +4186,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             // Each category section should have a transactionsQueryJSON with a hash
@@ -4188,6 +4231,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
@@ -4230,6 +4274,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
@@ -4261,6 +4306,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4297,6 +4343,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -4322,6 +4369,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionMerchantGroupListItems);
         });
@@ -4355,6 +4403,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -4402,6 +4451,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4451,6 +4501,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4500,6 +4551,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4549,6 +4601,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4619,6 +4672,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             // Each merchant section should have a transactionsQueryJSON with a hash
@@ -4664,6 +4718,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
@@ -4707,6 +4762,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
@@ -4729,6 +4785,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionTagGroupListItems);
         });
@@ -4757,6 +4814,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             // formattedTag should have unescaped colons for display
@@ -4793,6 +4851,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -4822,6 +4881,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4857,6 +4917,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 queryJSON: queryJSON as SearchQueryJSON,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result.at(0)?.transactionsQueryJSON?.inputQuery).toBe('type:expense sortBy:groupTag sortOrder:asc has:receipt -has:tag');
@@ -4923,6 +4984,7 @@ describe('SearchUIUtils', () => {
                 },
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             // Each tag section should have a transactionsQueryJSON with a hash
@@ -4980,6 +5042,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -4989,6 +5052,76 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.formattedAssignee).toBe('Task\u00A0Assignee');
             expect(result.at(0)?.formattedCreatedBy).toBe('Task\u00A0Creator');
             expect(result.at(0)?.keyForList).toBe(taskReportID);
+        });
+
+        it('should compute parentReportName and parentReportIcon when the parent report exists in the data', () => {
+            const taskReportID = 'task_report_101';
+            const parentReportID = 'parent_report_201';
+            const taskCreatorAccountID = 11111;
+            const taskAssigneeAccountID = 22222;
+
+            const taskReport = {
+                type: CONST.REPORT.TYPE.TASK,
+                reportID: taskReportID,
+                reportName: 'Fix the login bug',
+                description: 'The login page has a bug that needs fixing',
+                accountID: taskCreatorAccountID,
+                managerID: taskAssigneeAccountID,
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                created: '2025-01-15 10:00:00',
+            } as const;
+
+            const parentReport = {
+                type: CONST.REPORT.TYPE.CHAT,
+                reportID: parentReportID,
+                reportName: 'Parent chat',
+                participants: {
+                    [taskCreatorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [taskAssigneeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as const;
+
+            const taskData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {
+                    [taskCreatorAccountID]: {
+                        accountID: taskCreatorAccountID,
+                        avatar: '',
+                        displayName: 'Task Creator',
+                        login: 'creator@test.com',
+                    },
+                    [taskAssigneeAccountID]: {
+                        accountID: taskAssigneeAccountID,
+                        avatar: '',
+                        displayName: 'Task Assignee',
+                        login: 'assignee@test.com',
+                    },
+                },
+                [`report_${taskReportID}`]: taskReport,
+                [`report_${parentReportID}`]: parentReport,
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.TASK,
+                data: taskData,
+                currentAccountID: taskCreatorAccountID,
+                currentUserEmail: 'creator@test.com',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                conciergeReportID: '999',
+                convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
+            });
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)).toEqual(
+                expect.objectContaining({
+                    parentReportName: 'Parent chat',
+                    parentReportIcon: expect.objectContaining({id: taskCreatorAccountID, type: CONST.ICON_TYPE_AVATAR, name: 'Task Creator'}),
+                }),
+            );
         });
 
         it('resolves task assignee and creator fallback names through the provided translate function', () => {
@@ -5021,6 +5154,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
 
             expect(result).toHaveLength(1);
@@ -5042,6 +5176,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(0);
@@ -5109,6 +5244,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
@@ -5163,6 +5299,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -5216,6 +5353,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TaskListItemType[], number, boolean];
 
             // Only the task report should be included
@@ -5271,6 +5409,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
@@ -5320,6 +5459,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0] as TransactionReportGroupListItemType[];
 
                 const item = sections.find((s) => s.keyForList === testReportID);
@@ -5434,6 +5574,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 })[0] as TransactionReportGroupListItemType[];
 
                 const item = sections.find((s) => s.keyForList === avatarTestReportID);
@@ -5560,6 +5701,7 @@ describe('SearchUIUtils', () => {
                     conciergeReportID: undefined,
                     ...options,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 }) as [TransactionListItemType[], number, boolean];
             }
 
@@ -5817,6 +5959,7 @@ describe('SearchUIUtils', () => {
                     conciergeReportID: undefined,
                     ...options,
                     convertToDisplayString,
+                    reportAttributesDerivedValue: {},
                 }) as [TransactionReportGroupListItemType[], number, boolean];
             }
 
@@ -6722,6 +6865,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: {},
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             // Then sort the sections
@@ -10673,6 +10817,35 @@ describe('SearchUIUtils', () => {
                 },
             });
             expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
+        });
+    });
+
+    describe('isTextFilterKey', () => {
+        it.each([
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+            CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
+        ])('returns true for the text filter key "%s"', (key) => {
+            expect(SearchUIUtils.isTextFilterKey(key)).toBe(true);
+        });
+
+        it.each([
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+        ])('returns false for the non-text filter key "%s"', (key) => {
+            expect(SearchUIUtils.isTextFilterKey(key)).toBe(false);
+        });
+
+        it('returns false for an unknown key', () => {
+            expect(SearchUIUtils.isTextFilterKey('someUnknownKey')).toBe(false);
+            expect(SearchUIUtils.isTextFilterKey('')).toBe(false);
         });
     });
 });
