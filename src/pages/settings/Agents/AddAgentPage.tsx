@@ -7,12 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useChatWithAgent from '@hooks/useChatWithAgent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useOpenDMWithCreatedAgent from '@hooks/useOpenDMWithCreatedAgent';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -36,23 +35,12 @@ import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
-
-type PendingCreatedAgent = {
-    optimisticAccountID: number;
-    // The agents that already existed before this one was created. Null until the collection has loaded and
-    // includes our optimistic entry, so agents that load later aren't treated as the new one.
-    knownAgentAccountIDs: Set<number> | null;
-};
-
-function getAgentAccountIDFromKey(key: string): number {
-    return Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-}
 
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
@@ -61,8 +49,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
-    const chatWithAgent = useChatWithAgent();
-    const [agentPrompts, agentPromptsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const watchForCreatedAgent = useOpenDMWithCreatedAgent();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -71,61 +58,6 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const [uploadedURI, setUploadedURI] = useState<string | null>(null);
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
-
-    // The client can't pick an agent's real accountID; it's set by the server. When creating online, keep this
-    // page open until the created agent shows up in the collection, then open its DM.
-    const pendingCreatedAgentRef = useRef<PendingCreatedAgent | null>(null);
-
-    useEffect(() => {
-        const pendingCreatedAgent = pendingCreatedAgentRef.current;
-        if (!pendingCreatedAgent) {
-            return;
-        }
-
-        // Wait for the collection to finish loading, or an existing agent could be matched as the new one.
-        if (agentPromptsMetadata.status !== 'loaded') {
-            return;
-        }
-
-        const optimisticAgentKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingCreatedAgent.optimisticAccountID}`;
-
-        // Record which agents already exist, using the first loaded snapshot that includes our optimistic entry.
-        // Doing it here instead of on submit means agents that load later aren't treated as the new one.
-        if (!pendingCreatedAgent.knownAgentAccountIDs) {
-            if (!agentPrompts?.[optimisticAgentKey]) {
-                return;
-            }
-            pendingCreatedAgent.knownAgentAccountIDs = new Set(Object.keys(agentPrompts).map(getAgentAccountIDFromKey));
-            return;
-        }
-        const {knownAgentAccountIDs} = pendingCreatedAgent;
-
-        // Creation failed: the optimistic entry now has an error. Go back so the error shows on the Agents list.
-        if (agentPrompts?.[optimisticAgentKey]?.errors) {
-            pendingCreatedAgentRef.current = null;
-            Navigation.goBack();
-            return;
-        }
-
-        const createdAgentKey = Object.keys(agentPrompts ?? {}).find((key) => {
-            const accountID = getAgentAccountIDFromKey(key);
-
-            // Skip agents that already existed and this request's own optimistic entry.
-            if (accountID === pendingCreatedAgent.optimisticAccountID || knownAgentAccountIDs.has(accountID)) {
-                return false;
-            }
-
-            // The created agent is the one from the server, which has no ADD pending action. Another agent the
-            // user just created still has one.
-            return agentPrompts?.[key]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-        });
-        if (!createdAgentKey) {
-            return;
-        }
-
-        pendingCreatedAgentRef.current = null;
-        chatWithAgent(getAgentAccountIDFromKey(createdAgentKey), {shouldDismissModal: true});
-    }, [agentPrompts, agentPromptsMetadata.status, chatWithAgent]);
 
     useFocusEffect(
         useCallback(() => {
@@ -182,12 +114,8 @@ function AddAgentPage({route}: AddAgentPageProps) {
             return;
         }
 
-        // Online: stay here with the submit spinner until the created agent appears, then the effect opens its DM.
-        // knownAgentAccountIDs is set later (see the effect), not now, in case the collection hasn't loaded yet.
-        pendingCreatedAgentRef.current = {
-            optimisticAccountID,
-            knownAgentAccountIDs: null,
-        };
+        // Online: stay here with the submit spinner until the created agent appears, then its DM opens.
+        watchForCreatedAgent(optimisticAccountID);
         setIsCreatingAgent(true);
     };
 

@@ -1,6 +1,7 @@
-import {act, render, waitFor} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOpenDMWithCreatedAgent from '@hooks/useOpenDMWithCreatedAgent';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -12,7 +13,6 @@ import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pen
 
 import {createAgent} from '@userActions/Agent';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -33,9 +33,9 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: mockTranslate})
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({})));
 
-const mockChatWithAgent = jest.fn();
+const mockWatchForCreatedAgent = jest.fn();
 
-jest.mock('@hooks/useChatWithAgent', () => jest.fn(() => mockChatWithAgent));
+jest.mock('@hooks/useOpenDMWithCreatedAgent', () => jest.fn(() => mockWatchForCreatedAgent));
 
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({textLight: '#fff'})));
 
@@ -55,13 +55,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: jest.fn(() => ({AiBot: 1})),
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 1})),
 }));
-
-// AddAgentPage reads the agent-prompt collection to find the newly created agent. The mocked useOnyx does not
-// update on its own, so tests set this value and its load status and re-render to simulate collection updates.
-let mockAgentPrompts: Record<string, {pendingAction?: string; errors?: Record<string, string>}> | undefined;
-let mockAgentPromptsStatus: 'loading' | 'loaded' = 'loaded';
-
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockAgentPrompts, {status: mockAgentPromptsStatus}]));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -106,10 +99,12 @@ jest.mock('@components/HeaderWithBackButton', () => {
 });
 
 let mockFormOnSubmit: ((values: {firstName: string; prompt: string}) => void) | undefined;
+let mockFormIsLoading: boolean | undefined;
 
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children, onSubmit}: {children: React.ReactNode; onSubmit: (values: {firstName: string; prompt: string}) => void}) {
+    function MockFormProvider({children, onSubmit, isLoading}: {children: React.ReactNode; onSubmit: (values: {firstName: string; prompt: string}) => void; isLoading?: boolean}) {
         mockFormOnSubmit = onSubmit;
+        mockFormIsLoading = isLoading;
         return children;
     }
     return MockFormProvider;
@@ -147,6 +142,7 @@ const mockGoBack = jest.mocked(Navigation.goBack);
 const mockIsActiveRoute = jest.mocked(Navigation.isActiveRoute);
 const mockGetIsOffline = jest.mocked(getIsOffline);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+const mockUseOpenDMWithCreatedAgent = jest.mocked(useOpenDMWithCreatedAgent);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
@@ -155,41 +151,27 @@ function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp 
 }
 
 const OPTIMISTIC_ACCOUNT_ID = -123456;
-const REAL_ACCOUNT_ID = 22542959;
-const realAgentKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${REAL_ACCOUNT_ID}`;
-const optimisticAgentKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${OPTIMISTIC_ACCOUNT_ID}`;
-const otherOptimisticAgentKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}999`;
 const mockNavigation = undefined as never;
 
 function renderAddAgentPage(params: AddAgentRouteProp['params'] = {}) {
-    const utils = render(
+    return render(
         <AddAgentPage
             route={makeRoute(params)}
             navigation={mockNavigation}
         />,
     );
-    return {
-        ...utils,
-        rerenderPage: () =>
-            utils.rerender(
-                <AddAgentPage
-                    route={makeRoute(params)}
-                    navigation={mockNavigation}
-                />,
-            ),
-    };
 }
 
 describe('AddAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
+        mockUseOpenDMWithCreatedAgent.mockReturnValue(mockWatchForCreatedAgent);
         mockCreateAgent.mockReturnValue({optimisticAccountID: OPTIMISTIC_ACCOUNT_ID, avatarURI: undefined});
         mockGetIsOffline.mockReturnValue(false);
         mockIsActiveRoute.mockReturnValue(true);
         mockAvatarOnPress = undefined;
-        mockAgentPrompts = {};
-        mockAgentPromptsStatus = 'loaded';
+        mockFormIsLoading = undefined;
     });
 
     it('renders page title', () => {
@@ -292,155 +274,43 @@ describe('AddAgentPage', () => {
         expect(mockSetInitialPresetID).toHaveBeenCalledTimes(1);
     });
 
+    // Matching the created agent and opening its DM is covered by useOpenDMWithCreatedAgent.test.ts.
+    // These tests only cover how AddAgentPage wires into that hook.
     describe('submit branching', () => {
         beforeEach(() => {
             mockFormOnSubmit = undefined;
         });
 
-        it('stays on the page until the created agent appears, then opens the DM with its real accountID (policyID absent)', async () => {
-            const {rerenderPage} = renderAddAgentPage({});
+        it('starts watching for the created agent and shows the loading state when online (policyID absent)', () => {
+            renderAddAgentPage({});
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // Online we don't go back yet. We wait for the real accountID from the server.
-            expect(mockGoBack).not.toHaveBeenCalled();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            // The optimistic entry appears, so the effect records which agents already exist.
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
-            rerenderPage();
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            // The created agent arrives from the server (no ADD pending action).
-            mockAgentPrompts = {[realAgentKey]: {}};
-            rerenderPage();
-
-            // The DM opens with the real accountID, not the optimistic one, and closes the modal.
-            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
-            expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
+            expect(mockWatchForCreatedAgent).toHaveBeenCalledWith(OPTIMISTIC_ACCOUNT_ID);
+            expect(mockFormIsLoading).toBe(true);
             expect(mockGoBack).not.toHaveBeenCalled();
         });
 
-        it('opens the DM with the real accountID once the created agent appears (policyID present)', async () => {
-            const {rerenderPage} = renderAddAgentPage({policyID: 'POL_42'});
+        it('starts watching for the created agent when online (policyID present)', () => {
+            renderAddAgentPage({policyID: 'POL_42'});
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
-            rerenderPage();
-
-            mockAgentPrompts = {[realAgentKey]: {}};
-            rerenderPage();
-
-            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
-            expect(mockChatWithAgent).toHaveBeenCalledTimes(1);
+            expect(mockWatchForCreatedAgent).toHaveBeenCalledWith(OPTIMISTIC_ACCOUNT_ID);
+            expect(mockFormIsLoading).toBe(true);
         });
 
-        it('ignores another optimistic (pending ADD) agent and waits for the real one', async () => {
-            const {rerenderPage} = renderAddAgentPage({});
-
-            act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
-
-            // The optimistic entry appears and records which agents already exist.
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
-            rerenderPage();
-
-            // A second agent the user created shows up as a new optimistic entry (pendingAction ADD).
-            // It must not be picked as the created agent.
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}, [otherOptimisticAgentKey]: {pendingAction: 'add'}};
-            rerenderPage();
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            // The created agent arrives from the server without an ADD pending action.
-            mockAgentPrompts = {[otherOptimisticAgentKey]: {pendingAction: 'add'}, [realAgentKey]: {}};
-            rerenderPage();
-
-            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
-        });
-
-        it('does not treat an agent that hydrates after submit as the newly created one', async () => {
-            // Cold open or direct link: the collection has not loaded yet at submit time.
-            mockAgentPrompts = {};
-            const {rerenderPage} = renderAddAgentPage({});
-
-            act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
-
-            // An existing agent loads before our optimistic entry and before the CREATE_AGENT response. It must
-            // not be picked, since we don't record existing agents until our entry is present.
-            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}};
-            rerenderPage();
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            // The optimistic entry appears, so the existing agent is now recorded as already existing.
-            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [optimisticAgentKey]: {pendingAction: 'add'}};
-            rerenderPage();
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            // Only the created agent opens the DM.
-            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [realAgentKey]: {}};
-            rerenderPage();
-            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
-        });
-
-        it('does not match while the collection is still loading', async () => {
-            mockAgentPromptsStatus = 'loading';
-            mockAgentPrompts = {};
-            const {rerenderPage} = renderAddAgentPage({});
-
-            act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
-
-            // While loading, an agent next to our entry must not be picked.
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}, [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}};
-            rerenderPage();
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            // Once loaded, existing agents are recorded (agent 555 and our entry), and the created agent matches.
-            mockAgentPromptsStatus = 'loaded';
-            rerenderPage();
-            await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-
-            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [realAgentKey]: {}};
-            rerenderPage();
-            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
-        });
-
-        it('dismisses the page and does not open the DM when creation fails', async () => {
-            const {rerenderPage} = renderAddAgentPage({});
-
-            act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
-
-            // The optimistic entry appears and records the existing agents.
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
-            rerenderPage();
-
-            // Creation failed: the optimistic entry now has an error.
-            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add', errors: {error: 'genericAdd'}}};
-            rerenderPage();
-
-            // We go back so the error shows on the Agents list, and no DM opens.
-            await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
-        });
-
-        it('does not open the DM when created offline, even if the user is still on the Agents list', async () => {
+        it('goes back right away and does not start watching when created offline', async () => {
             mockGetIsOffline.mockReturnValue(true);
-            mockIsActiveRoute.mockReturnValue(true);
 
             renderAddAgentPage({});
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
-            // We go back to the Agents list right away and never open the DM. The real accountID only arrives on
-            // reconnect, after the user has moved on.
             expect(mockGoBack).toHaveBeenCalledTimes(1);
             await waitForBatchedUpdates();
-            expect(mockChatWithAgent).not.toHaveBeenCalled();
+            expect(mockWatchForCreatedAgent).not.toHaveBeenCalled();
+            expect(mockFormIsLoading).toBeFalsy();
         });
     });
 });
