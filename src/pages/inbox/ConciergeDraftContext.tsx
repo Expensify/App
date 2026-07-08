@@ -1,11 +1,17 @@
-import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
-import {getReportChatType} from '@selectors/Report';
-import React, {createContext, useContext} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {policyTypeSelector} from '@src/selectors/Policy';
 import type {ReportAction} from '@src/types/onyx';
+
+import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
+import {getReportChatType, getReportPolicyID} from '@selectors/Report';
+import React, {createContext, useContext} from 'react';
+
 import {CONCIERGE_DRAFT_STATUS} from './conciergeDraftState';
 import usePusherDraftPacing from './usePusherDraftPacing';
 
@@ -23,6 +29,7 @@ type ConciergeDraftActions = {
      * `reportActionID`-based reconciliation works unchanged.
      */
     dispatchLocalDraftEvent: (event: ConciergeDraftEvent) => void;
+    revealDraftFromReportAction: (reportAction: ReportAction) => void;
 };
 
 const defaultState: ConciergeDraftState = {
@@ -34,6 +41,7 @@ const defaultState: ConciergeDraftState = {
 const defaultActions: ConciergeDraftActions = {
     clearDraft: () => {},
     dispatchLocalDraftEvent: () => {},
+    revealDraftFromReportAction: () => {},
 };
 
 const ConciergeDraftStateContext = createContext<ConciergeDraftState>(defaultState);
@@ -67,7 +75,12 @@ function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{r
 }
 
 function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
-    const {clearDraft, dispatchLocalDraftEvent, draft} = usePusherDraftPacing(reportID);
+    const [policyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportPolicyID});
+    const [policyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isGroupPolicyReport = isGroupPolicyByType(policyType);
+    const {clearDraft, dispatchLocalDraftEvent, draft, revealDraftFromReportAction} = usePusherDraftPacing(reportID, isGroupPolicyReport);
     const stateValue: ConciergeDraftState = {
         draftReportAction: draft?.reportAction ?? null,
         hasActiveDraft: !!draft?.reportAction,
@@ -76,6 +89,7 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const actionsValue: ConciergeDraftActions = {
         clearDraft,
         dispatchLocalDraftEvent,
+        revealDraftFromReportAction,
     };
 
     return (

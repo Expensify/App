@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import lodashThrottle from 'lodash/throttle';
 import {getStringInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import {promiseDoWhile} from '@github/libs/promiseWhile';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import lodashThrottle from 'lodash/throttle';
 
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
 

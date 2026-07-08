@@ -1,35 +1,44 @@
-// Explanation: Different Mapbox libraries are required for web and native mobile platforms.
-// This is why we have separate components for web and native to handle the specific implementations.
-// For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
-// we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
-import {useFocusEffect} from '@react-navigation/native';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {MapRef, ViewState} from 'react-map-gl/mapbox';
-import Map, {Marker} from 'react-map-gl/mapbox';
-import {View} from 'react-native';
 import Button from '@components/Button';
+
+import 'mapbox-gl/dist/mapbox-gl.css';
 import ImageSVG from '@components/ImageSVG';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+
 import {clearUserLocation, setUserLocation} from '@userActions/UserLocation';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Direction from './Direction';
-import './mapbox.css';
+
+import type {MapRef, ViewState} from 'react-map-gl/mapbox';
+
+// Explanation: Different Mapbox libraries are required for web and native mobile platforms.
+// This is why we have separate components for web and native to handle the specific implementations.
+// For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
+// we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import Map, {Marker} from 'react-map-gl/mapbox';
+import {View} from 'react-native';
+
 import type {MapViewProps} from './MapViewTypes';
+
+import './mapbox.css';
+import Direction from './Direction';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useDistanceUnit from './useDistanceUnit';
@@ -323,7 +332,7 @@ function MapViewImpl({
                 {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
             </Map>
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
