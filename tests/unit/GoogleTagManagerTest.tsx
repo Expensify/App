@@ -291,6 +291,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
+            reportActionsList: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

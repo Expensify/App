@@ -804,6 +804,7 @@ describe('Unread Indicators', () => {
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
+            reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
 

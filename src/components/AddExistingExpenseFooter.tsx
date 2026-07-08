@@ -2,6 +2,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
@@ -51,6 +52,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -100,6 +102,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         transactions,
                         allTransactionViolation: transactionViolations,
                         allReports,
+                        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     });
                 }
             },

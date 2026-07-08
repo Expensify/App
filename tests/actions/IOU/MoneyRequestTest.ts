@@ -48,7 +48,7 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actualSplit,
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: 'distance-chat-id', transactionID: 'distance-written-id'})),
         startSplitBill: jest.fn(),
         resetSplitShares: jest.fn(),
     };
@@ -783,7 +783,7 @@ describe('MoneyRequest', () => {
         });
 
         // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
-        it('should pass the draft transaction id (not the optimistic id) to cleanup for a non-track distance submission', async () => {
+        it('should pass the written transaction id from createDistanceRequest (not the draft or optimistic id) to cleanup for a non-track distance submission', async () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 shouldSkipConfirmation: true,
@@ -798,7 +798,7 @@ describe('MoneyRequest', () => {
 
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    transactionID: fakeTransaction.transactionID,
+                    transactionID: 'distance-written-id',
                 }),
             );
         });
@@ -926,13 +926,16 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
+            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
         it('should call createDistanceRequest for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
@@ -966,13 +969,16 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
+            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
         it('should navigate to confirmation page when not skipping confirmation', async () => {

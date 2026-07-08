@@ -1,5 +1,5 @@
-import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -8,8 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
-
-import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -44,9 +42,22 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'card', label: translate('workspace.rules.spendRules.tableColumnCard'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.spendRules.tableColumnRule'), sortable: false},
-        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
+        {
+            key: 'card',
+            label: translate('workspace.rules.spendRules.tableColumnCard'),
+            sortable: true,
+        },
+        {
+            key: 'rule',
+            label: translate('workspace.rules.spendRules.tableColumnRule'),
+            sortable: false,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<SpendRuleTableItem, SpendRulesTableColumnKey> = (a, b, activeSorting) => {
@@ -88,8 +99,6 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     const isEmpty = rulesData.length === 0;
 
     return (
@@ -110,7 +119,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View>}
             {!isEmpty && (
                 <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
+                    <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />
                     <Table.Header />
                     <Table.Body />
                 </>
