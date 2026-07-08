@@ -44,7 +44,7 @@ export default function TableFilterTrigger() {
                             onPress={onPress}
                         >
                             <Icon
-                                small
+                                size={CONST.ICON_SIZE.SMALL}
                                 src={icons.Filter}
                                 fill={theme.icon}
                             />
