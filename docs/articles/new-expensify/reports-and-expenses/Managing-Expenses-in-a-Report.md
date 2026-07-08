@@ -106,7 +106,7 @@ Each report includes an expense table showing the following default columns:
   - Category
   - Workspace violations, if applicable
 
-Additional columns can be enabled from the Columns picker:
+Additional columns can be enabled from the **Columns** picker:
 
   - Attendees
   - Billable
