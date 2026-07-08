@@ -24,7 +24,6 @@ import {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getFilteredRecentAttendees,
-    getIOUReportIDOfLastAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
@@ -8528,99 +8527,6 @@ describe('OptionsListUtils', () => {
             const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, PERSONAL_DETAILS, true);
             expect(result).toBeDefined();
             expect(result.section).toBeDefined();
-        });
-    });
-
-    describe('getIOUReportIDOfLastAction', () => {
-        it('should return undefined when report is undefined', () => {
-            const result = getIOUReportIDOfLastAction(undefined, undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when report has no reportID', () => {
-            const report = {} as Report;
-            const result = getIOUReportIDOfLastAction(report, undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when lastAction is not a REPORT_PREVIEW action', () => {
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                reportID: 'iou-test-1',
-            };
-            const lastAction: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            };
-
-            const result = getIOUReportIDOfLastAction(report, undefined, undefined, lastAction);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return IOU report ID when lastAction is a REPORT_PREVIEW action with a valid IOU report', async () => {
-            const iouReportID = 'iou-report-1';
-            const reportID = 'iou-test-2';
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                reportID,
-            };
-
-            // Create the IOU report in Onyx so getReportOrDraftReport can find it
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                reportID: iouReportID,
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            await waitForBatchedUpdates();
-
-            const lastAction: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                originalMessage: {
-                    linkedReportID: iouReportID,
-                },
-            } as ReportAction;
-
-            const result = getIOUReportIDOfLastAction(report, undefined, undefined, lastAction);
-            expect(result).toBe(iouReportID);
-        });
-
-        it('should return undefined when report is archived and canUserPerformWrite returns false', async () => {
-            const reportID = 'iou-test-archived';
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                reportID,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            // Set up the report in Onyx
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await waitForBatchedUpdates();
-
-            // When we pass true for privateIsArchived, the report is considered archived
-            const privateIsArchived = true;
-
-            // With no lastAction provided and no visible actions in Onyx, it falls through to the lastVisibleAction lookup
-            // which returns undefined, so isReportPreviewAction returns false
-            const result = getIOUReportIDOfLastAction(report, privateIsArchived);
-            expect(result).toBeUndefined();
-        });
-
-        it('should handle privateIsArchived as undefined (non-archived report)', () => {
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                reportID: 'iou-test-not-archived',
-            };
-            const lastAction: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            };
-
-            // privateIsArchived is undefined means the report is not archived
-            const result = getIOUReportIDOfLastAction(report, undefined, undefined, lastAction);
-            expect(result).toBeUndefined();
         });
     });
 

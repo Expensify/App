@@ -1154,7 +1154,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),
+        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, translate, personalDetails, FallbackAvatar),
         displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
