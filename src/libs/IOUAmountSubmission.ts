@@ -1,4 +1,4 @@
-import {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
