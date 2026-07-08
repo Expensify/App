@@ -3,7 +3,7 @@ index 3169c25..19acc49 100644
 --- a/node_modules/@sentry/core/build/cjs/utils/browser.js
 +++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
 @@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
-
+ 
  /**
   * Given a child DOM element, returns a query-selector statement describing that
 - * and its ancestors
@@ -16,7 +16,7 @@ index 3169c25..19acc49 100644
 @@ -53,7 +53,47 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
-
+ 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
@@ -63,7 +63,7 @@ index 3169c25..19acc49 100644
      return '<unknown>';
    }
 @@ -77,8 +117,12 @@ function _htmlElementAsString(el, keyAttrs) {
-
+ 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
 -    // If using the component name annotation plugin, this value may be available on the DOM node
@@ -81,7 +81,7 @@ index 2ad52b0..796cac9 100644
 --- a/node_modules/@sentry/core/build/esm/utils/browser.js
 +++ b/node_modules/@sentry/core/build/esm/utils/browser.js
 @@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
-
+ 
  /**
   * Given a child DOM element, returns a query-selector statement describing that
 - * and its ancestors
@@ -94,7 +94,7 @@ index 2ad52b0..796cac9 100644
 @@ -51,7 +51,47 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
-
+ 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
@@ -141,7 +141,7 @@ index 2ad52b0..796cac9 100644
      return '<unknown>';
    }
 @@ -75,8 +115,12 @@ function _htmlElementAsString(el, keyAttrs) {
-
+ 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
 -    // If using the component name annotation plugin, this value may be available on the DOM node
