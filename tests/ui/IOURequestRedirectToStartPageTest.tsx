@@ -1,17 +1,25 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import IOURequestRedirectToStartPage from '@pages/iou/request/IOURequestRedirectToStartPage';
+
 import * as MoneyRequestActions from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
