@@ -720,22 +720,11 @@ function createExpenseByType({
             };
             return submitPerDiemExpense(perDiemParams);
         }
-        default: {
-            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : undefined;
-            const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policyTagList = getMoneyRequestPolicyTags({
-                existingIOUReport: params.existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport,
-                participant: params.participantParams.participant,
-            });
+        default:
             return requestMoney({
                 ...params,
                 policyParams: {...(params.policyParams ?? {}), policyTagList},
             });
-        }
     }
 }
 
