@@ -1,4 +1,25 @@
 {
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/oxfmt --write --no-error-on-unmatched-pattern \"$FILE\""
+                    }
+                ]
+            }
+        ]
+    },
+    "extraKnownMarketplaces": {
+        "callstack-agent-skills": {
+            "source": {
+                "source": "github",
+                "repo": "callstackincubator/agent-skills"
+            }
+        }
+    },
     "permissions": {
         "allow": [
             "mcp__playwright__browser_navigate",
@@ -33,32 +54,10 @@
             "mcp__sentry__search_issues",
             "mcp__sentry__whoami",
             "Bash(agent-device *)",
-            "Bash(echo \"$(npm root -g)/agent-device/skills/agent-device\")",
-            "Bash(awk '/function getChatListItemReportName/,/^}/')"
-        ]
-    },
-    "hooks": {
-        "PostToolUse": [
-            {
-                "matcher": "Edit|Write",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/oxfmt --write --no-error-on-unmatched-pattern \"$FILE\""
-                    }
-                ]
-            }
+            "Bash(echo \"$(npm root -g)/agent-device/skills/agent-device\")"
         ]
     },
     "enabledPlugins": {
         "react-native-best-practices@callstack-agent-skills": true
-    },
-    "extraKnownMarketplaces": {
-        "callstack-agent-skills": {
-            "source": {
-                "source": "github",
-                "repo": "callstackincubator/agent-skills"
-            }
-        }
     }
 }
