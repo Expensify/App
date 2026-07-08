@@ -1818,7 +1818,7 @@ type ReportSettingsNavigatorParamList = {
         reportID: string;
     };
     [SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES]: {
-        reportID: string;
+        notificationReportID: string;
     };
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: {
         reportID: string;
