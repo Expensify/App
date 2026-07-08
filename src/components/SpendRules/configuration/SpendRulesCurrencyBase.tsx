@@ -20,6 +20,8 @@ import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -161,7 +163,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                     </Text>
                 </View>
                 <Icon
-                    medium
+                    size={CONST.ICON_SIZE.MEDIUM}
                     src={icons.Lock}
                     fill={theme.icon}
                 />
