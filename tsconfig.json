@@ -65,6 +65,7 @@
         "tests/unit/DeployChecklistUtilsTest.ts",
         "tests/unit/getPullRequestIncrementalChangesTest.ts",
         "tests/unit/GithubUtilsTest.ts",
+        "tests/unit/GitUtilsTest.ts",
         "tests/unit/isAuthorizedContributorTest.ts",
         "tests/unit/isDeployChecklistLockedTest.ts",
         "tests/unit/markPullRequestsAsDeployedTest.ts",

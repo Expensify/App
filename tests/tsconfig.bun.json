@@ -11,6 +11,7 @@
         "unit/DeployChecklistUtilsTest.ts",
         "unit/getPullRequestIncrementalChangesTest.ts",
         "unit/GithubUtilsTest.ts",
+        "unit/GitUtilsTest.ts",
         "unit/isAuthorizedContributorTest.ts",
         "unit/isDeployChecklistLockedTest.ts",
         "unit/markPullRequestsAsDeployedTest.ts",

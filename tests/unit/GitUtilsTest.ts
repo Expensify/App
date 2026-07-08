@@ -1,3 +1,5 @@
+import {describe, expect, test} from 'bun:test';
+
 import type {CommitType, MergedPR, SubmoduleUpdate} from '../../.github/libs/GitUtils';
 
 import GitUtils from '../../.github/libs/GitUtils';

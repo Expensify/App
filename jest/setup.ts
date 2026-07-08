@@ -9,9 +9,6 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler/jestSetup';
 import type Animated from 'react-native-reanimated';
 
-// Needed to mock Onyx's CI logging in jest/setupAfterEnv.ts. Requires jest/setupGlobalPolyfills.ts to have
-// already run (see that file for why).
-import * as core from '@actions/core';
 import {useMemo} from 'react';
 import 'setimmediate';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
@@ -89,13 +86,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 if (!isVerbose) {
-    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
-    jest.spyOn(core, 'info').mockImplementation(() => {});
-    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
-
-    // Make them global to override module-level console calls
+    // Override console methods globally so module-level console calls are silenced too
     global.console = {
         ...console,
         log: jest.fn(),

@@ -52,7 +52,6 @@
     },
     "ignorePatterns": [
         ".github/actions/javascript/**/index.js",
-        "jest/shims/**",
         ".well-known",
         "dist/**/*.js",
         ".rock",

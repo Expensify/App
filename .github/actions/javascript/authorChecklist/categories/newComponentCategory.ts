@@ -3,12 +3,10 @@ import GithubUtils from '@github/libs/GithubUtils';
 import promiseSome from '@github/libs/promiseSome';
 
 import * as github from '@actions/github';
-import {parse} from '@babel/parser';
-import traverse from '@babel/traverse';
 
 import type Category from './Category';
 
-type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
+import detectReactComponent from './detectReactComponent';
 
 // @actions/github v9 no longer exports the WebhookPayload type on its own (its "./lib/interfaces" deep import path was
 // dropped from the package's exports map), so derive it from the `context.payload` property instead.
@@ -35,49 +33,6 @@ const items = [
     'I verified that all JSX used for rendering exists in the render method',
     'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
 ];
-
-function isComponentOrPureComponent(name?: string) {
-    return name === 'Component' || name === 'PureComponent';
-}
-
-function detectReactComponent(code: string, filename: string): boolean | undefined {
-    if (!code) {
-        console.error('failed to get code from a filename', code, filename);
-        return;
-    }
-    const ast = parse(code, {
-        sourceType: 'module',
-        plugins: ['jsx', 'typescript'], // enable jsx plugin
-    });
-
-    let isReactComponent = false;
-
-    traverse(ast, {
-        enter(path) {
-            if (isReactComponent) {
-                return;
-            }
-            if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
-                path.traverse({
-                    JSXElement() {
-                        isReactComponent = true;
-                        path.stop();
-                    },
-                });
-            }
-        },
-
-        ClassDeclaration(path) {
-            const {superClass} = path.node as unknown as SuperClassType;
-            if (superClass && ((superClass.object?.name === 'React' && isComponentOrPureComponent(superClass.property.name)) || isComponentOrPureComponent(superClass.name))) {
-                isReactComponent = true;
-                path.stop();
-            }
-        },
-    });
-
-    return isReactComponent;
-}
 
 function nodeBase64ToUtf8(data: string) {
     return Buffer.from(data, 'base64').toString('utf-8');
@@ -118,4 +73,3 @@ const newComponentCategory: Category = {
 };
 
 export default newComponentCategory;
-export {detectReactComponent};

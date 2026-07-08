@@ -66,7 +66,6 @@
     "storybook-build": "ENV=production storybook build -o dist/docs",
     "storybook-build-staging": "ENV=staging storybook build -o dist/docs",
     "gh-actions-build": "bun .github/scripts/buildActions.ts",
-    "build-jest-shims": "ts-node jest/buildEsmShims.ts",
     "analyze-packages": "ANALYZE_BUNDLE=true tsx ./node_modules/.bin/webpack-cli --config config/webpack/webpack.common.ts --env file=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
@@ -82,7 +81,7 @@
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
     "test:bun": "bun test --concurrent --max-concurrency 7",
-    "test:bun:scripts": "bun test --preload ./tests/setupBunScripts.ts ./tests/unit/awaitStagingDeploysTest.ts ./tests/unit/checkDeployBlockersTest.ts ./tests/unit/CIGitLogicTest.ts ./tests/unit/createOrUpdateDeployChecklistTest.ts ./tests/unit/DeployChecklistUtilsTest.ts ./tests/unit/getPullRequestIncrementalChangesTest.ts ./tests/unit/GithubUtilsTest.ts ./tests/unit/isAuthorizedContributorTest.ts ./tests/unit/isDeployChecklistLockedTest.ts ./tests/unit/markPullRequestsAsDeployedTest.ts ./tests/unit/postOrReplaceComment.ts ./tests/unit/waitForPreviousRunsTest.ts",
+    "test:bun:scripts": "bun test --preload ./tests/setupBunScripts.ts ./tests/unit/awaitStagingDeploysTest.ts ./tests/unit/checkDeployBlockersTest.ts ./tests/unit/CIGitLogicTest.ts ./tests/unit/createOrUpdateDeployChecklistTest.ts ./tests/unit/DeployChecklistUtilsTest.ts ./tests/unit/getPullRequestIncrementalChangesTest.ts ./tests/unit/GithubUtilsTest.ts ./tests/unit/GitUtilsTest.ts ./tests/unit/isAuthorizedContributorTest.ts ./tests/unit/isDeployChecklistLockedTest.ts ./tests/unit/markPullRequestsAsDeployedTest.ts ./tests/unit/postOrReplaceComment.ts ./tests/unit/waitForPreviousRunsTest.ts",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
     "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"
