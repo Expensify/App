@@ -1,5 +1,7 @@
 import DateUtils from '@libs/DateUtils';
+
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
+
 import CONST from '@src/CONST';
 
 const SIXTY_DAYS_MS = 60 * CONST.DATE.SECONDS_PER_DAY * CONST.MILLISECONDS_PER_SECOND;
