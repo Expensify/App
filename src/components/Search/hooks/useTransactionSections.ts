@@ -42,12 +42,6 @@ const EMPTY_FILTERED_DATA: SearchData = [];
 /**
  * Section builder for the flat transaction search views (`type` of expense/invoice/trip, no group-by). These
  * types all route through `getTransactionsSections` and share the same sort/columns path.
- *
- * Subscribes to ONLY the slice the transaction builder reads (report actions, bank accounts, visible
- * columns, and the policy category/tag lookups needed for GL-code sorting) and reads locale/account from
- * context directly. Because this hook mounts only inside `TransactionSectionsContainer` — i.e. only when a
- * flat transaction search is active — those subscriptions are closed for every other search type. It reuses
- * the shared optimistic tracking + gate from `shell`.
  */
 function useTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseTransactionSectionsParams): SearchSections {
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
@@ -67,11 +61,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    // Stage 1: base sections from the (optimistically augmented) snapshot.
-    // Memoized explicitly: React Compiler caches the inline callbacks but NOT the getTransactionsSections call
-    // result, so without useMemo each render returns a fresh array. An unstable `filteredData` reference
-    // drives useStableOptimisticSortedData's setState effect into an infinite render loop during the
-    // optimistic-create flow ("Maximum update depth exceeded").
     const {filteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
         filteredData: SearchData;
         filteredDataLength: number;
@@ -121,9 +110,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
         optimisticTransactionID,
     ]);
 
-    // Stage 2: sort the flat transaction rows, then stamp the post-create highlight on each row. Flat
-    // expense rows carry a transactionID and never nest transactions, so the highlight matches on the base
-    // transaction key.
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
@@ -137,7 +123,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
         return stampSearchHighlights(sorted, hash, (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys));
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, policyCategories, policyTags, policyForMovingExpensesID, newSearchResultKeys, hash]);
 
-    // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = useSearchSectionColumns(queryJSON, searchResults);
@@ -150,7 +135,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
         allDataLength,
         hasDeletedTransaction,
         columns,
-        // The flat expense view is never grouped, so it is always fully loaded.
         hasLoadedAllTransactions: true,
         hasCachedOptimisticItem,
     };

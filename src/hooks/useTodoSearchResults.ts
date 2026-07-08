@@ -170,8 +170,6 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     // Preserve the previous `data` reference when its contents are unchanged (same key set and referentially-equal
     // entries) so unrelated Onyx collection writes don't churn the reference and force downstream section pipelines
     // to recompute. The entries are individual Onyx values that stay reference-stable across unrelated writes.
-    // The cache lives in state (updated via a render-phase set) rather than a ref so it stays React-Compiler-safe
-    // while still returning the stable reference synchronously within the same render.
     let dataToReturn = data;
     if (stableData && shallowEqual(stableData, data)) {
         dataToReturn = stableData;

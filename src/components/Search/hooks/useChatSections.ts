@@ -45,13 +45,6 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
     const {translate, localeCompare} = useLocalize();
     const reportAttributesDerivedValue = useReportAttributes();
 
-    // Stage 1: base sections from the (optimistically augmented) snapshot.
-    // Memoized explicitly for reference stability: React Compiler caches the inline callbacks but NOT the
-    // getReportActionsSections call result (it reads the Onyx global cache, so it's opaque to the compiler),
-    // so without useMemo each render returns a fresh array. That churn would propagate through the published
-    // context value and every downstream `filteredData`/`data` consumer. (The optimistic-create infinite loop
-    // that forces this in the transaction views can't occur here — chat rows have no transactionID, so
-    // useStableOptimisticSortedData never tracks one.)
     const {filteredData, filteredDataLength, allDataLength} = useMemo<{
         filteredData: SearchData;
         filteredDataLength: number;
@@ -71,8 +64,6 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
         };
     }, [shouldComputeSections, searchDataWithOptimisticTransaction, reportAttributesDerivedValue]);
 
-    // Stage 2: sort the chat rows by date, then stamp the post-create highlight on each row. Chat rows are
-    // report actions, so the highlight matches on the report-action key.
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
@@ -83,7 +74,6 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
         );
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
 
-    // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = useSearchSectionColumns(queryJSON, searchResults);

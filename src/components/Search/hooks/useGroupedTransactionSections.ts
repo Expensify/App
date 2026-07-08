@@ -84,10 +84,6 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    // Stage 1: base group rows from the (optimistically augmented) snapshot.
-    // Memoized explicitly: the compiler does not cache the impure getSections result, so without useMemo each
-    // render returns a fresh array, which would drive useStableOptimisticSortedData's setState effect into an
-    // infinite render loop during the optimistic-create flow ("Maximum update depth exceeded").
     const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
         baseFilteredData: TransactionGroupListItemType[];
         filteredDataLength: number;
@@ -159,7 +155,6 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
         optimisticTransactionID,
     ]);
 
-    // Stage 2: fetch each group's sub-snapshot and enrich it with its transactions.
     const groupByTransactionHashes = useMemo(
         () => (validGroupBy ? baseFilteredData.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue) : EMPTY_HASHES),
         [validGroupBy, baseFilteredData],
@@ -210,8 +205,6 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
         convertToDisplayString,
     ]);
 
-    // Stage 3: sort the enriched groups, then stamp the post-create highlight (grouped rows use the
-    // transaction rule — the group's own key or any nested transaction key).
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
@@ -240,7 +233,6 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
         hash,
     ]);
 
-    // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = useSearchSectionColumns(queryJSON, searchResults, validGroupBy);

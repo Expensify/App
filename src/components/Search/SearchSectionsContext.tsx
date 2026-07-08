@@ -24,11 +24,6 @@ type SearchTrackingCarriers = Pick<
     'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
 >;
 
-/**
- * What the per-type section provider publishes: the sorted/joined section outputs plus the shared
- * optimistic-tracking carriers. Matches the section half of the legacy `useSearchSnapshot` return so the
- * `<Search>` body reads it exactly as before.
- */
 type SearchSectionsContextValue = SearchSections & SearchTrackingCarriers;
 
 const SearchSectionsContext = createContext<SearchSectionsContextValue | null>(null);
@@ -60,10 +55,6 @@ const pickTrackingCarriers = (shellOrSnapshot: SearchTrackingCarriers): SearchTr
     rearmTracking: shellOrSnapshot.rearmTracking,
 });
 
-/**
- * Section provider for the expense-report view. Owns only the report-type slice of Onyx (via the scoped
- * shell + leaf), so every other search type mounts a different provider and never opens these subscriptions.
- */
 function ExpenseReportSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
     const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
     const sections = useExpenseReportSections({shell, queryJSON, searchResults, newSearchResultKeys});
@@ -71,11 +62,6 @@ function ExpenseReportSectionsProvider({queryJSON, searchResults, newSearchResul
     return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
 }
 
-/**
- * Section provider for the flat transaction views (`type` of expense/invoice/trip, no group-by). Owns only
- * the transaction-type slice of Onyx (via the scoped shell + leaf), so every other search type mounts a
- * different provider and never opens these subscriptions.
- */
 function TransactionSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
     const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
     const sections = useTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys});
@@ -83,10 +69,6 @@ function TransactionSectionsProvider({queryJSON, searchResults, newSearchResultK
     return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
 }
 
-/**
- * Section provider for the chat view (`type === CHAT`). Owns only the chat-type slice of Onyx (via the scoped
- * shell + leaf), so every other search type mounts a different provider and never opens these subscriptions.
- */
 function ChatSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
     const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
     const sections = useChatSections({shell, queryJSON, searchResults, newSearchResultKeys});
@@ -94,10 +76,6 @@ function ChatSectionsProvider({queryJSON, searchResults, newSearchResultKeys, tr
     return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
 }
 
-/**
- * Section provider for the task view (`type === TASK`). Owns only the task-type slice of Onyx (via the scoped
- * shell + leaf), so every other search type mounts a different provider and never opens these subscriptions.
- */
 function TaskSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
     const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
     const sections = useTaskSections({shell, queryJSON, searchResults, newSearchResultKeys});
@@ -105,11 +83,6 @@ function TaskSectionsProvider({queryJSON, searchResults, newSearchResultKeys, tr
     return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
 }
 
-/**
- * Section provider for the grouped transaction views (`type` of expense/invoice/trip WITH a valid group-by).
- * Owns the heavy grouped slice of Onyx + the per-group sub-snapshot enrichment (via the scoped shell + leaf),
- * so every other search type mounts a different provider and never opens these subscriptions.
- */
 function GroupedTransactionSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
     const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
     const sections = useGroupedTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys});
@@ -122,9 +95,6 @@ function GroupedTransactionSectionsProvider({queryJSON, searchResults, newSearch
  * a conditional hook), so only the active provider's subscriptions are ever live — the whole point of the
  * scoping effort.
  */
-// Mirrors the dispatch order of `getSections`: chat/task/expense-report short-circuit on type (their groupBy
-// is ignored), then a valid group-by selects the grouped provider, and everything else falls through to the
-// flat transaction provider (`getTransactionsSections`) — the same fall-through default `getSections` uses.
 function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
     let Provider = TransactionSectionsProvider;
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

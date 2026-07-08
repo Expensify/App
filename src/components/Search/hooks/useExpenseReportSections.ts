@@ -88,11 +88,6 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    // Stage 1: base sections from the (optimistically augmented) snapshot.
-    // Memoized explicitly: React Compiler caches the inline callbacks but NOT the getReportSections call
-    // result, so without useMemo each render returns a fresh array. An unstable `filteredData` reference
-    // drives useStableOptimisticSortedData's setState effect into an infinite render loop during the
-    // optimistic-create flow ("Maximum update depth exceeded").
     const {filteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
         filteredData: SearchData;
         filteredDataLength: number;
@@ -144,8 +139,6 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
         convertToDisplayString,
     ]);
 
-    // Stage 2: sort the report sections, then stamp the post-create highlight on each row. Report rows carry
-    // a transactionID (and nested transactions), so they use the transaction highlight rule.
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
@@ -156,7 +149,6 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
         );
     }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
 
-    // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = useSearchSectionColumns(queryJSON, searchResults);

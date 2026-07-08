@@ -35,11 +35,6 @@ const EMPTY_FILTERED_DATA: SearchData = [];
 
 /**
  * Section builder for the task search view (`type === TASK`).
- *
- * The task builder reads report NVPs, the concierge report id, and the report-attributes derived value (for
- * parent-report names/icons); it reads personal details straight off the snapshot, not a subscription. So
- * this hook subscribes to only that narrow slice and reads locale from context directly. Because it mounts
- * only inside `TaskSectionsContainer`, every other search type never opens these.
  */
 function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParams): SearchSections {
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
@@ -51,13 +46,6 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    // Stage 1: base sections from the (optimistically augmented) snapshot.
-    // Memoized explicitly for reference stability: React Compiler caches the inline callbacks but NOT the
-    // getTaskSections call result (it reads the Onyx global cache, so it's opaque to the compiler), so
-    // without useMemo each render returns a fresh array. That churn would propagate through the published
-    // context value and every downstream `filteredData`/`data` consumer. (The optimistic-create infinite loop
-    // that forces this in the transaction views can't occur here — task rows have no transactionID, so
-    // useStableOptimisticSortedData never tracks one.)
     const {filteredData, filteredDataLength, allDataLength} = useMemo<{
         filteredData: SearchData;
         filteredDataLength: number;
@@ -83,9 +71,6 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
         };
     }, [shouldComputeSections, searchDataWithOptimisticTransaction, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue]);
 
-    // Stage 2: sort the task rows. Task rows have no transaction/report-action key, so the post-create
-    // highlight never applies — every row is stamped with `shouldAnimateInHighlight: false` (matching the
-    // monolith) plus the current query hash.
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
@@ -105,10 +90,8 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
         filteredData,
         filteredDataLength,
         allDataLength,
-        // Task rows are never transactions, so nothing here can be a deleted transaction.
         hasDeletedTransaction: false,
         columns,
-        // The task view is never grouped, so it is always fully loaded.
         hasLoadedAllTransactions: true,
         hasCachedOptimisticItem,
     };
