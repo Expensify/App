@@ -1,18 +1,44 @@
-import Onyx from 'react-native-onyx';
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createDisplayName,
-    createPersonalDetailsLookupByAccountID,
     getAccountIDsByLogins,
+    getDisplayNameOrYou,
     getEffectiveDisplayName,
     getPersonalDetailByEmail,
+    getPersonalDetailsListByIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
+    newGetPersonalDetailsByIDs,
+    temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
+
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
-import {formatPhoneNumber} from '../../utils/TestHelper';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+const mockTranslate = jest.fn((key: string) => {
+    if (key === 'common.hidden') {
+        return 'Hidden';
+    }
+    if (key === 'common.you') {
+        return 'you';
+    }
+    return key;
+});
+
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        translate: mockTranslate,
+    }),
+}));
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
     firstName?: string | null;
@@ -24,6 +50,7 @@ describe('PersonalDetailsUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     afterEach(() => Onyx.clear());
@@ -138,7 +165,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png',
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
                                 displayName: 'test2@test.com',
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',
@@ -657,49 +684,206 @@ describe('PersonalDetailsUtils', () => {
         });
     });
 
-    describe('createPersonalDetailsLookupByAccountID', () => {
-        it('should create a lookup map from an array of personal details', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 1, login: 'user1@example.com', displayName: 'User One'},
-                {accountID: 2, login: 'user2@example.com', displayName: 'User Two'},
-                {accountID: 3, login: 'user3@example.com', displayName: 'User Three'},
-            ];
+    describe('temporaryGetDisplayNameOrDefault', () => {
+        const translate = translateLocal;
 
-            const result = createPersonalDetailsLookupByAccountID(details);
-
-            expect(result[1]).toEqual({accountID: 1, login: 'user1@example.com', displayName: 'User One'});
-            expect(result[2]).toEqual({accountID: 2, login: 'user2@example.com', displayName: 'User Two'});
-            expect(result[3]).toEqual({accountID: 3, login: 'user3@example.com', displayName: 'User Three'});
+        test('should return displayName when present', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, displayName: 'Ada Lovelace', login: 'ada@example.com'},
+                    translate,
+                }),
+            ).toBe('Ada Lovelace');
         });
 
-        it('should return an empty object for an empty array', () => {
-            const result = createPersonalDetailsLookupByAccountID([]);
+        test('should strip merged-account prefix from displayName', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {
+                        accountID: 1,
+                        displayName: 'MERGED_99@visible.name@example.com',
+                        login: 'user@example.com',
+                    },
+                    translate,
+                }),
+            ).toBe('visible.name@example.com');
+        });
+
+        test('should normalize SMS login when displayName equals login', () => {
+            const smsLogin = '+18005550000@expensify.sms';
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {
+                        accountID: 1,
+                        login: smsLogin,
+                        displayName: smsLogin,
+                    },
+                    translate,
+                }),
+            ).toBe(Str.removeSMSDomain(smsLogin));
+        });
+
+        test('should append current-user postfix using localized "you"', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
+                    shouldAddCurrentUserPostfix: true,
+                    translate,
+                }),
+            ).toBe('Sam (you)');
+        });
+
+        test('should prefer explicit youAfterTranslation over localized "you"', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
+                    shouldAddCurrentUserPostfix: true,
+                    youAfterTranslation: 'anotherYou',
+                    translate,
+                }),
+            ).toBe('Sam (anotherYou)');
+        });
+
+        test('should return concierge display name for concierge accountID', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {
+                        accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                        displayName: 'Ignored',
+                        login: CONST.EMAIL.CONCIERGE,
+                    },
+                    translate,
+                }),
+            ).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        test('should return defaultValue when displayName is empty', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, login: 'only@example.com'},
+                    defaultValue: 'Custom default',
+                    translate,
+                }),
+            ).toBe('Custom default');
+        });
+
+        test('should fall back to login when displayName and defaultValue are empty', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, login: 'fallback@example.com'},
+                    translate,
+                }),
+            ).toBe('fallback@example.com');
+        });
+
+        test('should return hidden translation when nothing else applies', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1},
+                    translate,
+                }),
+            ).toBe('Hidden');
+        });
+
+        test('should return empty string when shouldFallbackToHidden is false and nothing else applies', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1},
+                    shouldFallbackToHidden: false,
+                    translate,
+                }),
+            ).toBe('');
+        });
+    });
+
+    describe('newGetPersonalDetailsByIDs', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const personalDetails: PersonalDetailsList = {
+            [accountID1]: {
+                accountID: accountID1,
+                login: 'user1@example.com',
+                displayName: 'User One',
+            },
+            [accountID2]: {
+                accountID: accountID2,
+                login: 'user2@example.com',
+                displayName: 'User Two',
+            },
+        };
+
+        it('should return an empty array if accountIDs is undefined', () => {
+            const result = newGetPersonalDetailsByIDs(undefined, personalDetails);
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if accountIDs is empty', () => {
+            const result = newGetPersonalDetailsByIDs([], personalDetails);
+            expect(result).toEqual([]);
+        });
+
+        it('should return personal details for the given accountIDs', () => {
+            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
+            expect(result).toEqual([personalDetails[accountID1], personalDetails[accountID2]]);
+        });
+
+        it('should filter out accountIDs that do not have corresponding personal details', () => {
+            const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
+            expect(result).toEqual([personalDetails[accountID1]]);
+        });
+    });
+
+    describe('getPersonalDetailsListByIDs', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const personalDetails: PersonalDetailsList = {
+            [accountID1]: {
+                accountID: accountID1,
+                login: 'user1@example.com',
+                displayName: 'User One',
+            },
+            [accountID2]: {
+                accountID: accountID2,
+                login: 'user2@example.com',
+                displayName: 'User Two',
+            },
+        };
+
+        it('should return an empty object if accountIDs is undefined', () => {
+            const result = getPersonalDetailsListByIDs(undefined, personalDetails);
             expect(result).toEqual({});
         });
 
-        it('should allow O(1) lookup by accountID', () => {
-            const details: PersonalDetails[] = [{accountID: 100, login: 'test@example.com', displayName: 'Test User'}];
-
-            const map = createPersonalDetailsLookupByAccountID(details);
-
-            // Direct access should work
-            expect(map[100]).toBeDefined();
-            expect(map[100].displayName).toBe('Test User');
-
-            // Non-existent key should be undefined
-            expect(map[999]).toBeUndefined();
+        it('should return an empty object if accountIDs is empty', () => {
+            const result = getPersonalDetailsListByIDs([], personalDetails);
+            expect(result).toEqual({});
         });
 
-        it('should handle duplicate accountIDs by keeping the last occurrence', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 1, login: 'first@example.com', displayName: 'First'},
-                {accountID: 1, login: 'second@example.com', displayName: 'Second'},
-            ];
+        it('should return personal details list for the given accountIDs', () => {
+            const result = getPersonalDetailsListByIDs([accountID1, accountID2], personalDetails);
+            expect(result).toEqual(personalDetails);
+        });
 
-            const result = createPersonalDetailsLookupByAccountID(details);
+        it('should filter out accountIDs that do not have corresponding personal details', () => {
+            const result = getPersonalDetailsListByIDs([accountID1, 999], personalDetails);
+            expect(result).toEqual({[accountID1]: personalDetails[accountID1]});
+        });
 
-            // The second entry should overwrite the first
-            expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
+        it('should ignore undefined in accountIDs array', () => {
+            const result = getPersonalDetailsListByIDs([accountID1, undefined], personalDetails);
+            expect(result).toEqual({[accountID1]: personalDetails[accountID1]});
+        });
+    });
+
+    describe('getDisplayNameOrYou', () => {
+        test('should return "you" translation when accountID is the same as currentUserAccountID', () => {
+            const result = getDisplayNameOrYou('John Doe', 123, 123, translateLocal);
+            expect(result).toBe('You');
+        });
+
+        test('should return displayName when accountID is not the same as currentUserAccountID', () => {
+            const result = getDisplayNameOrYou('John Doe', 123, 456, translateLocal);
+            expect(result).toBe('John Doe');
         });
     });
 });

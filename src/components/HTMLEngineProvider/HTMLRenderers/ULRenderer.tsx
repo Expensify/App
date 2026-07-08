@@ -1,15 +1,17 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {TNodeRenderer} from 'react-native-render-html';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import BulletItemRenderer from './BulletItemRenderer';
 
 /**
  * Bypasses the library's internal ULRenderer (which wraps children in MarkedListItem)
  * and renders <ul> as a plain block container that draws bullet markers around each
- * direct <li> child — matching how <bullet-list>/<bullet-item> render. <li> is left
- * unregistered globally so that <ol><li> still uses the library's default numeric markers.
+ * direct <li> child — matching how <bullet-list>/<bullet-item> render.
  */
 function ULRenderer({tnode, style}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();

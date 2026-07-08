@@ -1,8 +1,12 @@
-import type {BoundsObserver} from '@react-ng/bounds-observer';
-import React, {useMemo, useRef} from 'react';
 import {usePopoverState} from '@components/PopoverProvider';
-import BaseTooltip from './BaseTooltip';
+
+import type {BoundsObserver} from '@react-ng/bounds-observer';
+
+import React, {useMemo, useRef} from 'react';
+
 import type {TooltipExtendedProps} from './types';
+
+import BaseTooltip from './BaseTooltip';
 
 function PopoverAnchorTooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
     const {isOpen, popoverAnchor} = usePopoverState();
@@ -25,7 +29,6 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
 
     return (
         <BaseTooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={tooltipRef}
         >

@@ -1,13 +1,31 @@
-import type {RouteProp} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
+
+import type {RouteProp} from '@react-navigation/native';
+
+import React from 'react';
+
 import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubtitle';
 import NAVIGATORS from '../../src/NAVIGATORS';
 import SCREENS from '../../src/SCREENS';
 
-jest.mock('@libs/Navigation/Navigation');
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
+        getTopmostReportId: jest.fn(),
+        getTopmostSuperWideRHPReportID: jest.fn(),
+        dismissModal: jest.fn(),
+        dismissToSuperWideRHP: jest.fn(),
+        goBack: jest.fn(),
+        setParams: jest.fn(),
+        navigate: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
+    },
+}));
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getReportAction: jest.fn(() => undefined),

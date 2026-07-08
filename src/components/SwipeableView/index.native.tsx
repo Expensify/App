@@ -1,9 +1,11 @@
+import CONST from '@src/CONST';
+
 import React, {useRef} from 'react';
 import {PanResponder, View} from 'react-native';
-import CONST from '@src/CONST';
+
 import type SwipeableViewProps from './types';
 
-function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
+function SwipeableView({children, onSwipeDown, style}: SwipeableViewProps) {
     const minimumPixelDistance = CONST.COMPOSER_MAX_HEIGHT;
     const oldYRef = useRef(0);
     const panResponder = useRef(
@@ -22,8 +24,14 @@ function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
         }),
     ).current;
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <View {...panResponder.panHandlers}>{children}</View>;
+    return (
+        <View
+            style={style}
+            {...panResponder.panHandlers}
+        >
+            {children}
+        </View>
+    );
 }
 
 export default SwipeableView;

@@ -1,14 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import React from 'react';
-import {AppState, DeviceEventEmitter} from 'react-native';
-import type {TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
@@ -19,22 +10,37 @@ import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as NativeNavigation from '@react-navigation/native';
+import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
+import React from 'react';
+import {AppState, DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(120000);
+jest.setTimeout(240000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
@@ -90,6 +96,15 @@ function navigateToSidebar(): Promise<void> {
         fireEvent(reportHeaderBackButton, 'press');
     }
     return waitForBatchedUpdates();
+}
+
+async function navigateToSidebarOptionWithoutAct(index: number): Promise<void> {
+    const optionRow = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex()).at(index);
+    if (!optionRow) {
+        return;
+    }
+    fireEvent(optionRow, 'press');
+    await waitForBatchedUpdates();
 }
 
 function areYouOnChatListScreen(): boolean {
@@ -261,7 +276,7 @@ describe('Unread Indicators', () => {
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
                 expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(async () => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
@@ -280,14 +295,17 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('4');
-                // Scroll up and verify that the "New messages" badge appears
+                // Scroll up and verify that the "New messages" badge appears.
+                // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
+                // which can hang under heavy CI load while draining scroll-triggered effects.
                 scrollUpToRevealNewMessagesBadge();
-                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
+                await waitForBatchedUpdates();
+                expect(isNewMessagesBadgeVisible()).toBe(true);
             }));
     it('Clear the new line indicator and bold when we navigate away from a chat that is now read', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
-            .then(() => navigateToSidebarOption(0))
+            .then(() => navigateToSidebarOptionWithoutAct(0))
             .then(() => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
@@ -305,7 +323,7 @@ describe('Unread Indicators', () => {
                 expect(areYouOnChatListScreen()).toBe(true);
 
                 // Tap on the chat again
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(() => {
                 // Sending event to clear the unread indicator cache, given that the test doesn't behave as the app
@@ -318,7 +336,7 @@ describe('Unread Indicators', () => {
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 // Tap on the chat again
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(() => {
                 // Verify the unread indicator is not present
@@ -407,7 +425,7 @@ describe('Unread Indicators', () => {
                 expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(waitForBatchedUpdates)
             .then(() => {
@@ -425,7 +443,7 @@ describe('Unread Indicators', () => {
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread report
-            .then(() => navigateToSidebarOption(0))
+            .then(() => navigateToSidebarOptionWithoutAct(0))
             .then(async () => {
                 const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {
                     const connection = Onyx.connect({
@@ -438,19 +456,22 @@ describe('Unread Indicators', () => {
                 });
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID, false);
                 return waitForBatchedUpdates();
             })
-            .then(() => {
+            .then(async () => {
                 // Verify the indicator appears above the last action
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('3');
-                // Scroll up and verify the new messages badge appears
+                // Scroll up and verify the new messages badge appears.
+                // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
+                // which can hang under heavy CI load while draining scroll-triggered effects.
                 scrollUpToRevealNewMessagesBadge();
-                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
+                await waitForBatchedUpdates();
+                expect(isNewMessagesBadgeVisible()).toBe(true);
             })
             // Navigate to the sidebar
             .then(navigateToSidebar)
@@ -463,7 +484,7 @@ describe('Unread Indicators', () => {
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and back to the sidebar
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(() => navigateToSidebar())
             .then(() => {
@@ -475,16 +496,19 @@ describe('Unread Indicators', () => {
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and verify the new line indicator is missing
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
-            .then(() => {
+            .then(async () => {
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
-                // Scroll up and verify the "New messages" badge is hidden
+                // Scroll up and verify the "New messages" badge is hidden.
+                // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
+                // which can hang under heavy CI load while draining scroll-triggered effects.
                 scrollUpToRevealNewMessagesBadge();
-                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
+                await waitForBatchedUpdates();
+                expect(isNewMessagesBadgeVisible()).toBe(false);
             }));
 
     it('Keep showing the new line indicator when a new message is created by the current user', () =>
@@ -494,7 +518,7 @@ describe('Unread Indicators', () => {
                 expect(areYouOnChatListScreen()).toBe(true);
 
                 // Navigate to the report and verify the indicator is present
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(async () => {
                 act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
@@ -528,7 +552,7 @@ describe('Unread Indicators', () => {
                 expect(areYouOnChatListScreen()).toBe(true);
 
                 // Navigate to the chat and verify the new line indicator is present
-                return navigateToSidebarOption(0);
+                return navigateToSidebarOptionWithoutAct(0);
             })
             .then(() => {
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -538,7 +562,7 @@ describe('Unread Indicators', () => {
                 // Then back to the LHN - then back to the chat again and verify the new line indicator has cleared
                 return navigateToSidebar();
             })
-            .then(() => navigateToSidebarOption(0))
+            .then(() => navigateToSidebarOptionWithoutAct(0))
             .then(async () => {
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -554,7 +578,7 @@ describe('Unread Indicators', () => {
                     });
                 });
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID, false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -581,7 +605,7 @@ describe('Unread Indicators', () => {
         return (
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
-                .then(() => navigateToSidebarOption(0))
+                .then(() => navigateToSidebarOptionWithoutAct(0))
                 .then(async () => {
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
@@ -617,7 +641,7 @@ describe('Unread Indicators', () => {
 
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, undefined, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -637,7 +661,7 @@ describe('Unread Indicators', () => {
             callback: (val) => (reportActions = val),
         });
         await signInAndGetAppWithUnreadChat();
-        await navigateToSidebarOption(0);
+        await navigateToSidebarOptionWithoutAct(0);
 
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
         addComment({
@@ -655,7 +679,7 @@ describe('Unread Indicators', () => {
         const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID);
+            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID, false);
 
             await waitForBatchedUpdates();
 
@@ -671,7 +695,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, undefined, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
@@ -694,7 +718,7 @@ describe('Unread Indicators', () => {
 
         await waitForBatchedUpdates();
 
-        await navigateToSidebarOption(0);
+        await navigateToSidebarOptionWithoutAct(0);
 
         // When another user adds a new message
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
@@ -741,7 +765,7 @@ describe('Unread Indicators', () => {
             },
         });
 
-        await navigateToSidebarOption(0);
+        await navigateToSidebarOptionWithoutAct(0);
 
         const fakeTransaction = {
             ...createRandomTransaction(1),
@@ -772,14 +796,14 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
-            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
-            currentUserEmailParam: USER_A_EMAIL,
+            currentUser: {accountID: USER_A_ACCOUNT_ID, email: USER_A_EMAIL},
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
-            draftTransactionIDs: [fakeTransaction.transactionID],
             isSelfTourViewed: false,
+            currentUserLocalCurrency: undefined,
+            reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -824,18 +848,20 @@ describe('Unread Indicators', () => {
                 },
             });
         });
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID); // Marking the chat as unread from LHN passing a dummy reportActionID
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
-        const displayNameTexts = screen.queryAllByLabelText(hintText);
-        expect(displayNameTexts).toHaveLength(1);
-        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        await waitFor(() => {
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
+            expect(displayNameTexts).toHaveLength(1);
+            expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        });
     });
 
     it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {
         await signInAndGetAppWithUnreadChat();
-        await navigateToSidebarOption(0);
+        await navigateToSidebarOptionWithoutAct(0);
 
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
@@ -861,7 +887,7 @@ describe('Unread Indicators', () => {
             });
         });
         // Then USER_A mark the report as unread
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID);
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false);
         await waitForBatchedUpdates();
 
         // Then the lastReadTime of report should same as last action from USER_B

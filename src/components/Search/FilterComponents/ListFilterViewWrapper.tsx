@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {useListFilterHeightContext} from './ListFilterHeightContext';
 
 type ListFilterWrapperProps = {
@@ -48,9 +50,7 @@ function ListFilterWrapper({children, ...props}: ListFilterWrapperProps) {
         return children;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading -- ListFilterWrapper is a wrapper that forwards all props to the underlying ListFilterView
     return <ListFilterView {...props}>{children}</ListFilterView>;
 }
 
 export default ListFilterWrapper;
-export type {ListFilterWrapperProps};

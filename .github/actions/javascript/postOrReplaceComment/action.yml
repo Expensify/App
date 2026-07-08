@@ -1,0 +1,42 @@
+name: 'postOrReplaceComment'
+description: 'Post a test build or custom pull request comment, hiding the previous matching comment'
+inputs:
+  REPO:
+    description: 'Repository to place a comment. Can be App or Mobile-Expensify'
+    default: App
+  APP_PR_NUMBER:
+    description: 'Pull request number for Expensify/App repository'
+    required: false
+  MOBILE_EXPENSIFY_PR_NUMBER:
+    description: 'Pull request number for Expensify/Mobile-Expensify repository'
+    required: false
+  GITHUB_TOKEN:
+    description: 'Github token for authentication'
+    default: '${{ github.token }}'
+  ANDROID:
+    description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
+    required: false
+  IOS:
+    description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
+    required: false
+  WEB:
+    description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
+    required: false
+  ANDROID_LINK:
+    description: 'Link for the Android build'
+    required: false
+  IOS_LINK:
+    description: 'Link for the iOS build'
+    required: false
+  WEB_LINK:
+    description: 'Link for the web build'
+    required: false
+  COMMENT_BODY:
+    description: 'Custom comment body. When provided, posts this comment instead of the test build message'
+    required: false
+  COMMENT_PREFIX:
+    description: 'Prefix used to find and hide the previous matching comment'
+    required: true
+runs:
+  using: 'node24'
+  main: './index.js'

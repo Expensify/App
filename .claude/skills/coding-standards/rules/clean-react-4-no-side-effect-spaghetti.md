@@ -93,36 +93,50 @@ In this example:
 
 #### Incorrect (internal render helper functions)
 
-- Internal `render*` functions signal the component owns multiple rendering responsibilities that should be separate components
-- They close over the entire component scope — the React Compiler cannot independently memoize them
-- They hide the component's render tree — the return statement doesn't show what actually renders
-- The fix is to extract each helper into its own component with explicit props
+- Internal render helpers become a problem when they carry hooks, side effects, or non-trivial business logic that belong in a dedicated component
+- They become a problem when they build deeply nested JSX inline, hiding the real render tree from the return statement
+- They become a problem when they close over mutable parent state (e.g., values from `useState`/`useReducer`) and bake that state into the JSX they produce
+- React Compiler handles thin delegation wrappers (e.g., a function that picks a child component based on a prop) without issue — the rule targets helpers that are doing real work, not ones that just route to already-extracted children
+- The fix for the problematic cases is to extract the helper into its own component with explicit props
 
 ```tsx
-function ForYouSection() {
-    const theme = useTheme();
+function ReportDetailsPage({report, policy}: Props) {
+    const [draftNote, setDraftNote] = useState('');
     const {translate} = useLocalize();
-    const {submitCount, approveCount} = useTodos();
 
-    // ❌ Internal render helper — closes over everything, hides structure
-    const renderTodoItems = () => (
-        <View style={styles.todoContainer}>
-            {todoItems.map(({key, icon, ...rest}) => (
-                <BaseWidgetItem key={key} icon={icon} {...rest} />
-            ))}
-        </View>
-    );
+    // ❌ Heavy internal helper — closes over mutable state, runs business logic,
+    //    and builds deeply nested JSX inline. This is what the rule targets.
+    const renderNoteSection = () => {
+        const trimmed = draftNote.trim();
+        const isValid = trimmed.length > 0 && trimmed.length <= CONST.NOTE.MAX_LENGTH;
+        const participants = ReportUtils.getParticipantsList(report, policy);
+        const canEdit = ReportUtils.canEditReportNote(report, participants);
 
-    // ❌ Another render helper — branching logic buried in a function
-    const renderContent = () => {
-        if (isLoadingApp) {
-            return <ActivityIndicator size="large" />;
-        }
-        return hasAnyTodos ? renderTodoItems() : <EmptyState />;
+        return (
+            <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>{translate('notes.title')}</Text>
+                    {canEdit && (
+                        <View style={styles.sectionActions}>
+                            <Button
+                                text={translate('common.save')}
+                                isDisabled={!isValid}
+                                onPress={() => Report.saveNote(report.reportID, trimmed)}
+                            />
+                        </View>
+                    )}
+                </View>
+                <TextInput
+                    value={draftNote}
+                    onChangeText={setDraftNote}
+                    editable={canEdit}
+                    multiline
+                />
+            </View>
+        );
     };
 
-    // The return statement hides the actual render tree
-    return <WidgetContainer>{renderContent()}</WidgetContainer>;
+    return <ScreenWrapper>{renderNoteSection()}</ScreenWrapper>;
 }
 ```
 
@@ -189,9 +203,9 @@ Flag when a component, hook, or utility aggregates multiple unrelated responsibi
 - Unrelated state variables are interdependent or updated together
 - Logic mixes data fetching, navigation, UI state, and lifecycle behavior in one place
 - Removing one piece of functionality requires careful untangling from others
-- Component defines internal `render*` functions or arrow functions that return JSX and calls them in its return statement (e.g., `const renderContent = () => ...`, `{renderContent()}`)
-- These functions close over the component's entire scope, preventing the React Compiler from independently memoizing them
-- The component's return statement calls these helpers instead of showing the render tree directly
+- An internal function that returns JSX contains hooks, side effects, or non-trivial business logic (data shaping, permission checks, validation, etc.) that should live in its own component
+- An internal function that returns JSX builds deeply nested JSX inline, obscuring the component's render tree
+- An internal function that returns JSX closes over mutable parent state (e.g., values from `useState`/`useReducer`) and embeds that state in the JSX it produces
 
 **What counts as "unrelated":**
 - Group by responsibility (what the code does), NOT by timing (when it runs)
@@ -203,6 +217,8 @@ Flag when a component, hook, or utility aggregates multiple unrelated responsibi
 - Effects are extracted into focused custom hooks with single responsibilities (e.g., `useDebugShortcut`, `usePriorityMode`) — inline `useEffect` calls are a code smell and should be named hooks
 - The internal function is a **callback or event handler** (e.g., `handlePress`, `onSubmit`), not a render helper — only functions that return JSX qualify
 - The internal function is a **single early return** for a guard clause (e.g., `if (!data) return <EmptyState />;` at the top of the component) — simple guards in the component body are not render helpers
+- The internal function is a **switch/conditional helper that delegates to already-extracted child components** (e.g., `const renderItem = () => type === 'foo' ? <FooItem /> : <BarItem />`) — React Compiler memoizes these thin wrappers correctly
+- The internal function (or inline `.map()` callback) **iterates over data and renders an already-extracted child component** per item (e.g., `items.map((item) => <Row key={item.id} item={item} />)`) — the per-item work happens inside the extracted child
 
 **Search Patterns** (hints for reviewers):
 - `useEffect`

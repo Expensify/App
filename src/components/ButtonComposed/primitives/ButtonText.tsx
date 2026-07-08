@@ -1,11 +1,13 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 type ButtonTextProps = {
     /** The text to display */
@@ -22,22 +24,18 @@ type ButtonTextProps = {
 };
 
 function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
-    const {isLoading, variant, size, isHovered} = useButtonContext();
-    const theme = useTheme();
+    const {variant, size, isHovered} = useButtonContext();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const sizeTextStyles = {
-        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmallText,
-        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmallText,
-        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
-        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLargeText,
+        [CONST.BUTTON_SIZE.SMALL]: styles.buttonSmallText,
+        [CONST.BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
+        [CONST.BUTTON_SIZE.LARGE]: styles.buttonLargeText,
     };
 
     const variantTextStyles = {
         success: styles.buttonSuccessText,
         danger: styles.buttonDangerText,
-        link: [styles.fontWeightNormal, styles.fontSizeLabel],
     };
 
     return (
@@ -45,15 +43,14 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
             numberOfLines={numberOfLines}
             style={[
                 numberOfLines !== 1 && styles.breakAll,
-                isLoading && styles.opacity0,
                 styles.pointerEventsNone,
                 styles.buttonText,
                 styles.flexShrink1,
-                size ? sizeTextStyles[size] : undefined,
+                sizeTextStyles[size],
                 variant ? variantTextStyles[variant] : undefined,
-                isHovered && hoverStyle,
+                styles.ph1,
                 style,
-                variant === 'link' && [styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
+                isHovered && hoverStyle,
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >

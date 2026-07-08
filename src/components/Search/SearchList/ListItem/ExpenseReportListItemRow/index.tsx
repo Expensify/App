@@ -1,8 +1,11 @@
-import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import React from 'react';
+
+import type {ExpenseReportListItemRowProps} from './types';
+
 import ExpenseReportListItemRowNarrow from './ExpenseReportListItemRowNarrow';
 import ExpenseReportListItemRowWide from './ExpenseReportListItemRowWide';
-import type {ExpenseReportListItemRowProps} from './types';
 
 function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -17,6 +20,7 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 isActionLoading={props.isActionLoading}
                 onButtonPress={props.onButtonPress}
                 onCheckboxPress={props.onCheckboxPress}
+                chatReport={props.chatReport}
                 containerStyle={props.containerStyle}
                 isSelectAllChecked={props.isSelectAllChecked}
                 isIndeterminate={props.isIndeterminate}
@@ -24,7 +28,9 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 isHovered={props.isHovered}
                 isFocused={props.isFocused}
                 isPendingDelete={props.isPendingDelete}
+                shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
                 columns={props.columns}
+                isMarkAsDone={props.isMarkAsDone}
             />
         );
     }
@@ -41,4 +47,3 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
 }
 
 export default ExpenseReportListItemRow;
-export type {ExpenseReportListItemRowProps, ExpenseReportListItemRowNarrowProps, ExpenseReportListItemRowWideProps} from './types';

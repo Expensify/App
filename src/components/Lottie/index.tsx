@@ -1,18 +1,23 @@
-import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
-import LottieView from 'lottie-react-native';
-import React, {useContext, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+
+import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
+
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type Props = {
     source: DotLottieAnimation;
@@ -41,12 +46,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setIsInteractionComplete(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -116,7 +121,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
     return (
         <LottieView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
             key={`${hasNavigatedAway}`}

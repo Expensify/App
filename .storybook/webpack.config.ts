@@ -1,3 +1,5 @@
+import type {Configuration, RuleSetRule} from 'webpack';
+
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -6,7 +8,7 @@ import {createRequire} from 'module';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import webpack from 'webpack';
-import type {Configuration, RuleSetRule} from 'webpack';
+
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
@@ -20,6 +22,7 @@ type CustomWebpackConfig = {
     resolve: {
         alias: Record<string, string>;
         extensions: string[];
+        fallback: Record<string, string | false | string[]>;
     };
     module: {
         rules: RuleSetRule[];
@@ -73,7 +76,9 @@ const webpackConfig = async ({config}: {config: Configuration}) => {
             definePlugin.definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
         }
     }
+
     config.resolve.extensions = custom.resolve.extensions;
+    config.resolve.fallback = custom.resolve.fallback;
 
     const babelRulesIndex = custom.module.rules.findIndex((rule) => rule.loader === 'babel-loader');
     const babelRule = custom.module.rules.at(babelRulesIndex);

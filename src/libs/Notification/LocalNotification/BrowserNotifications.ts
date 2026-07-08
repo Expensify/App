@@ -1,43 +1,38 @@
-// Web implementation only. Do not import for direct use. Use LocalNotification.
-import {Str} from 'expensify-common';
-import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+
 import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
+
+import type {ImageSourcePropType} from 'react-native';
+
+// Web implementation only. Do not import for direct use. Use LocalNotification.
+import {SafeString, Str} from 'expensify-common';
+
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
 /**
- * Checks if the user has granted permission to show browser notifications
+ * Checks if the user has granted permission to show browser notifications, prompting them
+ * if they have not yet decided.
  */
 function canUseBrowserNotifications(): Promise<boolean> {
-    return new Promise((resolve) => {
-        // They have no browser notifications so we can't use this feature
-        if (!window.Notification) {
-            resolve(false);
-            return;
+    return NotificationPermission.getStatus().then((status) => {
+        if (status === 'granted') {
+            return true;
         }
-
-        // Check if they previously granted or denied us access to send a notification
-        const permissionGranted = Notification.permission === 'granted';
-
-        if (permissionGranted || Notification.permission === 'denied') {
-            resolve(permissionGranted);
-            return;
+        if (status === 'denied') {
+            return false;
         }
-
-        // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission().then((status) => {
-            resolve(status === 'granted');
-        });
+        return NotificationPermission.request().then((requested) => requested === 'granted');
     });
 }
 

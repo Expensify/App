@@ -1,8 +1,12 @@
-import Emojis, {importEmojiLocale} from '@assets/emojis';
+import Emojis, {emojiNameTable, findEmojiByHexCode, importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+
 import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
+
+import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
+import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
 // Unmock to use real parseExpensiMark for code block detection tests
 jest.unmock('@expensify/react-native-live-markdown');
@@ -299,39 +303,39 @@ describe('EmojiTest', () => {
 
     describe('getEmojiCodeForInsertion', () => {
         it('should return shortcode when inside code block', () => {
-            const emoji = {code: '😄', name: 'smile', types: ['😄', '😄🏻', '😄🏼', '😄🏽', '😄🏾', '😄🏿']};
+            const emoji = {code: '😄', name: 'smile', hexcode: '1F604', types: ['😄', '😄🏻', '😄🏼', '😄🏽', '😄🏾', '😄🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 0, true)).toBe(':smile:');
         });
 
         it('should return emoji code when not inside code block', () => {
-            const emoji = {code: '😄', name: 'smile'};
+            const emoji = {code: '😄', name: 'smile', hexcode: '1F604'};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 0, false)).toBe('😄');
         });
 
         it('should return skin-toned emoji when preferred skin tone is set and not in code block', () => {
-            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            const emoji = {code: '👍', name: '+1', hexcode: '1F44D', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 3, false)).toBe('👍🏽');
         });
 
         it('should return shortcode even with skin tone preference when inside code block', () => {
-            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            const emoji = {code: '👍', name: '+1', hexcode: '1F44D', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 3, true)).toBe(':+1:');
         });
 
         it('should return base emoji code when skin tone is -1', () => {
-            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            const emoji = {code: '👍', name: '+1', hexcode: '1F44D', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, -1, false)).toBe('👍');
         });
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin', hexcode: '26B0'}]);
     });
 
     it('suggests emojis when typing emojis prefix after colon, preceeded by another emoji ', () => {
         const text = 'Hi :ok: :coffin';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin', hexcode: '26B0'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
@@ -343,19 +347,22 @@ describe('EmojiTest', () => {
     it('correct suggests emojis accounting for keywords', () => {
         const thumbEmojisEn: Emoji[] = [
             {
-                name: 'hand_with_index_finger_and_thumb_crossed',
-                code: '🫰',
-                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-            },
-            {
                 code: '👍',
                 name: '+1',
+                hexcode: '1F44D',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
+                hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                hexcode: '1FAF0',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ];
 
@@ -363,16 +370,19 @@ describe('EmojiTest', () => {
             {
                 code: '👍',
                 name: '+1',
+                hexcode: '1F44D',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
+                hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
             {
                 name: 'mano_con_dedos_cruzados',
                 code: '🫰',
+                hexcode: '1FAF0',
                 types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ];
@@ -385,21 +395,25 @@ describe('EmojiTest', () => {
             {
                 code: '🤙',
                 name: 'mano_llámame',
+                hexcode: '1F919',
                 types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
             },
             {
                 code: '👍',
                 name: '+1',
+                hexcode: '1F44D',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
+                hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
             {
                 name: 'mano_con_dedos_cruzados',
                 code: '🫰',
+                hexcode: '1FAF0',
                 types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ]);
@@ -661,6 +675,132 @@ describe('EmojiTest', () => {
             const result = EmojiUtils.insertTextVSBetweenDigitAndEmoji(input);
             // Then the keycap should be preserved (not followed by another emoji)
             expect(result).toBe('*\uFE0F\u20E3');
+        });
+    });
+
+    describe('findEmojiByHexCode', () => {
+        it('round-trip: every named emoji in emojiNameTable resolves by hexcode', () => {
+            for (const emoji of Object.values(emojiNameTable)) {
+                if (!emoji.hexcode) {
+                    continue;
+                }
+                expect(findEmojiByHexCode(emoji.hexcode)?.name).toBe(emoji.name);
+            }
+        });
+
+        it('base hex resolves to emoji with skin-tone variants', () => {
+            const thumbsUp = findEmojiByHexCode('1F44D');
+            expect(thumbsUp).toBeDefined();
+            expect(thumbsUp?.name).toBe('+1');
+            expect(thumbsUp?.types?.length).toBeGreaterThan(0);
+        });
+
+        it('returns undefined for unknown hexcode', () => {
+            expect(findEmojiByHexCode('FFFFFF')).toBeUndefined();
+        });
+    });
+
+    describe('reaction key formats', () => {
+        const REACTION_USER_ID = '12345';
+        const reaction: ReportActionReaction = {
+            createdAt: '2024-01-01 00:00:00',
+            oldestTimestamp: '2024-01-01 00:00:00',
+            users: {
+                [REACTION_USER_ID]: {
+                    id: REACTION_USER_ID,
+                    oldestTimestamp: '2024-01-01 00:00:00',
+                    skinTones: {[-1]: '2024-01-01 00:00:00'},
+                },
+            },
+        };
+
+        it('resolves a hex-keyed reaction to the right emoji', () => {
+            const details = EmojiUtils.getEmojiReactionDetails('1F44D', reaction, 12345);
+            expect(details.emoji?.name).toBe('+1');
+            expect(details.reactionCount).toBe(1);
+            expect(details.hasUserReacted).toBe(true);
+        });
+
+        it('resolves a name-keyed reaction (legacy)', () => {
+            const details = EmojiUtils.getEmojiReactionDetails('+1', reaction, 12345);
+            expect(details.emoji?.name).toBe('+1');
+            expect(details.reactionCount).toBe(1);
+        });
+
+        it('returns undefined emoji for an unknown key', () => {
+            const details = EmojiUtils.getEmojiReactionDetails('madeupemojiname', reaction, 12345);
+            expect(details.emoji).toBeUndefined();
+            expect(details.reactionCount).toBe(1);
+        });
+    });
+
+    describe('processFrequentlyUsedEmojis hex dedupe', () => {
+        it('returns empty array for empty input', () => {
+            expect(EmojiUtils.processFrequentlyUsedEmojis([])).toHaveLength(0);
+        });
+
+        it('filters out entries with no resolvable emoji', () => {
+            const input = [{name: 'made_up_emoji', code: '', count: 1, lastUpdatedAt: 100}] as FrequentlyUsedEmoji[];
+            expect(EmojiUtils.processFrequentlyUsedEmojis(input)).toHaveLength(0);
+        });
+
+        it('deduplicates name-only and code-only entries for the same emoji', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                {name: '+1', code: '', count: 5, lastUpdatedAt: 100},
+                {name: '', code: '👍', count: 3, lastUpdatedAt: 200},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.count).toBe(8);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
+        });
+
+        it('deduplicates entries with same hexcode but different skin-tone glyph codes', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                {name: '+1', code: '👍🏽', hexcode: '1F44D', count: 5, lastUpdatedAt: 100},
+                {name: '+1', code: '👍🏾', hexcode: '1F44D', count: 3, lastUpdatedAt: 200},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.count).toBe(8);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
+        });
+
+        it('collapses name-only, code-only, and hexcode-only entries for the same emoji into one', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                {name: '+1', code: '', count: 5, lastUpdatedAt: 100},
+                {name: '', code: '👍', count: 3, lastUpdatedAt: 200},
+                {name: '', code: '', hexcode: '1F44D', count: 2, lastUpdatedAt: 300},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.count).toBe(10);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
+        });
+
+        it('8-case format matrix: all 7 resolvable combinations collapse to one entry', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                // 1. name + code + hexcode
+                {name: '+1', code: '👍', hexcode: '1F44D', count: 1, lastUpdatedAt: 100},
+                // 2. name + code (no hexcode)
+                {name: '+1', code: '👍', count: 1, lastUpdatedAt: 101},
+                // 3. name + hexcode (no code)
+                {name: '+1', code: '', hexcode: '1F44D', count: 1, lastUpdatedAt: 102},
+                // 4. name only
+                {name: '+1', code: '', count: 1, lastUpdatedAt: 103},
+                // 5. code + hexcode (no name)
+                {name: '', code: '👍', hexcode: '1F44D', count: 1, lastUpdatedAt: 104},
+                // 6. code only
+                {name: '', code: '👍', count: 1, lastUpdatedAt: 105},
+                // 7. hexcode only — filtered by current impl, passes after commit 12
+                {name: '', code: '', hexcode: '1F44D', count: 1, lastUpdatedAt: 106},
+                // 8. nothing at all — always filtered
+                {name: '', code: '', count: 0, lastUpdatedAt: 107},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.count).toBe(7);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
         });
     });
 

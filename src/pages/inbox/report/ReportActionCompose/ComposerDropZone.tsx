@@ -1,7 +1,7 @@
-import React from 'react';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,18 +10,21 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getParentReport, isChatRoom, isGroupChat, isInvoiceReport, isReportApproved, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+
+import {useComposerState} from './ComposerContext';
 import useAttachmentPicker from './useAttachmentPicker';
 import useReceiptDrop from './useReceiptDrop';
 import useShouldAddOrReplaceReceipt from './useShouldAddOrReplaceReceipt';
-
-type ComposerDropZoneProps = {
-    reportID: string;
-    children: React.ReactNode;
-};
 
 type RichDropZoneProps = {
     reportID: string;
@@ -110,7 +113,8 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     );
 }
 
-function ComposerDropZone({reportID, children}: ComposerDropZoneProps) {
+function ComposerDropZone({children}: PropsWithChildren) {
+    const {reportID} = useComposerState();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID);
     const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation, ErrorModal: AttachmentErrorModal} = useAttachmentPicker(reportID);

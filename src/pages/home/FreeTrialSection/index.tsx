@@ -1,22 +1,30 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import type {DiscountInfo} from '@libs/SubscriptionUtils';
+
 import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import useFreeTrial from './useFreeTrial';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DiscountType} from './useFreeTrial';
+
+import useFreeTrial from './useFreeTrial';
 
 const ILLUSTRATION_SIZE = variables.componentSizeNormal;
 
@@ -76,7 +84,7 @@ function FreeTrialSection() {
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
                     <Icon
                         src={illustrations.TreasureChest}
                         width={ILLUSTRATION_SIZE}

@@ -44,12 +44,29 @@ Examples:
 - “How do I change my Workspace settings?”  
 - “Why was this expense categorized as Travel?”  
 - “Why was my report submitted automatically?”  
-- “How do reimbursements work in my Workspace?”  
-- “Why isn’t my bank account syncing?”  
+- “How do reimbursements work in my Workspace?”
+- “Why did my credit card transactions stop importing?”
 
 Concierge will answer or connect you with a human if needed.
 
 [Learn about Concierge Support Agent](/articles/new-expensify/concierge-ai/Support-Agent). 
+
+---
+
+## What questions you can ask Concierge about your expense data
+
+You can ask Concierge questions about your own expense data and it will look up the answer for you, instead of building a search yourself.
+
+Examples:
+- “Show all Travel expenses last month”  
+- “Who submitted the most expenses this quarter?”  
+- “How does March spending compare to February?”  
+- “Which expenses are still unapproved?”  
+- “Which workspace spent the most last month?”  
+
+You can ask in the #admins room for a workspace or in your Concierge chat. In your Concierge chat, questions can span all of the workspaces you have access to.
+
+[Learn how Concierge analyzes spend](/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend).
 
 ---
 
@@ -88,11 +105,32 @@ You can also upload or forward receipts, and Concierge will create the expense f
 Concierge can help you manage reports without navigating through menus.
 
 Examples:
-- “Submit my April expense report”  
-- “Approve Alice’s report”  
-- “Add this expense to my Chicago trip report”  
-- “Is this report reimbursable?”  
-- “Export this report”  
+- “Create a report for my Chicago trip”
+- “Create an expense report with all of my unsubmitted expenses”
+- “Submit my April expense report”
+- “Retract my submitted expense report”
+- “Approve Alice's report”
+- “Add this expense to my Chicago trip report”
+- “Is this report reimbursable?”
+- “Export this report”
+
+Concierge can create expense reports, submit expense reports, and retract submitted expense reports when you have permission to perform those actions.
+
+---
+
+## What Workspace tasks Concierge can help manage
+
+Workspace admins can ask Concierge to perform certain administrative tasks on their behalf.
+
+Examples:
+
+- “Add Sarah to the Marketing Workspace”
+- “Remove John from the Sales Workspace”
+- “Show me the current expense rules”
+- “Require receipts for expenses over $25”
+- “Update the approval workflow for this Workspace”
+
+Concierge can help manage Workspace members and configure supported expense rules based on your permissions.
 
 ---
 
@@ -118,7 +156,9 @@ You can describe a goal, and Concierge will help you figure out how to do it.
 Examples:
 - “I want to require receipts for all expenses over $25—how do I do that?”  
 - “How should I set up approvals for my team?”  
-- “What’s the best way to organize reports for travel?”  
+- “What’s the best way to organize reports for travel?”
+
+If Concierge can't perform the exact action you're looking for, or if you want to create specialized AI workflows for your organization, [learn how to create and use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents). Agents can be configured to handle specific tasks, workflows, and business processes beyond Concierge's built-in capabilities.
 
 ---
 

@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openExternalLink} from '@libs/actions/Link';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type Social = {
     iconURL: Extract<ExpensifyIconName, 'Podcast' | 'Twitter' | 'Instagram' | 'Facebook' | 'Linkedin'>;
@@ -74,7 +79,7 @@ function Socials() {
                             src={icons[social.iconURL]}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
-                            fill={hovered || pressed ? theme.link : theme.textLight}
+                            fill={hovered || pressed ? theme.link : theme.text}
                         />
                     )}
                 </PressableWithoutFeedback>

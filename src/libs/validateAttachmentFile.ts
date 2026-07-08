@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
+
 import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 
 type ValidateAttachmentValidResult = {
@@ -86,4 +88,3 @@ function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
 }
 
 export default validateAttachmentFile;
-export type {ValidateAttachmentResult, ValidateAttachmentValidResult, ValidateAttachmentInvalidResult};

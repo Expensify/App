@@ -1,3 +1,6 @@
+import type {Class} from 'type-fest';
+import type {Configuration, WebpackPluginInstance} from 'webpack';
+
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {execSync} from 'child_process';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
@@ -9,12 +12,14 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import {createRequire} from 'module';
 import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
-import type {Class} from 'type-fest';
 import {fileURLToPath} from 'url';
 import webpack from 'webpack';
-import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import {GenerateSW} from 'workbox-webpack-plugin';
+
+// eslint-disable-next-line import/extensions
+import type Environment from './types.ts';
+
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
@@ -22,8 +27,6 @@ import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
-// eslint-disable-next-line import/extensions
-import type Environment from './types.ts';
 
 const require = createRequire(import.meta.url);
 const filename = fileURLToPath(import.meta.url);
@@ -181,7 +184,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',
-                fileWhitelist: [/\.woff2|ttf$/],
+                fileWhitelist: [/^(?!.*seguiemj).*\.(woff2|ttf)$/],
                 include: 'allAssets',
             }),
             new PreloadWebpackPlugin({
@@ -347,7 +350,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
-                    test: /\.(woff|woff2|ttf)$/i,
+                    test: /\.(woff2|ttf)$/i,
                     type: 'asset',
                 },
                 {
@@ -396,10 +399,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '@selectors': path.resolve(dirname, '../../src/selectors/'),
             },
 
-            // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
-            // without this, web will try to use native implementations and break in not very obvious ways.
-            // This is also why we have to use .website.js for our own web-specific files...
-            extensions: ['.web.js', '.website.js', '.js', '.jsx', '.web.ts', '.website.ts', '.website.tsx', '.ts', '.web.tsx', '.tsx'],
+            // Resolve web-specific implementations (`.web.*`) before bare files so React Native
+            // libraries and our own app-level overrides both pick up their browser variants.
+            extensions: ['.web.js', '.js', '.jsx', '.web.ts', '.web.tsx', '.ts', '.tsx'],
             fallback: {
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,

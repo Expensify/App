@@ -1,7 +1,5 @@
-import {Num} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
@@ -27,15 +25,23 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+
+import {Num} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
+
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
 /**
@@ -117,8 +123,8 @@ function resetDomainValidationError(accountID: number) {
  * Fetches the latest domain data from the server,
  * when accessing the domain initial page
  */
-function openDomainInitialPage(domainName: string) {
-    API.read(READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE, {domainName});
+function openDomainPage(domainAccountID: number) {
+    API.read(READ_COMMANDS.OPEN_DOMAIN_PAGE, {domainAccountID});
 }
 
 /**
@@ -767,7 +773,7 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
 /**
  * Removes the domain
  */
-function resetDomain(domainAccountID: number, domainName: string, domain: Domain) {
+function resetDomain(domainAccountID: number, domainName: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -779,10 +785,15 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: null,
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: null,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -802,7 +813,7 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: domain,
+            value: {pendingAction: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1836,11 +1847,11 @@ function clearChangeDomainSecurityGroupError(domainAccountID: number, memberEmai
 }
 
 function setDomainMembersSelectedForMove(memberAccountIDs: string[]) {
-    Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, memberAccountIDs);
+    Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, memberAccountIDs);
 }
 
 function clearDomainMembersSelectedForMove() {
-    Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, []);
+    Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, []);
 }
 
 /**
@@ -1979,9 +1990,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                [SECURITY_GROUP_KEY]: {
-                    errors: null,
-                },
+                [SECURITY_GROUP_KEY]: null,
             },
         },
     ];
@@ -2030,9 +2039,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                [SECURITY_GROUP_KEY]: {
-                    errors: null,
-                },
+                [SECURITY_GROUP_KEY]: null,
             },
         },
     ];
@@ -2083,6 +2090,7 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, previ
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            // backend API uses snake_case for domain_defaultSecurityGroupID
             // eslint-disable-next-line @typescript-eslint/naming-convention
             value: {domain_defaultSecurityGroupID: groupID},
         },
@@ -2110,6 +2118,7 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, previ
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            // backend API uses snake_case for domain_defaultSecurityGroupID
             // eslint-disable-next-line @typescript-eslint/naming-convention
             value: {domain_defaultSecurityGroupID: previousGroupID},
         },
@@ -2297,7 +2306,7 @@ export {
     getDomainValidationCode,
     validateDomain,
     resetDomainValidationError,
-    openDomainInitialPage,
+    openDomainPage,
     getSamlSettings,
     setSamlEnabled,
     resetSamlEnabledError,

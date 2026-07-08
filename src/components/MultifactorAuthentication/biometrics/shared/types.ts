@@ -1,8 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo, MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 type BaseRegisterResult = {
     keyInfo: RegistrationKeyInfo;
@@ -69,4 +71,4 @@ type UseBiometricsReturn = {
     deleteLocalKeysForAccount: () => Promise<void>;
 };
 
-export type {BaseRegisterResult, RegisterResult, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};
+export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseBiometricsReturn};

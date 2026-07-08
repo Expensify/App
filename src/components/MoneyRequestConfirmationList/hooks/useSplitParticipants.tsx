@@ -1,20 +1,25 @@
-import React from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetSplitShares, setIndividualShare} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 
 type UseSplitParticipantsParams = {
     /** Whether the current IOU type is split */
@@ -37,6 +42,9 @@ type UseSplitParticipantsParams = {
 
     /** Currency the IOU is being created in */
     iouCurrencyCode: string | undefined;
+
+    /** Account ID of the current user, used as the payer when recalculating split shares */
+    currentUserAccountID: number;
 };
 
 /**
@@ -51,7 +59,16 @@ type UseSplitParticipantsParams = {
  * Also exposes a `getSplitSectionHeader` callback that renders the section title and a
  * Reset link (visible only when shares have been manually modified).
  */
-function useSplitParticipants({isTypeSplit, shouldShowReadOnlySplits, payeePersonalDetails, selectedParticipants, transaction, iouAmount, iouCurrencyCode}: UseSplitParticipantsParams) {
+function useSplitParticipants({
+    isTypeSplit,
+    shouldShowReadOnlySplits,
+    payeePersonalDetails,
+    selectedParticipants,
+    transaction,
+    iouAmount,
+    iouCurrencyCode,
+    currentUserAccountID,
+}: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
@@ -143,7 +160,7 @@ function useSplitParticipants({isTypeSplit, shouldShowReadOnlySplits, payeePerso
                         // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
                         // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                         Keyboard.dismiss();
-                        resetSplitShares(transaction);
+                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
                     }}
                     accessibilityLabel={CONST.ROLE.BUTTON}
                     role={CONST.ROLE.BUTTON}

@@ -1,18 +1,25 @@
-import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
 
 type NetSuiteSectionType = {
     title?: string;
@@ -40,7 +47,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
     const sections: NetSuiteSectionType[] = [
         {
             title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicingPayableAccount'),
+            description: translate('workspace.netsuite.nonReimbursableJournalPostingAccount'),
             onPress: () => {
                 if (!policyID) {
                     return;

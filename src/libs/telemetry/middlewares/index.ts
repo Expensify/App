@@ -1,4 +1,5 @@
 import type {EventHint, Log, TransactionEvent} from '@sentry/core';
+
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
 import httpClientCancelledFilter from './httpClientCancelledFilter';
@@ -34,5 +35,5 @@ function processBeforeSendLogs(log: Log): Log | null {
     }, log);
 }
 
-export type {TelemetryBeforeSend, TelemetryBeforeSendLog};
+export type {TelemetryBeforeSend};
 export {processBeforeSendTransactions, processBeforeSendLogs};

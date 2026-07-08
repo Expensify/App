@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import type {HeaderProps} from '@components/Header';
 import Header from '@components/Header';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
 
 type HeaderStory = StoryFn<typeof Header>;
 
@@ -16,7 +18,6 @@ const story: Meta<typeof Header> = {
 };
 
 function Template(props: HeaderProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Header {...props} />;
 }
 

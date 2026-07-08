@@ -1,5 +1,3 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
@@ -21,10 +19,15 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -44,13 +47,28 @@ type RequestError = Error & {
     status?: string;
 };
 
-let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
-let isReadyPromise = new Promise((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
+let resolveIsReadyPromise: (() => void) | undefined;
+let isReadyPromise: Promise<void> = Promise.resolve();
+let isReadyPromisePending = false;
 
-// Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
-resolveIsReadyPromise?.();
+/**
+ * Marks isReadyPromise as pending so any READ that consults waitForIdle() parks behind us.
+ * Idempotent: if already pending, no-op (avoids orphaning subscribers from prior pushes).
+ * Called from push()'s sync prelude before the first await, so READs on the next sync line
+ * see the pending promise.
+ */
+function setIsReadyPromisePending() {
+    if (isReadyPromisePending) {
+        return;
+    }
+    isReadyPromise = new Promise<void>((resolve) => {
+        resolveIsReadyPromise = () => {
+            isReadyPromisePending = false;
+            resolve();
+        };
+    });
+    isReadyPromisePending = true;
+}
 
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
@@ -224,6 +242,22 @@ function process(): Promise<void> {
                 sequentialQueueRequestThrottle.clear();
                 return process();
             }
+
+            if (error.message === CONST.ERROR.ALREADY_CREATED) {
+                const onyxUpdates = [...(requestToProcess.successData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[];
+                Log.info('[SequentialQueue] Applying success and finally data on ALREADY_CREATED — resource already exists server-side', false, {
+                    command: requestToProcess.command,
+                    updatesCount: onyxUpdates.length,
+                });
+                Onyx.update(onyxUpdates);
+                Log.info('[SequentialQueue] Removing persisted request because the resource was already created server-side.', false, {
+                    command: requestToProcess.command,
+                    errorMessage: error.message,
+                });
+                endPersistedRequestAndRemoveFromQueue(requestToProcess);
+                sequentialQueueRequestThrottle.clear();
+                return process();
+            }
             // For rate limiting errors (429) on ResendValidateCode, don't retry to prevent spam
             if (error.message === CONST.ERROR.THROTTLED && requestToProcess.command === WRITE_COMMANDS.RESEND_VALIDATE_CODE) {
                 Log.info('[SequentialQueue] RESEND_VALIDATE_CODE throttled, not retrying', false, {
@@ -306,6 +340,10 @@ function flush(shouldResetPromise = true) {
 
     if (persistedRequestsLength === 0 && !currentOngoingRequest && !hasOnyxUpdates) {
         Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
+        // push() may have marked isReadyPromise pending in its sync prelude (e.g. a conflict
+        // resolver deleted the only request without pushing a replacement). Resolve here so READs
+        // parked on waitForIdle() don't hang until unrelated queue activity releases them.
+        resolveIsReadyPromise?.();
         return;
     }
 
@@ -322,6 +360,10 @@ function flush(shouldResetPromise = true) {
             persistedRequestsLength,
             hasOngoingRequest: !!currentOngoingRequest,
         });
+        // push() may have marked isReadyPromise pending in its sync prelude. Followers never
+        // process the queue, so resolve here — otherwise READs parked on waitForIdle() would
+        // hang forever on this tab after any write.
+        resolveIsReadyPromise?.();
         return;
     }
 
@@ -334,10 +376,9 @@ function flush(shouldResetPromise = true) {
     isSequentialQueueRunning = true;
 
     if (shouldResetPromise) {
-        // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
-        isReadyPromise = new Promise((resolve) => {
-            resolveIsReadyPromise = resolve;
-        });
+        // Mark isReadyPromise as pending so READs (waitForIdle) park behind us.
+        // Idempotent — safe if push() already marked it pending in its sync prelude.
+        setIsReadyPromisePending();
     }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
@@ -504,7 +545,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
     }
 }
 
-function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
+async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
     const currentRequests = getAllPersistedRequests();
     Log.info('[SequentialQueue] push() called', false, {
         command: newRequest.command,
@@ -514,19 +555,10 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
         isSequentialQueueRunning,
     });
 
-    // Save the request to the persisted queue. The in-memory update inside save()
-    // happens synchronously, so flush() below will see the new request immediately.
-    // The returned promise resolves when disk persistence completes.
     let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
-        const requests = currentRequests;
-        Log.info('[SequentialQueue] Checking for conflicts', false, {
-            command: newRequest.command,
-            existingRequestsCount: requests.length,
-        });
-
-        const {conflictAction} = newRequest.checkAndFixConflictingRequest(requests as Array<OnyxRequest<TKey>>);
+        const {conflictAction} = newRequest.checkAndFixConflictingRequest(currentRequests as Array<OnyxRequest<TKey>>);
         Log.info('[SequentialQueue] Conflict action determined', false, {
             command: newRequest.command,
             conflictType: conflictAction.type,
@@ -537,41 +569,56 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
         delete newRequest.checkAndFixConflictingRequest;
         persistencePromise = handleConflictActions(conflictAction, newRequest);
     } else {
-        Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {
-            command: newRequest.command,
-        });
-        // Add request to Persisted Requests so that it can be retried if it fails
         persistencePromise = savePersistedRequest(newRequest);
     }
 
-    // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (isOfflineNetwork()) {
         Log.info('[SequentialQueue] Request persisted but not flushing — we are offline', false, {
             command: newRequest.command,
             queueLength: getAllPersistedRequests().length,
         });
-        return persistencePromise;
+        await persistencePromise;
+        return;
     }
 
-    // If the queue is running this request will run once it has finished processing the current batch
+    // Mark the ready-promise pending sync (before the first await) so any READ that fires on
+    // the next synchronous line via waitForIdle() correctly parks behind this write.
+    setIsReadyPromisePending();
+
+    // Block until the Onyx disk commit lands so flush() → XHR cannot race the disk write —
+    // a process kill in that window would lose the request on next launch.
+    try {
+        await persistencePromise;
+    } catch {
+        // Backstop: persistence alerts+swallows on failure, so this shouldn't reject. If it ever does,
+        // flush anyway (the request is already in the in-memory queue) rather than stranding isReadyPromise.
+        Log.info('[SequentialQueue] Persist rejected — flushing anyway', false, {command: newRequest.command});
+    }
+
+    // The network may have flipped offline while we awaited the disk write. flush() would
+    // early-return on its offline check without resolving isReadyPromise, leaving READs parked
+    // on waitForIdle() until an unrelated reconnect drains the queue. Resolve here so READs
+    // proceed — consistent with flush() resolving isReadyPromise when offline.
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Went offline during persist — resolving isReadyPromise without flushing', false, {
+            command: newRequest.command,
+        });
+        resolveIsReadyPromise?.();
+        return;
+    }
+
     if (isSequentialQueueRunning) {
         Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.', false, {
             command: newRequest.command,
         });
-        isReadyPromise.then(() => {
-            Log.info('[SequentialQueue] isReadyPromise resolved, flushing queue', false, {
-                command: newRequest.command,
-            });
-            flush(true);
-        });
-        return persistencePromise;
+        isReadyPromise.then(() => flush(false));
+        return;
     }
 
     Log.info('[SequentialQueue] Queue is not running. Flushing the queue.', false, {
         command: newRequest.command,
     });
-    flush(true);
-    return persistencePromise;
+    flush(false);
 }
 
 function getCurrentRequest(): Promise<void> {
@@ -596,10 +643,9 @@ function resetQueue(): void {
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
     isQueuePaused = false;
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
-    resolveIsReadyPromise?.();
+    isReadyPromise = Promise.resolve();
+    isReadyPromisePending = false;
+    resolveIsReadyPromise = undefined;
 }
 
 export {

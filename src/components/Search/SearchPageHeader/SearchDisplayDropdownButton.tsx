@@ -1,25 +1,34 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type SearchDisplayDropdownButtonProps = {
     queryJSON: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
     onSort: () => void;
 };
+
+const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+} as const;
 
 function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchDisplayDropdownButtonProps) {
     const {translate} = useLocalize();
@@ -43,24 +52,32 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
         </ListFilterHeightContextProvider>
     );
 
-    const displayIconButton: DropdownButtonProps['ButtonComponent'] = (props) => (
-        <PressableWithFeedback
-            ref={props.ref}
-            accessibilityLabel={translate('search.display.label')}
-            role={CONST.ROLE.BUTTON}
-            style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
-            hoverStyle={styles.buttonHoveredBG}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
-            onPress={props.onPress}
-        >
-            <Icon
-                src={expensifyIcons.Gear}
-                fill={theme.icon}
-                small={shouldUseNarrowLayout}
-                extraSmall={isMediumScreenWidth}
+    if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        return (
+            <FilterPopupButton
+                PopoverComponent={displayPopup}
+                popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
+                renderButton={({ref, onPress}) => (
+                    <PressableWithFeedback
+                        ref={ref}
+                        accessibilityLabel={translate('search.display.label')}
+                        role={CONST.ROLE.BUTTON}
+                        style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
+                        hoverStyle={styles.buttonHoveredBG}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
+                        onPress={onPress}
+                    >
+                        <Icon
+                            src={expensifyIcons.Gear}
+                            fill={theme.icon}
+                            small={shouldUseNarrowLayout}
+                            extraSmall={isMediumScreenWidth}
+                        />
+                    </PressableWithFeedback>
+                )}
             />
-        </PressableWithFeedback>
-    );
+        );
+    }
 
     return (
         <DropdownButton
@@ -68,7 +85,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
             PopoverComponent={displayPopup}
-            ButtonComponent={shouldUseNarrowLayout || isMediumScreenWidth ? displayIconButton : undefined}
+            popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
         />
     );
 }

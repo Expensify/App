@@ -1,11 +1,17 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
+
 import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -61,9 +67,9 @@ describe('ShowPreviousMessagesButton', () => {
         expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders nothing when not in the side panel', () => {
+    it('renders the button when not in the side panel (main DM)', () => {
         renderButton({}, {isInSidePanel: false});
-        expect(screen.queryByRole('button')).toBeNull();
+        expect(screen.getByRole('button')).toBeTruthy();
     });
 
     it('renders nothing when reportID does not match the Concierge report', () => {

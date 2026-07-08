@@ -1,7 +1,10 @@
-import FullStory, {FSPage} from '@fullstory/react-native';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+
+import FullStory, {FSPage} from '@fullstory/react-native';
+
 import type {Fullstory} from './types';
+
+import {getChatFSClass, shouldInitializeFullstory} from './common';
 
 const FS: Fullstory = {
     Page: FSPage,
@@ -10,7 +13,7 @@ const FS: Fullstory = {
 
     init: (userMetadata) => FS.consentAndIdentify(userMetadata),
 
-    onReady: () => FullStory.onReady(),
+    onReady: async () => FullStory.onReady(),
 
     shouldInitialize: shouldInitializeFullstory,
 
@@ -49,11 +52,11 @@ const FS: Fullstory = {
 
     anonymize: () => FullStory.anonymize(),
 
-    getSessionId: () => {
+    getSessionId: async () => {
         return FullStory.getCurrentSession();
     },
 
-    getSessionURL: () => {
+    getSessionURL: async () => {
         return FullStory.getCurrentSessionURL();
     },
 

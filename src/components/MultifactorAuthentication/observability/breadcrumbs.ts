@@ -1,6 +1,8 @@
-import type {SeverityLevel} from '@sentry/react-native';
-import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
+
+import type {SeverityLevel} from '@sentry/react-native';
+
+import * as Sentry from '@sentry/react-native';
 
 type BreadcrumbData = Record<string, string | number | boolean | undefined>;
 
@@ -14,4 +16,3 @@ function addMFABreadcrumb(message: string, data?: BreadcrumbData, level: Severit
 }
 
 export default addMFABreadcrumb;
-export type {BreadcrumbData};

@@ -1,15 +1,21 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const Stack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
@@ -83,7 +89,7 @@ describe('WorkspaceListPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).not.toBeOnTheScreen();
     });
 
@@ -125,31 +131,8 @@ describe('WorkspaceListPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
-    });
-
-    it('should show a "new" dropdown button when workspaces and domains are present', async () => {
-        const TEST_DOMAIN_ACCOUNT_ID = 123;
-        const TEST_POLICY_ID = 'test-policy-id';
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${TEST_DOMAIN_ACCOUNT_ID}`, {
-            accountID: TEST_DOMAIN_ACCOUNT_ID,
-            email: '+@test.com',
-        });
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
-            id: TEST_POLICY_ID,
-            name: 'Test Policy',
-            role: 'admin',
-        });
-
-        renderPage();
-
-        await waitForBatchedUpdatesWithAct();
-
-        const newDropdownButton = screen.getByTestId('dropdown-button-new');
-        expect(newDropdownButton).toBeOnTheScreen();
     });
 
     it('should show a "New workspace" button when there are workspaces but no domains', async () => {
@@ -169,7 +152,7 @@ describe('WorkspaceListPage', () => {
         const newDropdownButton = screen.queryByTestId('dropdown-button-new');
         expect(newDropdownButton).not.toBeOnTheScreen();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
 });

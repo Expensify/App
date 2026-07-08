@@ -1,12 +1,17 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {GuardContext, GuardResult, NavigationGuard} from './types';
+
 import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
-import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 /**
  * Module-level Onyx subscriptions for common guard context values
@@ -105,4 +110,3 @@ registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};
-export type {NavigationGuard, GuardResult, GuardContext};

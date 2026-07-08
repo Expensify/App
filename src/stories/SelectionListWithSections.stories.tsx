@@ -1,5 +1,3 @@
-import type {Meta} from '@storybook/react-webpack5';
-import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -7,7 +5,12 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {Meta} from '@storybook/react-webpack5';
+
+import React, {useMemo, useState} from 'react';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -90,7 +93,6 @@ function Default(props: SelectionListWithSectionsProps<ListItem>) {
 
     return (
         <SelectionListWithNavigation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
             ListItem={SingleSelectListItem}
@@ -130,7 +132,6 @@ function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
 
     return (
         <SelectionListWithNavigation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
             ListItem={SingleSelectListItem}
@@ -174,7 +175,6 @@ function WithAlternateText(props: SelectionListWithSectionsProps<ListItem>) {
 
     return (
         <SelectionListWithNavigation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
             onSelectRow={onSelectRow}
@@ -225,7 +225,6 @@ function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
 
     return (
         <SelectionListWithNavigation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
             ListItem={MultiSelectListItem}
@@ -277,7 +276,6 @@ function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
 
     return (
         <SelectionListWithNavigation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
             ListItem={MultiSelectListItem}
@@ -337,7 +335,6 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
 
     return (
         <SelectionListWithNavigation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={memo.sections}
             ListItem={MultiSelectListItem}

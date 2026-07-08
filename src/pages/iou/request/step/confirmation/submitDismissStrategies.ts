@@ -1,12 +1,13 @@
 import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- Navigation.pop and dismissModalWithReport don't support afterTransition
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -34,10 +35,12 @@ function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) 
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
     Navigation.dismissModalWithReport({reportID}, undefined, {
         onBeforeNavigate: (willOpenReport) => {
-            setPendingSubmitFollowUpAction(
-                willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                reportID,
-            );
+            if (willOpenReport) {
+                setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
+                return;
+            }
+
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
         },
     });
     TransitionTracker.runAfterTransitions({
@@ -123,6 +126,11 @@ function dismissWideToNewSearchType(searchType: SearchDataTypes, runAfterDismiss
  */
 function executeDismissModalStrategy(destinationReportID: string | undefined, runAfterDismiss: () => void) {
     if (!destinationReportID) {
+        dismissOnly(runAfterDismiss);
+        return;
+    }
+
+    if (isSearchTopmostFullScreenRoute()) {
         dismissOnly(runAfterDismiss);
         return;
     }

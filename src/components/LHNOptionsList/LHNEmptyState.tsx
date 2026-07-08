@@ -1,17 +1,23 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
+import Text from '@components/Text';
 import TextBlock from '@components/TextBlock';
+import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
+
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 function LHNEmptyState() {
@@ -19,18 +25,34 @@ function LHNEmptyState() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
-    const emptyLHNIllustration = useEmptyLHNIllustration();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const emptyLHNIllustration = useEmptyLHNIllustration() as BlockingViewProps;
+    const {activeTab} = useSidebarOrderedReportsState();
+    const {setActiveTab} = useSidebarOrderedReportsActions();
 
-    useEffect(() => {
-        Log.info('Woohoo! All caught up. Was rendered', false, {
-            reportsCount: Object.keys(reports ?? {}).length,
-            policyCount: Object.keys(policy ?? {}).length,
-            personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-        });
-    }, [reports, policy, personalDetails]);
+    if (activeTab === CONST.INBOX_TAB.UNREAD || activeTab === CONST.INBOX_TAB.TODO) {
+        const title = activeTab === CONST.INBOX_TAB.UNREAD ? translate('common.emptyLHN.noUnreadChats') : translate('common.emptyLHN.noTodos');
+        const caughtUpSubtitle = (
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('common.emptyLHN.caughtUp')}</Text>
+                <TextLink
+                    onPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
+                    style={[styles.textStrong, styles.mt5, styles.ph4, styles.textAlignCenter]}
+                >
+                    {translate('common.emptyLHN.seeAllChats')}
+                </TextLink>
+            </View>
+        );
+
+        return (
+            <BlockingView
+                {...emptyLHNIllustration}
+                title={title}
+                titleStyles={styles.mb2}
+                CustomSubtitle={caughtUpSubtitle}
+                accessibilityLabel={title}
+            />
+        );
+    }
 
     const subtitle = (
         <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
@@ -70,8 +92,7 @@ function LHNEmptyState() {
 
     return (
         <BlockingView
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(emptyLHNIllustration as BlockingViewProps)}
+            {...emptyLHNIllustration}
             title={translate('common.emptyLHN.title')}
             CustomSubtitle={subtitle}
             accessibilityLabel={translate('common.emptyLHN.title')}

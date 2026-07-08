@@ -1,11 +1,15 @@
-import React, {useCallback, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {FlatList} from 'react-native';
 import useFlatListHandle from '@components/FlatList/hooks/useFlatListHandle';
 import type {FlatListInnerRefType} from '@components/FlatList/hooks/useFlatListHandle';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+import React, {useCallback, useRef, useState} from 'react';
+import {FlatList} from 'react-native';
+
 import type {CustomFlatListProps} from './types';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
@@ -63,7 +67,6 @@ function CustomFlatList<T>({
     if (enableAnimatedKeyboardDismissal) {
         return (
             <KeyboardDismissibleFlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restProps}
                 ref={listRef}
                 maintainVisibleContentPosition={maintainVisibleContentPosition}
@@ -78,7 +81,6 @@ function CustomFlatList<T>({
 
     return (
         <FlatList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}

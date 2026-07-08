@@ -1,7 +1,12 @@
-import React from 'react';
 import OutcomeScreenBase from '@components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase';
+
 import useLocalize from '@hooks/useLocalize';
+
+import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
+import React from 'react';
 
 function ChangePINAtATMPage() {
     const {translate} = useLocalize();
@@ -14,6 +19,7 @@ function ChangePINAtATMPage() {
             iconHeight={variables.modalTopIconHeight}
             title={translate('cardPage.changePinAtATM')}
             subtitle={translate('cardPage.changePinAtATMDescription')}
+            onClose={() => Navigation.closeRHPFlow()}
         />
     );
 }

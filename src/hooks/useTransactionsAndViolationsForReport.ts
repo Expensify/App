@@ -1,8 +1,11 @@
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
+
 import {getTransactionViolations} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
@@ -23,7 +26,7 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
         filteredViolations[transactionViolationKey] = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, policy) ?? [];
     }
 
-    return {transactions, violations: filteredViolations};
+    return {transactions, violations: filteredViolations, isLoaded: allReportsTransactionsAndViolations !== undefined};
 }
 
 export default useTransactionsAndViolationsForReport;

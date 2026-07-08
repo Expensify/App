@@ -1,11 +1,13 @@
 ---
 title: Set Up and Manage Expensify Cards
 description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
-keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin]
-internalScope: Applies to Workspace Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
+keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin, Card Admin]
+internalScope: Applies to Workspace Admins and Card Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
+
+**Card Admins** can also issue and manage Expensify Cards — including setting limits, freezing or unfreezing cards, and adjusting card settings — once the Expensify Card is enabled on the workspace.
 
 **The Expensify Card offers powerful spend control tools, including:**
 
@@ -16,7 +18,9 @@ Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manag
 - Spend restrictions by employee and merchant
 - Real-time visibility and cash back rewards
 
-**Prerequisites:** You must be a workspace admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
+**Prerequisites:** 
+1. Your primary login must be an email associated with your company's domain. See this guide on [updating your login](/articles/new-expensify/settings/Update-Email-Address). 
+2. You must be a Workspace Admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 
 ---
 
@@ -67,6 +71,8 @@ You can issue virtual or physical cards to employees:
 8. Name the card for easier tracking
 9. Click **Issue card** to confirm
 
+When issuing a card, you can also apply an existing Spend Rule or create a new one so the card has real-time spending controls from its first use. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
 ![Choose a Smart limit type]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_03.png){:width="100%"}
 
 ![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_04.png){:width="100%"}
@@ -85,6 +91,8 @@ You can issue virtual or physical cards to employees:
    - Card name
    - Deactivation
 4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
+
+Your workspace also has built-in default protections that automatically block certain transaction categories on every Expensify Card, and you can set Spend Rules to approve or decline transactions in real time. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_05.png){:width="100%"}
 
@@ -128,7 +136,7 @@ The downloaded CSV file includes the following columns for each selected card: e
 
 # How to freeze or unfreeze an Expensify Card
 
-As a Workspace Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
+As a Workspace Admin or Card Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
 
 Freezing a card is helpful if:
 - You suspect misuse or a policy violation

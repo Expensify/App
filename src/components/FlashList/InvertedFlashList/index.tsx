@@ -1,7 +1,11 @@
-import type {FlashListProps} from '@shopify/flash-list';
-import React from 'react';
 import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
+
 import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+
+import type {FlashListProps} from '@shopify/flash-list';
+
+import React from 'react';
+
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
@@ -52,7 +56,6 @@ function InvertedFlashList<T>({
 
     return (
         <FlashList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             inverted
             onStartReached={onStartReached}

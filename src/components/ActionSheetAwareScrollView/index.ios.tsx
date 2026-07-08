@@ -1,7 +1,9 @@
 import React from 'react';
 import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
-import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
+
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
@@ -18,7 +20,6 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
 
     return (
         <Reanimated.ScrollView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={onRef}
             style={[style, animatedStyle]}
@@ -34,7 +35,6 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
  * @returns - ActionSheetAwareScrollView
  */
 const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props) => {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 };
 

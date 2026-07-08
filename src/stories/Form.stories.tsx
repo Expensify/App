@@ -1,8 +1,3 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React, {useState} from 'react';
-import type {ComponentType} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
@@ -13,13 +8,25 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
+import useLocalize from '@hooks/useLocalize';
+
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 const defaultStyles = styles(defaultTheme);
 
@@ -63,6 +70,8 @@ const story: Meta<typeof FormProvider> = {
 };
 
 function Template(props: FormProviderProps & FormProviderOnyxProps) {
+    const {translate} = useLocalize();
+
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     setIsLoading(props.formID, !!props.formState?.isLoading);
     setDraftValues(props.formID, props.draftValues);
@@ -74,7 +83,6 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <FormProvider {...props}>
             <View>
                 <InputWrapper
@@ -99,7 +107,7 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
                 label="Street"
                 inputID="street"
                 containerStyles={defaultStyles.mt4}
-                hint="common.noPO"
+                hint={translate('common.noPO')}
             />
             <InputWrapper
                 InputComponent={DatePicker}
@@ -187,7 +195,6 @@ function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <FormProvider {...props}>
             <InputWrapper
                 InputComponent={TextInput}

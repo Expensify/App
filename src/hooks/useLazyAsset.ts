@@ -1,10 +1,12 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {getExpensifyIconsChunk, loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import {getIllustrationsChunk, loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 type LazyAssetResult<T> = {
     asset: T | undefined;
@@ -220,5 +222,5 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
     return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
 }
 
-export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons, type LazyAssetResult};
+export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons};
 export default useLazyAsset;

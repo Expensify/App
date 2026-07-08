@@ -1,9 +1,11 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React, {useState} from 'react';
 import type {AvatarSelectorProps} from '@components/AvatarSelector';
 import AvatarSelector from '@components/AvatarSelector';
+
 import CONST from '@src/CONST';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React, {useState} from 'react';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

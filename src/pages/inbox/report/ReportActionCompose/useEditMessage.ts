@@ -1,20 +1,22 @@
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFuncLeading} from 'lodash';
-import type React from 'react';
 import type {ComposerRef} from '@components/Composer/types';
-import useAncestors from '@hooks/useAncestors';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
-import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
-import {getOriginalReportID} from '@libs/ReportUtils';
+
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+// eslint-disable-next-line lodash/import-scope
+import type {DebouncedFuncLeading} from 'lodash';
+import type React from 'react';
 
 type UseEditMessageProps = {
     /** The report ID */
@@ -38,13 +40,10 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
     const reportScrollManager = useReportScrollManager();
 
     const {email} = useCurrentUserPersonalDetails();
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const originalParentReportID = getOriginalReportID(originalReportID, reportAction, reportActions);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
-    const ancestors = useAncestors(originalReport);
+    const actionOwnerReportID = originalReportID ?? reportID;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
+    const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -73,7 +72,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         }
 
         // Do nothing if draft exceed the character limit
-        if (!debouncedCommentMaxLengthValidation.flush()) {
+        if (debouncedCommentMaxLengthValidation.flush() === false) {
             return;
         }
 
@@ -82,23 +81,13 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             composerRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, reportAction, true, deleteDraft, () => focusEditAfterCancelDelete(composerRef.current));
+            ReportActionContextMenu.showDeleteModal(actionOwnerReportID, reportAction, true, deleteDraft, () => requestIdleCallback(() => composerRef.current?.focus()));
             return;
         }
 
         submitEdit();
 
-        editReportComment(
-            originalReport,
-            reportAction,
-            ancestors,
-            trimmedNewDraft,
-            isOriginalReportArchived,
-            isOriginalParentReportArchived,
-            email ?? '',
-            Object.fromEntries(draftMessageVideoAttributeCache),
-            visibleReportActionsData,
-        );
+        editReportComment(originalReport, reportAction, trimmedNewDraft, isOriginalReportArchived, email ?? '', personalDetails, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }
 

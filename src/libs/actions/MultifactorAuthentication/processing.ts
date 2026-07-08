@@ -1,9 +1,11 @@
 import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
+
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import {registerAuthenticationKey} from './index';
 
 type RegistrationParams = {
@@ -55,4 +57,3 @@ async function processScenarioAction(
 }
 
 export {processRegistration, processScenarioAction};
-export type {RegistrationParams};

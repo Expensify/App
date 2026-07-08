@@ -1,13 +1,24 @@
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import React from 'react';
 import {View} from 'react-native';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
-import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import AgentInfoRow from './AgentInfoRow';
 
 type AgentsListRowProps = {
     /** Account ID of the agent */
@@ -27,11 +38,34 @@ type AgentsListRowProps = {
 
     /** Called when the user dismisses the error */
     onErrorClose?: () => void;
+
+    /** Whether to show the red error dot indicator */
+    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | null;
+
+    /** Called when the Chat button is pressed */
+    onChatPress?: (accountID: number) => void;
+
+    /** Called when the Copilot button is pressed */
+    onCopilotPress?: (login: string) => void;
 };
 
-function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose}: AgentsListRowProps) {
+function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose, brickRoadIndicator, onChatPress, onCopilotPress}: AgentsListRowProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'ChatBubble']);
+
+    const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isPendingAddOrDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !login;
+    const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+    const handleChatPress = () => {
+        onChatPress?.(accountID);
+    };
+    const handleCopilotPress = () => {
+        onCopilotPress?.(login);
+    };
 
     return (
         <OfflineWithFeedback
@@ -39,29 +73,66 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
             errors={errors}
             onClose={onErrorClose}
             errorRowStyles={[styles.ph5, styles.pb5]}
+            shouldHideOnDelete={false}
         >
-            <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}>
-                <ReportActionAvatars
-                    accountIDs={[accountID]}
-                    size={CONST.AVATAR_SIZE.LARGE_NORMAL}
-                    shouldShowTooltip={false}
-                    singleAvatarContainerStyle={[StyleUtils.getWidthAndHeightStyle(variables.avatarSizeLargeNormal)]}
-                />
-                <View style={[styles.flex1, styles.gap1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={styles.textStrong}
-                    >
-                        {displayName}
-                    </Text>
-                    <Text
-                        numberOfLines={1}
-                        style={styles.mutedNormalTextLabel}
-                    >
-                        {login}
-                    </Text>
+            {shouldUseNarrowLayout ? (
+                <PressableWithFeedback
+                    style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}
+                    onPress={navigateToEdit}
+                    accessibilityLabel={displayName}
+                    role={CONST.ROLE.BUTTON}
+                    sentryLabel="AgentsListRow-Edit"
+                    disabled={isPendingDeletion}
+                >
+                    <AgentInfoRow
+                        accountID={accountID}
+                        displayName={displayName}
+                        login={login}
+                        isPendingDeletion={isPendingDeletion}
+                    />
+                    {!!brickRoadIndicator && (
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    )}
+                </PressableWithFeedback>
+            ) : (
+                <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap2]}>
+                    <AgentInfoRow
+                        accountID={accountID}
+                        displayName={displayName}
+                        login={login}
+                        isPendingDeletion={isPendingDeletion}
+                    />
+                    {!!brickRoadIndicator && (
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    )}
+                    <Button
+                        small
+                        icon={icons.ChatBubble}
+                        onPress={handleChatPress}
+                        isDisabled={areActionsDisabled}
+                        accessibilityLabel={translate('editAgentPage.chatWithAgent')}
+                    />
+                    <Button
+                        small
+                        text={translate('delegate.copilot')}
+                        onPress={handleCopilotPress}
+                        isDisabled={areActionsDisabled}
+                        accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
+                    />
+                    <Button
+                        small
+                        text={translate('common.edit')}
+                        onPress={navigateToEdit}
+                        isDisabled={isPendingDeletion}
+                    />
                 </View>
-            </View>
+            )}
         </OfflineWithFeedback>
     );
 }

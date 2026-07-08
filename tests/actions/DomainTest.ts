@@ -1,5 +1,3 @@
-import {Num} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import {
     addAdminToDomain,
     addMemberToDomain,
@@ -28,14 +26,19 @@ import {
 } from '@libs/actions/Domain';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import {Num} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -93,20 +96,20 @@ describe('actions/Domain', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const domainName = 'test.com';
-        const domain = {
-            accountID: domainAccountID,
-        } as Domain;
 
-        resetDomain(domainAccountID, domainName, domain);
+        resetDomain(domainAccountID, domainName);
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.DELETE_DOMAIN,
             {domainAccountID, domainName},
             {
-                optimisticData: [expect.objectContaining({value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}), expect.objectContaining({value: null})],
-                successData: [expect.objectContaining({value: {pendingAction: null}}), expect.objectContaining({value: {errors: null}})],
+                optimisticData: [
+                    expect.objectContaining({value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}),
+                    expect.objectContaining({value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}),
+                ],
+                successData: [expect.objectContaining({value: null}), expect.objectContaining({value: {pendingAction: null}}), expect.objectContaining({value: {errors: null}})],
                 failureData: [
-                    expect.objectContaining({value: domain}),
+                    expect.objectContaining({value: {pendingAction: null}}),
                     expect.objectContaining({value: {pendingAction: null}}),
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     expect.objectContaining({value: {errors: expect.any(Object)}}),
@@ -983,7 +986,7 @@ describe('actions/Domain', () => {
             const memberAccountIDs = ['100', '200', '300'];
             setDomainMembersSelectedForMove(memberAccountIDs);
             await TestHelper.getOnyxData({
-                key: ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+                key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual(memberAccountIDs);
@@ -994,7 +997,7 @@ describe('actions/Domain', () => {
         it('sets an empty array when called with empty array', async () => {
             setDomainMembersSelectedForMove([]);
             await TestHelper.getOnyxData({
-                key: ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+                key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
@@ -1003,10 +1006,10 @@ describe('actions/Domain', () => {
         });
 
         it('clearDomainMembersSelectedForMove resets the selection to an empty array', async () => {
-            await Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, ['100', '200']);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, ['100', '200']);
             clearDomainMembersSelectedForMove();
             await TestHelper.getOnyxData({
-                key: ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+                key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
@@ -1119,7 +1122,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {errors: null}},
+                            value: {[SECURITY_GROUP_KEY]: null},
                         }),
                     ]),
                 }),
@@ -1144,7 +1147,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {errors: null}},
+                            value: {[SECURITY_GROUP_KEY]: null},
                         }),
                     ]),
                 }),

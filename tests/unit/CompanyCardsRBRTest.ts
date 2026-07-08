@@ -1,10 +1,12 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
@@ -15,7 +17,7 @@ const WORKSPACE_ACCOUNT_ID = 99999999;
 
 // Direct bank connection feed (OAuth-based, e.g. Chase)
 const DIRECT_BANK_FEED = {
-    workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+    policyAccountID: WORKSPACE_ACCOUNT_ID,
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, WORKSPACE_ACCOUNT_ID),
 } as const;
@@ -23,7 +25,7 @@ const DIRECT_BANK_FEED = {
 // Plaid connection feed (Plaid feed names are dynamically generated at runtime and not part of the static CardFeedWithNumber union)
 const PLAID_FEED_NAME = 'plaid.chase_bank' as unknown as Card['bank'];
 const PLAID_FEED = {
-    workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+    policyAccountID: WORKSPACE_ACCOUNT_ID,
     feedName: PLAID_FEED_NAME,
     feedNameWithDomainID: getCardFeedWithDomainID(PLAID_FEED_NAME, WORKSPACE_ACCOUNT_ID),
 };
@@ -54,7 +56,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 lastScrapeResult: 403,
             });
 
@@ -71,12 +73,12 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 2,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 lastScrapeResult: 401,
             });
 
             const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${DIRECT_BANK_FEED.workspaceAccountID}_${DIRECT_BANK_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({
+                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${DIRECT_BANK_FEED.policyAccountID}_${DIRECT_BANK_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({
                     card2: card,
                 }),
             };
@@ -92,7 +94,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 lastScrapeResult: 200,
             });
 
@@ -110,7 +112,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 lastScrapeResult: 403,
             });
 
@@ -127,12 +129,12 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 4,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 lastScrapeResult: 401,
             });
 
             const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${PLAID_FEED.workspaceAccountID}_${PLAID_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({card4: card}),
+                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${PLAID_FEED.policyAccountID}_${PLAID_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({card4: card}),
             };
 
             const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
@@ -146,7 +148,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 lastScrapeResult: 200,
             });
 
@@ -164,13 +166,13 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
             });
 
             const globalCardList: CardList = {card1: card};
 
             const cardFeeds: OnyxCollection<CardFeeds> = {
-                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DIRECT_BANK_FEED.workspaceAccountID}`]: {
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DIRECT_BANK_FEED.policyAccountID}`]: {
                     settings: {
                         companyCards: {
                             [DIRECT_BANK_FEED.feedName]: {
@@ -196,13 +198,13 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
             });
 
             const globalCardList: CardList = {card3: card};
 
             const cardFeeds: OnyxCollection<CardFeeds> = {
-                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${PLAID_FEED.workspaceAccountID}`]: {
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${PLAID_FEED.policyAccountID}`]: {
                     settings: {
                         companyCards: {
                             [PLAID_FEED.feedName]: {
@@ -231,7 +233,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const brokenCard = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 lastScrapeResult: 403,
             });
 
@@ -242,7 +244,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const fixedCard = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 lastScrapeResult: 200,
             });
 
@@ -257,7 +259,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const brokenCard = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 lastScrapeResult: 401,
             });
 
@@ -268,7 +270,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const fixedCard = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 lastScrapeResult: 200,
             });
 
@@ -284,13 +286,13 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const closedCard = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
                 lastScrapeResult: 403,
             });
 
             const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${DIRECT_BANK_FEED.workspaceAccountID}_${DIRECT_BANK_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({
+                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${DIRECT_BANK_FEED.policyAccountID}_${DIRECT_BANK_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({
                     card1: closedCard,
                 }),
             };
@@ -304,13 +306,13 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const deactivatedCard = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
                 lastScrapeResult: 403,
             });
 
             const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${PLAID_FEED.workspaceAccountID}_${PLAID_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({
+                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${PLAID_FEED.policyAccountID}_${PLAID_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({
                     card3: deactivatedCard,
                 }),
             };
@@ -326,7 +328,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 1,
                 bank: DIRECT_BANK_FEED.feedName,
-                fundID: String(DIRECT_BANK_FEED.workspaceAccountID),
+                fundID: String(DIRECT_BANK_FEED.policyAccountID),
                 lastScrapeResult: status,
             });
 
@@ -340,7 +342,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             const card = createCard({
                 cardID: 3,
                 bank: PLAID_FEED.feedName,
-                fundID: String(PLAID_FEED.workspaceAccountID),
+                fundID: String(PLAID_FEED.policyAccountID),
                 lastScrapeResult: status,
             });
 

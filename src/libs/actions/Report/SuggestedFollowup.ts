@@ -1,14 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
 import type {Ancestor, OptimisticReportAction} from '@libs/ReportUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {addComment, buildOptimisticResolvedFollowups} from '.';
 
 /** Delay before showing pre-generated Concierge response (in milliseconds) */
@@ -55,6 +59,7 @@ function resolveSuggestedFollowup(
         event: 'followup_clicked',
         reportID,
         reportActionID,
+        questionText: selectedFollowup.text,
         hasPregeneratedResponse: !!selectedFollowup.response,
     });
 
@@ -127,7 +132,30 @@ function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConci
  * Called when the response has been pending too long (e.g. app was killed and restarted).
  */
 function discardPendingConciergeAction(reportID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, null);
+    Onyx.multiSet({
+        [`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`]: null,
+    });
+}
+
+/**
+ * Clears the pending followup-list marker for a report so the skeleton stops rendering.
+ */
+function clearPendingFollowupList(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, null);
+}
+
+/**
+ * Temporarily hides the pending followup-list skeleton.
+ */
+function hidePendingFollowupList(reportID: string | undefined, hidden: boolean | null) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {hidden});
 }
 
 /**
@@ -146,7 +174,12 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportAction.reportActionID]: reportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`,
+            value: {reportActionID: reportAction.reportActionID, createdAt: Date.now()},
+        },
     ]);
 }
 
-export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, CONCIERGE_RESPONSE_DELAY_MS};
+export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, clearPendingFollowupList, hidePendingFollowupList, CONCIERGE_RESPONSE_DELAY_MS};

@@ -1,17 +1,21 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import UserPills from '@components/UserPills';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
 
 type HotelTripDetailsProps = {
     reservation: Reservation;
@@ -19,7 +23,6 @@ type HotelTripDetailsProps = {
 };
 
 function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -33,7 +36,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
     const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
     const cancellationText = reservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline)}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
@@ -86,14 +89,23 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 />
             )}
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.hotelDetails.guest')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.hotelDetails.guest')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
+                    accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>

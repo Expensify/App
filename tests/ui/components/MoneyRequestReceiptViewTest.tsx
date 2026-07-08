@@ -1,18 +1,32 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockOpenPicker = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useRoute: () => ({key: 'test', name: 'test', params: {}}),
+    };
+});
 
 jest.mock('@components/AttachmentPicker', () => {
     function MockAttachmentPicker({children}: {children: (props: {openPicker: (opts: {onPicked: (files: unknown[]) => void}) => void}) => React.ReactNode}) {
@@ -183,6 +197,18 @@ const transactionWithScanningReceipt: Transaction = {
     },
 };
 
+// A distance expense created from start/stop waypoints renders an auto-generated map as its receipt (a "map distance receipt").
+const transactionWithMapDistanceReceipt: Transaction = {
+    ...transactionWithReceipt,
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+    comment: {
+        waypoints: {
+            waypoint0: {address: '123 Start St', lat: 40.7128, lng: -74.006, keyForList: 'start_waypoint'},
+            waypoint1: {address: '456 End Ave', lat: 41.5, lng: -73.5, keyForList: 'stop_waypoint'},
+        },
+    },
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -302,6 +328,23 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('shows both action buttons for a map distance receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
     });
 });

@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import type {RadioButtonWithLabelProps} from '@components/RadioButtonWithLabel';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
 
 type RadioButtonWithLabelStory = StoryFn<typeof RadioButtonWithLabel>;
 
@@ -16,7 +18,6 @@ const story: Meta<typeof RadioButtonWithLabel> = {
 };
 
 function Template(props: RadioButtonWithLabelProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <RadioButtonWithLabel {...props} />;
 }
 

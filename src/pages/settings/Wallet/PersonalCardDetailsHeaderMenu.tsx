@@ -1,23 +1,28 @@
-import {format, parseISO} from 'date-fns';
-import React from 'react';
-import ActivityIndicator from '@components/ActivityIndicator';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDefaultCardName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card, PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {format, parseISO} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 type PersonalCardDetailsHeaderMenuProps = {
     card: Card;
@@ -27,12 +32,11 @@ type PersonalCardDetailsHeaderMenuProps = {
     expensifyIcons: Record<string, IconAsset>;
     isCSVImportedPersonalCard: boolean;
     reimbursableSetting: boolean;
-    lastScrape: string;
     isOffline: boolean;
     shouldShowBreakConnection: boolean;
-    onUpdateCard: () => void;
     onBreakConnection: () => void;
     onUnassignCard: () => void;
+    onDeleteCard?: () => void;
 };
 
 function PersonalCardDetailsHeaderMenu({
@@ -43,17 +47,15 @@ function PersonalCardDetailsHeaderMenu({
     expensifyIcons,
     isCSVImportedPersonalCard,
     reimbursableSetting,
-    lastScrape,
     isOffline,
     shouldShowBreakConnection,
-    onUpdateCard,
     onBreakConnection,
     onUnassignCard,
+    onDeleteCard,
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
-    const isLoadingLastUpdatedReasonAttributes: SkeletonSpanReasonAttributes = {context: 'PersonalCardDetailsHeaderMenu', isLoadingLastUpdated: !!card?.isLoadingLastUpdated};
+    const icons = useMemoizedLazyExpensifyIcons(['Table', 'Trashcan']);
 
     return (
         <>
@@ -70,7 +72,9 @@ function PersonalCardDetailsHeaderMenu({
             >
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.companyCards.cardName')}
-                    title={customCardNames?.[cardID] ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)}
+                    title={
+                        customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)
+                    }
                     shouldShowRightIcon
                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
@@ -88,19 +92,6 @@ function PersonalCardDetailsHeaderMenu({
                 errors={card?.errorFields?.reimbursable ?? undefined}
                 onCloseError={() => card && clearCardErrorField(card.cardID, 'reimbursable')}
                 wrapperStyle={[styles.ph5, styles.mb3]}
-            />
-
-            <MenuItemWithTopDescription
-                shouldShowRightComponent={card?.isLoadingLastUpdated}
-                rightComponent={
-                    <ActivityIndicator
-                        style={[styles.popoverMenuIcon]}
-                        reasonAttributes={isLoadingLastUpdatedReasonAttributes}
-                    />
-                }
-                description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
-                title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
-                interactive={false}
             />
             {!isCSVImportedPersonalCard && (
                 <OfflineWithFeedback
@@ -123,53 +114,38 @@ function PersonalCardDetailsHeaderMenu({
                     />
                 </OfflineWithFeedback>
             )}
-            <MenuItem
-                icon={expensifyIcons.MoneySearch}
-                title={translate('workspace.common.viewTransactions')}
-                style={styles.mt3}
-                onPress={() => {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-                        }),
-                    );
-                }}
-            />
-            {!isCSVImportedPersonalCard && (
-                <OfflineWithFeedback
-                    pendingAction={card?.pendingFields?.lastScrape}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                    onClose={() => {
-                        if (!card) {
-                            return;
-                        }
-                        clearCardErrorField(card.cardID, 'lastScrape');
-                    }}
-                >
+            <View style={styles.mt4}>
+                {isCSVImportedPersonalCard && (
                     <MenuItem
-                        icon={expensifyIcons.Sync}
-                        disabled={isOffline || card?.isLoadingLastUpdated}
-                        title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                        brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={onUpdateCard}
+                        icon={icons.Table}
+                        title={translate('spreadsheet.importSpreadsheet')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
                     />
-                </OfflineWithFeedback>
-            )}
-            {shouldShowBreakConnection && (
-                <MenuItem
-                    icon={icons.Trashcan}
-                    disabled={isOffline || card?.isLoadingLastUpdated}
-                    title="Break connection (Testing)"
-                    onPress={onBreakConnection}
-                />
-            )}
-            <MenuItem
-                icon={expensifyIcons.RemoveMembers}
-                title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                style={styles.mb1}
-                onPress={onUnassignCard}
-            />
+                )}
+                {shouldShowBreakConnection && (
+                    <MenuItem
+                        icon={icons.Trashcan}
+                        disabled={isOffline || card?.isLoadingLastUpdated}
+                        title="Break connection (Testing)"
+                        onPress={onBreakConnection}
+                    />
+                )}
+                {isCSVImportedPersonalCard ? (
+                    <MenuItem
+                        icon={icons.Trashcan}
+                        title={translate('common.delete')}
+                        style={styles.mb1}
+                        onPress={onDeleteCard}
+                    />
+                ) : (
+                    <MenuItem
+                        icon={expensifyIcons.RemoveMembers}
+                        title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                        style={styles.mb1}
+                        onPress={onUnassignCard}
+                    />
+                )}
+            </View>
         </>
     );
 }

@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** The pending member of report */
@@ -29,6 +31,9 @@ type ReportMetadata = {
 
     /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
     pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
+
+    /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
+    pendingNewTransactionIDs?: Record<string, true | null>;
 };
 
 export default ReportMetadata;

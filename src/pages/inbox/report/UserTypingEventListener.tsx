@@ -1,16 +1,19 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
 
 type UserTypingEventListenerProps = {
     /** The report currently being looked at */
@@ -32,8 +35,10 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             // unsubscribe from report typing events when the component unmounts
             didSubscribeToReportTypingEvents.current = false;
-            InteractionManager.runAfterInteractions(() => {
-                unsubscribeFromReportChannel(reportID);
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    unsubscribeFromReportChannel(reportID);
+                },
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,7 +50,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
         if (route?.params?.reportID !== reportID) {
             return;
         }
-        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
+        let interactionTask: ReturnType<typeof TransitionTracker.runAfterTransitions> | null = null;
         if (isFocused) {
             // Ensures subscription event succeeds when the report/workspace room is created optimistically.
             // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
@@ -54,9 +59,11 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-                interactionTask = InteractionManager.runAfterInteractions(() => {
-                    subscribeToReportTypingEvents(reportID, currentUserAccountID);
-                    didSubscribeToReportTypingEvents.current = true;
+                interactionTask = TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        subscribeToReportTypingEvents(reportID, currentUserAccountID);
+                        didSubscribeToReportTypingEvents.current = true;
+                    },
                 });
             }
         } else {
@@ -64,8 +71,10 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
                 didSubscribeToReportTypingEvents.current = false;
-                InteractionManager.runAfterInteractions(() => {
-                    unsubscribeFromReportChannel(reportID);
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        unsubscribeFromReportChannel(reportID);
+                    },
                 });
             }
         }

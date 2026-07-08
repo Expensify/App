@@ -1,10 +1,21 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import Text from '@components/Text';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLocalizedEmojiName} from '@libs/EmojiUtils';
+import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
+import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import React from 'react';
 import {View} from 'react-native';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getLocalizedEmojiName} from '@libs/EmojiUtils';
-import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 
 type ReactionTooltipContentProps = {
     /**
@@ -28,16 +39,25 @@ type ReactionTooltipContentProps = {
     currentUserAccountID: number;
 };
 
+function userNamesStringSelector(accountIDs: number[], currentUserAccountID: number, translate: LocalizedTranslate) {
+    return (personalDetails: OnyxEntry<PersonalDetailsList>) =>
+        multiPersonalDetailsSelector(accountIDs)(personalDetails)
+            ?.map((user) => getDisplayNameOrYou(user.displayName ?? '', user.accountID, currentUserAccountID, translate))
+            .filter((name) => name)
+            .join(', ') ?? '';
+}
+
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const users = getPersonalDetailsByIDs({accountIDs, currentUserAccountID, shouldChangeUserDisplayName: true});
+    const [namesString] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {
+            selector: userNamesStringSelector(accountIDs, currentUserAccountID, translate),
+        },
+        [accountIDs, currentUserAccountID, translate],
+    );
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
-
-    const namesString = users
-        .map((user) => user?.displayName)
-        .filter((name) => name)
-        .join(', ');
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>

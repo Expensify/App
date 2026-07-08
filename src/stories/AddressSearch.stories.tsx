@@ -1,9 +1,12 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React, {useState} from 'react';
 import type {AddressSearchProps} from '@components/AddressSearch';
 import AddressSearch from '@components/AddressSearch';
 import type {StreetValue} from '@components/AddressSearch/types';
+
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React, {useState} from 'react';
 
 type AddressSearchStory = StoryFn<typeof AddressSearch>;
 
@@ -25,9 +28,9 @@ function Template(props: AddressSearchProps) {
     const [value, setValue] = useState<string | number | Address | StreetValue>('');
     return (
         <AddressSearch
+            inputID="addressLine1"
             value={value as string}
             onInputChange={(inputValue) => setValue(inputValue)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

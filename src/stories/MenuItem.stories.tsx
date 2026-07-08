@@ -1,9 +1,13 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import Chase from '@assets/images/bank-icons/chase.svg';
+
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+
 import variables from '@styles/variables';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
 
 type MenuItemStory = StoryFn<typeof MenuItem>;
 
@@ -21,7 +25,6 @@ const story: Meta<typeof MenuItem> = {
 };
 
 function Template(props: MenuItemProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <MenuItem {...props} />;
 }
 

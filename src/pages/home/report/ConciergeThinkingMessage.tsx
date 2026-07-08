@@ -1,13 +1,11 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,54 +13,72 @@ import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConcie
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
-    report: OnyxEntry<Report>;
-
-    /** The report action if available */
-    action?: OnyxEntry<ReportAction>;
+    reportID: string;
 };
 
-function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
-    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatus();
-    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
+/**
+ * Renders one thinking bubble per agent the room is actively processing for (Concierge and/or
+ * custom agents). The candidate set comes from the per-agent processing-indicator NVP, so each
+ * bubble is attributed to the agent the server actually named — not a guessed persona.
+ */
+function ConciergeThinkingMessage({reportID}: ConciergeThinkingMessageProps) {
+    const {candidateAgentIDs} = useAgentZeroStatus();
+    const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
 
-    if (!isProcessing || shouldSuppress) {
+    if (shouldSuppress || !reportID || candidateAgentIDs.length === 0) {
+        return null;
+    }
+
+    return (
+        <>
+            {candidateAgentIDs.map((agentAccountID) => (
+                <ConciergeThinkingBubble
+                    key={agentAccountID}
+                    reportID={reportID}
+                    agentAccountID={agentAccountID}
+                />
+            ))}
+        </>
+    );
+}
+
+function ConciergeThinkingBubble({reportID, agentAccountID}: {reportID: string; agentAccountID: number}) {
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatusIndicator(reportID, agentAccountID);
+
+    if (!isProcessing) {
         return null;
     }
 
     return (
         <ConciergeThinkingMessageContent
-            report={report}
-            action={action}
+            accountID={agentAccountID}
             reasoningHistory={reasoningHistory}
             statusLabel={statusLabel}
         />
     );
 }
 
-function ConciergeThinkingMessageContent({
-    report,
-    action,
-    reasoningHistory,
-    statusLabel,
-}: {
-    report: OnyxEntry<Report>;
-    action?: OnyxEntry<ReportAction>;
-    reasoningHistory: ReasoningEntry[];
-    statusLabel: string;
-}) {
+function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLabel}: {accountID: number; reasoningHistory: ReasoningEntry[]; statusLabel: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -116,8 +132,7 @@ function ConciergeThinkingMessageContent({
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const accountID = action?.actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
-    const displayName = action?.person?.[0]?.text ?? getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const handleToggle = () => {
@@ -153,10 +168,7 @@ function ConciergeThinkingMessageContent({
                             StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
                         ]}
-                        reportID={report?.reportID}
-                        chatReportID={report?.chatReportID ?? report?.reportID}
-                        action={action}
-                        accountIDs={[CONST.ACCOUNT_ID.CONCIERGE]}
+                        accountIDs={[accountID]}
                     />
                 </OfflineWithFeedback>
             </View>

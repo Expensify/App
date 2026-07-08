@@ -1,25 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal, isPresetAvatarID} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
+import {isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
+
+import {deleteAvatar} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
-import AvatarCapture from './AvatarCapture';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
+
+import AvatarCapture from './AvatarCapture';
 
 type AvatarPreviewProps = {
     /** The selected avatar ID */
@@ -64,8 +72,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     let avatarURL: AvatarSource = '';
-    if (selected && isPresetAvatarID(selected)) {
-        avatarURL = getAvatarLocal(selected);
+    if (selected && USER_AVATARS.isAvatarID(selected)) {
+        avatarURL = USER_AVATARS.getLocal(selected) ?? '';
     } else if (selected) {
         avatarURL = avatars[selected];
     } else if (imageData.uri) {
@@ -73,8 +81,13 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
-    const shouldHideAvatarEdit = (!imageData.uri && (isPresetAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
+    // Whether avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    const shouldHideAvatarEdit =
+        (!imageData.uri &&
+            (isCatalogAvatar(currentUserPersonalDetails?.avatar) ||
+                isGeneratedLetterAvatarURL(currentUserPersonalDetails?.avatar) ||
+                isLetterAvatar(currentUserPersonalDetails?.originalFileName))) ||
+        !!selected;
 
     /**
      * Validates an image and opens avatar crop modal if valid
@@ -102,12 +115,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     };
 
     const onImageRemoved = () => {
-        setSelected(
-            getDefaultAvatarName({
-                accountID: currentUserPersonalDetails?.accountID,
-                accountEmail: currentUserPersonalDetails?.email,
-            }),
-        );
+        deleteAvatar(currentUserPersonalDetails);
+        setSelected(undefined);
         setImageData({...EMPTY_FILE});
     };
 

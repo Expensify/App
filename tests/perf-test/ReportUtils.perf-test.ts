@@ -1,7 +1,6 @@
-import {randomInt} from 'crypto';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import type PolicyData from '@hooks/usePolicyData/types';
+
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -10,8 +9,6 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    // Will be fixed in https://github.com/Expensify/App/issues/76852
-    getReportName,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
@@ -21,10 +18,16 @@ import {
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import {randomInt} from 'crypto';
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -127,7 +130,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, translateLocal, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -146,16 +149,22 @@ describe('ReportUtils', () => {
         const isPreviewMessageForParentChatReport = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportPreviewMessage(report, undefined, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
+        await measureFunction(() =>
+            getReportPreviewMessage({
+                reportOrID: report,
+                iouReportAction: reportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                isPreviewMessageForParentChatReport,
+                policy,
+            }),
+        );
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
         const report = {...createRandomReport(1, undefined), participantAccountIDs};
-        const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        await measureFunction(() => getReportName({report, policy}));
+        await measureFunction(() => getReportName(report));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
@@ -184,6 +193,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -279,8 +289,8 @@ describe('ReportUtils', () => {
         const reportAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: '1',
             originalMessage: {
-                IOUReportID: '1',
                 IOUTransactionID: '1',
                 amount: 100,
                 participantAccountID: 1,

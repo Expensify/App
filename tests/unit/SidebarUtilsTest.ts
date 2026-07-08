@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
@@ -10,7 +10,9 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +20,11 @@ import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, 
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomPolicy from '../utils/collections/policies';
@@ -899,6 +906,9 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1008,6 +1018,9 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1024,6 +1037,9 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1043,6 +1059,9 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1064,6 +1083,9 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: true,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1086,10 +1108,98 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toBeDefined();
             expect(typeof result.shouldDisplay).toBe('boolean');
+        });
+
+        /**
+         * conciergeReportID only changes the outcome for an *empty* chat: an empty Concierge chat must stay in the LHN,
+         * whereas an equivalent empty non-Concierge chat is hidden. These two tests hold everything else constant and
+         * flip only conciergeReportID, so they fail if the concierge exemption stops being threaded through.
+         */
+        it('keeps an empty Concierge chat in the LHN when conciergeReportID matches the report', async () => {
+            // Given the current user's session (shouldDisplayReportInLHN reads it to compute the hidden state)
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Given an empty (no messages) DM the current user participates in
+            const conciergeReportID = 'concierge-report-lhn';
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Concierge',
+                isPinned: false,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]: report};
+
+            // When the empty chat is identified as the Concierge chat, it should be displayed
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID,
+            });
+
+            expect(result.shouldDisplay).toBe(true);
+        });
+
+        it('hides an equivalent empty chat when conciergeReportID does not match the report', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Given the exact same empty DM as the previous test
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'concierge-report-lhn',
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Concierge',
+                isPinned: false,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report};
+
+            // When a non-matching conciergeReportID is supplied, the empty chat is excluded from the LHN
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: 'a-different-report-id',
+            });
+
+            expect(result.shouldDisplay).toBe(false);
         });
     });
 
@@ -1542,7 +1652,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 conciergeReportID,
             });
-            expect(result.messageText).toBe('This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!');
+            expect(result.messageText).toBe('Concierge can answer questions, update expenses, and more.');
         });
 
         it('does not return concierge welcome message when conciergeReportID does not match', async () => {
@@ -1617,6 +1727,164 @@ describe('SidebarUtils', () => {
             });
             expect(result.messageText).toBeTruthy();
             expect(result.messageText).not.toContain('Concierge');
+        });
+
+        it('returns track-intent welcome message for policy expense chat when user is track-intent and owns the report', async () => {
+            const currentUserAccountID = 1;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: currentUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: true,
+                currentUserAccountID,
+            });
+            expect(result.messageText).toBe("This is where you'll track expenses.");
+        });
+
+        it('returns standard welcome message for policy expense chat when user is track-intent but does NOT own the report', async () => {
+            const currentUserAccountID = 1;
+            const otherUserAccountID = 2;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: otherUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        ...LHNTestUtils.fakePersonalDetails,
+                        [otherUserAccountID]: {
+                            accountID: otherUserAccountID,
+                            displayName: 'Other User',
+                            login: 'other@test.com',
+                            avatar: '',
+                        },
+                    },
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: true,
+                currentUserAccountID,
+            });
+            expect(result.messageHtml).toContain('will submit expenses to');
+        });
+
+        it('returns standard welcome message for policy expense chat when user is NOT track-intent', async () => {
+            const currentUserAccountID = 1;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: currentUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: false,
+                currentUserAccountID,
+            });
+            expect(result.messageHtml).toContain('will submit expenses to');
+        });
+
+        it('returns standard welcome message when policy has a custom description even for track-intent users', async () => {
+            const currentUserAccountID = 1;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: currentUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                description: 'Custom workspace description',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: true,
+                currentUserAccountID,
+            });
+            expect(result.messageHtml).toBe('Custom workspace description');
         });
     });
 
@@ -1871,6 +2139,52 @@ describe('SidebarUtils', () => {
             });
 
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
+        });
+
+        it('returns the correct alternate text for UPDATE_CATEGORY_TAX_RATE action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Tax Exempt',
+                    oldTaxPercentage: '0%',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
         });
 
         it('returns the correct alternate text for UPDATE_REQUIRE_COMPANY_CARDS_ENABLED action', async () => {
@@ -2499,12 +2813,12 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: '5186125925096828',
                     originalMessage: {
                         amount: -200,
                         currency: 'ETB',
                         type: 'track',
                         participantAccountIDs: [20232605],
-                        IOUReportID: '5186125925096828',
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -2957,7 +3271,6 @@ describe('SidebarUtils', () => {
                         comment: '',
                         currency: 'VND',
                         IOUTransactionID: '7823889167761419930',
-                        IOUReportID: '0',
                         type: 'track',
                         participantAccountIDs: [20337430, 0],
                         lastModified: '2025-07-25 07:39:02.550',
@@ -3162,11 +3475,11 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: iouReport.reportID,
                     originalMessage: {
                         amount: -200,
                         currency: iouReport.currency,
                         type: CONST.IOU.TYPE.CREATE,
-                        IOUReportID: iouReport.reportID,
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -3223,7 +3536,15 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage({
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: lastReportPreviewAction,
+                });
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
@@ -3264,11 +3585,11 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: iouReport.reportID,
                     originalMessage: {
                         amount: -200,
                         currency: iouReport.currency,
                         type: CONST.IOU.TYPE.CREATE,
-                        IOUReportID: iouReport.reportID,
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -3325,7 +3646,15 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage({
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: lastReportPreviewAction,
+                });
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
@@ -3425,6 +3754,53 @@ describe('SidebarUtils', () => {
                 // Then isConciergeChat should be false
                 expect(result?.isConciergeChat).toBe(false);
             });
+        });
+
+        it('renders the UPDATE_MCC_GROUP_CATEGORY changelog with the friendly MCC group label as alternate text', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                lastVisibleActionCreated: '2026-04-22 12:30:03.784',
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: false, deleted: ''}],
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                actorAccountID: 18921695,
+                person: [{type: 'TEXT', style: 'strong', text: 'Admin'}],
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
         });
     });
 
@@ -3824,6 +4200,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -3846,6 +4225,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -3855,35 +4237,41 @@ describe('SidebarUtils', () => {
 
         describe('getReportsToDisplayInLHN', () => {
             it('should return an empty object when reports is undefined', () => {
-                const result = SidebarUtils.getReportsToDisplayInLHN(
-                    '1', // currentReportId
-                    undefined, // reports
-                    [], // betas
-                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
-                    {}, // draftComments
-                    {}, // transactionViolations
-                    {}, // transactions
-                    false, // isOffline
-                    {}, // reportNameValuePairs
-                    undefined, // reportAttributes
-                );
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports: undefined as unknown as OnyxCollection<Report>,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 expect(result).toEqual({});
             });
 
             it('should return an empty object when reports is empty', () => {
-                const result = SidebarUtils.getReportsToDisplayInLHN(
-                    '1', // currentReportId
-                    {}, // reports
-                    [], // betas
-                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
-                    {}, // draftComments
-                    {}, // transactionViolations
-                    {}, // transactions
-                    false, // isOffline
-                    {}, // reportNameValuePairs
-                    undefined, // reportAttributes
-                );
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports: {},
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 expect(result).toEqual({});
             });
@@ -3893,7 +4281,21 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: undefined,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 expect(result).toEqual({});
             });
@@ -3907,7 +4309,21 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 // The function should run without errors with isOffline=false
                 expect(result).toBeDefined();
@@ -3922,7 +4338,21 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, true, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: true,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 // The function should run without errors with isOffline=true
                 expect(result).toBeDefined();
@@ -3937,7 +4367,21 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
             });
@@ -3962,7 +4406,21 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'draft for report 1',
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN(undefined, reports, [], CONST.PRIORITY_MODE.DEFAULT, draftComments, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: undefined,
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments,
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    conciergeReportID: undefined,
+                });
 
                 // Should not throw and should return a valid result
                 expect(result).toBeDefined();
@@ -3989,6 +4447,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4014,6 +4475,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: true,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4037,6 +4501,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: true,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4071,6 +4538,9 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments,
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // Should not throw and should return a valid result

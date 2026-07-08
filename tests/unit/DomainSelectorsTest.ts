@@ -1,3 +1,9 @@
+import CONST from '@src/CONST';
+import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {
     accountLockSelector,
     adminAccountIDsSelector,
@@ -12,14 +18,11 @@ import {
     isSecurityGroupEntry,
     isSecurityGroupPendingDeleteSelector,
     memberAccountIDsSelector,
+    selectRestrictedPrimaryPolicyID,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
     vacationDelegateSelector,
 } from '@selectors/Domain';
-import type {OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
-import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -812,6 +815,53 @@ describe('domainSelectors', () => {
 
             expect(accountLockSelector(accountID)(undefined)).toBeUndefined();
             expect(accountLockSelector(accountID)(domain)).toBeUndefined();
+        });
+    });
+
+    describe('selectRestrictedPrimaryPolicyID', () => {
+        const makeGroup = (enableRestrictedPrimaryPolicy: boolean, restrictedPrimaryPolicyID?: string): DomainSecurityGroup =>
+            ({enableRestrictedPrimaryPolicy, restrictedPrimaryPolicyID, shared: {}}) as unknown as DomainSecurityGroup;
+
+        const makeDomain = (groups: Record<string, DomainSecurityGroup>): OnyxEntry<Domain> => {
+            const entries = Object.fromEntries(Object.entries(groups).map(([id, g]) => [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${id}`, g]));
+            return entries as unknown as Domain;
+        };
+
+        it('returns undefined when domain is undefined', () => {
+            expect(selectRestrictedPrimaryPolicyID('g1')(undefined)).toBeUndefined();
+        });
+
+        it('returns undefined when groupID is undefined', () => {
+            const domain = makeDomain({g1: makeGroup(true, 'p1')});
+            expect(selectRestrictedPrimaryPolicyID(undefined)(domain)).toBeUndefined();
+        });
+
+        it('returns undefined when the group does not exist', () => {
+            const domain = makeDomain({g1: makeGroup(true, 'p1')});
+            expect(selectRestrictedPrimaryPolicyID('missing')(domain)).toBeUndefined();
+        });
+
+        it('returns undefined when enableRestrictedPrimaryPolicy is false', () => {
+            const domain = makeDomain({g1: makeGroup(false, 'p1')});
+            expect(selectRestrictedPrimaryPolicyID('g1')(domain)).toBeUndefined();
+        });
+
+        it('returns undefined when restrictedPrimaryPolicyID is not set', () => {
+            const domain = makeDomain({g1: makeGroup(true, undefined)});
+            expect(selectRestrictedPrimaryPolicyID('g1')(domain)).toBeUndefined();
+        });
+
+        it('returns the policyID when the group has restriction enabled', () => {
+            const domain = makeDomain({g1: makeGroup(true, 'p42')});
+            expect(selectRestrictedPrimaryPolicyID('g1')(domain)).toBe('p42');
+        });
+
+        it('returns the correct policyID when multiple groups exist', () => {
+            const domain = makeDomain({
+                g1: makeGroup(true, 'pA'),
+                g2: makeGroup(true, 'pB'),
+            });
+            expect(selectRestrictedPrimaryPolicyID('g2')(domain)).toBe('pB');
         });
     });
 });
