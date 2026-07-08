@@ -1133,7 +1133,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_DEFAULT_VENDOR]: Parameters.UpdateRilletDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_DATE]: Parameters.UpdateRilletExportDateParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORTER]: Parameters.UpdateRilletExporterParams;
-    [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateRilletAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateRilletExportToMultipleAccountsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateRilletCardProgramAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_AUTO_SYNC]: Parameters.UpdateRilletAutoSyncParams;
     [WRITE_COMMANDS.UPDATE_RILLET_ACCOUNTING_METHOD]: Parameters.UpdateRilletAccountingMethodParams;

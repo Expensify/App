@@ -9,6 +9,7 @@ import type {
     UpdateRilletEnableNewCategoriesParams,
     UpdateRilletExportDateParams,
     UpdateRilletExporterParams,
+    UpdateRilletExportToMultipleAccountsParams,
     UpdateRilletFieldMappingParams,
     UpdateRilletSettlementsAccountParams,
     UpdateRilletSubsidiaryParams,
@@ -671,6 +672,15 @@ function updateRilletTravelInvoicingSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
+function updateRilletExportToMultipleAccounts(policyID: string, enabled: RilletExport['exportToMultipleAccounts'], oldEnabled?: RilletExport['exportToMultipleAccounts']) {
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletExportToMultipleAccountsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS, parameters, onyxData);
+}
+
 export {
     connectToRillet,
     clearRilletErrorField,
@@ -690,4 +700,5 @@ export {
     updateRilletSettlementsAccount,
     updateRilletSyncTravelInvoicingSettlements,
     updateRilletTravelInvoicingSettlementsAccount,
+    updateRilletExportToMultipleAccounts,
 };
