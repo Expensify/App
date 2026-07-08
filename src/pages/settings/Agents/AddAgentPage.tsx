@@ -45,7 +45,9 @@ type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, ty
 
 type PendingCreatedAgent = {
     optimisticAccountID: number;
-    knownAgentAccountIDs: Set<number>;
+    // Captured lazily from the first fully-loaded collection snapshot that includes our optimistic entry,
+    // so agents that hydrate late aren't mistaken for the one we just created. Null until then.
+    knownAgentAccountIDs: Set<number> | null;
 };
 
 function getAgentAccountIDFromKey(key: string): number {
@@ -60,7 +62,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
     const chatWithAgent = useChatWithAgent();
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [agentPrompts, agentPromptsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -72,8 +74,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
 
     // Account IDs can't be generated optimistically (unlike report IDs), so an agent's real accountID only
     // exists once CREATE_AGENT responds. When creating online we keep this page mounted until that happens,
-    // then open the DM. This holds the agents that already existed at submit time plus this request's
-    // optimistic placeholder, both of which we ignore when spotting the newly created agent.
+    // then open the DM.
     const pendingCreatedAgentRef = useRef<PendingCreatedAgent | null>(null);
 
     useEffect(() => {
@@ -82,9 +83,28 @@ function AddAgentPage({route}: AddAgentPageProps) {
             return;
         }
 
+        // Never match against a partially-hydrated collection — an existing agent that hydrates late could be
+        // mistaken for the one we just created and open its DM instead.
+        if (agentPromptsMetadata.status !== 'loaded') {
+            return;
+        }
+
+        const optimisticAgentKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingCreatedAgent.optimisticAccountID}`;
+
+        // Establish the baseline from the first fully-loaded snapshot that already includes our optimistic entry.
+        // Every agent present alongside our placeholder at that point genuinely pre-existed, so capturing here
+        // (rather than at submit time, when the collection may not have hydrated) avoids false matches.
+        if (!pendingCreatedAgent.knownAgentAccountIDs) {
+            if (!agentPrompts?.[optimisticAgentKey]) {
+                return;
+            }
+            pendingCreatedAgent.knownAgentAccountIDs = new Set(Object.keys(agentPrompts).map(getAgentAccountIDFromKey));
+            return;
+        }
+        const {knownAgentAccountIDs} = pendingCreatedAgent;
+
         // Creation failed: the optimistic entry now carries an error. Dismiss and let the Agents list surface it.
-        const optimisticPrompt = agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingCreatedAgent.optimisticAccountID}`];
-        if (optimisticPrompt?.errors) {
+        if (agentPrompts?.[optimisticAgentKey]?.errors) {
             pendingCreatedAgentRef.current = null;
             Navigation.goBack();
             return;
@@ -93,8 +113,8 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const createdAgentKey = Object.keys(agentPrompts ?? {}).find((key) => {
             const accountID = getAgentAccountIDFromKey(key);
 
-            // Ignore agents that already existed at submit time and this request's own optimistic placeholder.
-            if (accountID === pendingCreatedAgent.optimisticAccountID || pendingCreatedAgent.knownAgentAccountIDs.has(accountID)) {
+            // Ignore agents that already existed at baseline and this request's own optimistic placeholder.
+            if (accountID === pendingCreatedAgent.optimisticAccountID || knownAgentAccountIDs.has(accountID)) {
                 return false;
             }
 
@@ -108,7 +128,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
 
         pendingCreatedAgentRef.current = null;
         chatWithAgent(getAgentAccountIDFromKey(createdAgentKey), {shouldDismissModal: true});
-    }, [agentPrompts, chatWithAgent]);
+    }, [agentPrompts, agentPromptsMetadata.status, chatWithAgent]);
 
     useFocusEffect(
         useCallback(() => {
@@ -167,10 +187,11 @@ function AddAgentPage({route}: AddAgentPageProps) {
 
         // Online: opening the DM is the immediate continuation of tapping "Create", but it needs the real
         // accountID. Stay on this page (showing the submit spinner) until the created agent appears in the
-        // collection, then the effect opens the DM. Snapshot the existing agents so we can tell the new one apart.
+        // collection, then the effect opens the DM. The baseline of existing agents is captured later, once the
+        // collection has loaded, so a partial snapshot here can't cause us to match an already-existing agent.
         pendingCreatedAgentRef.current = {
             optimisticAccountID,
-            knownAgentAccountIDs: new Set(Object.keys(agentPrompts ?? {}).map(getAgentAccountIDFromKey)),
+            knownAgentAccountIDs: null,
         };
         setIsCreatingAgent(true);
     };

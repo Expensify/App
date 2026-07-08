@@ -57,10 +57,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 // AddAgentPage subscribes to the agent-prompt collection to detect the newly created agent. Tests drive
-// this value directly and re-render to simulate the collection updating (useOnyx here is not reactive).
+// this value and its load status directly and re-render to simulate the collection updating (useOnyx here is
+// not reactive).
 let mockAgentPrompts: Record<string, {pendingAction?: string; errors?: Record<string, string>}> | undefined;
+let mockAgentPromptsStatus: 'loading' | 'loaded' = 'loaded';
 
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockAgentPrompts, {status: 'loaded'}]));
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockAgentPrompts, {status: mockAgentPromptsStatus}]));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -188,6 +190,7 @@ describe('AddAgentPage', () => {
         mockIsActiveRoute.mockReturnValue(true);
         mockAvatarOnPress = undefined;
         mockAgentPrompts = {};
+        mockAgentPromptsStatus = 'loaded';
     });
 
     it('renders page title', () => {
@@ -304,7 +307,13 @@ describe('AddAgentPage', () => {
             expect(mockGoBack).not.toHaveBeenCalled();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
 
-            // The real, server-created agent arrives in the collection (no ADD pending action).
+            // The optimistic placeholder lands; the effect captures its baseline from this loaded snapshot.
+            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
+            rerenderPage();
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
+
+            // The real, server-created agent arrives (no ADD pending action).
             mockAgentPrompts = {[realAgentKey]: {}};
             rerenderPage();
 
@@ -319,6 +328,9 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
+            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
+            rerenderPage();
+
             mockAgentPrompts = {[realAgentKey]: {}};
             rerenderPage();
 
@@ -331,9 +343,13 @@ describe('AddAgentPage', () => {
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
 
+            // Our optimistic placeholder lands and sets the baseline.
+            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
+            rerenderPage();
+
             // A second agent the user created shows up as a *new* optimistic placeholder (pendingAction ADD).
             // It must NOT be mistaken for the created agent.
-            mockAgentPrompts = {[otherOptimisticAgentKey]: {pendingAction: 'add'}};
+            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}, [otherOptimisticAgentKey]: {pendingAction: 'add'}};
             rerenderPage();
             await waitForBatchedUpdates();
             expect(mockChatWithAgent).not.toHaveBeenCalled();
@@ -345,10 +361,64 @@ describe('AddAgentPage', () => {
             await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
         });
 
+        it('does not treat an agent that hydrates after submit as the newly created one', async () => {
+            // Cold open / direct link: the collection has not hydrated yet at submit time.
+            mockAgentPrompts = {};
+            const {rerenderPage} = renderAddAgentPage({});
+
+            act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
+
+            // An existing agent hydrates before our optimistic placeholder / the CREATE_AGENT response. It must
+            // NOT be matched — the baseline isn't established until our placeholder is present.
+            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}};
+            rerenderPage();
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
+
+            // Our optimistic placeholder lands; the baseline now includes the pre-existing agent.
+            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [optimisticAgentKey]: {pendingAction: 'add'}};
+            rerenderPage();
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
+
+            // Only the actual created agent opens the DM.
+            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [realAgentKey]: {}};
+            rerenderPage();
+            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
+        });
+
+        it('does not match while the collection is still loading', async () => {
+            mockAgentPromptsStatus = 'loading';
+            mockAgentPrompts = {};
+            const {rerenderPage} = renderAddAgentPage({});
+
+            act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
+
+            // While loading, even a real-looking agent alongside our placeholder must not be matched.
+            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}, [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}};
+            rerenderPage();
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
+
+            // Once loaded, the baseline is captured (existing agent + our placeholder) and the created agent matches.
+            mockAgentPromptsStatus = 'loaded';
+            rerenderPage();
+            await waitForBatchedUpdates();
+            expect(mockChatWithAgent).not.toHaveBeenCalled();
+
+            mockAgentPrompts = {[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}555`]: {}, [realAgentKey]: {}};
+            rerenderPage();
+            await waitFor(() => expect(mockChatWithAgent).toHaveBeenCalledWith(REAL_ACCOUNT_ID, {shouldDismissModal: true}));
+        });
+
         it('dismisses the page and does not open the DM when creation fails', async () => {
             const {rerenderPage} = renderAddAgentPage({});
 
             act(() => mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'}));
+
+            // Our optimistic placeholder lands and sets the baseline.
+            mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add'}};
+            rerenderPage();
 
             // Creation failed: the optimistic entry now carries an error.
             mockAgentPrompts = {[optimisticAgentKey]: {pendingAction: 'add', errors: {error: 'genericAdd'}}};
