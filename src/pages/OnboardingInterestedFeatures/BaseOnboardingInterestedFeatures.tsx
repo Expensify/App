@@ -106,10 +106,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const persistedSelectedFeatures = useMemo(() => onboardingInterestedFeaturesMap?.filter((feature) => feature.enabled).map((feature) => feature.id), [onboardingInterestedFeaturesMap]);
     const [selectedFeatureIDs, setSelectedFeatureIDs] = useState<Set<string>>();
 
-    useEffect(() => {
-        setSelectedFeatureIDs(new Set(persistedSelectedFeatures ?? defaultSelectedFeatures));
-    }, [defaultSelectedFeatures, persistedSelectedFeatures]);
-
     const selectedFeatures = useMemo(() => {
         return Array.from(selectedFeatureIDs ?? new Set(persistedSelectedFeatures ?? defaultSelectedFeatures));
     }, [defaultSelectedFeatures, persistedSelectedFeatures, selectedFeatureIDs]);
