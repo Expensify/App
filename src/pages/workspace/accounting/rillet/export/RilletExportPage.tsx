@@ -37,6 +37,10 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
     const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
     const exportToMultipleAccounts = rilletConfig?.export?.exportToMultipleAccounts ?? false;
+    const cardProgramsUsingCustomAccountsCount = Object.keys(rilletConfig?.export?.cardProgramAccounts ?? {}).length;
+    const cardProgramsOfflineFeedbackKeys = [CONST.EXPENSIFY_CARD.BANK, ...Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME)].map(
+        (program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program}`,
+    );
 
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
         useAccordionAnimation(exportToMultipleAccounts);
@@ -129,15 +133,13 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 isExpanded={isExportToMultipleAccountsAccordionExpanded}
                 isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
             >
-                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS], rilletConfig?.pendingFields)}>
+                <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, rilletConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
-                        title={translate('workspace.rillet.cardProgramAccount.countInfo', 2)}
+                        title={translate('workspace.rillet.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
                         description={translate('workspace.rillet.cardProgramAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
                         shouldShowRightIcon
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                        }
+                        brickRoadIndicator={areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             </Accordion>

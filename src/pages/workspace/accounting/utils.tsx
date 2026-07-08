@@ -424,8 +424,8 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
-                    CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
-                    // s77rt handle card programs accounts correctly and add handdling for card accounts
+                    ...[CONST.EXPENSIFY_CARD.BANK, ...Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME)].map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program}`),
+                    // s77rt handle card accounts
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
