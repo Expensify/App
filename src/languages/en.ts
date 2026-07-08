@@ -5195,6 +5195,7 @@ const translations = {
                 oauth: 'Log in through Salesforce',
                 oauthDescription: "To finish setup, you'll have to sign in through Salesforce and Certinia.\n\nUse the button below to continue.",
                 connectButton: 'Connect to Certinia',
+                connectSandboxButton: 'Connect to Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Chart of accounts',
@@ -6399,6 +6400,11 @@ const translations = {
                 continue: 'Continue without members',
                 description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             },
+            upgrade: {
+                title: 'Some features require a Control plan',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) =>
+                    `${workspaceName} uses ${features}, which require a Control plan.\n\nTo bring these features to your other workspaces, upgrade them to continue.\n\nThe Control plan starts at $9 per active member per month.`,
+            },
             progress: {
                 copyInProgressTitle: 'Copy in progress...',
                 copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',
@@ -7348,6 +7354,7 @@ const translations = {
             },
             note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
+            unlockFeatures: 'Unlock these features!',
             completed: {
                 headline: `You've upgraded your workspace!`,
                 successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
@@ -9076,13 +9083,15 @@ const translations = {
         stopTimer: (duration: string) => `Stop Timer (${duration})`,
         scheduleOOO: 'Schedule OOO',
         scheduleOOOTitle: 'Schedule Out of Office',
-        date: 'Date',
+        date: 'Start date',
+        endDate: 'End date',
         time: 'Time (use 24-hour format)',
         durationAmount: 'Duration',
         durationUnit: 'Unit',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
-        dateRequired: 'Date is required.',
+        dateRequired: 'Start date is required.',
+        endDateBeforeStart: 'End date cannot be before start date.',
         invalidTimeFormat: 'Please enter a valid 24-hour time (e.g., 14:30).',
         enterANumber: 'Please enter a number.',
         hour: 'hours',
