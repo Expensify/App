@@ -48,7 +48,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 <Icon
                     src={src}
                     fill={fill}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                     small={small}
                 />
             </PressableWithFeedback>

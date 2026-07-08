@@ -279,9 +279,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                     ]}
                                 >
                                     <Icon
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                         medium={isButtonSizeLarge}
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                         small={!isButtonSizeLarge && !shouldUseShortForm}
                                         inline={shouldUseShortForm}
                                         width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
