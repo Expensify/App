@@ -323,6 +323,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
+                            icon={illustrations.Members}
+                            title={translate('workspace.hr.title')}
+                            subtitle={translate('workspace.hr.subtitle')}
+                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
+                            pendingAction={policy?.pendingFields?.isHREnabled}
+                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
+                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
+                                    return;
+                                }
+                                enablePolicyHR(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
                             icon={illustrations.ReceiptPartners}
                             title={translate('workspace.moreFeatures.receiptPartners.title')}
                             subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
@@ -348,33 +375,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-                            }}
-                        />
-                        <MoreFeatureToggle
-                            icon={illustrations.Members}
-                            title={translate('workspace.hr.title')}
-                            subtitle={translate('workspace.hr.subtitle')}
-                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
-                            pendingAction={policy?.pendingFields?.isHREnabled}
-                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
-                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                    );
-                                    return;
-                                }
-                                enablePolicyHR(policyID, isEnabled);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
                             }}
                         />
                     </MoreFeaturesSection>
