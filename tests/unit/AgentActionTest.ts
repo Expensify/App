@@ -266,7 +266,7 @@ describe('createAgent', () => {
         await waitForBatchedUpdates();
 
         let resolvedAccountID: number | undefined;
-        void createdAgentAccountID.then((id) => {
+        const settledCreatedAgentAccountID = createdAgentAccountID.then((id) => {
             resolvedAccountID = id;
         });
 
@@ -286,6 +286,7 @@ describe('createAgent', () => {
         const realAccountID = 22542959;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, {prompt: 'My prompt'});
         await waitForBatchedUpdates();
+        await settledCreatedAgentAccountID;
 
         await expect(createdAgentAccountID).resolves.toBe(realAccountID);
         expect(resolvedAccountID).toBe(realAccountID);
