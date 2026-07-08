@@ -8717,6 +8717,48 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.reconciliation).toBe(true);
         });
 
+        test('Should show Approve for Admin role even when they are not part of the approval workflow', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.approve).toBe(true);
+        });
+
+        test('Should hide Approve for regular member who is not an approver, submits-to target, or admin', () => {
+            const regularEmail = 'regular@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
+                        [regularEmail]: {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
+            expect(response.visibility.approve).toBe(false);
+        });
+
         test('Should show Statements for an Expensify Card-only paid workspace (Expensify Cards enabled, no company card feed, default Expensify card present)', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`policy_${policyID}`]: {
