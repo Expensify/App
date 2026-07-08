@@ -14,7 +14,7 @@ import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
-import type {CompanyCardFeedWithDomainID} from './types/onyx';
+import type {CardFeed, CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
@@ -4069,7 +4069,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/rillet/export/card-program-account/:feed',
-        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
+        getRoute: (policyID: string, feed: CardFeed) => `workspaces/${policyID}/accounting/rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/export/card-account',
@@ -4077,11 +4077,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST: {
         route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed',
-        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
+        getRoute: (policyID: string, feed: CardFeed) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed/:cardID',
-        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID, cardID: string) =>
+        getRoute: (policyID: string, feed: CardFeed, cardID: string) =>
             `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
     POLICY_ACCOUNTING_RILLET_ADVANCED: {
