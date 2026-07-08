@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -16,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
+
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
@@ -25,6 +24,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,6 +32,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -52,6 +53,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    arePolicyRulesEnabled,
     getCleanedTagName,
     getConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -66,14 +68,21 @@ import {
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {PolicyTag, PolicyTagList} from './types';
 
 type WorkspaceTagsPageProps =
@@ -95,6 +104,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
@@ -110,6 +120,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldShowTagsSettings = canWriteTags && !(isRulesRevampEnabled && isMultiLevelTags);
     const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const tagApproverEmails = useMemo(() => {
@@ -130,7 +143,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return approverEmails;
     }, [isMultiLevelTags, policy, policyTagLists]);
 
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && !!policy?.areRulesEnabled && Object.keys(tagApproverEmails).length > 0;
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(tagApproverEmails).length > 0;
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -306,15 +319,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         (tagValue: string, orderWeight?: number) => {
             if (orderWeight !== undefined) {
                 Navigation.navigate(
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight)) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, orderWeight),
+                    createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(orderWeight)),
                 );
             } else {
                 Navigation.navigate(
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue)) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tagValue),
+                    isQuickSettingsFlow
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue))
+                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(0, tagValue)),
                 );
             }
         },
-        [isQuickSettingsFlow, policyID],
+        [isQuickSettingsFlow],
     );
 
     useEffect(() => {
@@ -433,8 +448,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const navigateToTagsSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
-    }, [isQuickSettingsFlow, policyID, backTo]);
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
+    }, [isQuickSettingsFlow]);
 
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
@@ -474,7 +489,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteTags) {
+        if (shouldShowTagsSettings) {
             menuItems.push({
                 icon: expensifyIcons.Gear,
                 text: translate('common.settings'),
@@ -535,6 +550,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return menuItems;
     }, [
         translate,
+        shouldShowTagsSettings,
         navigateToTagsSettings,
         hasAccountingConnections,
         hasVisibleTags,
@@ -729,7 +745,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}

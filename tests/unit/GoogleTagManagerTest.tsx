@@ -1,7 +1,5 @@
-import {NavigationContainer} from '@react-navigation/native';
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
@@ -9,9 +7,16 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -285,6 +290,7 @@ describe('GoogleTagManagerTest', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            reportActionsList: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

@@ -1,17 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getChatListItemReportName, isInvoiceReport} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SearchActionHeaderProps = {
     /** The report action being rendered. */
@@ -32,7 +38,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const linkedTransactions = useReportTransactions(isInvoiceReport(report) ? report?.reportID : undefined);
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions);
+    const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions, translate);
 
     return (
         <View style={[styles.p4]}>
