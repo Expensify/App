@@ -31,9 +31,6 @@ describe('TaxOptionsListUtils', () => {
                     value: '3%',
                     code: 'CODE2',
                     modifiedName: 'Tax rate 2 (3%)',
-                    // A rate deleted while offline is marked with pendingAction DELETE only (see TaxRate.ts); it is no longer
-                    // optimistically disabled, so it stays in the list but renders struck-through and non-selectable
-                    // because getTaxRatesOptions forces isDisabled for pending-DELETE rows.
                     pendingAction: 'delete',
                 },
                 CODE3: {
@@ -99,8 +96,6 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        // The only rate whose name matches these searches is the deleted CODE2. It is no longer excluded from the list,
-        // so it is returned struck-through and non-selectable (isDisabled forced true by its pending-DELETE state).
         const searchResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
