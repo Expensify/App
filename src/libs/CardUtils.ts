@@ -544,21 +544,34 @@ function hasAssignedCardMatching(cardsList: CardList | undefined, predicate: (ca
     return false;
 }
 
-function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
-    const result: Card[] = [];
+/**
+ * Runs the callback for each assigned card, skipping the `cardList` bucket of cards that are still available
+ * to assign. Iterates in place without the intermediate array/object copy that `{cardList, ...rest}` +
+ * `Object.values()` would allocate.
+ */
+function forEachAssignedCard(cardsList: CardList | undefined, callback: (card: Card) => void): void {
     if (!cardsList) {
-        return result;
+        return;
     }
-
     for (const key of Object.keys(cardsList)) {
         if (key === CONST.COMPANY_CARD.CARD_LIST) {
             continue;
         }
         const card = cardsList[key];
-        if (card?.accountID && policyMembersAccountIDs.includes(card.accountID)) {
-            result.push(card);
+        if (card) {
+            callback(card);
         }
     }
+}
+
+function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
+    const result: Card[] = [];
+    forEachAssignedCard(cardsList, (card) => {
+        if (!card.accountID || !policyMembersAccountIDs.includes(card.accountID)) {
+            return;
+        }
+        result.push(card);
+    });
     return result;
 }
 
@@ -1044,31 +1057,22 @@ function getFilteredCardList(
 ): UnassignedCard[] {
     const customFeedCardsToAssign = list?.cardList;
     const assignedCards = new Set<string>();
-    for (const key of Object.keys(list ?? {})) {
-        if (key === CONST.COMPANY_CARD.CARD_LIST) {
-            continue;
+    forEachAssignedCard(list, (card) => {
+        if (!card.cardName) {
+            return;
         }
-        const cardName = list?.[key]?.cardName;
-        if (cardName) {
-            assignedCards.add(cardName);
-        }
-    }
+        assignedCards.add(card.cardName);
+    });
 
     // Get cards assigned across all workspaces
     const allWorkspaceAssignedCards = new Set<string>();
     for (const workspaceCards of Object.values(workspaceCardFeeds ?? {})) {
-        if (!workspaceCards) {
-            continue;
-        }
-        for (const key of Object.keys(workspaceCards)) {
-            if (key === CONST.COMPANY_CARD.CARD_LIST) {
-                continue;
+        forEachAssignedCard(workspaceCards, (card) => {
+            if (!card.cardName) {
+                return;
             }
-            const cardName = workspaceCards[key]?.cardName;
-            if (cardName) {
-                allWorkspaceAssignedCards.add(cardName);
-            }
-        }
+            allWorkspaceAssignedCards.add(card.cardName);
+        });
     }
 
     // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
