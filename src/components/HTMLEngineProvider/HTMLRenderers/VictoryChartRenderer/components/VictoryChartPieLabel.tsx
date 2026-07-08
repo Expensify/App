@@ -1,8 +1,11 @@
-import type {Color} from '@shopify/react-native-skia';
-import React from 'react';
-import type {PieSliceData} from 'victory-native';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
+
+import type {Color} from '@shopify/react-native-skia';
+import type {PieSliceData} from 'victory-native';
+
+import React from 'react';
+
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartPieLabelIndicator from './VictoryChartPieLabelIndicator';
 
@@ -32,8 +35,8 @@ function VictoryChartPieLabel({
     labelIndicatorOuterOffset,
 }: VictoryChartPieLabelProps) {
     const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
-    const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle);
-    const y = slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle);
+    const x = Math.round(slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle));
+    const y = Math.round(slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle));
 
     const labelItem: LabelItem = {
         ...baseLabelItem,
