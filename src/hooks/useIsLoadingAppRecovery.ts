@@ -13,8 +13,10 @@ import {useEffect, useRef} from 'react';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
-// How long IS_LOADING_APP may stay `true` before we treat it as stranded. A legitimate OpenApp settles
-// well under this; anything longer means the request that would clear the flag is no longer around.
+// How often to check whether IS_LOADING_APP is stranded. This is a check cadence, not a timeout:
+// a slow but legitimate OpenApp (large accounts can take 30s+) is visible as a pending request at
+// every check, so the recovery waits for it instead of interfering. Only a `true` with no pending
+// OpenApp/ReconnectApp anywhere is treated as stranded.
 const STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS = 10000;
 
 /**
