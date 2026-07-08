@@ -31,7 +31,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
@@ -1919,13 +1919,13 @@ function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsLi
     return personalDetailsList?.[String(accountID)]?.login ?? '';
 }
 
-function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
+function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined, translate: LocalizedTranslate): string {
     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const details = personalDetailsList?.[String(accountID)];
     if (!details?.displayName?.trim()) {
         return '';
     }
-    return getDisplayNameOrDefault(details, '', false, false);
+    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, defaultValue: '', shouldFallbackToHidden: false, shouldAddCurrentUserPostfix: false, translate});
 }
 
 type ExportExpensifyCardListToCSVParams = {
@@ -1962,7 +1962,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const rows = cards.map((card) => {
         const owner = getOwnerEmailForCard(card, personalDetailsList);
-        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList);
+        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
         const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
