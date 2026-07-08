@@ -89,7 +89,7 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    buttonSize?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Render button in extra-small size */
     extraSmall?: boolean;

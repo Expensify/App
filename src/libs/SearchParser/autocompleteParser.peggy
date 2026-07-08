@@ -93,6 +93,7 @@ autocompleteKey "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / type
       / status
       / cardID
