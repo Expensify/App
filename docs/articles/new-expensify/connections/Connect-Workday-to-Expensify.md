@@ -118,7 +118,7 @@ Manual syncs are limited to two per day. If you've reached the limit, you'll see
 5. Select the three dots **(⋮)**, then click **Disconnect**.
 6. Confirm by clicking **Disconnect** again.
 
-Disconnecting Workdayb stops future employee syncs and unlocks the **Approvals** setting so approval workflows can be managed in Expensify again. Existing workspace members remain in the workspace.
+Disconnecting Workday stops future employee syncs and unlocks the **Approvals** setting so approval workflows can be managed in Expensify again. Existing workspace members remain in the workspace.
 
 ---
 
