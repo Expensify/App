@@ -3935,6 +3935,10 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 2,
         },
 
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
         widgetHeaderMenuButton: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,

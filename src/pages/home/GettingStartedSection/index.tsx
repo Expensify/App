@@ -11,6 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRoom} from '@libs/ReportUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,7 +67,11 @@ function GettingStartedSection() {
             <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
                 <Text style={styles.textLabelSupporting}>
                     {`${translate('homePage.gettingStartedSection.needHelp')} `}
-                    <TextLink onPress={openAdminsRoom}>
+                    <TextLink
+                        onPress={openAdminsRoom}
+                        fontSize={variables.fontSizeLabel}
+                        style={styles.gettingStartedFooterLink}
+                    >
                         {translate(hasGuide ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge')}
                     </TextLink>
                     {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
