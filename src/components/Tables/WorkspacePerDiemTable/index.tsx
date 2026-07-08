@@ -9,7 +9,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -113,7 +112,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
     );
 
     const isEmpty = perDiemData.length === 0;
-    const shouldShowSearchBar = perDiemData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <Table
@@ -133,7 +131,7 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.perDiem.findPerDiemRate')} />}
+                    <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />
                     <Table.Header />
                     <Table.Body />
                 </>

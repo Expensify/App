@@ -80,6 +80,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -106,6 +107,7 @@ function filterTransactionViolations(
     email: string,
     accountID: number,
     report: OnyxTypes.Report,
+    ownerLogin: string | undefined,
     policy: OnyxTypes.Policy | undefined,
 ): OnyxTypes.TransactionViolations {
     if (!allViolations) {
@@ -115,7 +117,7 @@ function filterTransactionViolations(
     if (!raw?.length) {
         return EMPTY_VIOLATIONS;
     }
-    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, policy);
+    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, ownerLogin, policy);
     return filtered.length === 0 ? EMPTY_VIOLATIONS : filtered;
 }
 
@@ -200,6 +202,7 @@ function MoneyRequestReportTransactionList({
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -693,10 +696,10 @@ function MoneyRequestReportTransactionList({
         const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         for (const transaction of resolvedTransactions) {
-            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, policy ?? undefined));
+            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined));
         }
         return map;
-    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, policy]);
+    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy]);
 
     const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
         <MoneyRequestReportTransactionItem
@@ -923,7 +926,7 @@ function MoneyRequestReportTransactionList({
                             customText={translate('iou.addExpense')}
                             options={addExpenseDropdownOptions}
                             isSplitButton={false}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            buttonSize={CONST.BUTTON_SIZE.SMALL}
                             success={false}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
