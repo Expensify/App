@@ -31,8 +31,8 @@ describe('TaxOptionsListUtils', () => {
                     value: '3%',
                     code: 'CODE2',
                     modifiedName: 'Tax rate 2 (3%)',
-                    // A rate deleted while offline is marked with both pendingAction DELETE and isDisabled: true (see TaxRate.ts).
-                    // It must still appear in the picker (struck-through and non-selectable) instead of disappearing.
+                    // A rate deleted while offline is marked with both pendingAction DELETE and isDisabled: true (see TaxRate.ts),
+                    // so like any disabled rate it is excluded from the list unless it is the currently selected option.
                     isDisabled: true,
                     pendingAction: 'delete',
                 },
@@ -83,36 +83,17 @@ describe('TaxOptionsListUtils', () => {
                         tooltipText: 'Tax option 3 (5%)',
                         pendingAction: undefined,
                     },
-                    {
-                        code: 'CODE2',
-                        isDisabled: true,
-                        isSelected: undefined,
-                        keyForList: 'Tax rate 2 (3%)-2',
-                        searchText: 'Tax rate 2 (3%)',
-                        text: 'Tax rate 2 (3%)',
-                        tooltipText: 'Tax rate 2 (3%)',
-                        pendingAction: 'delete',
-                    },
                 ],
                 sectionIndex: 2,
                 title: '',
             },
         ];
 
+        // The only rate whose name matches these searches is the deleted CODE2, which is now excluded from the list,
+        // so searching for it returns no results.
         const searchResultList: Array<Section<TaxRatesOption>> = [
             {
-                data: [
-                    {
-                        code: 'CODE2',
-                        isDisabled: true,
-                        isSelected: undefined,
-                        keyForList: 'Tax rate 2 (3%)-0',
-                        searchText: 'Tax rate 2 (3%)',
-                        text: 'Tax rate 2 (3%)',
-                        tooltipText: 'Tax rate 2 (3%)',
-                        pendingAction: 'delete',
-                    },
-                ],
+                data: [],
                 sectionIndex: 1,
                 title: '',
             },

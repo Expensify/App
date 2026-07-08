@@ -73,9 +73,7 @@ function getTaxRatesSection({
 
     const sortedTaxRates = sortTaxRates(taxes, localeCompare);
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.modifiedName));
-    // Keep rates that are pending deletion (e.g. deleted while offline) so they still render struck-through and non-selectable,
-    // instead of dropping them via the isDisabled filter. getTaxRatesOptions forces isDisabled for pending-DELETE rows.
-    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled || taxRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
     const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
     const taxRatesByModifiedName = new Map(sortedTaxRates.map((taxRate) => [taxRate.modifiedName, taxRate]));
