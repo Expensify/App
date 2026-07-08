@@ -1,7 +1,3 @@
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -13,9 +9,13 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
+import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     isChatThread,
@@ -28,7 +28,9 @@ import {
     isThread,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
@@ -38,11 +40,16 @@ import {
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
+    updateLoadingInitialReportAction,
 } from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -128,6 +135,10 @@ function ReportFetchHandler() {
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+    const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
+    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
+    const onboardingSignal = introSelected ? `${introSelected.choice ?? ''}:${introSelected.inviteType ?? ''}:${isInviteOnboardingComplete ? 'complete' : 'pending'}` : '';
+    const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || isPendingInviteOnboarding);
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
@@ -138,18 +149,12 @@ function ReportFetchHandler() {
             return;
         }
 
-        // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
+        // When a user goes through guided setup, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
         // More information here: https://github.com/Expensify/App/issues/71742
-        if (isLoadingApp && introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
-            const {choice, inviteType} = introSelected;
-            const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
-            const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
-
-            if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
-                return;
-            }
+        if (shouldDeferGuidedSetupOpenReport) {
+            return;
         }
 
         openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
@@ -285,12 +290,24 @@ function ReportFetchHandler() {
         };
     }, []);
 
+    // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed
+    // fetch leaves a stale `false` that can make ReportNotFoundGuard show "not here" before the fetch below
+    // re-runs. When opening a report whose actions were never successfully loaded, mark it as loading again so
+    // the guard waits for the real fetch result instead of trusting the leaked flag. See issue #92920.
+    useEffect(() => {
+        if (reportLoadingState.hasOnceLoadedReportActions) {
+            return;
+        }
+        updateLoadingInitialReportAction(reportIDFromRoute, true);
+    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
         // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
+        // Usually this triggers one openReport execution per page start or navigation. If guided setup is deferred while app data loads,
+        // rerun once the defer signal clears so openReport includes the loaded onboarding data.
         fetchReport();
-    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
+    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute, shouldDeferGuidedSetupOpenReport, onboardingSignal]);
 
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.
@@ -323,11 +340,14 @@ function ReportFetchHandler() {
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report?.pendingFields || (!report?.pendingFields.addWorkspaceRoom && !report?.pendingFields.createChat);
-        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
+        let interactionTask: CancelHandle | null = null;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            interactionTask = InteractionManager.runAfterInteractions(() => {
-                subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
-                didSubscribeToReportLeavingEvents.current = true;
+            interactionTask = TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
+                    didSubscribeToReportLeavingEvents.current = true;
+                },
+                waitForUpcomingTransition: true,
             });
         }
         return () => {
