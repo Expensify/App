@@ -88,8 +88,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
     const hasAnyPaidWorkspace = hasAnyPaidPolicy(allPolicies ?? {});
-    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
+    const {shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
     const effectivePolicyID = effectivePolicy?.id;
 
