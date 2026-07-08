@@ -15276,12 +15276,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 /* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const escapeRegExp_1 = __importDefault(__nccwpck_require__(8415));
-const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const newComponentCategory_1 = __importDefault(__nccwpck_require__(9032));
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
 const checklistStartsWith = '### PR Author Checklist';
@@ -15463,12 +15463,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.detectReactComponent = detectReactComponent;
-const github = __importStar(__nccwpck_require__(5438));
-const parser_1 = __nccwpck_require__(5026);
-const traverse_1 = __importDefault(__nccwpck_require__(1380));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const promiseSome_1 = __importDefault(__nccwpck_require__(8534));
+const github = __importStar(__nccwpck_require__(5438));
+const parser_1 = __nccwpck_require__(5026);
+const traverse_1 = __importDefault(__nccwpck_require__(1380));
 const items = [
     "I verified that similar component doesn't exist in the codebase",
     'I verified that all props are defined accurately and each prop has a `/** comment above it */`',

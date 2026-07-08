@@ -1,11 +1,7 @@
-import {emailSelector} from '@selectors/Session';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,6 +12,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
@@ -26,10 +23,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
@@ -58,8 +63,7 @@ function SearchActionsBarCreateButton() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],
@@ -142,15 +146,13 @@ function SearchActionsBarCreateButton() {
                             const freshReportID = generateReportID();
                             const freshTransactionID = generateReportID();
                             Navigation.navigate(
-                                createDynamicRoute(
-                                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.CREATE,
-                                        transactionID: freshTransactionID,
-                                        reportID: freshReportID,
-                                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                    }),
-                                ),
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.CREATE,
+                                    transactionID: freshTransactionID,
+                                    reportID: freshReportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                }),
                             );
                             return;
                         }

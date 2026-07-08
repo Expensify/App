@@ -1,6 +1,7 @@
-import {Parser as HtmlParser} from 'htmlparser2';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
+
+import {Parser as HtmlParser} from 'htmlparser2';
 
 const ATTACHMENT_TAGS = new Set(['a', 'img', 'video']);
 // Leading space + `="` (not a bare substring) so a URL query param like `?data-expensify-source=` isn't a false positive.

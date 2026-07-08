@@ -1,9 +1,11 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
@@ -16,7 +18,6 @@ Onyx.connect({
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allTransactions = {};
@@ -30,7 +31,6 @@ Onyx.connect({
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactionDrafts = value ?? {};
     },
@@ -40,7 +40,6 @@ Onyx.connect({
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allTransactionViolations = {};
@@ -54,7 +53,6 @@ Onyx.connect({
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allPolicyTags = {};
@@ -67,7 +65,6 @@ Onyx.connect({
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -76,7 +73,6 @@ Onyx.connect({
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },
@@ -101,7 +97,6 @@ Onyx.connect({
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
