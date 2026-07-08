@@ -31,6 +31,9 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function HelpPage() {
+    const isConciergePersonalDetail = (details: any) =>
+        details?.accountID === CONST.ACCOUNT_ID.CONCIERGE ||
+        details?.login?.toLowerCase() === CONST.EMAIL.CONCIERGE;
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
     const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'LifeRing', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
@@ -50,7 +53,7 @@ function HelpPage() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
-    const partnerManagerItem = partnerManagerDetails
+    const partnerManagerItem = partnerManagerDetails && !isConciergePersonalDetail(partnerManagerDetails)
         ? {
               key: partnerManagerDetails.login,
               title: partnerManagerDetails.displayName,
@@ -64,7 +67,7 @@ function HelpPage() {
           }
         : null;
 
-    const guideItem = guideDetails
+    const guideItem = guideDetails && !isConciergePersonalDetail(guideDetails)
         ? {
               key: guideDetails.login,
               title: guideDetails.displayName,
@@ -78,7 +81,7 @@ function HelpPage() {
           }
         : null;
 
-    const accountManagerItem = accountManagerDetails
+    const accountManagerItem = accountManagerDetails && !isConciergePersonalDetail(accountManagerDetails)
         ? {
               key: accountManagerDetails.login,
               title: accountManagerDetails.displayName,
