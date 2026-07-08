@@ -97,8 +97,12 @@ function setTravelProvisioningTaxID(taxID: string) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {taxID});
 }
 
+function setTravelProvisioningDomain(domain: string) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {domain});
+}
+
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep, setTravelProvisioningTaxID};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningDomain, setTravelProvisioningNextStep, setTravelProvisioningTaxID};
