@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -47,10 +47,9 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
 
-    const delegateLogin = Str.removeSMSDomain(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '');
-    const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? delegateLogin);
-    const parsedDelegatePhone = parsePhoneNumber(delegateLogin);
-    const delegateDescription = parsedDelegatePhone.valid && parsedDelegatePhone.number?.national ? parsedDelegatePhone.number.national : delegateLogin;
+    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
+    const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? rawDelegateLogin);
+    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
 
     return hasVacationDelegate ? (
         <>

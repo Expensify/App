@@ -9,7 +9,6 @@ import {searchUserInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,16 +25,13 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
 
-/** Returns the row subtitle as the national phone form for phone delegates, or `fallback`/login for emails. */
+/** Returns the row subtitle as the localized phone form for phone delegates, or `fallback`/login for emails. */
 function getDelegateAlternateText(login: string | undefined, fallback: string | undefined): string {
-    const sanitizedLogin = Str.removeSMSDomain(login ?? '');
-    if (sanitizedLogin) {
-        const parsed = parsePhoneNumber(sanitizedLogin);
-        if (parsed.valid && parsed.number?.national) {
-            return parsed.number.national;
-        }
+    const formattedLogin = formatPhoneNumber(login ?? '');
+    if (formattedLogin) {
+        return formattedLogin;
     }
-    return fallback ?? sanitizedLogin;
+    return fallback ?? '';
 }
 
 type BaseVacationDelegateSelectionComponentProps = {
@@ -133,7 +129,11 @@ function BaseVacationDelegateSelectionComponent({
         if (!shouldShowPinnedVacationDelegate || !pinnedVacationDelegate) {
             return options;
         }
-        return options.filter((option) => option.login?.toLowerCase() !== pinnedVacationDelegate.toLowerCase());
+        // Exclude the pinned delegate by both its raw delegate value and its resolved personal-details login.
+        // These can differ (e.g. a phone stored with vs. without the SMS domain), which would otherwise render
+        // the same contact in both the pinned section and the recents/contacts list.
+        const pinnedLogins = new Set([pinnedVacationDelegate.toLowerCase(), pinnedDelegateLogin.toLowerCase()]);
+        return options.filter((option) => !pinnedLogins.has(option.login?.toLowerCase() ?? ''));
     };
 
     const sectionsList = [];
