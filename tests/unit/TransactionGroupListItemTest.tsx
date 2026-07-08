@@ -491,9 +491,9 @@ describe('Empty Report Selection', () => {
         fireEvent.press(checkbox);
         await waitForBatchedUpdatesWithAct();
 
-        // Then onCheckboxPress should be called with the empty report and undefined (for groupBy reports)
+        // Then onCheckboxPress should be called with the empty report, undefined transactions (groupBy reports), and no shiftKey (headers ignore Shift)
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined, undefined);
     });
 
     it('should call onCheckboxPress multiple times when checkbox is clicked multiple times', async () => {
@@ -539,7 +539,7 @@ describe('Empty Report Selection', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined, undefined);
 
         unmountEmpty();
         mockOnCheckboxPress.mockClear();
@@ -560,7 +560,7 @@ describe('Empty Report Selection', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockNonEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockNonEmptyReport, undefined, undefined);
 
         unmountNonEmpty();
     });
@@ -577,9 +577,9 @@ describe('Empty Report Selection', () => {
             expect(mockOnCheckboxPress).toHaveBeenCalledTimes(i);
         }
 
-        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(1, mockEmptyReport, undefined);
-        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(2, mockEmptyReport, undefined);
-        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(3, mockEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(1, mockEmptyReport, undefined, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(2, mockEmptyReport, undefined, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(3, mockEmptyReport, undefined, undefined);
     });
 
     it('should show expandable content for non-empty reports', async () => {
