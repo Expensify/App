@@ -259,7 +259,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -561,7 +561,7 @@ describe('actions/Report', () => {
             .then(waitForNetworkPromises)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
-                User.subscribeToUserEvents(USER_1_ACCOUNT_ID, USER_1_LOGIN, undefined);
+                User.subscribeToUserEvents(USER_1_ACCOUNT_ID, USER_1_LOGIN, () => {}, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
@@ -915,7 +915,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -934,7 +934,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, undefined, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             });
     });
 
@@ -960,11 +960,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (val, key) => {
-                reportActionsReactions[key] = val ?? {};
+            callback: (snapshot) => {
+                reportActionsReactions = snapshot ?? {};
             },
         });
         let reportAction: OnyxTypes.ReportAction | undefined;
@@ -973,7 +973,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -1098,11 +1098,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (val, key) => {
-                reportActionsReactions[key] = val ?? {};
+            callback: (snapshot) => {
+                reportActionsReactions = snapshot ?? {};
             },
         });
 
@@ -1111,7 +1111,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -2646,7 +2646,6 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -2671,7 +2670,6 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
@@ -2742,7 +2740,6 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
