@@ -5682,11 +5682,11 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type)) {
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
         return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
-
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
