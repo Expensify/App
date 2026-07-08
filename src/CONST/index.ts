@@ -2192,6 +2192,7 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_CANCELED: 'canceled',
+        ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
@@ -2221,6 +2222,13 @@ const CONST = {
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        /** Which report-actions skeleton cancelled a send-message span (value of the canceled_by_skeleton attribute). */
+        CANCELED_BY_SKELETON: {
+            REPORT_ACTIONS_REPORT_DATA_LOADING: 'report_actions_report_data_loading',
+            REPORT_ACTIONS_APP_LOAD: 'report_actions_app_load',
+            SKELETON_GUARD_LOADING: 'skeleton_guard_loading',
+            SKELETON_GUARD_DERIVED_TIMING: 'skeleton_guard_derived_timing',
+        },
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
