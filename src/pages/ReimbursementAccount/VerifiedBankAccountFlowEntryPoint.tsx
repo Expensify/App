@@ -22,11 +22,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
+import {
+    navigateToBankAccountRoute,
+    prepareNewBankAccountSetup,
+    requestResetBankAccount,
+    resetReimbursementAccount,
+    setBankAccountSubStep,
+    setReimbursementAccountOptionPressed,
+    updateReimbursementAccount,
+} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -108,6 +117,26 @@ function VerifiedBankAccountFlowEntryPoint({
     const [isCurrentUserPolicyAdmin] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCurrentUserPolicyAdminSelector});
 
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
+
+    const currency = reimbursementAccount?.achData?.currency;
+    // The "Change bank account" option is only offered when opening a partially setup account from the Workflows > Payments section
+    const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
+    const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
+    const hasOtherEligibleAccountsToConnect = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, reimbursementAccount?.achData?.bankAccountID).length > 0;
+
+    const handleChangeBankAccount = () => {
+        if (!policyID || !currency) {
+            return;
+        }
+
+        if (hasOtherEligibleAccountsToConnect) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, undefined, CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT));
+            return;
+        }
+
+        prepareNewBankAccountSetup(currency);
+        navigateToBankAccountRoute({});
+    };
 
     const removeExistingBankAccountDetails = useCallback(() => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -274,6 +303,16 @@ function VerifiedBankAccountFlowEntryPoint({
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                     disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
+                                {shouldShowChangeBankAccount && (
+                                    <MenuItem
+                                        title={translate('workspace.bankAccount.changeBankAccount')}
+                                        icon={expensifyIcons.Bank}
+                                        onPress={handleChangeBankAccount}
+                                        shouldShowRightIcon
+                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                        disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    />
+                                )}
                                 <MenuItem
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
