@@ -76,7 +76,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 <Icon
                     src={expensifyIcons.Filter}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             </PressableWithFeedback>
         );
@@ -96,7 +96,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                   <Icon
                       src={expensifyIcons.Filter}
                       fill={theme.icon}
-                      extraSmall
+                      size={CONST.ICON_SIZE.EXTRA_SMALL}
                   />
               </PressableWithFeedback>
           )
