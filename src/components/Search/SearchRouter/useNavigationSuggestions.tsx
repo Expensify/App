@@ -66,18 +66,8 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
-import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
-
 import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
-import {
-    stripNavigationIntentPrefix,
-    isNavigationIntentOnlyQuery,
-    matchesNavigationQuery,
-    sortNavigationSuggestionItems,
-    getGoToText,
-    buildNavigationSuggestions,
-    MAX_NAVIGATION_SUGGESTIONS,
-} from './SearchRouterHelpers';
+import {getGoToText, buildNavigationSuggestions} from './SearchRouterHelpers';
 
 type RightSideContextProps = {
     label: string;

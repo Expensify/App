@@ -27,11 +27,9 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
-import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
@@ -59,24 +57,21 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const domainMenuItems = getDomainMenuItems({icons: {User: icons.User, UserShield: icons.UserShield, Users: icons.Users, UserLock: icons.UserLock}}).map((item) => {
-        const route = item.getRoute(domainAccountID);
+        const itemRoute = item.getRoute(domainAccountID);
+
+        let brickRoadIndicator;
+        if (item.translationKey === 'domain.domainMembers' && hasDomainMembersErrors(domainErrors)) {
+            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        } else if (item.translationKey === 'domain.domainAdmins' && hasDomainAdminsErrors(domainErrors)) {
+            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        } else if (item.translationKey === 'domain.groups.title' && hasDomainGroupsErrors(domainErrors)) {
+            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+
         return {
             ...item,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(route))),
-            brickRoadIndicator:
-                item.translationKey === 'domain.domainMembers'
-                    ? hasDomainMembersErrors(domainErrors)
-                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                        : undefined
-                    : item.translationKey === 'domain.domainAdmins'
-                      ? hasDomainAdminsErrors(domainErrors)
-                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                          : undefined
-                      : item.translationKey === 'domain.groups.title'
-                        ? hasDomainGroupsErrors(domainErrors)
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                        : undefined,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(itemRoute))),
+            brickRoadIndicator,
         };
     });
 

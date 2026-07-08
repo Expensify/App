@@ -304,7 +304,7 @@ describe('buildNavigationSuggestions', () => {
         const hrItem = {text: 'Go to HR', keyForList: 'hr', searchItemType: undefined};
         const result = buildNavigationSuggestions('hr', [[hrItem]], localeCompare);
         expect(result).toHaveLength(1);
-        expect(result[0].text).toBe('Go to HR');
+        expect(result.at(0)?.text).toBe('Go to HR');
     });
 
     it('shows all items for bare "go" intent', () => {
@@ -323,14 +323,14 @@ describe('buildNavigationSuggestions', () => {
         const sources = [[item('Go to Inbox', 'inbox'), item('Go to Home', 'home')]];
         const result = buildNavigationSuggestions('go inbox', sources, localeCompare);
         expect(result).toHaveLength(1);
-        expect(result[0].keyForList).toBe('inbox');
+        expect(result.at(0)?.keyForList).toBe('inbox');
     });
 
     it('filters items matching plain query', () => {
         const sources = [[item('Go to Inbox', 'inbox'), item('Go to Home', 'home')]];
         const result = buildNavigationSuggestions('inbox', sources, localeCompare);
         expect(result).toHaveLength(1);
-        expect(result[0].keyForList).toBe('inbox');
+        expect(result.at(0)?.keyForList).toBe('inbox');
     });
 
     it('caps results at MAX_NAVIGATION_SUGGESTIONS', () => {
