@@ -86,18 +86,6 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
 }
 
 /**
- * Returns the colors for a letter-avatar scheme key, falling back to the default scheme when the key is missing or unknown.
- *
- * @param avatarSchemeKey - A scheme key, e.g. "blue100"
- */
-function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle {
-    if (avatarSchemeKey && isLetterAvatarSchemeKey(avatarSchemeKey)) {
-        return LETTER_AVATAR_SCHEMES[avatarSchemeKey];
-    }
-    return DEFAULT_LETTER_AVATAR_SCHEME;
-}
-
-/**
  * Returns the default avatar asset associated with the given accountID.
  * Special accounts (Concierge, Notifications) have dedicated avatars.
  * Other accounts get an avatar from the default avatar set based on their accountID hash bucket.
@@ -452,7 +440,6 @@ export {
     getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
-    getLetterAvatarScheme,
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
