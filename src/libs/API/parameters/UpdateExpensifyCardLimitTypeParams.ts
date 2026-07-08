@@ -1,5 +1,4 @@
 type UpdateExpensifyCardLimitTypeParams = {
-    workspaceAccountID: number;
     cardID: number;
     limitType: string;
     validFrom?: string;

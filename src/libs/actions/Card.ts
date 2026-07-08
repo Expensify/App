@@ -1047,7 +1047,6 @@ function updateExpensifyCardLimit(
     ];
 
     const parameters: UpdateExpensifyCardLimitParams = {
-        workspaceAccountID,
         cardID,
         limit: newLimit,
         isVirtualCard: isVirtualCard ?? false,
@@ -1191,7 +1190,6 @@ function updateExpensifyCardLimitType(
     ];
 
     const parameters: UpdateExpensifyCardLimitTypeParams = {
-        workspaceAccountID,
         cardID,
         limitType: newLimitType,
         validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
