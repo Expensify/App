@@ -167,7 +167,6 @@ import {
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
-    requiresManualSubmission,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
@@ -8786,6 +8785,27 @@ describe('ReportUtils', () => {
             expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(true);
         });
 
+        it('should return true for payments admin designated as payer via policy.reimburser without achAccount', () => {
+            const paymentsAdminEmail = 'payments-admin@manual-test.com';
+            const paymentsAdminAccountID = 704;
+
+            const manualPolicyWithPaymentsAdminPayer: Policy = {
+                ...policyTest,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: 'owner@manual-test.com',
+                role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: paymentsAdminEmail,
+                employeeList: {
+                    [paymentsAdminEmail]: {
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    },
+                },
+            };
+
+            expect(isPayer(paymentsAdminAccountID, paymentsAdminEmail, approvedReport, undefined, manualPolicyWithPaymentsAdminPayer, false)).toBe(true);
+        });
+
         it('should return false for non-reimburser admin in manual reimbursement mode with designated payer', () => {
             const otherAdminEmail = 'other-admin@manual-test.com';
             const otherAdminAccountID = 701;
@@ -10545,6 +10565,74 @@ describe('ReportUtils', () => {
 
             expect(onyxData).toMatchObject(expectedOnyxData);
         });
+
+        it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', () => {
+            // A new expense is seeded with the 'Uncategorized' sentinel, not an empty category. Enabling categories must
+            // treat that sentinel as missing so the violation is written immediately.
+            const fakePolicyCategories = createRandomPolicyCategories(3);
+            const fakeCategoryName = Object.keys(fakePolicyCategories).at(0) ?? '';
+
+            // Enabling a category keeps the categories update non-empty so the recompute actually runs.
+            const fakePolicyCategoriesUpdate = {
+                [fakeCategoryName]: {enabled: true},
+            };
+
+            // Enabling categories flips requiresCategory/areCategoriesEnabled on, matching enablePolicyCategories.
+            const fakePolicyUpdate = {requiresCategory: true, areCategoriesEnabled: true};
+
+            const fakePolicyID = '0';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresTag: false,
+                areTagsEnabled: false,
+                requiresCategory: false,
+                areCategoriesEnabled: false,
+            };
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
+                tag: '',
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: fakePolicyCategories,
+                tags: {},
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, fakePolicyUpdate, fakePolicyCategoriesUpdate);
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: expect.arrayContaining([
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ]),
+            });
+        });
     });
 
     describe('pushTransactionAutoSelectionsOnyxData', () => {
@@ -12220,90 +12308,6 @@ describe('ReportUtils', () => {
 
         it('falls back to the base report path when reportID is missing', () => {
             expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
-        });
-    });
-
-    describe('requiresManualSubmission', () => {
-        it('should return true when manual submit is enabled', () => {
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy1 = createRandomPolicy(1);
-            policy1.harvesting = {enabled: false};
-            policy1.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
-            const result = requiresManualSubmission(report, policy1);
-            expect(result).toBe(true);
-        });
-
-        it('should return false when instant submit is enabled and report is not open', () => {
-            const report: Report = {
-                ...createRandomReport(2, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-            const policy2 = createRandomPolicy(2);
-            policy2.autoReporting = true;
-            policy2.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy2.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-            const result = requiresManualSubmission(report, policy2);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when instant submit is enabled with approvers', () => {
-            const report: Report = {
-                ...createRandomReport(3, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy3 = createRandomPolicy(3);
-            policy3.autoReporting = true;
-            policy3.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy3.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-            const result = requiresManualSubmission(report, policy3);
-            expect(result).toBe(false);
-        });
-
-        it('should return true for open report in Submit & Close policy with instant submit', () => {
-            const report: Report = {
-                ...createRandomReport(4, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy4 = createRandomPolicy(4);
-            policy4.autoReporting = true;
-            policy4.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy4.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close (no approvers)
-            const result = requiresManualSubmission(report, policy4);
-            expect(result).toBe(true);
-        });
-
-        it('should return false for closed report in Submit & Close policy with instant submit', () => {
-            const report: Report = {
-                ...createRandomReport(5, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-            };
-            const policy5 = createRandomPolicy(5);
-            policy5.autoReporting = true;
-            policy5.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy5.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close (no approvers)
-            const result = requiresManualSubmission(report, policy5);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when policy has auto reporting with monthly frequency (delayed submission)', () => {
-            const report: Report = {
-                ...createRandomReport(8, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy6 = createRandomPolicy(8);
-            policy6.autoReporting = true;
-            policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
-            const result = requiresManualSubmission(report, policy6);
-            expect(result).toBe(false);
         });
     });
 

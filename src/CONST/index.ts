@@ -4399,6 +4399,7 @@ const CONST = {
             COMPANY_CARD: 'CompanyCard',
             EXPENSIFY_CARD: 'ExpensifyCard',
         },
+        CARD_LIST: 'cardList',
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
@@ -6522,6 +6523,7 @@ const CONST = {
             PENDING: 'pending',
             CLEARED: 'cleared',
             FAILED: 'failed',
+            NEVER: 'never',
         },
         PAID_STATUS: {
             MARKED_AS_PAID: 'markedAsPaid',
@@ -8261,7 +8263,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-            STATUS_PICKER: 'Account-StatusPicker',
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
