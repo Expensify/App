@@ -151,7 +151,7 @@ import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDepreca
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -1200,12 +1200,13 @@ function setWorkspaceReimbursement({
     ];
 
     if (bankAccountID !== undefined && bankAccountList !== undefined) {
-        const optimisticBankAccountList: BankAccountList = {};
+        const optimisticBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             optimisticBankAccountList[oldBankAccountID] = {
                 ...optimisticBankAccountList[oldBankAccountID],
                 accountData: {
                     policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs?.filter((id) => id !== policyID) ?? [],
+                    additionalData: {policyID: null},
                 },
             };
         }
@@ -1214,6 +1215,7 @@ function setWorkspaceReimbursement({
             ...optimisticBankAccountList[bankAccountID],
             accountData: {
                 policyIDs: [...new Set([...currentPolicyIDs, policyID])],
+                additionalData: {policyID},
             },
         };
 
@@ -1278,12 +1280,13 @@ function setWorkspaceReimbursement({
     ];
 
     if (bankAccountID !== undefined && bankAccountList !== undefined) {
-        const failureBankAccountList: BankAccountList = {};
+        const failureBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             failureBankAccountList[oldBankAccountID] = {
                 ...failureBankAccountList[oldBankAccountID],
                 accountData: {
                     policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs ?? [],
+                    additionalData: {policyID: bankAccountList?.[oldBankAccountID]?.accountData?.additionalData?.policyID ?? null},
                 },
             };
         }
@@ -1291,6 +1294,7 @@ function setWorkspaceReimbursement({
             ...failureBankAccountList[bankAccountID],
             accountData: {
                 policyIDs: bankAccountList?.[bankAccountID]?.accountData?.policyIDs ?? [],
+                additionalData: {policyID: bankAccountList?.[bankAccountID]?.accountData?.additionalData?.policyID ?? null},
             },
         };
         failureData.push({
