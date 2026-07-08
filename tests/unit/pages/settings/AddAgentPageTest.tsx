@@ -13,10 +13,11 @@ import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pen
 import {createAgent} from '@userActions/Agent';
 
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+import createMock from '../../../utils/createMock';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@userActions/Agent', () => ({
@@ -144,7 +145,7 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp {
-    return {name: '', key: '', params} as unknown as AddAgentRouteProp;
+    return createMock<AddAgentRouteProp>({name: SCREENS.SETTINGS.AGENTS.ADD, key: '', params});
 }
 
 describe('AddAgentPage', () => {
