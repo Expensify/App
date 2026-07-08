@@ -1,5 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
-import useHomeAddressGateForDistance from '@hooks/useHomeAddressGateForDistance';
+import useDistanceHomeAddressCheck from '@hooks/useDistanceHomeAddressCheck';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -299,7 +299,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Any distance flow that submits through this hook is blocked while the user is missing a home address on a
     // homeAndOffice workspace.
-    const {needsHomeAddressPrompt: distanceNeedsHomeAddress, promptForHomeAddress: promptForDistanceHomeAddress} = useHomeAddressGateForDistance(policy);
+    const {needsHomeAddressPrompt: distanceNeedsHomeAddress, promptForHomeAddress: promptForDistanceHomeAddress} = useDistanceHomeAddressCheck(policy);
 
     function performPostBatchCleanup({
         participant,

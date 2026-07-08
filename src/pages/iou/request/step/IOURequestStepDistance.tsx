@@ -8,9 +8,9 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDistanceHomeAddressCheck from '@hooks/useDistanceHomeAddressCheck';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
-import useHomeAddressGateForDistance from '@hooks/useHomeAddressGateForDistance';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -290,7 +290,7 @@ function IOURequestStepDistance({
 
     // When the destination workspace requires home/office commuter exclusions, the per-member
     // commute deduction can't be computed unless the member has a home address.
-    const {needsHomeAddressPrompt, promptForHomeAddress} = useHomeAddressGateForDistance(policy);
+    const {needsHomeAddressPrompt, promptForHomeAddress} = useDistanceHomeAddressCheck(policy);
     const hasShownHomeAddressModalRef = useRef(false);
     useEffect(() => {
         if (!needsHomeAddressPrompt) {
