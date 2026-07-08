@@ -96,10 +96,7 @@ function useFooterDerivedFlags({
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
-    // In the "Submit to my employer" zero-workspace flow the confirmation runs against a draft Submit workspace that lives in
-    // POLICY_DRAFTS, which usePolicyForMovingExpenses (it only scans the real POLICY collection) can't see, so it would report
-    // shouldNavigateToUpgradePath. Submit workspaces ship Categories/Distance enabled by default, so fields like Category/Rate
-    // must never route to the upgrade gate.
+    // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
     const isSubmitWorkspace = isSubmitPolicy(policy);
     const shouldNavigateToUpgradePath = !isSubmitWorkspace && canNavigateToUpgradePath;
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
