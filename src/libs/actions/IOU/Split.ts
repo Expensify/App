@@ -77,7 +77,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyR
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
+import {getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -1936,6 +1936,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldDeferAutoSubmit,
         previousOdometerDraft,
         delegateAccountID,
+        participantsPolicyTags,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2024,8 +2025,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            participantsPolicyTags: buildParticipantsPolicyTags(participants),
+            participantsPolicyTags,
             delegateAccountID,
         });
         onyxData = splitOnyxData;

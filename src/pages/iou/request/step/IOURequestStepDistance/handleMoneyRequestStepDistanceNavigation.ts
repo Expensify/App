@@ -1,4 +1,4 @@
-import {getMoneyRequestPolicyTags} from '@libs/actions/IOU';
+import {buildParticipantsPolicyTags, getMoneyRequestPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
     setCustomUnitRateID,
@@ -403,6 +403,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyParams: {
                             policyTagList,
                         },
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        participantsPolicyTags: buildParticipantsPolicyTags(participants),
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

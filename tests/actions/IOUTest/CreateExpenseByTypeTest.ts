@@ -1,16 +1,19 @@
-import Onyx from 'react-native-onyx';
 import {createExpenseByType} from '@libs/actions/IOU/Duplicate';
 import * as PerDiem from '@libs/actions/IOU/PerDiem';
 import * as Split from '@libs/actions/IOU/Split';
 import * as TrackExpense from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getTransactionDetails} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import Onyx from 'react-native-onyx';
+
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -146,7 +149,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
@@ -154,7 +156,7 @@ describe('actions/IOU/createExpenseByType', () => {
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
 
-        it('passes the original params unchanged to requestMoney', () => {
+        it('passes the original params plus the resolved policyTagList to requestMoney', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
             createExpenseByType({
@@ -168,10 +170,12 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(params);
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith({
+                ...params,
+                policyParams: {policyTagList: {}},
+            });
         });
 
         it('calls requestMoney for an unrecognized transaction type (fallthrough default)', () => {
@@ -188,7 +192,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
@@ -219,7 +222,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledTimes(1);
@@ -227,7 +229,7 @@ describe('actions/IOU/createExpenseByType', () => {
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
 
-        it('sets modifiedCreated to empty string on the existingTransaction', () => {
+        it('sets created to empty string on the existingTransaction', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
             createExpenseByType({
@@ -241,11 +243,10 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
-            expect(distanceParams.existingTransaction?.modifiedCreated).toBe('');
+            expect(distanceParams.existingTransaction?.created).toBe('');
         });
 
         it('passes waypoints into existingTransaction.comment.waypoints', () => {
@@ -262,7 +263,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
@@ -283,7 +283,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
@@ -306,7 +305,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
@@ -338,7 +336,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             expect(PerDiem.submitPerDiemExpense).toHaveBeenCalledTimes(1);
@@ -362,7 +359,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
@@ -385,7 +381,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
@@ -409,36 +404,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
             // transactionDetails.comment comes from getDescription which returns the raw comment field
             expect(perDiemParams.transactionParams.comment).toBe(transactionDetails?.comment);
-        });
-
-        it('forwards conciergeReportID to submitPerDiemExpense', () => {
-            const conciergeReportID = 'concierge-report-999';
-            const {transaction, transactionDetails, params} = buildBaseParams({
-                comment: {comment: 'trip', customUnit},
-            });
-
-            createExpenseByType({
-                transactionType: CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
-                params,
-                transaction,
-                transactionDetails,
-                waypoints: undefined,
-                participants: [],
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                personalDetails: {},
-                recentWaypoints: undefined,
-                conciergeReportID,
-            });
-
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
-            expect(perDiemParams.conciergeReportID).toBe(conciergeReportID);
         });
 
         it('defaults customUnit to empty object when transaction.comment.customUnit is missing', () => {
@@ -457,7 +427,6 @@ describe('actions/IOU/createExpenseByType', () => {
                 quickAction: undefined,
                 personalDetails: {},
                 recentWaypoints: undefined,
-                conciergeReportID: undefined,
             });
 
             const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];

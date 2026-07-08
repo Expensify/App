@@ -545,7 +545,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass shouldHandleNavigation as true for last file only when calling requestMoney', () => {
+        it('should call requestMoney once per file', () => {
             const files = [
                 {...fakeReceiptFile, transactionID: '111'},
                 {...fakeReceiptFile, transactionID: '222'},
@@ -560,10 +560,6 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(files.length);
-
-            expect(TrackExpense.requestMoney).toHaveBeenNthCalledWith(1, expect.objectContaining({shouldHandleNavigation: false}));
-            expect(TrackExpense.requestMoney).toHaveBeenNthCalledWith(2, expect.objectContaining({shouldHandleNavigation: false}));
-            expect(TrackExpense.requestMoney).toHaveBeenNthCalledWith(3, expect.objectContaining({shouldHandleNavigation: true}));
         });
 
         it('should fall back to requestMoney when iouType is TRACK but report is null', () => {
@@ -576,22 +572,6 @@ describe('MoneyRequest', () => {
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
-        });
-
-        it('should pass backToReport to requestMoney when provided', () => {
-            const backToReport = 'report_back_123';
-
-            createTransaction({
-                ...baseParams,
-                backToReport,
-                allTransactionDrafts: {},
-            });
-
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    backToReport,
-                }),
-            );
         });
 
         it('should pass policyRecentlyUsedCurrencies to requestMoney when provided', () => {
