@@ -102,9 +102,9 @@ function buildCompanyCardEntries(
     assignedCards: CardList,
     feedName?: CompanyCardFeedWithDomainID,
 ): CompanyCardEntry[] {
+    const existingNames = new Set<string>();
+    const existingEncryptedCardNumbers = new Set<string>();
     const entriesMap = new Map<string, CompanyCardEntry>();
-    const coveredNames = new Set<string>();
-    const coveredEncrypted = new Set<string>();
 
     const cardListEntries = Object.entries(cardList ?? {});
 
@@ -127,33 +127,33 @@ function buildCompanyCardEntries(
             entriesMap.set(cardEntryID, {cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
         }
 
-        coveredNames.add(normalizedName);
+        existingNames.add(normalizedName);
         if (encryptedCardNumber !== cardName) {
-            coveredEncrypted.add(encryptedCardNumber);
+            existingEncryptedCardNumbers.add(encryptedCardNumber);
         }
     }
 
     // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
     for (const [cardName, encryptedCardNumber] of cardListEntries) {
         const normalizedName = normalizeCardName(cardName);
-        if (coveredNames.has(normalizedName) || coveredEncrypted.has(encryptedCardNumber) || entriesMap.has(encryptedCardNumber)) {
+        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber) || entriesMap.has(encryptedCardNumber)) {
             continue;
         }
 
         entriesMap.set(encryptedCardNumber, {cardName, encryptedCardNumber, isAssigned: false});
-        coveredNames.add(normalizedName);
-        coveredEncrypted.add(encryptedCardNumber);
+        existingNames.add(normalizedName);
+        existingEncryptedCardNumbers.add(encryptedCardNumber);
     }
 
     for (const cardName of filterAmexDirectParentCard(accountList ?? [], feedName)) {
         const normalizedName = normalizeCardName(cardName);
         const encryptedCardNumber = cardList?.[cardName] ?? cardName;
 
-        if (coveredNames.has(normalizedName) || coveredEncrypted.has(encryptedCardNumber) || entriesMap.has(normalizedName)) {
+        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber) || entriesMap.has(normalizedName)) {
             continue;
         }
         entriesMap.set(normalizedName, {cardName, encryptedCardNumber, isAssigned: false});
-        coveredNames.add(normalizedName);
+        existingNames.add(normalizedName);
     }
 
     return Array.from(entriesMap.values());
