@@ -6,11 +6,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -31,6 +34,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
     const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
     const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+    const exportToMultipleAccounts = rilletConfig?.export?.exportToMultipleAccounts ?? false;
 
     return (
         <ConnectionLayout
@@ -105,6 +109,17 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
+            <ToggleSettingOptionRow
+                title={translate('workspace.rillet.exportToMultipleAccounts')}
+                switchAccessibilityLabel={translate('workspace.rillet.exportToMultipleAccounts')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={exportToMultipleAccounts}
+                onToggle={() => policyID && updateRilletExportToMultipleAccounts(policyID, !exportToMultipleAccounts, exportToMultipleAccounts)}
+                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS], rilletConfig?.pendingFields)}
+                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+            />
         </ConnectionLayout>
     );
 }
