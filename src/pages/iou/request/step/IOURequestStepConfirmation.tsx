@@ -466,10 +466,12 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     // PAY, SPLIT, and TRACK navigate to a specific destination report
-    // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
+    // (not Search) after submission. A self-DM CREATE is effectively a TRACK, so it is
+    // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -510,11 +512,6 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-    // A sole recipient that resolves to the current user means the expense is tracked in the self-DM, even when the
-    // route iouType hasn't been converted to TRACK yet (new manual expense flow). In that case the destination must be
-    // the self-DM, not the route report, so the post-create navigation lands the user in the report the expense was
-    // actually created in. This mirrors the same self-DM decision used by useExpenseSubmission.
-    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
     const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
@@ -543,11 +540,12 @@ function IOURequestStepConfirmation({
         // pre-inserting a report is wrong - the user should stay on Search after submission.
         // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
         // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // A self-DM CREATE is effectively a TRACK, so it targets the self-DM report too.
         // When on Search/Spend the user should stay there after submission.
         const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
         const canUseReportPreInsert =
             !shouldPreInsertSearch &&
-            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isReportBoundGlobalCreate || !isFromGlobalCreate)));
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -928,6 +926,7 @@ function IOURequestStepConfirmation({
                         destinationReportID={destinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
+                        isSelfDMDestination={isSelfDMDestination}
                         requestType={requestType}
                         canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}
