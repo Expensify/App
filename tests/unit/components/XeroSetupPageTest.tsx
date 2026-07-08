@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 
@@ -108,7 +108,7 @@ describe('XeroSetupPage', () => {
         expect(screen.queryByTestId('xero-webview')).not.toBeOnTheScreen();
         expect(screen.getByTestId('setup-loading-indicator')).toBeOnTheScreen();
 
-        await waitFor(() => expect(screen.getByTestId('xero-webview')).toBeOnTheScreen());
+        expect(await screen.findByTestId('xero-webview')).toBeOnTheScreen();
 
         // The WebView must load the authenticated URL, not the raw getXeroSetupLink() command URL.
         expect(mockWebViewProps.current?.source?.uri).toBe(`https://xero-setup.example/${POLICY_ID}?authToken=${SHORT_LIVED_AUTH_TOKEN}`);
@@ -117,7 +117,7 @@ describe('XeroSetupPage', () => {
     it('passes the session auth token to the WebView as a cookie', async () => {
         renderXeroSetupPage();
 
-        await waitFor(() => expect(screen.getByTestId('xero-webview')).toBeOnTheScreen());
+        expect(await screen.findByTestId('xero-webview')).toBeOnTheScreen();
 
         expect(mockWebViewProps.current?.source?.headers?.Cookie).toBe(`authToken=${AUTH_TOKEN}`);
     });
@@ -136,7 +136,7 @@ describe('XeroSetupPage', () => {
         act(() => mockOnReconnect.current?.());
 
         expect(mockedGetShortLivedAuthTokenURL).toHaveBeenCalledWith(`https://xero-setup.example/${POLICY_ID}`);
-        await waitFor(() => expect(screen.getByTestId('xero-webview')).toBeOnTheScreen());
+        expect(await screen.findByTestId('xero-webview')).toBeOnTheScreen();
         expect(mockWebViewProps.current?.source?.uri).toBe(`https://xero-setup.example/${POLICY_ID}?authToken=${SHORT_LIVED_AUTH_TOKEN}`);
     });
 });
