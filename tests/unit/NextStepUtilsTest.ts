@@ -1324,7 +1324,7 @@ describe('libs/NextStepUtils', () => {
             expect(result).toBe(reportNextStep);
         });
 
-        it('falls back to the deprecated next step when the new next step has a different message key', () => {
+        it('prefers the report-embedded next step over the deprecated one when no special override applies', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-6',
@@ -1353,6 +1353,67 @@ describe('libs/NextStepUtils', () => {
             };
 
             const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            expect(result).toBe(reportNextStep);
+        });
+
+        it('prefers the pushed report next step over a stale deprecated one after a third-party approval (regression for real-time "What\'s next")', () => {
+            // Repro: the submitter is viewing a submitted reimbursable report while an approver approves it on
+            // another device. The report Pusher push refreshes report.statusNum and report.nextStep for the
+            // submitter, but the deprecated reportNextStep_* collection is only refreshed for the approver, so
+            // the submitter's currentNextStep stays on the pre-approval "Waiting to approve" message.
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-8',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: 99,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+
+            const staleCurrentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Waiting for '}, {text: 'the approver', type: 'strong'}, {text: ' to '}, {text: 'approve'}, {text: ' %expenses.'}],
+            };
+
+            const pushedReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+            };
+
+            const result = getReportNextStep(staleCurrentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, pushedReportNextStep);
+            expect(result).toBe(pushedReportNextStep);
+        });
+
+        it('falls back to the deprecated next step when the report has no embedded next step', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-9',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Current next step'}],
+            };
+
+            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, undefined);
             expect(result).toBe(currentNextStep);
         });
 
