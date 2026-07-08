@@ -8718,19 +8718,17 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should show Approve for Admin role even when they are not part of the approval workflow', () => {
-            const policyKey = `policy_${policyID}`;
-
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: 'someone-else@policy.com',
                     employeeList: {
                         'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
                     },
-                } as unknown as OnyxTypes.Policy,
+                },
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8739,12 +8737,10 @@ describe('SearchUIUtils', () => {
 
         test('Should hide Approve for regular member who is not an approver, submits-to target, or admin', () => {
             const regularEmail = 'regular@policy.com';
-            const policyKey = `policy_${policyID}`;
-
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: 'someone-else@policy.com',
@@ -8752,7 +8748,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
                         [regularEmail]: {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
                     },
-                } as unknown as OnyxTypes.Policy,
+                },
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
