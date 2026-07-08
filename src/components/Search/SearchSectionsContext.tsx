@@ -11,6 +11,7 @@ import type {SearchSections} from './hooks/useExpenseReportSections';
 import type {SearchShell, UseSearchShellParams} from './hooks/useSearchShell';
 import type {SearchQueryJSON} from './types';
 
+import useChatSections from './hooks/useChatSections';
 import useExpenseReportSections from './hooks/useExpenseReportSections';
 import useSearchShell from './hooks/useSearchShell';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
@@ -82,6 +83,17 @@ function TransactionSectionsProvider({queryJSON, searchResults, newSearchResultK
 }
 
 /**
+ * Section provider for the chat view (`type === CHAT`). Owns only the chat-type slice of Onyx (via the scoped
+ * shell + leaf), so every other search type mounts a different provider and never opens these subscriptions.
+ */
+function ChatSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
+    const sections = useChatSections({shell, queryJSON, searchResults, newSearchResultKeys});
+    const value: SearchSectionsContextValue = {...sections, ...pickTrackingCarriers(shell)};
+    return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
+}
+
+/**
  * Section provider for every not-yet-scoped search type. Keeps the legacy monolithic `useSearchSnapshot`
  * (which subscribes to the union of every type's data) until each type gets its own scoped leaf.
  */
@@ -115,6 +127,8 @@ function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, 
     let Provider = LegacySectionsProvider;
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         Provider = ExpenseReportSectionsProvider;
+    } else if (queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        Provider = ChatSectionsProvider;
     } else if (isFlatExpenseSearch(queryJSON)) {
         Provider = TransactionSectionsProvider;
     }

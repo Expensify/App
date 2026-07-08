@@ -6579,5 +6579,6 @@ export {
     SKIPPED_SEARCH_FILTERS,
     getReportSections,
     getTransactionsSections,
+    getReportActionsSections,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
