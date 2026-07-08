@@ -214,6 +214,7 @@ import {
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
 } from './TransactionUtils';
+import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
@@ -1523,11 +1524,9 @@ function shouldShowYear(
                     result.shouldShowYearApproved = true;
                 }
 
-                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
                 // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-                if (!result.shouldShowYearPosted && item?.posted) {
-                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
-                    result.shouldShowYearPosted = postedYear !== currentYear;
+                if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item, currentYear)) {
+                    result.shouldShowYearPosted = true;
                 }
             }
 
@@ -1556,11 +1555,9 @@ function shouldShowYear(
                 result.shouldShowYearApproved = true;
             }
 
-            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
             // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-            if (!result.shouldShowYearPosted && item?.posted) {
-                const postedYear = parseInt(item.posted.slice(0, 4), 10);
-                result.shouldShowYearPosted = postedYear !== currentYear;
+            if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item, currentYear)) {
+                result.shouldShowYearPosted = true;
             }
 
             const exportedAction = item.reportID ? lastExportedActionByReportID.get(item.reportID) : undefined;
@@ -1917,11 +1914,8 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
         ctx.shouldShowYearApproved = true;
     }
 
-    if (!ctx.shouldShowYearPosted && transaction?.posted) {
-        const postedYear = parseInt(transaction.posted.slice(0, 4), 10);
-        if (postedYear !== ctx.currentYear) {
-            ctx.shouldShowYearPosted = true;
-        }
+    if (!ctx.shouldShowYearPosted && shouldShowTransactionPostedYear(transaction, ctx.currentYear)) {
+        ctx.shouldShowYearPosted = true;
     }
 
     // Optimistic: works when report-action keys precede transaction keys (common case).
