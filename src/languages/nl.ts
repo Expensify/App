@@ -6394,6 +6394,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'People-beheerder maken',
                 other: 'People-beheerders maken',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Betalingsbeheerder maken',
+                other: 'Betalingsbeheerders maken',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er is een probleem opgetreden bij het toevoegen van dit werkruimtelid',
@@ -6427,6 +6431,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
             peopleAdmins: 'People-beheerders',
+            paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
         },
         card: {
@@ -9741,6 +9746,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Kaart en de abonnementsopties hieronder.',
             collectBillingDescription: 'Collect-werkruimtes worden maandelijks per lid gefactureerd, zonder jaarlijkse verplichting.',
             pricing: 'Prijzen',
+            editSubscription: 'Abonnement bewerken',
         },
         cancelSubscription: {
             title: 'Abonnement opzeggen',
