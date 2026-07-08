@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
+import type {OnboardingFeatureMapItem} from './libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThreadNavigationUtils';
@@ -1681,7 +1682,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED]: boolean;
-    [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: Array<{id: string; enabled: boolean; enabledByDefault?: boolean; requiresUpdate?: boolean}>;
+    [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: OnboardingFeatureMapItem[];
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];

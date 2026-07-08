@@ -50,6 +50,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingInterestedFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -83,7 +84,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 case CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED:
                     return {...feature, title: translate('workspace.moreFeatures.timeTracking.title'), icon: illustrations.Clock};
                 default:
-                    return {...feature, title: '', icon: illustrations.FolderOpen};
+                    return {...feature, title: feature.id, icon: illustrations.FolderOpen};
             }
         });
     }, [
@@ -101,18 +102,17 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         translate,
     ]);
 
-    const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
+    const defaultSelectedFeatures = useMemo(() => features.filter((feature) => !!feature.enabledByDefault).map((feature) => feature.id), [features]);
+    const persistedSelectedFeatures = useMemo(() => onboardingInterestedFeaturesMap?.filter((feature) => feature.enabled).map((feature) => feature.id), [onboardingInterestedFeaturesMap]);
+    const [selectedFeatureIDs, setSelectedFeatureIDs] = useState<Set<string>>();
+
+    useEffect(() => {
+        setSelectedFeatureIDs(new Set(persistedSelectedFeatures ?? defaultSelectedFeatures));
+    }, [defaultSelectedFeatures, persistedSelectedFeatures]);
 
     const selectedFeatures = useMemo(() => {
-        return features
-            .filter((feature) => {
-                if (userToggledFeatures.has(feature.id)) {
-                    return !feature.enabledByDefault;
-                }
-                return feature.enabledByDefault;
-            })
-            .map((feature) => feature.id);
-    }, [features, userToggledFeatures]);
+        return Array.from(selectedFeatureIDs ?? new Set(persistedSelectedFeatures ?? defaultSelectedFeatures));
+    }, [defaultSelectedFeatures, persistedSelectedFeatures, selectedFeatureIDs]);
     const isAccountingEnabled = selectedFeatures.includes(CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES, {isAccountingEnabled});
 
@@ -172,17 +172,20 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         },
     ];
 
-    const handleFeatureSelect = useCallback((featureId: string) => {
-        setUserToggledFeatures((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(featureId)) {
-                newSet.delete(featureId);
-            } else {
-                newSet.add(featureId);
-            }
-            return newSet;
-        });
-    }, []);
+    const handleFeatureSelect = useCallback(
+        (featureId: string) => {
+            setSelectedFeatureIDs((prev) => {
+                const newSet = new Set(prev ?? persistedSelectedFeatures ?? defaultSelectedFeatures);
+                if (newSet.has(featureId)) {
+                    newSet.delete(featureId);
+                } else {
+                    newSet.add(featureId);
+                }
+                return newSet;
+            });
+        },
+        [defaultSelectedFeatures, persistedSelectedFeatures],
+    );
 
     const renderItem = useCallback(
         (item: Feature) => {
@@ -268,7 +271,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     large
                     text={translate('common.continue')}
                     onPress={handleContinue}
-                    isDisabled={isOffline}
+                    isDisabled={isOffline && !isAccountingEnabled}
                     isLoading={isLoading}
                     pressOnEnter
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}

@@ -91,7 +91,7 @@ function navigateAfterOnboarding(
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, (route) => Navigation.navigate(route, navigationOptions));
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
         return;
     }
 

@@ -1,9 +1,8 @@
-import type {Route} from '@src/ROUTES';
+import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+
 import type {OnboardingRHPVariant} from '@src/types/onyx';
 
-type NavigateToRHPVariantRoute = (route: Route) => void;
-
 type ShouldOpenRHPVariant = (variantOverride?: OnboardingRHPVariant | null) => boolean;
-type HandleRHPVariantNavigation = (onboardingPolicyID: string | undefined, variantOverride: OnboardingRHPVariant | null | undefined, navigate: NavigateToRHPVariantRoute) => void;
+type HandleRHPVariantNavigation = (onboardingPolicyID: string | undefined, variantOverride?: OnboardingRHPVariant | null, navigationOptions?: LinkToOptions) => void;
 
 export type {ShouldOpenRHPVariant, HandleRHPVariantNavigation};
