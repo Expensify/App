@@ -4351,6 +4351,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         carRental: 'レンタカー',
         nightIn: '宿泊数',
         nightsIn: '泊（滞在先）',
+        taxID: {
+            title: '納税者番号',
+            subtitle: '現地通貨での出張費の請求を設定できるように、法人の納税者番号を入力してください。',
+            inputLabel: '法人納税者番号',
+            error: {required: '法的事業体の納税者番号を入力してください。'},
+        },
     },
     workspace: {
         common: {
@@ -9806,7 +9812,7 @@ ${reportName}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
-        accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
+        accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',

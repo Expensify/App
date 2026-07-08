@@ -4368,6 +4368,12 @@ ${amount} dla ${merchant} - ${date}`,
         carRental: 'wynajem samochodu',
         nightIn: 'nocleg w',
         nightsIn: 'noce w',
+        taxID: {
+            title: 'NIP',
+            subtitle: 'Podaj swój numer identyfikacji podatkowej podmiotu prawnego, żebyśmy mogli skonfigurować rozliczenia za podróże w twojej lokalnej walucie.',
+            inputLabel: 'NIP podmiotu prawnego',
+            error: {required: 'Podaj swój identyfikator podatkowy podmiotu prawnego.'},
+        },
     },
     workspace: {
         common: {
@@ -9887,7 +9893,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Zmień nazwę zapisanych wyszukiwań</strong> tutaj!</tooltip>',
-        accountSwitcher: '<tooltip>Uzyskaj tutaj dostęp do <strong>kont Copilot</strong></tooltip>',
+        accountSwitcher: '<tooltip>Teraz możesz dołączyć jako kopilot do innego konta!</tooltip>',
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',

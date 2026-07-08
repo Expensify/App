@@ -4214,6 +4214,12 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
             recommended: 'Recomendado',
         },
+        taxID: {
+            title: 'ID fiscal',
+            subtitle: 'Introduce el NIF de tu entidad legal para que podamos configurar la facturación de viajes en tu moneda local.',
+            inputLabel: 'ID fiscal de la entidad jurídica',
+            error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
+        },
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain) =>
@@ -10105,7 +10111,7 @@ ${amount} para ${merchant} - ${date}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
-        accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
+        accountSwitcher: '<tooltip>¡Ahora puedes copilotar en otra cuenta!</tooltip>',
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',

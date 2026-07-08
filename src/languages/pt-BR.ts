@@ -4372,6 +4372,12 @@ ${amount} para ${merchant} - ${date}`,
         carRental: 'aluguel de carro',
         nightIn: 'noite em',
         nightsIn: 'noites em',
+        taxID: {
+            title: 'CPF/CNPJ',
+            subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
+            inputLabel: 'CNPJ da pessoa jurídica',
+            error: {required: 'Insira o CNPJ da sua entidade legal.'},
+        },
     },
     workspace: {
         common: {
@@ -9899,7 +9905,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
-        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
+        accountSwitcher: '<tooltip>Agora você pode fazer copiloto em outra conta!</tooltip>',
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',

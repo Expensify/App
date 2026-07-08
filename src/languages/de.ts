@@ -4401,6 +4401,12 @@ ${amount} für ${merchant} – ${date}`,
         carRental: 'Autovermietung',
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
+        taxID: {
+            title: 'Steuer-ID',
+            subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
+            inputLabel: 'Steuer-ID der juristischen Person',
+            error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
+        },
     },
     workspace: {
         common: {
@@ -9956,7 +9962,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',
-        accountSwitcher: '<tooltip>Greifen Sie hier auf Ihre <strong>Copilot-Konten</strong> zu</tooltip>',
+        accountSwitcher: '<tooltip>Sie können jetzt als Copilot in ein anderes Konto einsteigen!</tooltip>',
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Sende diese Quittung, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
