@@ -63,7 +63,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         isEmptyResult,
         originalDataLength,
     } = useTableContext<DataType>();
-    const {contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -88,7 +88,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    if (!originalDataLength || isEmptyResult) {
+    if (isEmptyResult || (!originalDataLength && !ListEmptyComponent)) {
         return null;
     }
 
@@ -113,6 +113,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                         typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
                 ]}
                 keyboardShouldPersistTaps="handled"
+                ListEmptyComponent={ListEmptyComponent}
                 {...restListProps}
             />
         </View>
