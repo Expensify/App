@@ -5048,11 +5048,10 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Installeer het Expensify-pakket',
                 installBundlePSAHeader: 'Voor PSA/SRP-koppelingen:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Installeer PSA/SRP Expensify-bundel (versie ${version})</a>`,
+                installBundleDescription: 'Installeer de Expensify-bundel in Salesforce door op deze link te klikken:',
+                installBundlePSALink: ({version}: {version: string}) => `Installeer PSA/SRP Expensify-bundel (versie ${version})`,
                 installBundleFFAHeader: 'Voor FFA-verbindingen:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor FFA installeren (versie ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Expensify-bundel voor FFA installeren (versie ${version})`,
                 installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
                 setupContacts: 'Gebruiker en contacten instellen',
                 setupContactsBullet1:

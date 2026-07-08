@@ -865,7 +865,6 @@
 "../../src/libs/actions/IOU/SplitExpenseItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
-"../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
@@ -1662,7 +1661,6 @@
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/selectors/Policy.ts"	"no-restricted-imports"	1
 "../../src/setup/addUtilsToWindow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -2012,7 +2010,7 @@
 "../../tests/unit/OnboardingSelectorsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/OnyxUpdateManagerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/OptionListContextProviderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/unit/OptionsListUtilsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	50
+"../../tests/unit/OptionsListUtilsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	49
 "../../tests/unit/PaymentCardFormTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/PaymentUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/PersistedRequests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
@@ -2052,7 +2050,7 @@
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/Search/SearchSingleSelectionPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	136
-"../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22
+"../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/Search/buildSubstitutionsMapTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/Search/getSpendOverTimeStateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
@@ -2118,7 +2116,7 @@
 "../../tests/unit/getReportPreviewSenderIDTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/getTimeDifferenceIntervalsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/goBackFromWorkspaceSettingPagesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/hooks/confirmAction.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/unit/hooks/confirmAction.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useAllTransactions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/hooks/useAssignCard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/hooks/useAutoCreateSubmitWorkspace.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
@@ -2218,7 +2216,7 @@
 "../../tests/unit/retryWithBackoffTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/sanitizeStringForJSONParseTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/selectors/CardTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/unit/selectors/PolicyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
+"../../tests/unit/selectors/PolicyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../tests/unit/showReportActionNotificationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/submitDismissStrategiesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/submitWithDismissFirstTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
