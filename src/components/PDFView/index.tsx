@@ -223,7 +223,11 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
         const renderPDFPreviewer = (shouldDisablePDFScroll = false) => {
             const contentContainerStyle = {
                 ...(style as CSSProperties),
-                ...(shouldDisablePDFScroll ? {touchAction: 'none'} : {}),
+                // While zoomed we hand vertical scrolling back to the browser (`pan-y`) instead of blocking all
+                // native scroll (`none`), so a multi-page PDF can still be scrolled to its other pages. The gesture
+                // canvas keeps owning horizontal panning and pinch zoom, and the browser's touch-action arbitration
+                // prevents the two from fighting over the same drag.
+                ...(shouldDisablePDFScroll ? {touchAction: 'pan-y'} : {}),
             };
 
             return (
