@@ -1334,7 +1334,6 @@
 "../../src/pages/settings/Agents/AgentsListRow.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/AgentsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Agents/AgentsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Agents/Fields/EditAgentAvatarPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Agents/Fields/EditAgentAvatarPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditPromptPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Copilot/CopilotPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
