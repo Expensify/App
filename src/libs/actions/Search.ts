@@ -1,7 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -9,8 +5,10 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+
 import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
@@ -24,6 +22,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
@@ -57,6 +56,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,12 +81,20 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import SafeString from '@src/utils/SafeString';
-import {getAllTransactionViolations} from './IOU';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {SafeString} from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
+import Onyx from 'react-native-onyx';
+
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
+import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+
+import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
-import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
@@ -333,6 +341,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                ownerLogin: submitterLogin,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -597,6 +606,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    ownerLogin: string | undefined;
 };
 
 function getApproveActionCallback({
@@ -614,6 +624,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    ownerLogin,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -636,6 +647,7 @@ function getApproveActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerLogin,
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
@@ -1032,7 +1044,7 @@ function submitMoneyRequestOnSearch(
     ];
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport).at(0));
+    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
     const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID) : submitReportManagerAccountID;
@@ -1640,12 +1652,12 @@ function handleBulkPayItemSelected(params: {
     }
 
     if (isDelegateAccessRestricted) {
-        showDelegateNoAccessModal();
+        deferModalPresentationAfterPopoverDismiss(showDelegateNoAccessModal);
         return;
     }
 
     if (isAccountLocked) {
-        showLockedAccountModal();
+        deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
         return;
     }
 

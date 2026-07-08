@@ -1,11 +1,3 @@
-import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-// ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
-// eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -20,6 +12,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
+
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -37,6 +30,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -65,9 +59,12 @@ import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {compareScanningPriority, getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -77,6 +74,18 @@ import SCREENS from '@src/SCREENS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+// ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
+// eslint-disable-next-line no-restricted-imports
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+
+import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import isEmpty from 'lodash/isEmpty';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -98,6 +107,7 @@ function filterTransactionViolations(
     email: string,
     accountID: number,
     report: OnyxTypes.Report,
+    ownerLogin: string | undefined,
     policy: OnyxTypes.Policy | undefined,
 ): OnyxTypes.TransactionViolations {
     if (!allViolations) {
@@ -107,7 +117,7 @@ function filterTransactionViolations(
     if (!raw?.length) {
         return EMPTY_VIOLATIONS;
     }
-    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, policy);
+    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, ownerLogin, policy);
     return filtered.length === 0 ? EMPTY_VIOLATIONS : filtered;
 }
 
@@ -192,6 +202,7 @@ function MoneyRequestReportTransactionList({
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -699,10 +710,10 @@ function MoneyRequestReportTransactionList({
         const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         for (const transaction of resolvedTransactions) {
-            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, policy ?? undefined));
+            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined));
         }
         return map;
-    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, policy]);
+    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy]);
 
     const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
         <MoneyRequestReportTransactionItem
@@ -929,7 +940,7 @@ function MoneyRequestReportTransactionList({
                             customText={translate('iou.addExpense')}
                             options={addExpenseDropdownOptions}
                             isSplitButton={false}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            buttonSize={CONST.BUTTON_SIZE.SMALL}
                             success={false}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,

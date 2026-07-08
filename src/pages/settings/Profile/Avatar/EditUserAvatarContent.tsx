@@ -1,5 +1,3 @@
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
 import AvatarSelector from '@components/AvatarSelector';
 import Button from '@components/Button';
@@ -8,19 +6,28 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {updateAvatar} from '@userActions/PersonalDetails';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
-import AvatarPreview from './AvatarPreview';
 import type {ErrorData, ImageData} from './types';
+
+import AvatarPreview from './AvatarPreview';
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 

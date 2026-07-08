@@ -1,14 +1,19 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
+
+import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -410,6 +415,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 policy: fakePolicy,
                 transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -458,6 +464,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then: quantity should be updated
@@ -480,6 +487,100 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
+            // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
+            // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
+            // returns that resolved currency when the default P2P rate is loaded, so seed it here.
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                // transaction.currency is deliberately USD so a passing result proves the EUR came from
+                // personalPolicyOutputCurrency, not from the transaction itself.
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                    },
+                });
+
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {distance: 20},
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
+                // (The merchant shows the "EUR" code rather than the € glyph because the currency list isn't loaded in this unit test.)
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
+        it('uses the resolved personal-policy currency (not transaction.currency) when recalculating a P2P expense from edited waypoints', async () => {
+            // Regression: the waypoint/route branch used to format the merchant with transaction.currency and never set
+            // modifiedCurrency, so a P2P expense whose personal currency differs from transaction.currency would show a
+            // rate in the old currency for an amount computed in the new one (visible offline / before the server responds).
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                        waypoints: {waypoint0: {address: 'Old A'}, waypoint1: {address: 'Old B'}},
+                    },
+                });
+
+                // 32186.88 m ≈ 20 mi; at the EUR P2P rate of 30¢ the amount is 600.
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {
+                        waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
+                        routes: {
+                            route0: {
+                                distance: 32186.88,
+                                geometry: {
+                                    coordinates: [
+                                        [0, 0],
+                                        [1, 1],
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
@@ -488,6 +589,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -501,6 +603,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -513,6 +616,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -527,6 +631,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
@@ -1362,8 +1467,13 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(OTHER_USER_EMAIL);
+            expect(result?.login).toBe(OTHER_USER_EMAIL);
             expect(result?.displayName).toBe(OTHER_USER_EMAIL);
+            expect(result?.accountID).toBe(SECOND_USER_ID);
+            expect(result?.text).toBe(OTHER_USER_EMAIL);
+            expect(result?.searchText).toBe(OTHER_USER_EMAIL);
             expect(result?.avatarUrl).toBe(avatar);
+            expect(result?.selected).toBe(true);
         });
 
         it('should return current user as attendee for unreported expense', () => {
@@ -1371,8 +1481,13 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result?.login).toBe(CURRENT_USER_EMAIL);
             expect(result?.displayName).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.accountID).toBe(CURRENT_USER_ID);
+            expect(result?.text).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.searchText).toBe(currentUserPersonalDetails.displayName);
             expect(result?.avatarUrl).toBe('');
+            expect(result?.selected).toBe(true);
         });
     });
 
@@ -1426,13 +1541,19 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee1@example.com',
+                    login: 'attendee1@example.com',
                     displayName: 'Attendee One',
                     avatarUrl: '',
+                    accountID: 3,
+                    selected: true,
                 },
                 {
                     email: 'attendee2@example.com',
+                    login: 'attendee2@example.com',
                     displayName: 'Attendee Two',
                     avatarUrl: '',
+                    accountID: 4,
+                    selected: false,
                 },
             ];
             const transaction = generateTransaction({
@@ -1456,29 +1577,30 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, {email: CURRENT_USER_EMAIL, displayName: '', avatarUrl: ''});
+            const result = TransactionUtils.getOriginalAttendees(transaction, {accountID: CURRENT_USER_ID, displayName: '', avatarUrl: '', selected: true});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.selected).toBe(true);
         });
 
-        it('should normalize email-only attendees from comment', () => {
+        it('should normalize login-only attendees from comment', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: [{displayName: '   ', email: '  email-only@example.com  ', avatarUrl: ''}],
+                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
                 },
             });
 
             const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
-            expect(result).toEqual([{displayName: 'email-only@example.com', email: 'email-only@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
         });
 
         it('should handle attendees stored as a plain object', () => {
             const attendeesArray: Attendee[] = [
-                {email: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: ''},
-                {email: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: ''},
+                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
+                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
             ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
@@ -1500,15 +1622,21 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
+                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
+                    accountID: 5,
+                    selected: true,
                 },
             ];
             const modifiedAttendees: Attendee[] = [
                 {
                     email: 'modified@example.com',
+                    login: 'modified@example.com',
                     displayName: 'Modified Attendee',
                     avatarUrl: '',
+                    accountID: 6,
+                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1530,8 +1658,11 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee@example.com',
+                    login: 'attendee@example.com',
                     displayName: 'Attendee',
                     avatarUrl: '',
+                    accountID: 7,
+                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1554,10 +1685,11 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: '', selected: true});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.selected).toBe(true);
         });
 
         it('should return empty array when transaction has no reportID and no attendees', () => {
@@ -1577,8 +1709,11 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
+                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
+                    accountID: 8,
+                    selected: true,
                 },
             ];
 
@@ -1590,11 +1725,11 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
 
         it('should normalize modified attendees with undefined email', () => {
@@ -1603,16 +1738,16 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: [{displayName: '   ', email: '  edited@example.com  ', avatarUrl: ''}],
+                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
             });
 
             const result = TransactionUtils.getAttendees(transaction);
 
-            expect(result).toEqual([{displayName: 'edited@example.com', email: 'edited@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
         });
 
         it('should handle comment attendees stored as a plain object', () => {
-            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', displayName: 'Attendee', avatarUrl: ''}];
+            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1627,7 +1762,9 @@ describe('TransactionUtils', () => {
         });
 
         it('should handle modifiedAttendees stored as a plain object', () => {
-            const modifiedAttendeesArray: Attendee[] = [{email: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: ''}];
+            const modifiedAttendeesArray: Attendee[] = [
+                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
+            ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1650,10 +1787,10 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
 
         it('should fall back to report owner when modifiedAttendees is an empty plain object', () => {
@@ -1665,10 +1802,10 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: {} as unknown as Attendee[],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
     });
 
@@ -1677,40 +1814,40 @@ describe('TransactionUtils', () => {
 
         it('preserves insertion order when no localeCompare is provided', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
         });
 
         it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
         });
 
         it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
             const attendees: Attendee[] = [
-                {email: '10@x.com', displayName: 'User 10', avatarUrl: ''},
-                {email: '9@x.com', displayName: 'User 9', avatarUrl: ''},
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
         });
 
         it('compares case-insensitively so the joined string matches pill order', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'Bob', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'alice', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
         });
 
         it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
             const attendees: Attendee[] = [
-                {displayName: '+15551234567@expensify.sms', avatarUrl: ''},
-                {displayName: 'Alice', avatarUrl: ''},
+                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
+                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
         });
@@ -1721,8 +1858,8 @@ describe('TransactionUtils', () => {
 
         it('does not mutate the input array', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
             const snapshot = [...attendees];
             TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);

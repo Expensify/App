@@ -1,11 +1,24 @@
-import React, {useDeferredValue, useEffect, useId} from 'react';
-import type {ReactNode, RefObject} from 'react';
-import {View} from 'react-native';
+import Pencil from '@assets/images/pencil.svg';
+
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode, RefObject} from 'react';
+
+import React, {useDeferredValue, useEffect, useId, useState} from 'react';
+import {View} from 'react-native';
+
 import {useEditingCellActions} from './EditingCellContext';
+
+type EditIconPosition = 'left' | 'right';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -32,6 +45,9 @@ type EditableCellProps = {
 
     /** Ref attached to the cell wrapper — used as popover anchor for date/category pickers */
     anchorRef?: RefObject<View | null>;
+
+    /** Which side should show the edit icon in display mode */
+    editIconPosition?: EditIconPosition;
 };
 
 /**
@@ -43,11 +59,14 @@ type EditableCellProps = {
  *   2. isEditing + editContent    → replaces children with editContent (inline edit)
  *   3. isEditing + no editContent → shows children with active border (popover edit)
  *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
- *   5. default                    → PressableWithFeedback (hover border, click triggers edit)
+ *   5. default                    → passive cell body with hover/focus edit icon button
  */
-function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
+function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef, editIconPosition = 'right'}: EditableCellProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const [isEditIconFocused, setIsEditIconFocused] = useState(false);
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
@@ -60,6 +79,29 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         setIsEditingCell(true);
         return () => setIsEditingCell(false);
     }, [isEditing, isEditable, setIsEditingCell]);
+
+    useEffect(() => {
+        if (!isEditable || !isEditing) {
+            return;
+        }
+
+        const animationFrame = requestAnimationFrame(() => {
+            setIsEditIconFocused(false);
+            setFocusedCellId(null);
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
+    }, [isEditing, isEditable, setFocusedCellId]);
+
+    const handleEditIconFocus = () => {
+        setIsEditIconFocused(true);
+        setFocusedCellId(cellId);
+    };
+
+    const handleEditIconBlur = () => {
+        setIsEditIconFocused(false);
+        setFocusedCellId(null);
+    };
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
     if (!isEditable) {
@@ -95,20 +137,45 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <PressableWithFeedback
-            accessibilityRole={CONST.ROLE.BUTTON}
-            accessibilityLabel="Edit cell"
-            sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-            onPress={onStartEditing}
-            onFocus={() => setFocusedCellId(cellId)}
-            onBlur={() => setFocusedCellId(null)}
-            style={styles.editableCell}
-            wrapperStyle={styles.w100}
-            focusStyle={styles.editableCellFocus}
-            hoverStyle={styles.editableCellHover}
-        >
-            {children}
-        </PressableWithFeedback>
+        <Hoverable>
+            {(isCellHovered) => {
+                const shouldShowEditIcon = isEditIconFocused || isCellHovered;
+
+                return (
+                    <View style={styles.editableCell}>
+                        {children}
+                        <View
+                            pointerEvents={shouldShowEditIcon ? 'box-none' : 'none'}
+                            style={[
+                                styles.editableCellEditButtonContainer,
+                                editIconPosition === 'left' ? styles.editableCellEditButtonContainerLeft : styles.editableCellEditButtonContainerRight,
+                            ]}
+                        >
+                            <PressableWithFeedback
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.edit')}
+                                accessible={shouldShowEditIcon}
+                                tabIndex={0}
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
+                                onPress={onStartEditing}
+                                onFocus={handleEditIconFocus}
+                                onBlur={handleEditIconBlur}
+                                style={[styles.editableCellEditButton, shouldShowEditIcon ? styles.opacity1 : styles.opacity0]}
+                                hoverStyle={styles.editableCellEditButtonActive}
+                                focusStyle={styles.editableCellEditButtonActive}
+                                shouldUseAutoHitSlop
+                            >
+                                <Icon
+                                    src={Pencil}
+                                    extraSmall
+                                    fill={theme.icon}
+                                />
+                            </PressableWithFeedback>
+                        </View>
+                    </View>
+                );
+            }}
+        </Hoverable>
     );
 }
 

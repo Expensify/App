@@ -1,15 +1,22 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
@@ -114,6 +121,7 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
+        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -258,7 +266,16 @@ export default createOnyxDerivedValueConfig({
 
                         transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
                     }
-                    dataToIterate.push(...prepareReportKeys(transactionReportIDs));
+
+                    // A transaction change (e.g. a card expense going from pending to posted) can flip whether its
+                    // expense report requires attention, but the to-do/GBR render on the parent workspace chat.
+                    // Enqueue those parent chats too so their attributes don't stay stale after the transaction updates.
+                    const transactionParentChatReportIDs = transactionReportIDs
+                        .map((reportKey) => reports?.[reportKey]?.chatReportID)
+                        .filter(Boolean)
+                        .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+
+                    dataToIterate.push(...prepareReportKeys([...transactionReportIDs, ...transactionParentChatReportIDs]));
                 }
                 if (policyTagsUpdates) {
                     const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
@@ -369,6 +386,7 @@ export default createOnyxDerivedValueConfig({
                               reportActions,
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
+                              translate,
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
