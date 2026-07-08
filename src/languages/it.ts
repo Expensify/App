@@ -2894,6 +2894,7 @@ ${amount} per ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agente di ${displayName}`,
         defaultPrompt:
             "Rifiuta le spese relative a gioco d'azzardo, cinema o altri motivi chiaramente non legati all'attività.\n\nRicorda all'utente di includere sempre un'immagine della ricevuta in cui la mancia sia ben visibile.\n\nApprova il report se è molto simile ai report precedenti dello stesso utente.\n\nRifiuta i report con più di 500 $ di spese di viaggio.",
+        copilotNote: 'Questo agente verrà aggiunto come Copilot con accesso completo al tuo account, così potrà agire per tuo conto.',
     },
     editAgentPage: {
         title: 'Modifica agente',
@@ -5057,11 +5058,10 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Prima di connetterti',
                 installBundle: 'Installa il bundle Expensify',
                 installBundlePSAHeader: 'Per le connessioni PSA/SRP:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installa il bundle Expensify in Salesforce cliccando su questo link: <a href="${href}">Installa il bundle PSA/SRP Expensify (versione ${version})</a>`,
+                installBundleDescription: 'Installa il bundle Expensify in Salesforce cliccando su questo link:',
+                installBundlePSALink: ({version}: {version: string}) => `Installa il bundle PSA/SRP Expensify (versione ${version})`,
                 installBundleFFAHeader: 'Per le connessioni FFA:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installa il bundle Expensify in Salesforce facendo clic su questo link: <a href="${href}">Installa il bundle Expensify per FFA (versione ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Installa il bundle Expensify per FFA (versione ${version})`,
                 installBundleConfirm: 'Ho installato il pacchetto',
                 setupContacts: 'Configura utente e contatti',
                 setupContactsBullet1:
@@ -6389,6 +6389,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: 'Rendi amministratore persone',
                 other: 'Rendi amministratori persone',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Rendi amministratore pagamenti',
+                other: 'Rendi amministratori pagamenti',
+            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",
@@ -6422,6 +6426,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             makeCardAdmin: () => ({one: 'Rendi amministratore carta', other: 'Rendi amministratori carta'}),
             cardAdmins: 'Amministratori carta',
             peopleAdmins: 'Amministratori persone',
+            paymentsAdmins: 'Amministratori pagamenti',
             members: 'Membri',
         },
         card: {
@@ -9754,6 +9759,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             changesBasedOn: "Questo cambia in base all'utilizzo della tua Carta Expensify e alle opzioni di abbonamento qui sotto.",
             collectBillingDescription: 'Gli spazi di lavoro Collect vengono fatturati mensilmente per membro, senza impegno annuale.',
             pricing: 'Prezzi',
+            editSubscription: 'Modifica abbonamento',
         },
         cancelSubscription: {
             title: 'Annulla abbonamento',
@@ -9942,7 +9948,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rinomina qui le ricerche salvate</strong>!</tooltip>',
-        accountSwitcher: '<tooltip>Accedi ai tuoi <strong>account Copilot</strong> qui</tooltip>',
+        accountSwitcher: '<tooltip>Ora puoi fare da copilota in un altro account!</tooltip>',
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare il test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',
