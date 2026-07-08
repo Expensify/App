@@ -1,5 +1,4 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
@@ -41,9 +40,17 @@ const TEST_ID = CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID;
 
 type MfaEventType = MfaEvent['type'];
 
-type MfaEventExecutor = () => Promise<void>;
+type MfaInitEvent = Extract<MfaEvent, {type: 'INIT'}>;
+type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
+type MfaEventExecutors = {
+    [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
+};
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
+
+function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
+    return event.type === 'INIT' && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
+}
 
 /**
  * Maps every machine event to the action that produces it in the rendered app, such as a button press
@@ -54,9 +61,13 @@ type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 function createMfaEventExecutors(executeScenario: ExecuteScenario) {
     return {
-        INIT: async () => {
+        INIT: async (step) => {
+            const {event} = step;
+            if (!isMfaInitEvent(event)) {
+                throw new Error('MFA INIT executor received a path event without the scenario fixture payload.');
+            }
             await act(async () => {
-                await executeScenario(MFA_TEST_SCENARIO_NAME);
+                await executeScenario(event.scenarioName, event.payload);
             });
             await waitForBatchedUpdatesWithAct();
             // The test renderer does not calculate layout, so dispatch the event through the rendered View to exercise its onLayout wiring.
@@ -73,7 +84,7 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             act(() => pendingModalClose.run());
             await waitForBatchedUpdatesWithAct();
         },
-    } satisfies Record<MfaEventType, MfaEventExecutor>;
+    } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 

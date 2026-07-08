@@ -17,4 +17,3 @@ function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_S
 }
 
 export default createInitEvent;
-export {MFA_TEST_SCENARIO_NAME};
