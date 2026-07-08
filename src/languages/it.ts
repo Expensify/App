@@ -4387,6 +4387,12 @@ ${amount} per ${merchant} - ${date}`,
         carRental: 'autonoleggio',
         nightIn: 'notte in',
         nightsIn: 'notti a',
+        taxID: {
+            title: 'Codice fiscale',
+            subtitle: 'Inserisci il codice fiscale della tua entità legale così possiamo configurare la fatturazione dei viaggi nella tua valuta locale.',
+            inputLabel: 'Partita IVA dell’entità legale',
+            error: {required: 'Inserisci il codice fiscale/partita IVA della tua entità legale.'},
+        },
     },
     workspace: {
         common: {

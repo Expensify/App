@@ -4265,6 +4265,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         carRental: '租车',
         nightIn: '夜宿',
         nightsIn: '入住晚数',
+        taxID: {title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
     },
     workspace: {
         common: {

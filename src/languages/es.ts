@@ -4214,6 +4214,12 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
             recommended: 'Recomendado',
         },
+        taxID: {
+            title: 'ID fiscal',
+            subtitle: 'Introduce el NIF de tu entidad legal para que podamos configurar la facturación de viajes en tu moneda local.',
+            inputLabel: 'ID fiscal de la entidad jurídica',
+            error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
+        },
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain) =>

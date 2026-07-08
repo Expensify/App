@@ -2704,6 +2704,10 @@ function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSetting
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
 }
 
+function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
+}
+
 /**
  * Determines which travel step should be shown based on policy state
  */
@@ -2979,6 +2983,7 @@ export {
     isPerDiemEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
+    isNonUSDPolicy,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,

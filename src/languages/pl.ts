@@ -4368,6 +4368,12 @@ ${amount} dla ${merchant} - ${date}`,
         carRental: 'wynajem samochodu',
         nightIn: 'nocleg w',
         nightsIn: 'noce w',
+        taxID: {
+            title: 'NIP',
+            subtitle: 'Podaj swój numer identyfikacji podatkowej podmiotu prawnego, żebyśmy mogli skonfigurować rozliczenia za podróże w twojej lokalnej walucie.',
+            inputLabel: 'NIP podmiotu prawnego',
+            error: {required: 'Podaj swój identyfikator podatkowy podmiotu prawnego.'},
+        },
     },
     workspace: {
         common: {

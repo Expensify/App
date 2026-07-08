@@ -4412,6 +4412,12 @@ ${amount} pour ${merchant} - ${date}`,
         carRental: 'location de voiture',
         nightIn: 'nuit dans',
         nightsIn: 'nuits à',
+        taxID: {
+            title: 'Identifiant fiscal',
+            subtitle: 'Saisissez l’identifiant fiscal de votre entité légale afin que nous puissions configurer la facturation des déplacements dans votre devise locale.',
+            inputLabel: 'Identifiant fiscal de l’entité juridique',
+            error: {required: 'Veuillez saisir l’identifiant fiscal de votre entité légale.'},
+        },
     },
     workspace: {
         common: {
