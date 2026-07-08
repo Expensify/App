@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {
     convertBulkTrackedExpensesToIOU,
     deleteTrackExpense,
@@ -20,7 +19,9 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -34,14 +35,21 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import currencyList from '../../unit/currencyList.json';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {format} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../../utils/TestHelper';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
-import createRandomTransaction from '../../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
-import type {MockFetch} from '../../utils/TestHelper';
 import * as TestHelper from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -80,6 +88,12 @@ jest.mock('@src/libs/actions/Report', () => {
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(),
+    },
+}));
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -103,33 +117,132 @@ OnyxUpdateManager();
 
 describe('actions/IOU/TrackExpense', () => {
     let mockFetch: MockFetch;
+    let currencyListProvider: RenderAPI;
 
     beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+        Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
-        return Onyx.clear().then(waitForBatchedUpdates);
+        await Onyx.clear();
+        currencyListProvider = await initCurrencyListContext({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                },
+            },
+        });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        currencyListProvider.unmount();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
         jest.clearAllMocks();
     });
 
     describe('trackExpense', () => {
+        it('makes a hidden Self DM visible when tracking a distance expense optimistically', async () => {
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                type: CONST.REPORT.TYPE.CHAT,
+                // createRandomReport randomizes isPinned/isOwnPolicyExpenseChat; either being true would force a hidden
+                // report to display in the LHN (shouldOverrideHidden), so pin them down to keep this test deterministic.
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                },
+            };
+            const selfDMReportKey = `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`;
+            const distanceTransaction = createRandomDistanceRequestTransaction(1, true);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: undefined,
+                reports: {[selfDMReportKey]: selfDMReport},
+                betas: [],
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations: {},
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                reportNameValuePairs: {},
+                reportAttributes: undefined,
+                conciergeReportID: undefined,
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
+            mockFetch?.pause?.();
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: distanceTransaction.amount,
+                    currency: distanceTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: distanceTransaction.merchant,
+                    billable: false,
+                    validWaypoints: getValidWaypoints(distanceTransaction.comment?.waypoints, true),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+                existingTransaction: distanceTransaction,
+                isASAPSubmitBetaEnabled: false,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                introSelected: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticSelfDMReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+            if (!optimisticSelfDMReport) {
+                throw new Error('Expected optimistic Self DM report to exist.');
+            }
+
+            const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: 'different-report-id',
+                reports: {[selfDMReportKey]: optimisticSelfDMReport},
+                betas: [],
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations: {},
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                reportNameValuePairs: {},
+                reportAttributes: undefined,
+                conciergeReportID: undefined,
+            });
+
+            expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);
+            expect(optimisticSelfDMReport?.participants?.[RORY_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE);
+            expect(optimisticReportsToDisplay).toHaveProperty(selfDMReportKey);
+
+            await mockFetch?.resume?.();
+        });
+
         it('category a distance expense of selfDM report', async () => {
             /*
              * This step simulates the following steps:
@@ -222,6 +335,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -230,7 +344,6 @@ describe('actions/IOU/TrackExpense', () => {
             const transaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
@@ -247,7 +360,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
                         resolve(reportActions);
@@ -279,6 +391,8 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -286,7 +400,6 @@ describe('actions/IOU/TrackExpense', () => {
             let allTransactionsDraft: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     allTransactionsDraft = val;
                 },
@@ -328,6 +441,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -336,7 +450,6 @@ describe('actions/IOU/TrackExpense', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
@@ -418,13 +531,13 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -472,13 +585,13 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -488,7 +601,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -554,13 +666,13 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -608,13 +720,13 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -624,7 +736,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -694,13 +805,13 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -748,13 +859,13 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -832,13 +943,13 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -886,13 +997,13 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -989,13 +1100,13 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1051,7 +1162,6 @@ describe('actions/IOU/TrackExpense', () => {
             const accountantChatNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1061,7 +1171,6 @@ describe('actions/IOU/TrackExpense', () => {
             const expenseReportNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1107,6 +1216,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             };
         }
 
@@ -1130,7 +1240,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1183,7 +1292,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1211,7 +1319,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1259,7 +1366,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1281,6 +1387,8 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 1,
+                firstPolicyID: policy.id,
             });
             await waitForBatchedUpdates();
 
@@ -1288,7 +1396,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactionDrafts = val;
                 },
@@ -1328,6 +1435,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1335,7 +1443,6 @@ describe('actions/IOU/TrackExpense', () => {
             let finalTransactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     finalTransactions = val;
                 },
@@ -1365,7 +1472,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1418,6 +1524,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1444,7 +1551,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1470,7 +1576,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1500,7 +1605,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1521,7 +1625,6 @@ describe('actions/IOU/TrackExpense', () => {
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (val) => {
                         Onyx.disconnect(connection);
                         resolve(val);
@@ -1544,7 +1647,6 @@ describe('actions/IOU/TrackExpense', () => {
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (val) => {
                         Onyx.disconnect(connection);
                         resolve(val);
@@ -1567,7 +1669,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1594,7 +1695,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1635,7 +1735,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1675,7 +1774,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1704,7 +1802,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1732,7 +1829,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1756,6 +1852,7 @@ describe('actions/IOU/TrackExpense', () => {
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1763,7 +1860,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1789,6 +1885,7 @@ describe('actions/IOU/TrackExpense', () => {
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1796,7 +1893,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1983,6 +2079,99 @@ describe('actions/IOU/TrackExpense', () => {
             expect(resultWithoutTourViewed.chatReport).toBeDefined();
             expect(resultWithoutTourViewed.transaction).toBeDefined();
         });
+
+        it('getTrackExpenseInformation with isDraftChatReport:true should produce createdWorkspaceParams', () => {
+            // Given a selfDM report that is a draft (not yet committed to the server)
+            const draftSelfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-draft-flag-true',
+            };
+            const policy = createRandomPolicy(10);
+
+            // When getTrackExpenseInformation is called with isDraftChatReport: true
+            const result = getTrackExpenseInformation({
+                parentChatReport: draftSelfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Draft Flag True Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: 'USD',
+                isDraftChatReport: true,
+            });
+
+            // Then createdWorkspaceParams should be defined because the report is a draft
+            expect(result).toBeDefined();
+            expect(result.createdWorkspaceParams).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+        });
+
+        it('getTrackExpenseInformation with isDraftChatReport:false should not produce createdWorkspaceParams', () => {
+            // Given a selfDM report that is NOT a draft
+            const liveSelfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-draft-flag-false',
+            };
+
+            // When getTrackExpenseInformation is called with isDraftChatReport: false
+            const result = getTrackExpenseInformation({
+                parentChatReport: liveSelfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Draft Flag False Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: 'USD',
+                isDraftChatReport: false,
+            });
+
+            // Then createdWorkspaceParams should be undefined because the report is not a draft
+            expect(result).toBeDefined();
+            expect(result.createdWorkspaceParams).toBeUndefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+        });
     });
 
     describe('requestMoney', () => {
@@ -2045,7 +2234,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -2102,7 +2290,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2139,6 +2327,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2146,7 +2335,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -2175,7 +2363,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2195,7 +2382,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         resolve(transactions);
@@ -2222,10 +2408,10 @@ describe('actions/IOU/TrackExpense', () => {
                 [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -2288,7 +2474,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2333,10 +2518,10 @@ describe('actions/IOU/TrackExpense', () => {
                 [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -2406,7 +2591,7 @@ describe('actions/IOU/TrackExpense', () => {
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2443,13 +2628,13 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2460,7 +2645,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2471,7 +2655,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);

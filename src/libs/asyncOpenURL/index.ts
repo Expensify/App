@@ -1,6 +1,8 @@
-import {Linking} from 'react-native';
 import Log from '@libs/Log';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
+
+import {Linking} from 'react-native';
+
 import type AsyncOpenURL from './types';
 
 const asyncOpenURL: AsyncOpenURL = (promise, url) => {

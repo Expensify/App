@@ -1,19 +1,26 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {ValueOf} from 'type-fest';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import WorkspaceRow from './WorkspaceTableRow';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
@@ -23,7 +30,6 @@ type WorkspaceRowData = TableData & {
     icon: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
-    isLoadingBill: boolean;
     isJoinRequestPending: boolean;
     shouldAnimateInHighlight: boolean;
     policyID: string;
@@ -31,13 +37,12 @@ type WorkspaceRowData = TableData & {
     ownerName?: string;
     ownerLogin?: string;
     ownerAvatar?: AvatarSource;
-    threeDotMenuItems?: PopoverMenuItem[];
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+    isEligibleToCopy: boolean;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: (event?: ModifiedMouseEvent) => void;
     dismissError: () => void;
 };
@@ -45,9 +50,15 @@ type WorkspaceRowData = TableData & {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+
+    /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
+    onDeleteWorkspace: (policyID: string) => void;
+
+    /** ID of the workspace with a deletion in progress, if any */
+    pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -106,6 +117,8 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
                 item={item}
                 rowIndex={index}
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                onDeleteWorkspace={onDeleteWorkspace}
+                pendingDeletePolicyID={pendingDeletePolicyID}
             />
         );
     };
@@ -123,7 +136,7 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
             <Table.Header />
             <Table.Body />
         </Table>

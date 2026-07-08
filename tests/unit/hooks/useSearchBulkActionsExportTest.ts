@@ -1,14 +1,21 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults} from '@src/types/onyx';
-import {createRandomReport} from '../../utils/collections/reports';
+
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import {createRandomReport} from '../../utils/collections/reports';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -42,7 +49,7 @@ jest.mock('@libs/actions/Search', () => ({
     exportToIntegrationOnSearch: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -156,11 +163,6 @@ jest.mock('@hooks/useCurrencyList', () => ({
         getCurrencyDecimals: jest.fn(() => 2),
         convertToDisplayString: jest.fn((amount: number) => `$${amount}`),
     }),
-}));
-
-jest.mock('@hooks/useAllPolicyExpenseChatReportActions', () => ({
-    __esModule: true,
-    default: () => undefined,
 }));
 
 jest.mock('@hooks/useUndeleteTransactions', () => ({

@@ -1,6 +1,5 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
+
 import {write as apiWrite} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -33,8 +32,10 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getParsedComment,
     getPolicyExpenseChat,
+    getReimbursableTotal,
     getReportOrDraftReport,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     isArchivedReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -43,8 +44,10 @@ import {
 } from '@libs/ReportUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,20 +60,29 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
+import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
+
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports, getMoneyRequestPolicyTags, getPolicyTagsData} from './index';
+import {getAllReports, getPolicyTagsData} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
+import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
-import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     transactionData: {
         reportID: string;
         originalTransactionID: string;
@@ -91,7 +103,6 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
-    policyTags: OnyxTypes.PolicyTagLists;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -101,8 +112,10 @@ type UpdateSplitTransactionsParams = {
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
+    allReportActionsList,
     allReportNameValuePairsList,
     allSnapshots,
+    allPolicyTags,
     transactionData,
     searchContext,
     policyCategories,
@@ -118,7 +131,6 @@ function updateSplitTransactions({
     iouReportNextStep,
     isFromSplitExpensesFlow,
     betas,
-    policyTags,
     personalDetails,
     transactionReport,
     expenseReport: expenseReportFromParams,
@@ -177,6 +189,7 @@ function updateSplitTransactions({
               }
             : undefined;
     const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
+
     let fallbackPolicyParentChatReport = expenseReportParentChat;
     if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
         fallbackPolicyParentChatReport = chatReport;
@@ -190,6 +203,9 @@ function updateSplitTransactions({
             ownerAccountID: expenseReport?.ownerAccountID,
         } as OnyxTypes.Report;
     }
+
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
+
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
@@ -295,7 +311,11 @@ function updateSplitTransactions({
     }
 
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
-    const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+    const originalReportPreviewAction = getReportPreviewAction(
+        expenseReport?.chatReportID,
+        expenseReport?.reportID,
+        allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.chatReportID}`],
+    );
     const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
@@ -636,6 +656,12 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        const splitExpenseIOUReportPolicyID =
+            (splitExpense.reportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID : undefined) ??
+            parentChatReport?.policyID ??
+            allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participantParams.participant?.reportID}`]?.policyID;
+        const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseIOUReportPolicyID}`] ?? {};
+
         // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID.
         // For confirmed workspace transactions, use splitTransaction.reportID directly because
         // splitExpense.reportID may be set to selfDMReportID for navigation purposes.
@@ -657,10 +683,7 @@ function updateSplitTransactions({
         } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
-            policyParams: {
-                ...policyParams,
-                policyTagList: getMoneyRequestPolicyTags({moneyRequestReportID: splitExpense?.reportID, parentChatReport, participant: participantParams.participant}),
-            },
+            policyParams: {...policyParams, policyTagList},
             transactionParams,
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
@@ -823,6 +846,8 @@ function updateSplitTransactions({
                             unheldTotal: transactionIOUReport.unheldTotal,
                             nonReimbursableTotal: transactionIOUReport.nonReimbursableTotal,
                             unheldNonReimbursableTotal: transactionIOUReport.unheldNonReimbursableTotal,
+                            reimbursableTotal: getReimbursableTotal(transactionIOUReport),
+                            unheldReimbursableTotal: getUnheldReimbursableTotal(transactionIOUReport),
                         },
                     });
                 }
@@ -1892,6 +1917,21 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         params?.searchContext?.clearSelectedTransactions?.(true);
     }
 
+    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+    // Register newly created split transaction IDs so they briefly highlight in the expense list.
+    // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
+    // and the last-transaction case (the report navigates away before the highlight renders).
+    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
+        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+        for (const splitExpense of splitExpenses) {
+            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
+                continue;
+            }
+            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+        }
+    }
+
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -1927,8 +1967,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
-
-    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
     if (isTracking()) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);

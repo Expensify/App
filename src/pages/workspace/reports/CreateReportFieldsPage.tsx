@@ -1,6 +1,3 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,9 +6,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,18 +18,28 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {setDraftValues} from '@userActions/FormActions';
 import {createReportField, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
@@ -247,7 +256,6 @@ function WorkspaceCreateReportFieldsPage({
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
-                                    subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
                                     shouldSaveDraft
                                 />
                             )}
