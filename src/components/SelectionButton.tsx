@@ -170,6 +170,15 @@ function SelectionButton({
                     e.stopPropagation();
                 }
                 onMouseDown?.(e);
+                // Stop Shift+mousedown from extending the text selection and swallowing the click, restoring the focus preventDefault cancels only when no other element holds it.
+                if (e.shiftKey && !disabled) {
+                    const activeElement = document.activeElement;
+                    const isFocusUnclaimed = !activeElement || activeElement === document.body;
+                    if (!e.defaultPrevented && isFocusUnclaimed && e.currentTarget instanceof HTMLElement) {
+                        e.currentTarget.focus({preventScroll: true});
+                    }
+                    e.preventDefault();
+                }
             }}
             ref={ref as PressableRef}
             style={[StyleUtils.getSelectionButtonPressableStyle(borderRadius + 2), style]}
