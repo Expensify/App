@@ -25,20 +25,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type {Reservation} from '@src/types/onyx/Transaction';
 
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import CarTripDetails from './CarTripDetails';
 import FlightTripDetails from './FlightTripDetails';
 import HotelTripDetails from './HotelTripDetails';
 import TrainTripDetails from './TrainTripDetails';
 
-function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, reservation: Reservation | undefined) {
-    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === reservation?.travelerPersonalInfo?.email);
+function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, travelerEmail: string | undefined) {
+    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === travelerEmail);
 }
 
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
@@ -80,10 +79,12 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
-    const travelerPersonalDetailsSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation);
-
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector}, [travelerPersonalDetailsSelector]);
+    const reservationDetails = useMemo(() => getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex)), [icons, tripReservations, sequenceIndex]);
+    const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = reservationDetails;
+    const travelerEmail = reservation?.travelerPersonalInfo?.email;
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail),
+    });
 
     return (
         <ScreenWrapper
