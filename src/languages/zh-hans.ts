@@ -4902,11 +4902,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: '在你连接之前',
                 installBundle: '安装 Expensify 捆绑包',
                 installBundlePSAHeader: '用于 PSA/SRP 连接：',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a>`,
+                installBundleDescription: '通过点击此链接在 Salesforce 中安装 Expensify 包：',
+                installBundlePSALink: ({version}: {version: string}) => `安装 PSA/SRP Expensify 包（版本 ${version}）`,
                 installBundleFFAHeader: '对于 FFA 连接：',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `安装 FFA Expensify 组件包（版本 ${version}）`,
                 installBundleConfirm: '我已安装此捆绑包',
                 setupContacts: '设置用户和联系人',
                 setupContactsBullet1: '如果 Certinia 中尚未为你创建用户和联系人，请为自己分别创建一个用户和一个联系人，并确保其电子邮箱与你在 Expensify 中的主要邮箱一致。',
@@ -6188,6 +6187,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为人员管理员',
                 other: '设为人员管理员',
             }),
+            makePaymentsAdmin: () => ({
+                one: '设为付款管理员',
+                other: '设为付款管理员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题',
@@ -6217,6 +6220,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             makeCardAdmin: () => ({one: '设为卡片管理员', other: '设为卡管理员'}),
             cardAdmins: '卡片管理员',
             peopleAdmins: '人员管理员',
+            paymentsAdmins: '付款管理员',
             members: '成员',
         },
         card: {

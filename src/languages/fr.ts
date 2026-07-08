@@ -5081,11 +5081,10 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Avant de vous connecter',
                 installBundle: 'Installer le module Expensify',
                 installBundlePSAHeader: 'Pour les connexions PSA/SRP :',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify PSA/SRP (version ${version})</a>`,
+                installBundleDescription: 'Installez le bundle Expensify dans Salesforce en cliquant sur ce lien :',
+                installBundlePSALink: ({version}: {version: string}) => `Installer le bundle Expensify PSA/SRP (version ${version})`,
                 installBundleFFAHeader: 'Pour les connexions FFA :',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify pour FFA (version ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Installer le bundle Expensify pour FFA (version ${version})`,
                 installBundleConfirm: 'J’ai installé le paquet',
                 setupContacts: 'Configurer l’utilisateur et les contacts',
                 setupContactsBullet1:
@@ -6423,6 +6422,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur des personnes',
                 other: 'Nommer des administrateurs des personnes',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Nommer administrateur des paiements',
+                other: 'Nommer des administrateurs des paiements',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre de l’espace de travail',
@@ -6456,6 +6459,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
             peopleAdmins: 'Administrateurs des personnes',
+            paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
         },
         card: {
