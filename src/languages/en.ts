@@ -4434,6 +4434,14 @@ const translations = {
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        taxID: {
+            title: 'Tax ID',
+            subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
+            inputLabel: 'Legal entity tax ID',
+            error: {
+                required: 'Please enter your legal entity tax ID.',
+            },
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -5172,11 +5180,10 @@ const translations = {
                 title: 'Before you connect',
                 installBundle: 'Install the Expensify bundle',
                 installBundlePSAHeader: 'For PSA/SRP Connections:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install PSA/SRP Expensify Bundle (Version ${version})</a>`,
+                installBundleDescription: 'Install the Expensify bundle in Salesforce by clicking this link:',
+                installBundlePSALink: ({version}: {version: string}) => `Install PSA/SRP Expensify Bundle (Version ${version})`,
                 installBundleFFAHeader: 'For FFA Connections:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Install FFA Expensify Bundle (Version ${version})`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
                 setupContactsBullet1:
@@ -8930,6 +8937,7 @@ const translations = {
             pending: 'Pending',
             cleared: 'Cleared',
             failed: 'Failed',
+            never: 'Never',
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
@@ -9068,13 +9076,15 @@ const translations = {
         stopTimer: (duration: string) => `Stop Timer (${duration})`,
         scheduleOOO: 'Schedule OOO',
         scheduleOOOTitle: 'Schedule Out of Office',
-        date: 'Date',
+        date: 'Start date',
+        endDate: 'End date',
         time: 'Time (use 24-hour format)',
         durationAmount: 'Duration',
         durationUnit: 'Unit',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
-        dateRequired: 'Date is required.',
+        dateRequired: 'Start date is required.',
+        endDateBeforeStart: 'End date cannot be before start date.',
         invalidTimeFormat: 'Please enter a valid 24-hour time (e.g., 14:30).',
         enterANumber: 'Please enter a number.',
         hour: 'hours',
@@ -10041,7 +10051,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
-        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",

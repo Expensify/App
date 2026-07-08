@@ -156,7 +156,6 @@ describe('actions/Policy', () => {
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -190,7 +189,6 @@ describe('actions/Policy', () => {
             let reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -248,7 +246,6 @@ describe('actions/Policy', () => {
             policy = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
-                    waitForCollectionCallback: true,
                     callback: (workspace) => {
                         Onyx.disconnect(connection);
                         resolve(workspace);
@@ -262,7 +259,6 @@ describe('actions/Policy', () => {
             allReports = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -279,7 +275,6 @@ describe('actions/Policy', () => {
             reportActions = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -373,7 +368,6 @@ describe('actions/Policy', () => {
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -407,7 +401,6 @@ describe('actions/Policy', () => {
             let reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -451,7 +444,6 @@ describe('actions/Policy', () => {
             policy = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
-                    waitForCollectionCallback: true,
                     callback: (workspace) => {
                         Onyx.disconnect(connection);
                         resolve(workspace);
@@ -465,7 +457,6 @@ describe('actions/Policy', () => {
             allReports = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -482,7 +473,6 @@ describe('actions/Policy', () => {
             reportActions = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -669,7 +659,6 @@ describe('actions/Policy', () => {
             const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -772,7 +761,6 @@ describe('actions/Policy', () => {
             const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -786,7 +774,6 @@ describe('actions/Policy', () => {
             const reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -1064,7 +1051,6 @@ describe('actions/Policy', () => {
             let onboarding: OnyxEntry<Onboarding>;
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                waitForCollectionCallback: false,
                 callback: (val) => {
                     onboarding = val;
                 },
@@ -1094,7 +1080,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then the autoReportingFrequency should be set to manually
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
@@ -1125,7 +1110,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then the autoReportingFrequency should be set to manually
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
@@ -1157,7 +1141,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then the workflows feature is enabled
                     expect(policy?.areWorkflowsEnabled).toBeTruthy();
@@ -1187,7 +1170,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then the workflows feature is enabled
                     expect(policy?.areWorkflowsEnabled).toBeTruthy();
@@ -1217,7 +1199,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then workflows is enabled
                     expect(policy?.areWorkflowsEnabled).toBeTruthy();
@@ -1247,7 +1228,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then workflows are not enabled
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
@@ -1277,7 +1257,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     // Then workflows are not enabled
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
@@ -1307,7 +1286,6 @@ describe('actions/Policy', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                waitForCollectionCallback: false,
                 callback: (policy) => {
                     expect(policy?.type).toBe(CONST.POLICY.TYPE.SUBMIT);
                     expect(policy?.role).toBe(CONST.POLICY.ROLE.EDITOR);
@@ -4669,7 +4647,6 @@ describe('actions/Policy', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(expectedBackendAmount);
@@ -4686,7 +4663,6 @@ describe('actions/Policy', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
@@ -4710,7 +4686,6 @@ describe('actions/Policy', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
@@ -5546,6 +5521,7 @@ describe('actions/Policy', () => {
 
             // Then the payer should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.achAccount?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
             expect(updatedPolicy?.errorFields?.reimburser).toBeTruthy();
@@ -5594,6 +5570,26 @@ describe('actions/Policy', () => {
 
             expect(isPolicyPayer(policy, 'owner@test.com')).toBe(true);
             expect(isPolicyPayer(policy, 'other-admin@test.com')).toBe(false);
+        });
+
+        it('returns true for payments admin designated as payer via policy.reimburser without achAccount', () => {
+            const paymentsAdminEmail = 'payments-admin@test.com';
+            const policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                owner: 'owner@test.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: paymentsAdminEmail,
+                employeeList: {
+                    [paymentsAdminEmail]: {
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    },
+                },
+            };
+
+            expect(isPolicyPayer(policy, paymentsAdminEmail)).toBe(true);
+            expect(isPolicyPayer(policy, 'owner@test.com')).toBe(false);
         });
     });
 

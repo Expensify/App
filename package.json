@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.28-2",
+  "version": "9.4.29-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -196,7 +196,7 @@
     "react-native-nitro-fetch": "1.5.0",
     "react-native-nitro-modules": "0.35.9",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "3.0.88",
+    "react-native-onyx": "3.0.89",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
