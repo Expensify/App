@@ -21,6 +21,7 @@ import type {AnchorPosition} from '@src/styles';
 
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -116,6 +117,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(size);
     const isButtonSizeLarge = size === CONST.BUTTON_SIZE.LARGE;
     const isButtonSizeSmall = size === CONST.BUTTON_SIZE.SMALL;
+    // Large → MEDIUM, otherwise SMALL — except in short form (and not large), where the icon dimensions come from the explicit width/height (extra-small), so leave size unset.
+    let dropdownArrowIconSize: ValueOf<typeof CONST.ICON_SIZE> | undefined;
+    if (isButtonSizeLarge) {
+        dropdownArrowIconSize = CONST.ICON_SIZE.MEDIUM;
+    } else if (!shouldUseShortForm) {
+        dropdownArrowIconSize = CONST.ICON_SIZE.SMALL;
+    }
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
     const splitButtonIcon = hasError ? icons.DotIndicator : icon;
@@ -279,8 +287,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                     ]}
                                 >
                                     <Icon
-                                        medium={isButtonSizeLarge}
-                                        small={!isButtonSizeLarge && !shouldUseShortForm}
+                                        size={dropdownArrowIconSize}
                                         inline={shouldUseShortForm}
                                         width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
