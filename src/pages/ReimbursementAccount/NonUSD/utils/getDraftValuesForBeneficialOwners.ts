@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const {PREFIX, FIRST_NAME, LAST_NAME, NATIONALITY, OWNERSHIP_PERCENTAGE, DOB, STREET, CITY, STATE, ZIP_CODE, COUNTRY} =
     CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
