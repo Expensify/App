@@ -1,0 +1,75 @@
+import * as App from '@libs/actions/App';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import {resetQueue} from '@libs/Network/SequentialQueue';
+
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+OnyxUpdateManager();
+
+describe('IS_LOADING_APP stranded true', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it('stays true when the OpenApp that should clear it never settles, and is stranded once that request is lost', async () => {
+        // The app was already loaded before a delegate/copilot transition, and the client is offline
+        // (AU-afternoon flaky network, or kicked to SAML mid flow).
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // The delegate transition seeds IS_LOADING_APP=true as a standalone persisted write
+        // (clearOnyxForDelegateTransition). The only writer that clears it is OpenApp's finallyData.
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdates();
+        expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(true);
+
+        // The transition fires OpenApp to clear the flag. Offline, so it persists but never flushes.
+        App.openApp();
+        await waitForBatchedUpdates();
+
+        // OpenApp is queued (its finallyData would set the flag false on completion) ...
+        expect(PersistedRequests.getAll().some((request) => request.command === WRITE_COMMANDS.OPEN_APP)).toBe(true);
+        // ... but the flag is still true because finallyData has not run.
+        expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(true);
+
+        // The queued OpenApp is lost before it ever settles: a reload, a dedup 'replace' whose
+        // survivor never completes, or a 407 that aborts the request. Nothing is left to clear the flag.
+        await PersistedRequests.clear();
+        resetQueue();
+        await waitForBatchedUpdates();
+
+        // Stranded: no OpenApp left in the queue, the backend never sets this key, and the app is
+        // "loaded" so nothing re-fires OpenApp. Inbox and Workspaces stay blocked while Search still works.
+        expect(PersistedRequests.getAll().some((request) => request.command === WRITE_COMMANDS.OPEN_APP)).toBe(false);
+        expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(true);
+    });
+
+    it('is healed by the next successful ReconnectApp', async () => {
+        // Onyx.clear does not reset the NetworkState module flag, so undo the previous test's forced offline.
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+
+        // A previous session stranded the flag on disk and the app booted from it.
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdates();
+
+        // Boot with HAS_LOADED_APP set runs ReconnectApp, never OpenApp.
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(false);
+    });
+});

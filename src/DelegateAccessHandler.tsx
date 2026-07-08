@@ -5,10 +5,17 @@ import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
 import {openApp} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
+import {getAll as getAllPersistedRequests, getOngoingRequest} from './libs/actions/PersistedRequests';
+import {WRITE_COMMANDS} from './libs/API/types';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
 import {accountIDSelector, emailSelector} from './selectors/Session';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
+
+// How long IS_LOADING_APP may stay `true` before we treat it as stranded. A legitimate OpenApp settles
+// well under this; anything longer means the request that would clear the flag is gone (offline blip,
+// reload, a 407 that aborted it, or a dropped/deduped request).
+const STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS = 10000;
 
 /**
  * Component that does not render anything but isolates delegate-access–related Onyx subscriptions
@@ -19,6 +26,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 function DelegateAccessHandler() {
     const hasLoggedDelegateMismatchRef = useRef(false);
     const hasHandledMissingIsLoadingAppRef = useRef(false);
+    const hasHandledStrandedIsLoadingAppRef = useRef(false);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
@@ -70,6 +78,37 @@ function DelegateAccessHandler() {
             hasLoadedApp: !!hasLoadedApp,
         });
         openApp();
+    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
+
+    // Recovery: isLoadingApp can be stranded at `true` when the OpenApp that should clear it never
+    // settles. The delegate/copilot transition seeds this key `true` as a standalone write, and only
+    // OpenApp's finallyData sets it back to `false` — the backend never touches it. The recovery above
+    // handles the `undefined` case but not a stranded `true`, which blocks Inbox and Workspaces
+    // indefinitely (Search keeps working because it is a separate request). When it stays `true` while
+    // the app is loaded and online with no OpenApp/ReconnectApp left to clear it, re-open the app.
+    useEffect(() => {
+        if (hasHandledStrandedIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== true || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
+            return;
+        }
+
+        const timeoutID = setTimeout(() => {
+            // A legitimate in-flight transition still has a reconnect-family request pending; only the
+            // stranded case has none. Checking after the delay avoids racing the request being queued.
+            const hasPendingReconnectRequest = [getOngoingRequest(), ...getAllPersistedRequests()].some(
+                (request) => request?.command === WRITE_COMMANDS.OPEN_APP || request?.command === WRITE_COMMANDS.RECONNECT_APP,
+            );
+            if (hasPendingReconnectRequest) {
+                return;
+            }
+            hasHandledStrandedIsLoadingAppRef.current = true;
+            Log.info('[Onyx] isLoadingApp stranded true with no pending OpenApp, re-opening', false, {
+                sessionAccountID,
+                hasLoadedApp: !!hasLoadedApp,
+            });
+            openApp();
+        }, STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS);
+
+        return () => clearTimeout(timeoutID);
     }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
 
     return null;

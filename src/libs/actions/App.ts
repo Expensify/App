@@ -372,13 +372,17 @@ function getOnyxDataForOpenOrReconnect(
             key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
-
-        result.finallyData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_APP,
-            value: false,
-        });
     }
+
+    // Clear IS_LOADING_APP on every command in this family, not just OpenApp. The optimistic `true` above is
+    // written to disk immediately, but finallyData is queued in memory until the sequential queue flushes, so a
+    // reload in that window strands `true` on disk with nothing left to clear it (boot only reconnects once
+    // HAS_LOADED_APP is set). Letting ReconnectApp also clear the flag makes it self-healing.
+    result.finallyData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.IS_LOADING_APP,
+        value: false,
+    });
 
     if (isOpenApp || isFullReconnect) {
         // Record this reconnect so subscribeToFullReconnect stops asking for another one.
