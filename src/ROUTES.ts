@@ -205,6 +205,22 @@ const DYNAMIC_ROUTES = {
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
     },
+    AVATAR_CROP: {
+        path: 'avatar-crop',
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.AVATAR,
+            SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
+            SCREENS.SETTINGS.AGENTS.ADD_AVATAR,
+            SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
+            SCREENS.WORKSPACE.PROFILE,
+            SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
+            SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR,
+            SCREENS.WORKSPACE_DUPLICATE.ROOT,
+            SCREENS.TRAVEL.WORKSPACE_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.STEP_UPGRADE,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
     NEW_REPORT_WORKSPACE_SELECTION: {
         path: 'new-report-workspace-selection',
         entryScreens: ['*'],
@@ -900,6 +916,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
             SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID,
             SCREENS.TRAVEL.VERIFY_ACCOUNT,
         ],
         getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
@@ -3377,6 +3394,11 @@ const ROUTES = {
         route: 'travel/:domain/workspace-address',
 
         getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
+    },
+    TRAVEL_LEGAL_ENTITY_TAX_ID: {
+        route: 'travel/:domain/legal-entity-tax-id',
+
+        getRoute: (domain: string, policyID?: string) => `travel/${domain}/legal-entity-tax-id${policyID ? `?policyID=${policyID}` : ''}` as const,
     },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,
