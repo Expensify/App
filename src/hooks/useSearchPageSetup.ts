@@ -1,4 +1,4 @@
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
@@ -30,6 +30,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
 
@@ -46,6 +47,9 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (hash === undefined) {
             return;
         }
+        if (areAllMatchingItemsSelected) {
+            return;
+        }
         clearSelectedTransactions(hash);
     }
 
@@ -53,7 +57,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
     // useEffect supplements useFocusEffect: it handles both the initial mount
     // and cases where route params change without a navigation event (e.g. sorting).
-    useEffect(clearOnHashChange, [hash, clearSelectedTransactions]);
+    useEffect(clearOnHashChange, [areAllMatchingItemsSelected, hash, clearSelectedTransactions]);
 
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.

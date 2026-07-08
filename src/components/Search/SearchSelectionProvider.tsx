@@ -166,7 +166,13 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         }
 
         setSelectionState((prevState) => {
-            if (prevState.selectedReports.length === 0 && isEmptyObject(prevState.selectedTransactions) && !prevState.shouldTurnOffSelectionMode && !prevState.areAllMatchingItemsSelected) {
+            if (
+                prevState.selectedReports.length === 0 &&
+                isEmptyObject(prevState.selectedTransactions) &&
+                isEmptyObject(prevState.excludedTransactions) &&
+                !prevState.shouldTurnOffSelectionMode &&
+                !prevState.areAllMatchingItemsSelected
+            ) {
                 return prevState;
             }
             return {
@@ -187,9 +193,10 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
         setSelectionState((prevState) => {
             const hasSelectedTransactions = !isEmptyObject(prevState.selectedTransactions);
+            const hasExcludedTransactions = !isEmptyObject(prevState.excludedTransactions);
             const hasSelectedIDs = prevState.selectedTransactionIDs.length > 0;
 
-            if (!hasSelectedTransactions && !hasSelectedIDs) {
+            if (!hasSelectedTransactions && !hasExcludedTransactions && !hasSelectedIDs) {
                 return prevState;
             }
 
@@ -203,6 +210,16 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                     return acc;
                 }, {} as SelectedTransactions);
                 newState.selectedTransactions = newSelectedTransactions;
+            }
+            if (hasExcludedTransactions) {
+                const newExcludedTransactions = Object.entries(prevState.excludedTransactions).reduce((acc, [key, value]) => {
+                    if (key === transactionID) {
+                        return acc;
+                    }
+                    acc[key] = value;
+                    return acc;
+                }, {} as SelectedTransactions);
+                newState.excludedTransactions = newExcludedTransactions;
             }
             if (hasSelectedIDs) {
                 newState.selectedTransactionIDs = prevState.selectedTransactionIDs.filter((ID) => transactionID !== ID);
@@ -272,7 +289,10 @@ function useRowSelection(keyForList: string | undefined): {isSelected: boolean} 
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */
 function useSelectionCounts(): {selected: number} {
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    if (areAllMatchingItemsSelected) {
+        return {selected: 1};
+    }
     const selected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
     return {selected};
 }

@@ -30,7 +30,7 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'CheckSquare']);
     const {currentSearchResults} = useSearchResultsContext();
-    const {selectAllMatchingItems} = useSearchSelectionActions();
+    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const selectAllAnchorRef = useRef<View>(null);
     const [isSelectAllMenuVisible, setIsSelectAllMenuVisible] = useState(false);
     const [selectAllMenuPosition, setSelectAllMenuPosition] = useState({horizontal: 0, vertical: 0});
@@ -47,8 +47,9 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
 
     const selectAllMatching = useCallback(() => {
         closeSelectAllMenu();
+        clearSelectedTransactions(undefined, true);
         selectAllMatchingItems(true);
-    }, [closeSelectAllMenu, selectAllMatchingItems]);
+    }, [clearSelectedTransactions, closeSelectAllMenu, selectAllMatchingItems]);
 
     const selectAllMenuItems = useMemo(
         (): PopoverMenuItem[] => [

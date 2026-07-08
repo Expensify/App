@@ -99,7 +99,7 @@ import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -150,6 +150,7 @@ function Search({
     const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
@@ -438,12 +439,15 @@ function Search({
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
             return;
         }
+        if (areAllMatchingItemsSelected) {
+            return;
+        }
         // When the result set empties out, SearchWriteActionsProvider (which owns the selection-reconcile
         // effects) unmounts with the list branch, so it can't clear stale selection. Clear it here, from the
         // always-mounted Search component, so the footer/bulk actions don't keep showing items that are gone.
         turnOffMobileSelectionMode();
         clearSelectedTransactions();
-    }, [isSearchResultsEmpty, prevIsSearchResultEmpty, clearSelectedTransactions]);
+    }, [areAllMatchingItemsSelected, isSearchResultsEmpty, prevIsSearchResultEmpty, clearSelectedTransactions]);
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
@@ -472,13 +476,16 @@ function Search({
             if (!isFocused && !isUnmounted.current) {
                 return;
             }
+            if (areAllMatchingItemsSelected) {
+                return;
+            }
             if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
         },
-        [isFocused, clearSelectedTransactions, hash, currentSearchHash],
+        [areAllMatchingItemsSelected, isFocused, clearSelectedTransactions, hash, currentSearchHash],
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
