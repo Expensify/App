@@ -121,4 +121,3 @@ function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, 
 
 export default SearchSectionsProvider;
 export {useSearchSections};
-export type {SearchSectionsContextValue};

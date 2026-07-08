@@ -168,4 +168,4 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
 }
 
 export default useExpenseReportSections;
-export type {SearchSections, UseExpenseReportSectionsParams};
+export type {SearchSections};

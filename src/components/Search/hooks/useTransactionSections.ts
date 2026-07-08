@@ -141,4 +141,3 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
 }
 
 export default useTransactionSections;
-export type {UseTransactionSectionsParams};

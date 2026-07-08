@@ -98,4 +98,3 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
 }
 
 export default useTaskSections;
-export type {UseTaskSectionsParams};

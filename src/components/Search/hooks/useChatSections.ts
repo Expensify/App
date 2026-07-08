@@ -94,4 +94,3 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
 }
 
 export default useChatSections;
-export type {UseChatSectionsParams};

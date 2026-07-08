@@ -260,4 +260,3 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
 }
 
 export default useGroupedTransactionSections;
-export type {UseGroupedTransactionSectionsParams};
