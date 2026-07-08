@@ -120,7 +120,6 @@ function buildCompanyCardEntries(
         const cardEntryID = encryptedCardNumber ?? normalizedName;
 
         const existingEntry = entriesMap.get(cardEntryID);
-
         const isRicherRecord = card.lastFourPAN && !existingEntry?.assignedCard?.lastFourPAN;
 
         // Skip duplicate when two assigned-card records (e.g. old-format + new-format) resolve to the same cardList entry.
@@ -148,12 +147,16 @@ function buildCompanyCardEntries(
 
     for (const cardName of filterAmexDirectParentCard(accountList ?? [], feedName)) {
         const normalizedName = normalizeCardName(cardName);
-        if (coveredNames.has(normalizedName) || coveredEncrypted.has(cardName) || entriesMap.has(normalizedName)) {
+        const encryptedCardNumber = cardList?.[cardName] ?? cardName;
+
+        if (coveredNames.has(normalizedName) || coveredEncrypted.has(encryptedCardNumber) || entriesMap.has(normalizedName)) {
             continue;
         }
-        entriesMap.set(normalizedName, {cardName, encryptedCardNumber: cardName, isAssigned: false});
+        entriesMap.set(normalizedName, {cardName, encryptedCardNumber, isAssigned: false});
         coveredNames.add(normalizedName);
     }
+
+    console.log(Array.from(entriesMap.values()));
 
     return Array.from(entriesMap.values());
 }
