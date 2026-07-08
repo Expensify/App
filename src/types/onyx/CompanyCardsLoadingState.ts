@@ -1,5 +1,8 @@
 import type {CardFeedWithNumber} from './CardFeeds';
 
+/**
+ * Session-scoped loading state for an individual company card feed.
+ */
 type CompanyCardsFeedLoadingState = {
     /** Whether this feed has been fetched at least once in this session */
     hasOnceLoaded?: boolean;

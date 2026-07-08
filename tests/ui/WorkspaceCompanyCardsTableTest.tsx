@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import {render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -47,44 +48,28 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 jest.mock('@components/ActivityIndicator', () => {
     const {View} = require('react-native');
-    return function MockActivityIndicator() {
-        return <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
-    };
+    return () => <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
 });
 
 jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState', () => {
     const {View} = require('react-native');
-    return function MockWorkspaceCompanyCardPageEmptyState() {
-        return <View testID="WorkspaceCompanyCardPageEmptyState" />;
-    };
+    return () => <View testID="WorkspaceCompanyCardPageEmptyState" />;
 });
 
 jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage', () => {
     const {View} = require('react-native');
-    return function MockWorkspaceCompanyCardsFeedAddedEmptyPage() {
-        return <View testID="WorkspaceCompanyCardsFeedAddedEmptyPage" />;
-    };
+    return () => <View testID="WorkspaceCompanyCardsFeedAddedEmptyPage" />;
 });
 
 jest.mock('@components/Table', () => {
     const ReactMock = require('react');
     const {View} = require('react-native');
 
-    const MockTable = ReactMock.forwardRef(function MockTable({children}: {children?: React.ReactNode}, _ref: unknown) {
-        return <View testID="WorkspaceCompanyCardsTable">{children}</View>;
-    });
+    const MockTable = ReactMock.forwardRef(({children}: {children?: React.ReactNode}) => <View testID="WorkspaceCompanyCardsTable">{children}</View>);
 
-    MockTable.FilterBar = function MockTableFilterBar() {
-        return <View testID="WorkspaceCompanyCardsTableFilterBar" />;
-    };
-
-    MockTable.Header = function MockTableHeader() {
-        return <View testID="WorkspaceCompanyCardsTableHeader" />;
-    };
-
-    MockTable.Body = function MockTableBody() {
-        return <View testID="WorkspaceCompanyCardsTableBody" />;
-    };
+    MockTable.FilterBar = () => <View testID="WorkspaceCompanyCardsTableFilterBar" />;
+    MockTable.Header = () => <View testID="WorkspaceCompanyCardsTableHeader" />;
+    MockTable.Body = () => <View testID="WorkspaceCompanyCardsTableBody" />;
 
     return {
         __esModule: true,
@@ -93,18 +78,13 @@ jest.mock('@components/Table', () => {
 });
 
 jest.mock('@components/CardFeedIcon', () => {
-    const ReactMock = require('react');
     const {View} = require('react-native');
-    return function MockCardFeedIcon() {
-        return <View testID="CardFeedIcon" />;
-    };
+    return () => <View testID="CardFeedIcon" />;
 });
 
 jest.mock('@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableHeaderButtons', () => {
     const {View} = require('react-native');
-    return function MockWorkspaceCompanyCardsTableHeaderButtons() {
-        return <View testID="WorkspaceCompanyCardsTableHeaderButtons" />;
-    };
+    return () => <View testID="WorkspaceCompanyCardsTableHeaderButtons" />;
 });
 
 type BuildCompanyCardsParams = {
@@ -201,7 +181,9 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 
         renderTable(
             buildCompanyCards({
-                workspaceCardFeedsStatus: {[DOMAIN_OR_WORKSPACE_ACCOUNT_ID]: {isLoading: false}},
+                workspaceCardFeedsStatus: {
+                    [DOMAIN_OR_WORKSPACE_ACCOUNT_ID]: {isLoading: false},
+                },
                 isNoFeed: false,
                 feedName: FEED_NAME,
                 bankName: BANK_NAME,
