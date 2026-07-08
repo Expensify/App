@@ -15,6 +15,7 @@ import useChatSections from './hooks/useChatSections';
 import useExpenseReportSections from './hooks/useExpenseReportSections';
 import useSearchShell from './hooks/useSearchShell';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useTaskSections from './hooks/useTaskSections';
 import useTransactionSections from './hooks/useTransactionSections';
 
 /** The tracking carriers `<Search>` reads for its deferral/focus effects (independent of the section outputs). */
@@ -94,6 +95,17 @@ function ChatSectionsProvider({queryJSON, searchResults, newSearchResultKeys, tr
 }
 
 /**
+ * Section provider for the task view (`type === TASK`). Owns only the task-type slice of Onyx (via the scoped
+ * shell + leaf), so every other search type mounts a different provider and never opens these subscriptions.
+ */
+function TaskSectionsProvider({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, children}: SectionsProviderProps) {
+    const shell = useSearchShell({queryJSON, searchResults, transactions, reportActions});
+    const sections = useTaskSections({shell, queryJSON, searchResults, newSearchResultKeys});
+    const value: SearchSectionsContextValue = {...sections, ...pickTrackingCarriers(shell)};
+    return <SearchSectionsContext.Provider value={value}>{children}</SearchSectionsContext.Provider>;
+}
+
+/**
  * Section provider for every not-yet-scoped search type. Keeps the legacy monolithic `useSearchSnapshot`
  * (which subscribes to the union of every type's data) until each type gets its own scoped leaf.
  */
@@ -129,6 +141,8 @@ function SearchSectionsProvider({queryJSON, searchResults, newSearchResultKeys, 
         Provider = ExpenseReportSectionsProvider;
     } else if (queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         Provider = ChatSectionsProvider;
+    } else if (queryJSON.type === CONST.SEARCH.DATA_TYPES.TASK) {
+        Provider = TaskSectionsProvider;
     } else if (isFlatExpenseSearch(queryJSON)) {
         Provider = TransactionSectionsProvider;
     }

@@ -6580,5 +6580,6 @@ export {
     getReportSections,
     getTransactionsSections,
     getReportActionsSections,
+    getTaskSections,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
