@@ -13,7 +13,8 @@ import VictoryTheme, {
 
 import variables from '@styles/variables';
 
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {NonUniformRRect, SkParagraph, SkParagraphBuilder, SkPath, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {RoundedCorners} from 'victory-native';
 
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
@@ -468,7 +469,7 @@ type VerticalBarChartGeometry = {
 /** Default domain padding for vertical bar charts (matches BarChartContent). */
 const VERTICAL_BAR_BASE_DOMAIN_PADDING = {
     top: 32,
-    bottom: 1,
+    bottom: 0,
     left: 0,
     right: 0,
 };
@@ -537,6 +538,29 @@ function getYAxisLabelWidth(
     );
 }
 
+/**
+ * Builds a Skia rounded-rect path for a single horizontal bar segment.
+ *
+ * victory-native's `Bar` component (`useBarPath`) always measures bar height as `yScale(0) - y`
+ * and positions bars centered on `x` — i.e. it only knows how to draw vertical bars. Horizontal,
+ * per-point-colored bars therefore can't use that component and must build their own path,
+ * extending from the zero value (`xZero`) to the data point along the x-axis and centered on `y`.
+ */
+function createHorizontalBarPath(x: number, y: number, xZero: number, barThickness: number, roundedCorners: RoundedCorners): SkPath {
+    const path = Skia.Path.Make();
+    const left = Math.min(x, xZero);
+    const width = Math.abs(x - xZero);
+    const rect: NonUniformRRect = {
+        rect: {x: left, y: y - barThickness / 2, width, height: barThickness},
+        topLeft: {x: roundedCorners.topLeft ?? 0, y: roundedCorners.topLeft ?? 0},
+        topRight: {x: roundedCorners.topRight ?? 0, y: roundedCorners.topRight ?? 0},
+        bottomRight: {x: roundedCorners.bottomRight ?? 0, y: roundedCorners.bottomRight ?? 0},
+        bottomLeft: {x: roundedCorners.bottomLeft ?? 0, y: roundedCorners.bottomLeft ?? 0},
+    };
+    path.addRRect(rect);
+    return path;
+}
+
 export {
     buildChartParagraph,
     canFontRenderText,
@@ -564,6 +588,7 @@ export {
     getYAxisLabelWidth,
     truncateCategoryLabels,
     estimateVerticalBarChartGeometry,
+    createHorizontalBarPath,
     VERTICAL_BAR_BASE_DOMAIN_PADDING,
 };
 

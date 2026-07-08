@@ -15,6 +15,7 @@ import {
     useLabelHitTesting,
 } from '@components/Charts/hooks';
 import {
+    createHorizontalBarPath,
     estimateVerticalBarChartGeometry,
     getCategoryLabelWidth,
     getFontLineMetrics,
@@ -36,6 +37,7 @@ import variables from '@styles/variables';
 import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
+import {Path} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -223,23 +225,30 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderHorizontalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number, dataIndex: number) => {
+    const renderHorizontalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number, dataIndex: number, xScale: Scale) => {
+        if (typeof point.y !== 'number') {
+            return null;
+        }
+
         const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
+        // victory-native's `Bar` only knows how to draw vertical bars (see createHorizontalBarPath jsdoc),
+        // so the bar thickness (perpendicular to the value axis) is derived from the chart's vertical extent here
+        // instead of relying on `Bar`'s internal `useBarWidth`, which assumes bars are laid out horizontally.
+        const barThickness = ((1 - BAR_INNER_PADDING) * (chartBounds.bottom - chartBounds.top)) / Math.max(1, barCount);
+        const path = createHorizontalBarPath(point.x, point.y, xScale(0), barThickness, {
+            topLeft: 8,
+            topRight: 8,
+            bottomLeft: 8,
+            bottomRight: 8,
+        });
 
         return (
-            <Bar
+            <Path
                 key={`horizontal-bar-${data.at(dataIndex)?.label ?? dataIndex}`}
-                points={[point]}
-                chartBounds={chartBounds}
+                path={path}
+                // eslint-disable-next-line react/style-prop-object -- this is a valid Skia style prop value
+                style="fill"
                 color={barColor}
-                barCount={barCount}
-                innerPadding={BAR_INNER_PADDING}
-                roundedCorners={{
-                    topLeft: 8,
-                    topRight: 8,
-                    bottomLeft: 8,
-                    bottomRight: 8,
-                }}
             />
         );
     };
@@ -348,6 +357,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const verticalChartStyle = {
         height: CHART_CONTENT_MIN_HEIGHT + verticalLabelSpace,
     };
+
     const verticalYAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
     const verticalChartPadding = {
         ...VictoryTheme.axis.padding,
@@ -396,7 +406,10 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const chartBody = (
         <GestureDetector gesture={customGestures}>
-            <Animated.View style={[chartLayoutStyle, cursorStyle]}>
+            <Animated.View
+                style={[chartLayoutStyle, cursorStyle]}
+                onLayout={handleLayout}
+            >
                 {chartWidth > 0 &&
                     (isHorizontalLayout ? (
                         <CartesianChart
@@ -426,7 +439,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                             frame={{lineWidth: 0}}
                             data={horizontalChartData}
                         >
-                            {({points, chartBounds}) =>
+                            {({points, chartBounds, xScale}) =>
                                 useSingleColor ? (
                                     <BarGroup
                                         chartBounds={chartBounds}
@@ -443,7 +456,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                                         ]}
                                     </BarGroup>
                                 ) : (
-                                    points.y.map((point, index) => renderHorizontalBar(point, chartBounds, points.y.length, index))
+                                    points.y.map((point, index) => renderHorizontalBar(point, chartBounds, points.y.length, index, xScale))
                                 )
                             }
                         </CartesianChart>
@@ -459,6 +472,11 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                             xAxis={{
                                 tickCount: data.length,
                                 lineWidth: VictoryTheme.axis.xLineWidth,
+                                // Labels are rendered ourselves via `renderOutside`/ChartXAxisLabels (no `font` is passed here),
+                                // and `verticalChartPadding.bottom` already reserves the exact space they need. Victory-native's
+                                // default "outset" position additionally reserves its own space for a built-in x-axis label,
+                                // which would double-count the reservation and create unwanted blank space below the chart.
+                                labelPosition: 'inset',
                             }}
                             yAxis={[
                                 {
@@ -488,15 +506,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         </GestureDetector>
     );
 
-    const measuredChart = (
-        <View
-            onLayout={handleLayout}
-            collapsable={false}
-        >
-            {chartBody}
-        </View>
-    );
-
     if (isHorizontalLayout && needsHorizontalScroll) {
         return (
             <ScrollView
@@ -504,12 +513,12 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                 nestedScrollEnabled
                 showsVerticalScrollIndicator
             >
-                {measuredChart}
+                {chartBody}
             </ScrollView>
         );
     }
 
-    return measuredChart;
+    return chartBody;
 }
 
 function BarChartContent(props: BarChartProps) {
