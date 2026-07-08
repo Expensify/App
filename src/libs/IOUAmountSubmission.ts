@@ -51,6 +51,7 @@ type SubmitAmountArgs = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -270,6 +271,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         report,
         iouType,
         transaction,
+        policyTags,
         isDraftChatReport,
         selectedCurrency,
         backToReport,
@@ -292,8 +294,9 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     if (iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.REQUEST && iouType !== CONST.IOU.TYPE.TRACK) {
         return;
     }
+    const participant = participants.at(0);
     const optimisticTransactionID = rand64();
-    const {optimisticChatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
+    const {optimisticChatReportID} = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const isTrackExpenseSubmit = iouType === CONST.IOU.TYPE.TRACK;
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
     const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
@@ -306,7 +309,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
-                    participant: participants.at(0) ?? {},
+                    participant: participant ?? {},
                 },
                 transactionParams: {
                     amount: backendAmount,
@@ -327,6 +330,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                reportActionsList: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -334,7 +338,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 report,
                 betas,
                 participantParams: {
-                    participant: participants.at(0) ?? {},
+                    participant: participant ?? {},
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
                 },
@@ -347,6 +351,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                     reimbursable: defaultReimbursable,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
+                policyParams: {policyTagList: policyTags},
                 shouldGenerateTransactionThreadReport: false,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
