@@ -41,13 +41,20 @@ function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLive
     const authToken = session?.authToken ?? null;
     const [authenticatedUri, setAuthenticatedUri] = useState<string | null>(null);
     const hasFetchedAuthenticatedUri = useRef(false);
+    const isMounted = useRef(true);
 
     const fetchAuthenticatedUri = () => {
         if (!shouldAppendShortLivedAuthToken || hasFetchedAuthenticatedUri.current) {
             return;
         }
         hasFetchedAuthenticatedUri.current = true;
-        getShortLivedAuthTokenURL(uri).then(setAuthenticatedUri);
+        getShortLivedAuthTokenURL(uri).then((url) => {
+            // Discard the response if the user navigated away before the token request resolved.
+            if (!isMounted.current) {
+                return;
+            }
+            setAuthenticatedUri(url);
+        });
     };
 
     // Skip the token request while offline and retry it on reconnect, so an offline-opened page still ends up with an authenticated URL.
@@ -60,6 +67,13 @@ function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLive
         fetchAuthenticatedUri();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
     }, []);
+
+    useEffect(
+        () => () => {
+            isMounted.current = false;
+        },
+        [],
+    );
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
