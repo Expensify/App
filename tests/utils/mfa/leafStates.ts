@@ -14,10 +14,6 @@ function hasUnguardedAlways(node: AnyStateNode): boolean {
     return node.always?.some((transition) => transition.guard === undefined) ?? false;
 }
 
-function hasRoutingInvoke(node: AnyStateNode): boolean {
-    return node.invoke.some((definition) => definition.onDone !== undefined || definition.onError !== undefined);
-}
-
 // The dot-path description doubles as a state-value key: `matchesState` splits it on `.` before comparing.
 function toLeafState(node: AnyStateNode): LeafState {
     return {description: node.path.join('.')};
@@ -26,8 +22,8 @@ function toLeafState(node: AnyStateNode): LeafState {
 /**
  * Returns leaf states that can exist as snapshots after an XState macrostep. An unguarded `always`
  * transition is resolved in the same macrostep that enters the state, so graph paths cannot observe
- * that leaf. A guarded `always` may keep the machine in place, and an invoked actor completes through
- * a later event, so both remain part of machine reachability.
+ * that leaf. A guarded `always` may keep the machine in place, so it remains part of machine
+ * reachability.
  */
 function getStableLeafStates(node: AnyStateNode): LeafState[] {
     return getLeafNodes(node)
@@ -36,14 +32,13 @@ function getStableLeafStates(node: AnyStateNode): LeafState[] {
 }
 
 /**
- * Returns the stable leaf states that the UI walk can also stop on and assert. An invoked actor
- * counts as auto-advancing once it registers `onDone` or `onError`, which is true for an actor that
- * completes immediately (the mocked promise actors this harness expects) but not for one that stays
- * pending. Revisit this predicate when the first real invoke state is added to the machine.
+ * Returns the stable leaf states that the UI walk can also stop on and assert. This is separate from
+ * `getStableLeafStates` so the UI contract can diverge when the machine adds a leaf type the real UI
+ * walk cannot settle on.
  */
 function getSettleableLeafStates(node: AnyStateNode): LeafState[] {
     return getLeafNodes(node)
-        .filter((leaf) => !hasUnguardedAlways(leaf) && !hasRoutingInvoke(leaf))
+        .filter((leaf) => !hasUnguardedAlways(leaf))
         .map(toLeafState);
 }
 
