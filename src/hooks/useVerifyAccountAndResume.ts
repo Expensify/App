@@ -22,32 +22,32 @@ function useVerifyAccountAndResume<TPayload>(onResume: (payload: TPayload) => vo
     // Effect event, so the resume runs the latest `onResume` (a press-time closure would see pre-validation state).
     const resumeAction = useEffectEvent(onResume);
 
+    // Effect event, so the listener reads the freshest validation state and doesn't mistake the success-driven close of the verify-account page for an abandon.
+    const handleNavigationStateChange = useEffectEvent(() => {
+        if (!pendingAction || isUserValidated || Navigation.getActiveRouteWithoutParams() === pendingAction.verifyAccountPath) {
+            return;
+        }
+        setPendingAction(null);
+    });
+
     useEffect(() => {
         if (!pendingAction) {
             return;
         }
 
-        const isOnVerifyAccountScreen = () => Navigation.getActiveRouteWithoutParams() === pendingAction.verifyAccountPath;
-
-        // Leaving the verify-account screen without validating abandons the action — it must never run without user intent.
+        // Leaving the verify-account screen without validating abandons the action, which is what makes resuming below safe without a route check.
         if (!isUserValidated) {
-            return navigationRef.addListener('state', () => {
-                if (isOnVerifyAccountScreen()) {
-                    return;
-                }
-                setPendingAction(null);
-            });
+            return navigationRef.addListener('state', handleNavigationStateChange);
         }
 
-        // Resume only if validated on the exact screen this hook opened, not another flow's verify-account screen.
-        if (!isOnVerifyAccountScreen()) {
-            return;
-        }
-
-        const handle = Navigation.runAfterUpcomingTransition(() => {
+        // Validation succeeded — resume even if the verify-account page already dismissed itself.
+        const isVerifyAccountScreenStillOpen = Navigation.getActiveRouteWithoutParams() === pendingAction.verifyAccountPath;
+        const resume = () => {
             setPendingAction(null);
             resumeAction(pendingAction.payload);
-        });
+        };
+        // While the page is still open its closing transition hasn't been dispatched yet, so wait for the upcoming one; otherwise the close is already in flight (or done), so only wait out active transitions.
+        const handle = isVerifyAccountScreenStillOpen ? Navigation.runAfterUpcomingTransition(resume) : Navigation.runAfterTransition(resume);
 
         return () => handle.cancel();
     }, [isUserValidated, pendingAction]);

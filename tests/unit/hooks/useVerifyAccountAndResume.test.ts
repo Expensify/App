@@ -29,6 +29,7 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () =
 jest.mock('@libs/Navigation/Navigation', () => {
     const mockNavigationModule = {
         navigate: jest.fn(),
+        runAfterTransition: jest.fn(),
         runAfterUpcomingTransition: jest.fn(),
         getActiveRouteWithoutParams: jest.fn(),
     };
@@ -81,6 +82,10 @@ describe('useVerifyAccountAndResume', () => {
         mockNavigationStateListeners.clear();
         mockPendingTransitionCallbacks = [];
         mockedNavigation.getActiveRouteWithoutParams.mockReturnValue(mockVerifyAccountPath);
+        mockedNavigation.runAfterTransition.mockImplementation((callback: () => void) => {
+            mockPendingTransitionCallbacks.push(callback);
+            return {cancel: mockCancelTransition};
+        });
         mockedNavigation.runAfterUpcomingTransition.mockImplementation((callback: () => void) => {
             mockPendingTransitionCallbacks.push(callback);
             return {cancel: mockCancelTransition};
@@ -142,6 +147,31 @@ describe('useVerifyAccountAndResume', () => {
 
         expect(initialOnResume).not.toHaveBeenCalled();
         expect(latestOnResume).toHaveBeenCalledWith({paymentID: 'payment-1'});
+    });
+
+    it('resumes when the verify account route already closed itself before validation was observed', async () => {
+        const onResume = jest.fn();
+        const {result} = renderHook(() => useVerifyAccountAndResume<ResumePayload>(onResume));
+
+        act(() => {
+            result.current.verifyAccountAndResume({paymentID: 'payment-1'});
+        });
+
+        // The verify page's success effect navigates back as soon as validation succeeds, so by the time
+        // this hook observes the validated state the active route is already the originating screen.
+        mockedNavigation.getActiveRouteWithoutParams.mockReturnValue('r/123');
+        await setIsUserValidated(true);
+
+        await waitFor(() => {
+            expect(mockedNavigation.runAfterTransition).toHaveBeenCalledTimes(1);
+        });
+        expect(mockedNavigation.runAfterUpcomingTransition).not.toHaveBeenCalled();
+
+        act(() => {
+            mockPendingTransitionCallbacks.at(0)?.();
+        });
+
+        expect(onResume).toHaveBeenCalledWith({paymentID: 'payment-1'});
     });
 
     it('drops the pending resume when the user leaves the verify account route before validation', async () => {
