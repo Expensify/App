@@ -5640,6 +5640,20 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'All programs use default account' : `${customAccountsCount} programs with custom accounts`),
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                descriptionLevel3: 'Override the program account for this card.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'All cards use program accounts' : `${customAccountsCount} cards with custom accounts`),
+            },
             autoSyncDescription: 'Sync Rillet and Expensify automatically, every day. Reports sync in realtime.',
             accountingMethods: {
                 label: 'Export method',
