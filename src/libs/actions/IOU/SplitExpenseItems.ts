@@ -182,7 +182,17 @@ function initSplitExpenseItemData(
         merchant,
         customUnit,
         isManuallyEdited,
-    }: {amount?: number; transactionID?: string; reportID?: string; created?: string; merchant?: string; customUnit?: TransactionCustomUnit; isManuallyEdited?: boolean} = {},
+        taxAmount,
+    }: {
+        amount?: number;
+        transactionID?: string;
+        reportID?: string;
+        created?: string;
+        merchant?: string;
+        customUnit?: TransactionCustomUnit;
+        isManuallyEdited?: boolean;
+        taxAmount?: number;
+    } = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
 
@@ -199,7 +209,7 @@ function initSplitExpenseItemData(
         reimbursable: transactionDetails?.reimbursable,
         billable: transactionDetails?.billable,
         taxCode: transactionDetails?.taxCode,
-        taxAmount: transactionDetails?.taxAmount,
+        taxAmount: taxAmount ?? transactionDetails?.taxAmount,
         taxValue: transactionDetails?.taxValue,
         customUnit: customUnit ?? transaction?.comment?.customUnit ?? undefined,
         waypoints: transaction?.comment?.waypoints ?? undefined,
@@ -337,6 +347,7 @@ function addSplitExpenseField(
 
     const newSplitExpense = initSplitExpenseItemData(transaction, transactionReport, {
         amount: 0,
+        taxAmount: 0,
         transactionID: rand64(),
         reportID: draftTransaction?.reportID,
         customUnit,
@@ -414,11 +425,15 @@ function evenlyDistributeSplitExpenseAmounts(
     const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
     const {unit, rate} = mileageRate;
 
+    const totalTaxAmount = transaction?.taxAmount ?? 0;
+
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
         const amount = calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true);
+        const splitTaxAmount = calculateIOUAmount(splitCount - 1, totalTaxAmount, currency, index === lastIndex, true);
         let updatedSplitExpense: SplitExpense = {
             ...splitExpense,
             amount,
+            taxAmount: splitTaxAmount,
             // Reset isManuallyEdited since user explicitly requested even distribution
             isManuallyEdited: false,
         };
@@ -478,6 +493,7 @@ function resetSplitExpensesByDateRange(
 
     const transactionDetails = getTransactionDetails(transaction);
     const total = transactionDetails?.amount ?? 0;
+    const totalTaxAmount = transactionDetails?.taxAmount ?? 0;
     const currency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -489,8 +505,10 @@ function resetSplitExpensesByDateRange(
     const lastIndex = dates.length - 1;
     const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
         const amount = calculateIOUAmount(lastIndex, total, currency, index === lastIndex, true);
+        const splitTaxAmount = calculateIOUAmount(lastIndex, totalTaxAmount, currency, index === lastIndex, true);
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
+            taxAmount: splitTaxAmount,
             transactionID: rand64(),
             reportID: draftTransaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),

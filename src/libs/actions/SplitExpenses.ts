@@ -142,11 +142,11 @@ function initSplitExpense(
 
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const transactionDetailsCurrency = transactionDetails?.currency ?? '';
+    const transactionTaxAmount = transactionDetails?.taxAmount ?? 0;
 
-    const splitAmounts = [
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
-    ];
+    const splitAmounts = [calculateAmount(1, transactionDetailsAmount, transactionDetailsCurrency, false), calculateAmount(1, transactionDetailsAmount, transactionDetailsCurrency, true)];
+    const splitTaxAmounts = [calculateAmount(1, transactionTaxAmount, transactionDetailsCurrency, false), calculateAmount(1, transactionTaxAmount, transactionDetailsCurrency, true)];
     const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
 
@@ -179,6 +179,7 @@ function initSplitExpense(
     const splitExpenses = [
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(0) ?? 0,
+            taxAmount: splitTaxAmounts.at(0) ?? 0,
             transactionID: rand64(),
             reportID,
             customUnit: splitCustomUnits.at(0),
@@ -187,6 +188,7 @@ function initSplitExpense(
         }),
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(1) ?? 0,
+            taxAmount: splitTaxAmounts.at(1) ?? 0,
             transactionID: rand64(),
             reportID,
             customUnit: splitCustomUnits.at(1),
