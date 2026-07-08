@@ -561,6 +561,14 @@ function createHorizontalBarPath(x: number, y: number, xZero: number, barThickne
     return path;
 }
 
+/**
+ * Resolves the fill color for a bar at the given data index: a single shared color when
+ * `useSingleColor` is set, otherwise a distinct color per bar from the chart's palette.
+ */
+function getBarColor(useSingleColor: boolean, dataIndex: number): string {
+    return useSingleColor ? VictoryTheme.colors.default : VictoryTheme.colors.getColor(dataIndex);
+}
+
 export {
     buildChartParagraph,
     canFontRenderText,
@@ -589,6 +597,7 @@ export {
     truncateCategoryLabels,
     estimateVerticalBarChartGeometry,
     createHorizontalBarPath,
+    getBarColor,
     VERTICAL_BAR_BASE_DOMAIN_PADDING,
 };
 

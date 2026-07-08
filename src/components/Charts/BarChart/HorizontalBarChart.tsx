@@ -1,10 +1,10 @@
-import BAR_INNER_PADDING, {MAX_HORIZONTAL_CHART_HEIGHT, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_CORNER_RADIUS, MAX_HORIZONTAL_CHART_HEIGHT, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions} from '@components/Charts/hooks';
-import {createHorizontalBarPath, getCategoryLabelWidth, getFontLineMetrics, getYAxisLabelWidth, measureTextWidth} from '@components/Charts/utils';
+import {useChartCursorStyle, useChartInteractions} from '@components/Charts/hooks';
+import {createHorizontalBarPath, getBarColor, getCategoryLabelWidth, getFontLineMetrics, getYAxisLabelWidth, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import ScrollView from '@components/ScrollView';
 
@@ -20,7 +20,7 @@ import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'vic
 import {Path} from '@shopify/react-native-skia';
 import React from 'react';
 import {GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {useSharedValue} from 'react-native-reanimated';
 import {BarGroup, CartesianChart} from 'victory-native';
 
 import type {ChartDataPoint} from '..';
@@ -81,7 +81,6 @@ function HorizontalBarChart({
 }: HorizontalBarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const defaultBarColor = VictoryTheme.colors.default;
 
     const horizontalChartData = data.map((point, index) => ({
         x: point.total,
@@ -133,25 +132,23 @@ function HorizontalBarChart({
         );
     };
 
-    const cursorStyle = useAnimatedStyle(() => ({
-        cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
-    }));
+    const cursorStyle = useChartCursorStyle(isCursorOverClickable);
 
     const renderHorizontalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number, dataIndex: number, xScale: Scale) => {
         if (typeof point.y !== 'number') {
             return null;
         }
 
-        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
+        const barColor = getBarColor(useSingleColor, dataIndex);
         // victory-native's `Bar` only knows how to draw vertical bars (see createHorizontalBarPath jsdoc),
         // so the bar thickness (perpendicular to the value axis) is derived from the chart's vertical extent here
         // instead of relying on `Bar`'s internal `useBarWidth`, which assumes bars are laid out horizontally.
         const barThickness = ((1 - BAR_INNER_PADDING) * (chartBounds.bottom - chartBounds.top)) / Math.max(1, barCount);
         const path = createHorizontalBarPath(point.x, point.y, xScale(0), barThickness, {
-            topLeft: 8,
-            topRight: 8,
-            bottomLeft: 8,
-            bottomRight: 8,
+            topLeft: BAR_CORNER_RADIUS,
+            topRight: BAR_CORNER_RADIUS,
+            bottomLeft: BAR_CORNER_RADIUS,
+            bottomRight: BAR_CORNER_RADIUS,
         });
 
         return (
@@ -256,13 +253,13 @@ function HorizontalBarChart({
                                     chartBounds={chartBounds}
                                     withinGroupPadding={BAR_INNER_PADDING}
                                     isHorizontal
-                                    roundedCorners={{topRight: 8, bottomRight: 8}}
+                                    roundedCorners={{topRight: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
                                 >
                                     {[
                                         <BarGroup.Bar
                                             key="horizontal-bars-single-color"
                                             points={points.y}
-                                            color={defaultBarColor}
+                                            color={getBarColor(useSingleColor, 0)}
                                         />,
                                     ]}
                                 </BarGroup>

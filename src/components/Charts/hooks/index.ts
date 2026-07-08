@@ -1,3 +1,4 @@
+export {default as useChartCursorStyle} from './useChartCursorStyle';
 export {default as useChartLabelLayout} from './useChartLabelLayout';
 export {default as useChartLabelMeasurements} from './useChartLabelMeasurements';
 export {default as useChartParagraphs} from './useChartParagraphs';

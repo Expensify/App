@@ -8,6 +8,7 @@ import {
     estimateVerticalBarChartGeometry,
     findSliceAtPosition,
     getAdditionalOffset,
+    getBarColor,
     getCategoryLabelWidth,
     getNiceYAxisTicks,
     isAngleInSlice,
@@ -838,5 +839,19 @@ describe('estimateVerticalBarChartGeometry', () => {
         const narrow = estimateVerticalBarChartGeometry(200, data, null, 12, formatValue, innerPadding);
         const wide = estimateVerticalBarChartGeometry(400, data, null, 12, formatValue, innerPadding);
         expect(wide.barAreaWidth).toBeGreaterThan(narrow.barAreaWidth);
+    });
+});
+
+describe('getBarColor', () => {
+    it('returns the shared default color for every index when useSingleColor is true', () => {
+        expect(getBarColor(true, 0)).toBe(VictoryTheme.colors.default);
+        expect(getBarColor(true, 1)).toBe(VictoryTheme.colors.default);
+        expect(getBarColor(true, 7)).toBe(VictoryTheme.colors.default);
+    });
+
+    it('returns a distinct palette color per index when useSingleColor is false', () => {
+        expect(getBarColor(false, 0)).toBe(VictoryTheme.colors.getColor(0));
+        expect(getBarColor(false, 3)).toBe(VictoryTheme.colors.getColor(3));
+        expect(getBarColor(false, 0)).not.toBe(getBarColor(false, 3));
     });
 });

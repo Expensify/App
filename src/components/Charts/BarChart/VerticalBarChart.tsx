@@ -1,10 +1,10 @@
-import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_CORNER_RADIUS} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, useChartLabelLayout} from '@components/Charts/hooks';
-import {useChartInteractions, useLabelHitTesting} from '@components/Charts/hooks';
-import {getYAxisLabelWidth} from '@components/Charts/utils';
+import {useChartCursorStyle, useChartInteractions, useLabelHitTesting} from '@components/Charts/hooks';
+import {getBarColor, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -17,7 +17,7 @@ import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'vic
 
 import React from 'react';
 import {GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {useSharedValue} from 'react-native-reanimated';
 import {Bar, CartesianChart} from 'victory-native';
 
 import type {ChartDataPoint} from '..';
@@ -79,7 +79,6 @@ function VerticalBarChart({
     domainPadding,
 }: VerticalBarChartProps) {
     const theme = useTheme();
-    const defaultBarColor = VictoryTheme.colors.default;
     const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = labelLayout;
 
     const verticalChartData = data.map((point, index) => ({
@@ -141,14 +140,12 @@ function VerticalBarChart({
         );
     };
 
-    const cursorStyle = useAnimatedStyle(() => ({
-        cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
-    }));
+    const cursorStyle = useChartCursorStyle(isCursorOverClickable);
 
     const renderVerticalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
-        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
+        const barColor = getBarColor(useSingleColor, dataIndex);
 
         return (
             <Bar
@@ -159,10 +156,10 @@ function VerticalBarChart({
                 barCount={barCount}
                 innerPadding={BAR_INNER_PADDING}
                 roundedCorners={{
-                    topLeft: 8,
-                    topRight: 8,
-                    bottomLeft: 8,
-                    bottomRight: 8,
+                    topLeft: BAR_CORNER_RADIUS,
+                    topRight: BAR_CORNER_RADIUS,
+                    bottomLeft: BAR_CORNER_RADIUS,
+                    bottomRight: BAR_CORNER_RADIUS,
                 }}
             />
         );
