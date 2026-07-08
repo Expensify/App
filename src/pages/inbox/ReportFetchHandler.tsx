@@ -317,8 +317,16 @@ function ReportFetchHandler() {
             return;
         }
 
+        // `forceReplace` replaces whatever route is currently focused. This effect can fire late (after a slow
+        // `OpenReport` resolves the report as a money request) while this SearchReport RHP has been blurred but is
+        // still mounted, which would replace the route the user has since navigated to. Only replace while focused;
+        // the effect re-runs if focus returns to this screen.
+        if (!isFocused) {
+            return;
+        }
+
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
-    }, [report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
+    }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
