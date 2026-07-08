@@ -751,6 +751,21 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
+// Builds a POLICY_TAGS update that sets every tag in the given lists to `enabled`.
+function buildPolicyTagsEnabledData(policyTags: PolicyTagLists, enabled: boolean): Record<string, Partial<PolicyTagList>> {
+    return Object.fromEntries(
+        Object.entries(policyTags).map(([listName, tagList]): [string, Partial<PolicyTagList>] => [
+            listName,
+            {tags: Object.fromEntries(Object.entries(tagList.tags).map(([tagName, tag]): [string, PolicyTag] => [tagName, {...tag, enabled}]))},
+        ]),
+    );
+}
+
+// Builds a POLICY_TAGS update that restores every list's tags to their current state (used as failure data).
+function buildPolicyTagsRestoreData(policyTags: PolicyTagLists): Record<string, Partial<PolicyTagList>> {
+    return Object.fromEntries(Object.entries(policyTags).map(([listName, tagList]): [string, Partial<PolicyTagList>] => [listName, {tags: tagList.tags}]));
+}
+
 function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     const policyID = policyData.policy?.id;
     const policyOptimisticData = {
@@ -793,6 +808,11 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         ],
     };
 
+    // BE flags only the first tag level out of policy when the Tags feature is toggled, so scope the optimistic
+    // enable/disable to that list to mirror it.
+    const firstTagList = PolicyUtils.getTagLists(policyData.tags).at(0);
+    const firstTagListData: PolicyTagLists = firstTagList ? {[firstTagList.name]: firstTagList} : {};
+
     if (Object.keys(policyData.tags).length === 0) {
         const defaultTagList: PolicyTagLists = {
             Tag: {
@@ -814,24 +834,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         });
         pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, defaultTagList);
     } else if (!enabled) {
-        const policyTag = PolicyUtils.getTagLists(policyData.tags).at(0);
-
-        if (!policyTag) {
-            return;
-        }
-
-        const policyTagsOptimisticData: Record<string, Partial<PolicyTagList>> = {
-            [policyTag.name]: {
-                tags: Object.fromEntries(
-                    Object.keys(policyTag.tags).map((tagName) => [
-                        tagName,
-                        {
-                            enabled: false,
-                        },
-                    ]),
-                ),
-            } as Partial<PolicyTagList>,
-        };
+        const policyTagsOptimisticData = buildPolicyTagsEnabledData(firstTagListData, false);
 
         onyxData.optimisticData?.push(
             {
@@ -847,10 +850,30 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
                 },
             },
         );
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: buildPolicyTagsRestoreData(firstTagListData),
+        });
 
         const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
 
         pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData, autoSelections);
+    } else if (firstTagList && Object.keys(firstTagList.tags).length > 0) {
+        const policyTagsOptimisticData = buildPolicyTagsEnabledData(firstTagListData, true);
+
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: policyTagsOptimisticData,
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: buildPolicyTagsRestoreData(firstTagListData),
+        });
+
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
     } else {
         pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
     }

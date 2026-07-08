@@ -408,11 +408,14 @@ function getFilters(queryJSON: SearchQueryJSON) {
             return;
         }
 
-        const filterArray = [];
+        const filterArray: QueryFilter[] = [];
         if (!Array.isArray(node.right)) {
+            if (typeof node.right !== 'string' && typeof node.right !== 'number') {
+                return;
+            }
             filterArray.push({
                 operator: node.operator,
-                value: node.right as string | number,
+                value: node.right,
             });
         } else {
             for (const element of node.right) {
