@@ -104,7 +104,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
         minModalHeight: 0,
         cardContentStyles: styles.ph0,
         headerMedia: illustrations.ExpensifyCardCoins,
-        headerContentStyles: styles.sortingMachineRulesEmptyStateIllustration,
+        headerContentStyles: shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration,
         title: translate('workspace.rules.spendRules.cardRulesUpsell.title'),
         subtitle: translate('workspace.rules.spendRules.cardRulesUpsell.subtitle'),
         subtitleStyles: [styles.textLabel, styles.textSupporting],

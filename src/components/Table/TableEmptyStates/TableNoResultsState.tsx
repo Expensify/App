@@ -20,10 +20,10 @@ type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMed
 export default function TableNoResultsState(emptyStateProps: TableNoResultsStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData, originalDataLength} = useTableContext();
+    const {isEmptyResult} = useTableContext();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
-    if (!originalDataLength || processedData.length) {
+    if (!isEmptyResult) {
         return null;
     }
 
