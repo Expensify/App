@@ -56,7 +56,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)}, [policyID]);
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
+        selector: (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) => createOutstandingReportsForPolicySelector(policyID)(derived),
+    });
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.
