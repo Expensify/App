@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
+import prepareOnyxStorage from './prepareOnyxStorage';
 import telemetry from './telemetry';
 
 const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS === 'true' : true;
@@ -31,9 +32,13 @@ export default function () {
      * However, we still need to use Onyx to update the underlying app data from the headless JS context.
      * Therefore it must be initialized completely outside the React component lifecycle.
      */
+    // Must run before Onyx.init() — see prepareOnyxStorage for why.
+    const onyxKeyId = prepareOnyxStorage();
+
     Onyx.init({
         keys: ONYXKEYS,
         enableDevTools,
+        keyId: onyxKeyId,
         evictableKeys: [
             ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             ONYXKEYS.COLLECTION.SNAPSHOT,
