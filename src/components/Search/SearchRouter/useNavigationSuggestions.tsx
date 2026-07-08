@@ -150,6 +150,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         'Basket',
         'ReceiptMultiple',
         'Buildings',
+        'Globe',
         'UserLock',
         'UserShield',
         'Gear',
@@ -280,14 +281,14 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             },
             {
                 text: getGoToText(translate, workspacesText),
-                singleIcon: icons.Buildings,
+                singleIcon: icons.Building,
                 action: () => Navigation.navigate(ROUTES.WORKSPACES_LIST.route),
                 keyForList: 'topLevelWorkspaces',
                 matchTerms: [workspacesText],
             },
             {
                 text: getGoToText(translate, domainsText),
-                singleIcon: icons.Buildings,
+                singleIcon: icons.Globe,
                 action: () => Navigation.navigate(ROUTES.DOMAINS_LIST.route),
                 keyForList: 'topLevelDomains',
                 matchTerms: [domainsText],
@@ -300,7 +301,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 matchTerms: [accountText],
             },
         ];
-    }, [icons.Buildings, icons.Gear, icons.Home, icons.Inbox, icons.ReceiptMultiple, spendRoute, translate]);
+    }, [icons.Building, icons.Gear, icons.Globe, icons.Home, icons.Inbox, icons.ReceiptMultiple, spendRoute, translate]);
 
     const spendItems = useMemo(
         () =>
@@ -418,7 +419,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 const domainContext = (
                     <RightSideContext
                         label={domainName}
-                        icon={icons.Buildings}
+                        icon={icons.Globe}
                     />
                 );
 
@@ -434,7 +435,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     };
                 });
             });
-    }, [allDomains, currentUserPersonalDetails.accountID, icons.Buildings, icons.User, icons.UserLock, icons.Users, icons.UserShield, translate]);
+    }, [allDomains, currentUserPersonalDetails.accountID, icons.Globe, icons.User, icons.UserLock, icons.Users, icons.UserShield, translate]);
 
     const allPoliciesCollection = (allPolicies ?? {}) as OnyxCollection<OnyxTypes.Policy>;
     const groupPoliciesWithChatEnabled = [...getGroupPoliciesWhereReportCanBeCreated(allPoliciesCollection, isBetaEnabled(CONST.BETAS.SUBMIT_2026))];
