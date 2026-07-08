@@ -1,20 +1,26 @@
-import React, {useContext, useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+
 import {clearPersonalBankAccount} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useContext, useEffect} from 'react';
+
 import PersonalInfoPage from './settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo';
 
 function AddPersonalBankAccountPage() {

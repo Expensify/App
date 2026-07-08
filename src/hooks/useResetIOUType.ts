@@ -1,15 +1,22 @@
+import {resolveEarlyReportID} from '@libs/IOUUtils';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
+
+import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {setTransactionReport} from '@userActions/Transaction';
+
+import type {IOURequestType, IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {hasOnlyPersonalPoliciesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
-import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
-import type {IOURequestType, IOUType} from '@src/CONST';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
@@ -108,6 +115,13 @@ function useResetIOUType({
 
         const isFromGlobalCreate = !report?.reportID;
 
+        // Resolve early so we can decide whether to seed participants below.
+        const earlyReportID = resolveEarlyReportID(isFromGlobalCreate, defaultParticipants);
+        const isSelfDMDefault = earlyReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        // Skip seeding self-DM participants here. The confirmation's auto-assign
+        // useEffect is the only place that can both set the reportID and switch
+        // iouType to TRACK; seeding them early would short-circuit that effect.
         initMoneyRequest({
             reportID,
             policy,
@@ -124,8 +138,16 @@ function useResetIOUType({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
-            defaultParticipants,
+            defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
         });
+
+        // Set the transaction reportID early for global-create flows with resolved default
+        // participants. This ensures destinationReportID is defined from the confirmation's
+        // first render, preventing the pre-insert useEffect from seeing an undefined-to-value
+        // transition that would tear down and fail to re-fire the pre-insert.
+        if (earlyReportID && !isSelfDMDefault) {
+            setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: earlyReportID}, true);
+        }
 
         // Layer odometer draft fields onto the freshly-rebuilt transaction. The merge queues after
         // initMoneyRequest's Onyx.set, so the odometer fields land on top.

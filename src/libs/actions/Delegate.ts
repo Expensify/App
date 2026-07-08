@@ -1,6 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     AddDelegateParams as APIAddDelegateParams,
@@ -14,6 +11,9 @@ import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import Pusher from '@libs/Pusher';
+import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +21,13 @@ import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Acco
 import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
-import {confirmReadyToOpenApp, openApp} from './App';
+
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
+import {openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -215,22 +221,24 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    confirmReadyToOpenApp();
-                    return openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                    return openApp()
+                        .then(() => requestPusherReinitialize({accountID: response.accountID, email: response.email}))
+                        .then(() => {
+                            if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                                return true;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: email,
+                                authToken: restrictedToken,
+                                policyID,
+                                accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                            });
                             return true;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: email,
-                            authToken: restrictedToken,
-                            policyID,
-                            accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
                         });
-                        return true;
-                    });
                 });
         })
         .catch((error) => {
@@ -314,6 +322,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
+                    Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
@@ -323,18 +332,19 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-                    confirmReadyToOpenApp();
-                    openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: requesterEmail,
-                            authToken,
-                            policyID: '',
-                            accountID: '',
+                    openApp()
+                        .then(() => requestPusherReinitialize({accountID: response.requesterID, email: requesterEmail}))
+                        .then(() => {
+                            if (!CONFIG.IS_HYBRID_APP) {
+                                return;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: requesterEmail,
+                                authToken,
+                                policyID: '',
+                                accountID: '',
+                            });
                         });
-                    });
                 });
         })
         .catch((error) => {
@@ -384,7 +394,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -488,15 +498,6 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
             },
         },
     ];
-
-    const optimisticResetActionCode = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.VALIDATE_ACTION_CODE,
-        value: {
-            validateCodeSent: null,
-        },
-    };
-    optimisticData.push(optimisticResetActionCode);
 
     const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
 
@@ -762,7 +763,6 @@ function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Resp
         NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
         NetworkStore.setIsAuthenticating(false);
 
-        confirmReadyToOpenApp();
         openApp();
     });
 }

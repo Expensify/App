@@ -1,9 +1,12 @@
-import React, {useEffect, useRef, useState} from 'react';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef, useState} from 'react';
+
+import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
+
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
 import {deriveSelectedReports} from './selectionBuilders';
-import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;

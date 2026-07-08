@@ -1,9 +1,12 @@
-import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import BaseDomainVerifiedPage from './BaseDomainVerifiedPage';
 
 type DomainVerifiedScreen = typeof SCREENS.DOMAIN.SAML_VERIFIED | typeof SCREENS.DOMAIN.MEMBERS_VERIFIED;
