@@ -1,11 +1,16 @@
-import {PermissionsAndroid, Platform} from 'react-native';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+
 import type {FetchBlobResponse} from 'react-native-blob-util';
+
+import {PermissionsAndroid, Platform} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
-import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+
 import type {FileDownload} from './types';
+
+import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 
 /**
  * Android permission check to store images
@@ -36,14 +41,15 @@ function hasAndroidPermission(): Promise<boolean> {
 /**
  * Handling the download
  */
-function handleDownload(translate: LocalizedTranslate, url: string, fileName?: string, successMessage?: string, shouldUnlink = true): Promise<void> {
+function handleDownload(translate: LocalizedTranslate, url: string, fileName?: string, successMessage?: string, shouldUnlink = true, appendTimestamp = true): Promise<void> {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-        const attachmentName = appendTimeToFileName(fileName || getFileName(url));
+        const resolvedFileName = fileName || getFileName(url);
+        const attachmentName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
 
         const isLocalFile = url.startsWith('file://');
 
@@ -97,7 +103,7 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
     });
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void): Promise<void> => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true): Promise<void> => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -115,7 +121,8 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             return response.text();
         })
         .then((fileData) => {
-            const finalFileName = appendTimeToFileName(fileName ?? 'Expensify');
+            const resolvedFileName = fileName ?? 'Expensify';
+            const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
@@ -145,15 +152,15 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (translate, url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink) =>
+const fileDownload: FileDownload = (translate, url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp = true) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
                     if (requestType === CONST.NETWORK.METHOD.POST) {
-                        return postDownloadFile(translate, url, fileName, formData, onDownloadFailed);
+                        return postDownloadFile(translate, url, fileName, formData, onDownloadFailed, appendTimestamp);
                     }
-                    return handleDownload(translate, url, fileName, successMessage, shouldUnlink);
+                    return handleDownload(translate, url, fileName, successMessage, shouldUnlink, appendTimestamp);
                 }
                 showPermissionErrorAlert(translate);
             })

@@ -1,14 +1,20 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useRef} from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
-import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
+
+import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
 
 type WorkspaceRoomsTableColumnKey = 'name' | 'members' | 'actions';
 
@@ -42,6 +48,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             return;
         }
         tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
+        tableRef.current?.highlightItems([highlightedRoom.keyForList]);
     }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
@@ -67,7 +74,6 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            shouldAnimateInHighlight={!!highlightedReportID && item.reportID === highlightedReportID}
         />
     );
 
@@ -83,7 +89,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <Table.SearchBar label={translate('workspace.common.findRoom')} />
+            <Table.FilterBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

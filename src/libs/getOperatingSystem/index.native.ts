@@ -1,5 +1,7 @@
-import {Platform} from 'react-native';
 import CONST from '@src/CONST';
+
+import {Platform} from 'react-native';
+
 import type GetOperatingSystem from './types';
 
 /**

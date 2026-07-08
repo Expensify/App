@@ -1,7 +1,9 @@
-import {createRequire} from 'node:module';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
+
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+
+import {createRequire} from 'node:module';
 
 const requireLocalePrompt = createRequire(__dirname);
 

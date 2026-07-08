@@ -1,13 +1,16 @@
-import {randBoolean, randCurrencyCode, randNumber, randWord} from '@ngneat/falso';
-import type {ValueOf} from 'type-fest';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import {randBoolean, randCurrencyCode, randNumber, randWord} from '@ngneat/falso';
 
 /**
  * Creates a report with random settings
  */
-function createRandomReport(index: number, chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined): Report {
+function createRandomReport(index: number, chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>): Report {
     return {
         reportID: index.toString(),
         chatType,

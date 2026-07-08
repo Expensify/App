@@ -1,9 +1,12 @@
+import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -33,8 +36,14 @@ type MoneyRequestReportPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
+    /** The chat report this preview belongs to */
+    chatReport: OnyxEntry<Report>;
+
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
+
+    /** The stabilized IOU report, provided by the parent so the preview does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -53,10 +62,11 @@ type MoneyRequestReportPreviewProps = {
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
-    chatReport: OnyxEntry<Report>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
+    /** Full set of the report's transactions, including optimistically-deleted rows (matches `getReportTransactions`) */
+    allReportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
