@@ -1,4 +1,4 @@
-import {useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -21,6 +21,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+import useRegisterGroupChildrenForShiftRange from './useRegisterGroupChildrenForShiftRange';
 
 function GroupChildrenContent({
     item,
@@ -41,7 +42,6 @@ function GroupChildrenContent({
 }: GroupChildrenContentProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
-    const {registerGroupChildren, unregisterGroupChildren} = useSearchShiftRangeChildren();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -105,15 +105,7 @@ function GroupChildrenContent({
     const isEmpty = rangeChildren.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
-    // Register this group's lazily-loaded children (group-by only) under its original key — groupKeyForList, since this container's keyForList is prefixed — so shift+click can span them.
-    useEffect(() => {
-        if (isExpenseReportType || !isExpanded || rangeChildren.length === 0) {
-            unregisterGroupChildren(groupItem.groupKeyForList);
-            return;
-        }
-        registerGroupChildren(groupItem.groupKeyForList, rangeChildren);
-        return () => unregisterGroupChildren(groupItem.groupKeyForList);
-    }, [isExpenseReportType, isExpanded, rangeChildren, groupItem.groupKeyForList, registerGroupChildren, unregisterGroupChildren]);
+    useRegisterGroupChildrenForShiftRange(groupItem.groupKeyForList, rangeChildren, !isExpenseReportType && isExpanded);
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {

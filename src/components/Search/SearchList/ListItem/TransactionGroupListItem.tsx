@@ -69,6 +69,7 @@ import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
+import useRegisterGroupChildrenForShiftRange from './useRegisterGroupChildrenForShiftRange';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -149,11 +150,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    let transactions: TransactionListItemType[];
+    // Selection-independent (no isSelected) so the registered shift-range payload stays stable; the render projection below adds isSelected.
+    let rangeChildren: TransactionListItemType[];
     if (isExpenseReportType) {
-        transactions = groupItem.transactions;
+        rangeChildren = groupItem.transactions;
     } else if (!transactionsSnapshot?.data) {
-        transactions = [];
+        rangeChildren = [];
     } else {
         const [sectionData] = getSections({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -169,11 +171,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
-        transactions = sectionData.map((transactionItem) => ({
-            ...transactionItem,
-            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
-        }));
+        rangeChildren = sectionData;
     }
+
+    useRegisterGroupChildrenForShiftRange(groupItem.keyForList, rangeChildren, !isExpenseReportType && isExpanded);
+
+    const transactions: TransactionListItemType[] = isExpenseReportType
+        ? rangeChildren
+        : rangeChildren.map((transactionItem) => ({...transactionItem, isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID)}));
 
     const selectedItemsLength = transactions.reduce((acc, transaction) => (transaction.isSelected ? acc + 1 : acc), 0);
 
