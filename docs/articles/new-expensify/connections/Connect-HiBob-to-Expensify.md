@@ -27,7 +27,7 @@ To connect HiBob, you must:
 - Ensure every employee in HiBob has a work email address.
 - Have **HR** enabled under **More features** in the workspace.
 
-HiBob syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting HiBobR.
+HiBob syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting HiBob.
 
 ---
 
