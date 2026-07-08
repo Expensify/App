@@ -1627,10 +1627,7 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 >;
 
 /**
- * Model of a HOME_ADDRESS_REQUIRED Concierge report action. Posted by Auth's
- * SetPolicyCommuterExclusions command for members missing a home address when their workspace
- * switches to the homeAndOffice commuter-exclusion method. The App renders a custom "Add address"
- * CTA for this action and uses `policyID` to deep-link the user to the workspace that triggered it.
+ * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
  */
 type OriginalMessageHomeAddressRequired = {
     /** ID of the policy whose commuter-exclusion change triggered the prompt */

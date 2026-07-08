@@ -6,10 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Surfaces the "Add a home address" item under Home > Time sensitive when the user belongs to at
  * least one active workspace that has the homeAndOffice commuter-exclusion method enabled but has
  * no home address recorded in their private personal details.
- *
- * Subscribes to the raw COLLECTION.POLICY (no selector) so every nested change to any policy
- * - including switching method to fixedDistance or removing commuterExclusions entirely - is
- * picked up reliably. Matches the pattern of the other useTimeSensitive* hooks in this folder.
  */
 function useTimeSensitiveHomeAddress() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

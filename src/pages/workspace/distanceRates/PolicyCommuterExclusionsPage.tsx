@@ -89,8 +89,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     };
 
     const goToWorkspaceOverview = () => {
-        // Dismiss the modal first so the user lands on the overview page with a clean stack instead
-        // of having the confirm modal animate away on top of the navigation.
         closeModal();
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
@@ -99,10 +97,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         if (item.keyForList === selectedKey) {
             return;
         }
-
-        // homeAndOffice depends on the workspace's own address - if it's missing, block the change
-        // and point the admin to the Overview page via an inline link. The chosen option is not
-        // stored locally until they actually have a workspace address.
         if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
             showConfirmModal({
                 title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
@@ -133,8 +127,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         }
 
         if (selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
-            // Defensive guard: the row selector already blocks this path when the workspace has no
-            // address, but a manual save (e.g. via keyboard) shouldn't bypass the requirement.
             if (!policyData?.hasWorkspaceAddress) {
                 return;
             }

@@ -90,10 +90,6 @@ function ProfilePage() {
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
-
-    // Surface an info GBR on the Home address row when a workspace needs it for commuter exclusions
-    // and the member hasn't set one yet. The hook tracks both conditions and auto-clears when either
-    // becomes false (workspace turns off homeAndOffice, or the user saves an address with a street).
     const {shouldShowAddHomeAddress: shouldShowAddHomeAddressGBR} = useTimeSensitiveHomeAddress();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);

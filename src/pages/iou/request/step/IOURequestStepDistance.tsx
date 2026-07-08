@@ -289,9 +289,7 @@ function IOURequestStepDistance({
     }, []);
 
     // When the destination workspace requires home/office commuter exclusions, the per-member
-    // commute deduction can't be computed unless the member has a home address. Surface a
-    // proactive modal as soon as the policy is known; submission-time gating lives in
-    // useExpenseSubmission so it covers every distance entry point.
+    // commute deduction can't be computed unless the member has a home address.
     const {needsHomeAddressPrompt, promptForHomeAddress} = useHomeAddressGateForDistance(policy);
     const hasShownHomeAddressModalRef = useRef(false);
     useEffect(() => {
@@ -466,9 +464,6 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
-        // Hard block: if the destination workspace requires home/office commuter exclusions and the
-        // member has no home address, the per-member commute can't be computed - re-show the modal
-        // instead of letting them save.
         if (needsHomeAddressPrompt) {
             promptForHomeAddress();
             return;
@@ -575,8 +570,6 @@ function IOURequestStepDistance({
     ]);
 
     const submitManualDistance = useCallback(() => {
-        // Same home-address guard as submitWaypoints - block manual saves too in case the user
-        // dismissed the proactive modal and switched tabs.
         if (needsHomeAddressPrompt) {
             promptForHomeAddress();
             return;
