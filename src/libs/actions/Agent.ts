@@ -101,56 +101,7 @@ function createAgent(
         {optimisticData, successData, failureData},
     );
 
-    return {optimisticAccountID, avatarURI, createdAgentAccountID: waitForCreatedAgentAccountID(optimisticAccountID)};
-}
-
-/**
- * Resolves with the real, server-assigned accountID of the agent just created by `createAgent`.
- *
- * Account IDs (unlike report IDs) can't be generated optimistically on the client, so the optimistic
- * accountID above is never the agent's real identity — CREATE_AGENT nulls it out on success and writes
- * the agent under a real accountID instead. We therefore watch the agent-prompt collection and resolve
- * with the first agent that appears after this call that isn't the optimistic placeholder or an agent
- * that already existed. Callers use it to open the DM with the newly created agent once it's real.
- */
-function waitForCreatedAgentAccountID(optimisticAccountID: number): Promise<number> {
-    return new Promise((resolve) => {
-        let knownAgentAccountIDs: Set<number> | undefined;
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
-            waitForCollectionCallback: true,
-            callback: (agentPrompts) => {
-                const entries = Object.entries(agentPrompts ?? {});
-
-                // The first callback runs before CREATE_AGENT can respond, so it establishes the baseline
-                // (agents that already existed plus the optimistic placeholder). The real agent is whatever shows up after.
-                if (!knownAgentAccountIDs) {
-                    knownAgentAccountIDs = new Set(entries.map(([key]) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length))));
-                    return;
-                }
-
-                const createdAgentEntry = entries.find(([key, agentPrompt]) => {
-                    const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-
-                    // Skip agents that already existed at baseline and this request's own optimistic placeholder.
-                    if (accountID === optimisticAccountID || knownAgentAccountIDs?.has(accountID)) {
-                        return false;
-                    }
-
-                    // Skip any *other* agent still pending creation — e.g. a second agent the user created before this
-                    // one's CREATE_AGENT responded (its optimistic accountID is also new and not our optimistic ID).
-                    // Only a real, server-created agent has no ADD pending action, and that's the accountID we can open a DM with.
-                    return agentPrompt?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-                });
-                if (createdAgentEntry === undefined) {
-                    return;
-                }
-
-                Onyx.disconnect(connection);
-                resolve(Number(createdAgentEntry[0].slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length)));
-            },
-        });
-    });
+    return {optimisticAccountID, avatarURI};
 }
 
 function clearAgentError(optimisticAccountID: number) {

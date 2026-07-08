@@ -15,7 +15,6 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
@@ -255,41 +254,6 @@ describe('createAgent', () => {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         });
         expect(promptValue?.errors).toBeTruthy();
-    });
-
-    it('resolves createdAgentAccountID with the real server agent, ignoring other pending optimistic agents', async () => {
-        await Onyx.clear();
-
-        const {optimisticAccountID, createdAgentAccountID} = createAgent('Bot', 'My prompt');
-
-        // Let waitForCreatedAgentAccountID establish its baseline from the (empty) collection.
-        await waitForBatchedUpdates();
-
-        let resolvedAccountID: number | undefined;
-        const settledCreatedAgentAccountID = createdAgentAccountID.then((id) => {
-            resolvedAccountID = id;
-        });
-
-        // A second agent the user creates before this one's CREATE_AGENT responds shows up as a *new*
-        // optimistic prompt entry (pendingAction ADD). It must NOT be mistaken for the created agent.
-        const otherOptimisticAccountID = optimisticAccountID + 1;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${otherOptimisticAccountID}`, {
-            prompt: 'Another prompt',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        });
-        await waitForBatchedUpdates();
-
-        // Still unresolved — the only new entry is another optimistic placeholder.
-        expect(resolvedAccountID).toBeUndefined();
-
-        // The real, server-created agent arrives without an ADD pending action.
-        const realAccountID = 22542959;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, {prompt: 'My prompt'});
-        await waitForBatchedUpdates();
-        await settledCreatedAgentAccountID;
-
-        await expect(createdAgentAccountID).resolves.toBe(realAccountID);
-        expect(resolvedAccountID).toBe(realAccountID);
     });
 });
 

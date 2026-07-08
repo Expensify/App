@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -35,12 +36,21 @@ import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
+
+type PendingCreatedAgent = {
+    optimisticAccountID: number;
+    knownAgentAccountIDs: Set<number>;
+};
+
+function getAgentAccountIDFromKey(key: string): number {
+    return Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+}
 
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
@@ -50,13 +60,55 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
     const chatWithAgent = useChatWithAgent();
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [selectedPresetID, setSelectedPresetID] = useState<AgentAvatarID | null>(() => AGENT_AVATARS.ordered.at(Math.floor(Math.random() * AGENT_AVATARS.ordered.length))?.id ?? null);
     const [uploadedURI, setUploadedURI] = useState<string | null>(null);
+    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
+
+    // Account IDs can't be generated optimistically (unlike report IDs), so an agent's real accountID only
+    // exists once CREATE_AGENT responds. When creating online we keep this page mounted until that happens,
+    // then open the DM. This holds the agents that already existed at submit time plus this request's
+    // optimistic placeholder, both of which we ignore when spotting the newly created agent.
+    const pendingCreatedAgentRef = useRef<PendingCreatedAgent | null>(null);
+
+    useEffect(() => {
+        const pendingCreatedAgent = pendingCreatedAgentRef.current;
+        if (!pendingCreatedAgent) {
+            return;
+        }
+
+        // Creation failed: the optimistic entry now carries an error. Dismiss and let the Agents list surface it.
+        const optimisticPrompt = agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingCreatedAgent.optimisticAccountID}`];
+        if (optimisticPrompt?.errors) {
+            pendingCreatedAgentRef.current = null;
+            Navigation.goBack();
+            return;
+        }
+
+        const createdAgentKey = Object.keys(agentPrompts ?? {}).find((key) => {
+            const accountID = getAgentAccountIDFromKey(key);
+
+            // Ignore agents that already existed at submit time and this request's own optimistic placeholder.
+            if (accountID === pendingCreatedAgent.optimisticAccountID || pendingCreatedAgent.knownAgentAccountIDs.has(accountID)) {
+                return false;
+            }
+
+            // A real, server-created agent has no ADD pending action — that's the one we can open a DM with.
+            // Another agent the user created in the meantime is still an optimistic ADD placeholder.
+            return agentPrompts?.[key]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+        });
+        if (!createdAgentKey) {
+            return;
+        }
+
+        pendingCreatedAgentRef.current = null;
+        chatWithAgent(getAgentAccountIDFromKey(createdAgentKey), {shouldDismissModal: true});
+    }, [agentPrompts, chatWithAgent]);
 
     useFocusEffect(
         useCallback(() => {
@@ -100,28 +152,27 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
-        // `createAgent` writes the agent optimistically (works offline) and returns a promise that
-        // resolves with the agent's real, server-assigned accountID once CREATE_AGENT responds.
-        const {createdAgentAccountID} = pendingFile
+        // `createAgent` writes the agent optimistically (works offline) and returns the optimistic
+        // accountID it wrote into Onyx. The real, server-assigned accountID only arrives once CREATE_AGENT responds.
+        const {optimisticAccountID} = pendingFile
             ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        // Leave the add-agent modal right away so the optimistic agent shows in the Agents list
-        // (this also keeps the flow usable offline).
-        const wasOffline = getIsOffline();
-        Navigation.goBack();
-
-        // Opening the DM is the immediate continuation of tapping "Create" — but it needs the real,
-        // server-assigned accountID, which doesn't exist until CREATE_AGENT responds. When created offline
-        // that response only arrives after reconnect, long after the user has moved on, so auto-opening the
-        // DM then would yank them out of whatever they're doing. Only continue into the DM for agents created
-        // online; offline creations just leave the new agent in the list for the user to open when they choose.
-        if (wasOffline) {
+        // Offline: the real accountID only arrives after reconnect, long after the user has moved on, so we
+        // don't wait — just return to the list with the optimistic agent for the user to open when they choose.
+        if (getIsOffline()) {
+            Navigation.goBack();
             return;
         }
-        createdAgentAccountID.then((accountID) => {
-            chatWithAgent(accountID, {shouldDismissModal: true});
-        });
+
+        // Online: opening the DM is the immediate continuation of tapping "Create", but it needs the real
+        // accountID. Stay on this page (showing the submit spinner) until the created agent appears in the
+        // collection, then the effect opens the DM. Snapshot the existing agents so we can tell the new one apart.
+        pendingCreatedAgentRef.current = {
+            optimisticAccountID,
+            knownAgentAccountIDs: new Set(Object.keys(agentPrompts ?? {}).map(getAgentAccountIDFromKey)),
+        };
+        setIsCreatingAgent(true);
     };
 
     return (
@@ -140,6 +191,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                 onSubmit={handleSubmit}
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
+                isLoading={isCreatingAgent}
                 style={[styles.flex1, styles.ph5]}
                 shouldUseScrollView={shouldUseScrollableLayout}
                 submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
