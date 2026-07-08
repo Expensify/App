@@ -17,7 +17,41 @@ import clone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 // Local cache of reportID to optimistic Onyx data
-const reportOptimisticData = new Map<string, {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined>();
+const reportOptimisticData = new Map<string, {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>; invitedEmails: string[]} | undefined>();
+
+// Pairs the login invited via emailList with the participant the server settled without one. Restores only the unambiguous 1:1 case.
+function getRestoredPersonalDetails(responseOnyxData: AnyOnyxUpdate[], reportID: string, redundantParticipants: Record<number, null>, invitedEmails: string[]): PersonalDetailsList {
+    const invitedEmail = invitedEmails.length === 1 ? invitedEmails.at(0) : undefined;
+    if (!invitedEmail) {
+        return {};
+    }
+
+    const settledParticipantIDs = new Set<string>();
+    const loginlessDetailIDs = new Set<string>();
+    for (const update of responseOnyxData) {
+        if (update.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
+            const participants = (update.value as Report | undefined)?.participants ?? {};
+            for (const accountID of Object.keys(participants)) {
+                settledParticipantIDs.add(accountID);
+            }
+        }
+        if (update.key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            for (const [accountID, detail] of Object.entries((update.value as PersonalDetailsList | undefined) ?? {})) {
+                if (!detail || detail.login) {
+                    continue;
+                }
+                loginlessDetailIDs.add(accountID);
+            }
+        }
+    }
+
+    const candidates = [...settledParticipantIDs].filter((accountID) => loginlessDetailIDs.has(accountID) && !(accountID in redundantParticipants));
+    const settledAccountID = candidates.length === 1 ? Number(candidates.at(0)) : undefined;
+    if (!settledAccountID) {
+        return {};
+    }
+    return {[settledAccountID]: {accountID: settledAccountID, login: invitedEmail}};
+}
 
 /**
  * This middleware checks for the presence of a field called preexistingReportID in the response.
@@ -37,7 +71,11 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             // We're opening a new report, which can be a new or preexisting report
             // For new report, clean up optimistic data after this request returned successfully
             // For report redirect a preexisting report, clean up optimistic data after the request of preexisting report returned successfully
-            reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID));
+            const cleanupData = prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID);
+            const invitedEmails = String(request.data?.emailList ?? '')
+                .split(',')
+                .filter(Boolean);
+            reportOptimisticData.set(currentRequestReportID, cleanupData ? {...cleanupData, invitedEmails} : undefined);
         }
 
         const responseOnyxData = response?.onyxData ?? [];
@@ -82,7 +120,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
         }
 
         if (!!currentRequestReportID && request?.command === WRITE_COMMANDS.OPEN_REPORT && !!response?.onyxData && reportOptimisticData.has(currentRequestReportID)) {
-            const {settledPersonalDetails, redundantParticipants} = reportOptimisticData.get(currentRequestReportID) ?? {};
+            const {settledPersonalDetails, redundantParticipants, invitedEmails} = reportOptimisticData.get(currentRequestReportID) ?? {};
             reportOptimisticData.delete(currentRequestReportID);
             if (!isEmptyObject(settledPersonalDetails) && !isEmptyObject(redundantParticipants)) {
                 (response.onyxData as AnyOnyxUpdate[]).push(
@@ -99,6 +137,16 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                         value: redundantParticipants,
                     },
                 );
+            }
+
+            // The cleanup above deletes the only record carrying the typed login, so restore it onto the settled participant
+            const restoredPersonalDetails = getRestoredPersonalDetails(response.onyxData as AnyOnyxUpdate[], currentRequestReportID, redundantParticipants ?? {}, invitedEmails ?? []);
+            if (!isEmptyObject(restoredPersonalDetails)) {
+                (response.onyxData as AnyOnyxUpdate[]).push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: restoredPersonalDetails,
+                });
             }
         }
         return response;
