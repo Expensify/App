@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type AgentZeroProcessingIndicator = NonNullable<ReportNameValuePairs['agentZeroProcessingRequestIndicator']>;
 

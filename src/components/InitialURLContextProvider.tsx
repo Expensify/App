@@ -1,7 +1,9 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
-import {Linking} from 'react-native';
 import type {Route} from '@src/ROUTES';
+
+import type {ReactNode} from 'react';
+
+import React, {createContext, useContext, useEffect, useState} from 'react';
+import {Linking} from 'react-native';
 
 type InitialUrlStateContextType = {
     initialURL: Route | null;

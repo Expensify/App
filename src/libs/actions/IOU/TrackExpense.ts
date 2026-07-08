@@ -1,7 +1,5 @@
-import {fastMerge} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+
 import * as API from '@libs/API';
 import type {
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
@@ -84,6 +82,7 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData} from '@userActions/Policy/Policy';
@@ -92,6 +91,7 @@ import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,14 +104,14 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
-import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+
+import {fastMerge} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import type {ReplaceReceipt} from './Receipt';
-import {getSearchOnyxUpdate} from './SearchUpdate';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -122,6 +122,13 @@ import type {
     TrackedExpenseReportInformation,
     TrackedExpenseTransactionParams,
 } from './types/TrackedExpenseParams';
+
+import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
+import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
@@ -192,6 +199,8 @@ type GetTrackExpenseInformationParams = {
     currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
+    isDraftChatReport?: boolean;
 };
 
 type DeleteTrackExpenseParams = {
@@ -852,6 +861,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
@@ -979,7 +989,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     }
 
     // Check if the report is a draft
-    const isDraftReportLocal = isDraftReport(chatReport?.reportID);
+    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
@@ -1725,15 +1735,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
-        policyParams: {
-            ...policyParams,
-            policyTagList: getMoneyRequestPolicyTags({
-                existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-                participant: participantParams.participant,
-            }),
-        },
+        policyParams,
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
@@ -2270,8 +2272,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             formatPhoneNumber,
             personalDetailsList,
             {accountID: currentUserAccountID},
-            undefined,
-            undefined,
             reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
@@ -2355,6 +2355,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         previousOdometerDraft,
         delegateAccountID,
         reportActionsList,
+        isDraftChatReport,
         personalDetailsList,
         currentUserLocalCurrency,
     } = params;
@@ -2516,6 +2517,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
@@ -2607,6 +2609,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                reportActionsList: reportActionsList ?? {},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
