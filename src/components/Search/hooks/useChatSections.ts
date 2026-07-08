@@ -1,19 +1,12 @@
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+import type {SearchData, SearchQueryJSON} from '@components/Search/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getReportActionsSections, getSortedSections} from '@libs/SearchUIUtils';
+import {getReportActionsSections, getSortedSections} from '@libs/SearchUIUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import {useMemo} from 'react';
@@ -21,6 +14,7 @@ import {useMemo} from 'react';
 import type {SearchSections} from './useExpenseReportSections';
 import type {SearchShell} from './useSearchShell';
 
+import useSearchSectionColumns from './useSearchSectionColumns';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type UseChatSectionsParams = {
@@ -35,28 +29,21 @@ type UseChatSectionsParams = {
 
 const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_FILTERED_DATA: SearchData = [];
-const EMPTY_COLUMNS: SearchColumnType[] = [];
 
 /**
  * Section builder for the chat search view (`type === CHAT`).
  *
  * The chat builder reads only report actions from the snapshot plus the report-attributes derived value (for
  * report names); it needs none of the transaction/card/policy slices. So this hook subscribes to almost
- * nothing — only the report attributes and visible columns — and reads locale/account from context directly.
- * Because it mounts only inside `ChatSectionsContainer`, every other search type never opens even these.
+ * nothing — only the report attributes — and reads locale from context directly. Because it mounts only
+ * inside `ChatSectionsContainer`, every other search type never opens even these.
  */
 function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseChatSectionsParams): SearchSections {
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
     const {shouldComputeSections, searchDataWithOptimisticTransaction, trackingState} = shell;
 
     const {translate, localeCompare} = useLocalize();
-    const {accountID} = useCurrentUserPersonalDetails();
-    const {currentSearchKey} = useSearchQueryContext();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const reportAttributesDerivedValue = useReportAttributes();
-    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
     // Memoized explicitly: React Compiler caches the inline callbacks but NOT the getReportActionsSections
@@ -105,21 +92,7 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
     // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
-    // Not memoized: `columns` is stabilized downstream by `columnsToShow` in <Search>.
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
-    const columns = ((): SearchColumnType[] => {
-        if (!searchResults?.data) {
-            return EMPTY_COLUMNS;
-        }
-        return getColumnsToShow({
-            currentAccountID: accountID,
-            data: searchResults.data,
-            visibleColumns,
-            type: searchDataType,
-            shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            fallbackPolicyID: policyForMovingExpensesID,
-        });
-    })();
+    const columns = useSearchSectionColumns(queryJSON, searchResults);
 
     return {
         data: stableSortedData,

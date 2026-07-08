@@ -1,6 +1,6 @@
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+import type {SearchData, SearchQueryJSON} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,13 +9,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {selectFilteredReportActions} from '@libs/ReportUtils';
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSortedSections, getTransactionsSections} from '@libs/SearchUIUtils';
+import {getSortedSections, getTransactionsSections} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -24,6 +22,7 @@ import {useMemo} from 'react';
 import type {SearchSections} from './useExpenseReportSections';
 import type {SearchShell} from './useSearchShell';
 
+import useSearchSectionColumns from './useSearchSectionColumns';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type UseTransactionSectionsParams = {
@@ -38,7 +37,6 @@ type UseTransactionSectionsParams = {
 
 const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_FILTERED_DATA: SearchData = [];
-const EMPTY_COLUMNS: SearchColumnType[] = [];
 
 /**
  * Section builder for the flat transaction search views (`type` of expense/invoice/trip, no group-by). These
@@ -57,7 +55,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {currentSearchKey} = useSearchQueryContext();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
@@ -68,7 +65,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
     // Memoized explicitly: React Compiler caches the inline callbacks but NOT the getTransactionsSections call
@@ -158,21 +154,7 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
     // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
-    // Not memoized: `columns` is stabilized downstream by `columnsToShow` in <Search>.
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
-    const columns = ((): SearchColumnType[] => {
-        if (!searchResults?.data) {
-            return EMPTY_COLUMNS;
-        }
-        return getColumnsToShow({
-            currentAccountID: accountID,
-            data: searchResults.data,
-            visibleColumns,
-            type: searchDataType,
-            shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            fallbackPolicyID: policyForMovingExpensesID,
-        });
-    })();
+    const columns = useSearchSectionColumns(queryJSON, searchResults);
 
     return {
         data: stableSortedData,

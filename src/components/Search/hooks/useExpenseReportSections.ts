@@ -1,4 +1,4 @@
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
 
@@ -8,15 +8,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {selectFilteredReportActions} from '@libs/ReportUtils';
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getReportSections, getSortedSections} from '@libs/SearchUIUtils';
+import {getReportSections, getSortedSections} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -24,6 +21,7 @@ import {useMemo} from 'react';
 
 import type {SearchShell} from './useSearchShell';
 
+import useSearchSectionColumns from './useSearchSectionColumns';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 /**
@@ -63,15 +61,14 @@ type UseExpenseReportSectionsParams = {
 
 const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_FILTERED_DATA: SearchData = [];
-const EMPTY_COLUMNS: SearchColumnType[] = [];
 
 /**
  * Section builder for the expense-report search view (`type === EXPENSE_REPORT`, no group-by).
  *
- * Subscribes to ONLY the slice the report builder reads (report actions, bank accounts, personal details,
- * visible columns) and reads locale/account/network from context directly. Because this hook mounts only
- * inside `ExpenseReportSearchContainer` — i.e. only when a report search is active — those subscriptions
- * are closed for every other search type. It reuses the shared optimistic tracking + gate from `shell`.
+ * Subscribes to ONLY the slice the report builder reads (report actions, bank accounts, personal details)
+ * and reads locale/account/network from context directly. Because this hook mounts only inside
+ * `ExpenseReportSearchContainer` — i.e. only when a report search is active — those subscriptions are closed
+ * for every other search type. It reuses the shared optimistic tracking + gate from `shell`.
  */
 function useExpenseReportSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseExpenseReportSectionsParams): SearchSections {
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
@@ -82,16 +79,13 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
     });
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
     // Memoized explicitly: React Compiler caches the inline callbacks but NOT the getReportSections call
@@ -178,21 +172,7 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
     // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
-    // Not memoized: `columns` is stabilized downstream by `columnsToShow` in <Search>.
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
-    const columns = ((): SearchColumnType[] => {
-        if (!searchResults?.data) {
-            return EMPTY_COLUMNS;
-        }
-        return getColumnsToShow({
-            currentAccountID: accountID,
-            data: searchResults.data,
-            visibleColumns,
-            type: searchDataType,
-            shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            fallbackPolicyID: policyForMovingExpensesID,
-        });
-    })();
+    const columns = useSearchSectionColumns(queryJSON, searchResults);
 
     return {
         data: stableSortedData,
