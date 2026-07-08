@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -983,7 +982,7 @@ const translations: TranslationDeepObject<typeof en> = {
             validateAccount: {title: 'Valideer je account', subtitle: 'Account', cta: 'Valideren'},
             addHomeAddress: {
                 title: 'Voeg een huisadres toe',
-                subtitle: 'Je beheerder heeft woon-werkuitsluitingen voor afstandsuitgaven ingeschakeld. Voeg een huisadres toe zodat we deze op je claims kunnen toepassen.',
+                subtitle: 'Je beheerder heeft woon-werkuitzonderingen ingeschakeld voor afstandskosten. Voeg een huisadres toe zodat we die op je declaraties kunnen toepassen.',
                 cta: 'Adres toevoegen',
             },
             fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
@@ -1229,9 +1228,9 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Huisadres is vereist',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Voordat je afstand kunt registreren, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werkaftrekken.`
-                    : 'Voordat je afstand kunt registreren, moet je je huisadres toevoegen aan je privéprofiel. Deze werkruimte gebruikt dit adres voor woon-werkaftrekken.',
-            cta: 'Huisadres toevoegen',
+                    ? `Voordat je afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werk­aftrekken.`
+                    : 'Voordat je een afstand bijhoudt, moet je je huisadres toevoegen aan je privéprofiel. Deze workspace gebruikt dit adres voor woon-werkverkeer­aftrek.',
+            cta: 'Thuisadres toevoegen',
         },
         amount: 'Bedrag',
         percent: 'Procent',
@@ -6835,24 +6834,21 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 summaryDisabled: 'Geen woon-werkuitzondering',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
                 optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
-                optionDisabledHelp: 'Geen woon-werkverkeer wordt uit claims verwijderd.',
+                optionDisabledHelp: 'Geen woon-werkverkeer is uit declaraties verwijderd.',
                 optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
                 optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
                 distanceLabel: 'Afstand',
-                summaryHomeAndOffice: 'Gebruik thuis- en kantoorlocaties',
-                optionHomeAndOfficeTitle: 'Berekenen via huis en kantoor',
-                optionHomeAndOfficeHelp: 'Gebruik het huisadres, de werkregeling en de kantoorindeling van het lid om woon-werkuitsluitingen te berekenen.',
+                summaryHomeAndOffice: 'Gebruik thuis- en kantoorlokaties',
+                optionHomeAndOfficeTitle: 'Bereken per huis en kantoor',
+                optionHomeAndOfficeHelp: 'Gebruik het thuisadres, de werkafspraak en de kantoorindeling van het lid om woon-werkuitzonderingen te berekenen.',
                 workspaceAddressRequired: {
                     title: 'Niet zo snel...',
-                    promptStart: 'Je kunt de instelling Berekenen via huis en kantoor pas inschakelen nadat je een kantooradres hebt toegevoegd in ',
+                    promptStart: 'Je kunt de instelling ‘berekenen op basis van thuis en kantoor’ pas inschakelen nadat je eerst een kantoorlocatie hebt toegevoegd in',
                     linkText: 'Overzicht',
                     promptEnd: '.',
                     cta: 'Begrepen',
                 },
-                errors: {
-                    distanceMustBePositive: 'Afstand moet een positief geheel getal zijn.',
-                    invalidAddress: 'Voer een geldig adres in',
-                },
+                errors: {distanceMustBePositive: 'Afstand moet een positief geheel getal zijn.', invalidAddress: 'Voer een geldig adres in'},
             },
             distance: 'Afstand',
             centrallyManage: 'Beheer tarieven centraal, volg in mijlen of kilometers en stel een standaardcategorie in.',

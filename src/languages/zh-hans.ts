@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -952,11 +951,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
-            addHomeAddress: {
-                title: '添加家庭地址',
-                subtitle: '您的管理员已为距离支出启用了通勤排除。请添加家庭地址，以便将其应用于您的申报。',
-                cta: '添加地址',
-            },
+            addHomeAddress: {title: '添加家庭住址', subtitle: '您的管理员已为里程报销启用了通勤排除。请添加家庭住址，以便我们将其应用于您的报销申请。', cta: '添加地址'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1179,12 +1174,12 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: '需要家庭地址',
+            title: '必须填写家庭住址',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `在记录距离之前，您需要在私人资料中添加家庭地址。${workspaceName} 将此地址用于通勤扣除。`
-                    : '在记录距离之前，您需要在私人资料中添加家庭地址。此工作区将此地址用于通勤扣除。',
-            cta: '添加家庭地址',
+                    ? `在记录里程之前，您需要在个人资料中添加家庭住址。${workspaceName} 会使用此地址计算通勤扣除。`
+                    : '在开始记录行程前，您需要在个人资料中添加家庭住址。此工作区会使用该地址用于通勤扣除。',
+            cta: '添加家庭住址',
         },
         amount: '金额',
         percent: '百分比',
@@ -6645,24 +6640,21 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 summaryDisabled: '不排除通勤',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
                 optionDisabledTitle: '不要排除通勤',
-                optionDisabledHelp: '不会从申报中扣除任何通勤距离。',
+                optionDisabledHelp: '未从报销中移除任何通勤费用。',
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                summaryHomeAndOffice: '使用家庭和办公室位置',
+                summaryHomeAndOffice: '使用家庭和办公地点',
                 optionHomeAndOfficeTitle: '按家庭和办公室计算',
-                optionHomeAndOfficeHelp: '使用成员的家庭地址、工作安排和办公室分配来计算通勤排除。',
+                optionHomeAndOfficeHelp: '使用成员的家庭住址、工作安排和办公室分配来计算通勤豁免。',
                 workspaceAddressRequired: {
-                    title: '等一下...',
-                    promptStart: '在你在',
+                    title: '别急……',
+                    promptStart: '在您先添加一个办公室地址之前，无法启用“按家庭和办公室计算”设置，添加位置于',
                     linkText: '概览',
                     promptEnd: '中添加办公室地址之前，无法启用按家庭和办公室计算的设置。',
                     cta: '知道了',
                 },
-                errors: {
-                    distanceMustBePositive: '距离必须是一个正整数。',
-                    invalidAddress: '请输入有效地址',
-                },
+                errors: {distanceMustBePositive: '距离必须是一个正整数。', invalidAddress: '请输入有效的地址'},
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',

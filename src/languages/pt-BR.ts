@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -982,8 +981,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
             addHomeAddress: {
-                title: 'Adicione um endereço residencial',
-                subtitle: 'Seu administrador habilitou exclusões de trajeto para despesas de distância. Adicione um endereço residencial para que possamos aplicá-las às suas solicitações.',
+                title: 'Adicionar um endereço residencial',
+                subtitle: 'Seu administrador ativou exclusões de deslocamento para despesas de distância. Adicione um endereço residencial para que possamos aplicá-las aos seus reembolsos.',
                 cta: 'Adicionar endereço',
             },
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
@@ -1226,11 +1225,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Endereço residencial obrigatório',
+            title: 'Endereço residencial é obrigatório',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa este endereço para deduções de trajeto.`
-                    : 'Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este espaço de trabalho usa este endereço para deduções de trajeto.',
+                    ? `Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa esse endereço para deduções de deslocamento.`
+                    : 'Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
             cta: 'Adicionar endereço residencial',
         },
         amount: 'Valor',
@@ -6827,24 +6826,21 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 summaryDisabled: 'Sem exclusão de deslocamento',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
                 optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
-                optionDisabledHelp: 'Nenhum trajeto é removido das solicitações.',
+                optionDisabledHelp: 'Nenhum trajeto de deslocamento é removido das solicitações.',
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                summaryHomeAndOffice: 'Usar locais de casa e escritório',
+                summaryHomeAndOffice: 'Usar endereços de casa e do trabalho',
                 optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
-                optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a alocação de escritório do membro para calcular as exclusões de trajeto.',
+                optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a alocação de escritório da pessoa colaboradora para calcular as exclusões de deslocamento.',
                 workspaceAddressRequired: {
-                    title: 'Espere um momento...',
-                    promptStart: 'Você não pode ativar a configuração calcular por casa e escritório enquanto não adicionar um endereço de escritório em ',
+                    title: 'Calma lá...',
+                    promptStart: 'Você não pode ativar a configuração de cálculo por casa e escritório até primeiro adicionar um endereço de escritório em',
                     linkText: 'Visão geral',
                     promptEnd: '.',
                     cta: 'Entendi',
                 },
-                errors: {
-                    distanceMustBePositive: 'A distância deve ser um número inteiro positivo.',
-                    invalidAddress: 'Insira um endereço válido',
-                },
+                errors: {distanceMustBePositive: 'A distância deve ser um número inteiro positivo.', invalidAddress: 'Insira um endereço válido'},
             },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',

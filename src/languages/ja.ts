@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -969,11 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
-            addHomeAddress: {
-                title: '自宅住所を追加',
-                subtitle: '管理者が距離経費の通勤控除を有効にしました。請求に適用できるよう自宅住所を追加してください。',
-                cta: '住所を追加',
-            },
+            addHomeAddress: {title: '自宅住所を追加', subtitle: '管理者が距離経費に通勤分の除外を有効にしました。精算に適用できるよう、自宅住所を追加してください。', cta: '住所を追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -1210,11 +1205,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: '自宅住所が必要です',
+            title: '自宅住所は必須です',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `距離を記録するには、まずプライベートプロフィールに自宅住所を追加してください。${workspaceName} はこの住所を通勤控除に使用します。`
-                    : '距離を記録するには、まずプライベートプロフィールに自宅住所を追加してください。このワークスペースはこの住所を通勤控除に使用します。',
+                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除のためにこの住所を使用します。`
+                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースは通勤控除のためにこの住所を使用します。',
             cta: '自宅住所を追加',
         },
         amount: '金額',
@@ -6772,24 +6767,21 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 summaryDisabled: '通勤除外なし',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
                 optionDisabledTitle: '通勤を除外しない',
-                optionDisabledHelp: '請求から通勤距離は差し引かれません。',
+                optionDisabledHelp: '通勤分は申請から差し引かれていません。',
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                summaryHomeAndOffice: '自宅とオフィスの位置を使用',
-                optionHomeAndOfficeTitle: '自宅とオフィスで計算',
-                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィスの割り当てを使用して通勤控除を計算します。',
+                summaryHomeAndOffice: '自宅と勤務先の所在地を使用する',
+                optionHomeAndOfficeTitle: '自宅とオフィス別に計算',
+                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、およびオフィスの配属情報を使用して、通勤の非課税対象額を算出します。',
                 workspaceAddressRequired: {
-                    title: 'ちょっと待って...',
-                    promptStart: '自宅とオフィスで計算する設定を有効にするには、まず ',
+                    title: 'ちょっとお待ちください…',
+                    promptStart: '自宅とオフィスで計算する設定は、先にオフィス所在地を追加しないと有効にできません',
                     linkText: '概要',
                     promptEnd: ' でオフィスの住所を追加してください。',
-                    cta: 'OK',
+                    cta: '了解しました',
                 },
-                errors: {
-                    distanceMustBePositive: '距離は正の整数で入力してください。',
-                    invalidAddress: '有効な住所を入力してください',
-                },
+                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください'},
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',

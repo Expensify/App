@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -986,7 +985,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addHomeAddress: {
                 title: 'Aggiungi un indirizzo di casa',
                 subtitle:
-                    'Il tuo amministratore ha abilitato le esclusioni dei tragitti per le spese di distanza. Aggiungi un indirizzo di casa così possiamo applicarle alle tue richieste.',
+                    'Il tuo amministratore ha abilitato le esclusioni per i tragitti casa-lavoro nelle spese chilometriche. Aggiungi un indirizzo di casa così potremo applicarle alle tue richieste di rimborso.',
                 cta: 'Aggiungi indirizzo',
             },
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
@@ -1229,11 +1228,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'È necessario un indirizzo di casa',
+            title: "L'indirizzo di casa è obbligatorio",
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Prima di registrare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} usa questo indirizzo per le deduzioni dei tragitti.`
-                    : 'Prima di registrare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Quest’area di lavoro usa questo indirizzo per le deduzioni dei tragitti.',
+                    ? `Prima di tracciare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} usa questo indirizzo per le detrazioni per i pendolari.`
+                    : 'Prima di tracciare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Questo spazio di lavoro usa questo indirizzo per le detrazioni per pendolari.',
             cta: 'Aggiungi indirizzo di casa',
         },
         amount: 'Importo',
@@ -6853,24 +6852,21 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 summaryDisabled: 'Nessuna esclusione per il tragitto',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Escludi ${distance} ${unit} per rimborso`,
                 optionDisabledTitle: 'Non escludere gli spostamenti casa-lavoro',
-                optionDisabledHelp: 'Nessun tragitto viene rimosso dalle richieste.',
+                optionDisabledHelp: 'Nessuno spostamento casa-lavoro viene rimosso dalle richieste.',
                 optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
                 optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
                 distanceLabel: 'Distanza',
-                summaryHomeAndOffice: 'Usa le località di casa e ufficio',
-                optionHomeAndOfficeTitle: 'Calcola in base a casa e ufficio',
-                optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa, la modalità di lavoro e l’assegnazione dell’ufficio del membro per calcolare le esclusioni dei tragitti.',
+                summaryHomeAndOffice: 'Usa le posizioni di casa e ufficio',
+                optionHomeAndOfficeTitle: 'Calcola per casa e ufficio',
+                optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa del membro, la modalità di lavoro e l’assegnazione all’ufficio per calcolare le esclusioni sul tragitto casa-lavoro.',
                 workspaceAddressRequired: {
                     title: 'Non così in fretta...',
-                    promptStart: 'Non puoi attivare il calcolo in base a casa e ufficio finché non aggiungi un indirizzo dell’ufficio in ',
+                    promptStart: "Non puoi abilitare l'impostazione per calcolare in base a casa e ufficio finché non aggiungi prima una sede dell'ufficio in",
                     linkText: 'Panoramica',
                     promptEnd: '.',
-                    cta: 'Ho capito',
+                    cta: 'Capito',
                 },
-                errors: {
-                    distanceMustBePositive: 'La distanza deve essere un numero intero positivo.',
-                    invalidAddress: 'Inserisci un indirizzo valido',
-                },
+                errors: {distanceMustBePositive: 'La distanza deve essere un numero intero positivo.', invalidAddress: 'Inserisci un indirizzo valido'},
             },
             distance: 'Distanza',
             centrallyManage: 'Gestisci centralmente le tariffe, monitora in miglia o chilometri e imposta una categoria predefinita.',

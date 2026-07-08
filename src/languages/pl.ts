@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -985,7 +984,7 @@ const translations: TranslationDeepObject<typeof en> = {
             validateAccount: {title: 'Zweryfikuj swoje konto', subtitle: 'Konto', cta: 'Zatwierdź'},
             addHomeAddress: {
                 title: 'Dodaj adres domowy',
-                subtitle: 'Twój administrator włączył wykluczenia dojazdów dla wydatków za dystans. Dodaj adres domowy, abyśmy mogli je zastosować do twoich roszczeń.',
+                subtitle: 'Twój administrator włączył wyłączenia dojazdów dla wydatków odległościowych. Dodaj adres domowy, żebyśmy mogli zastosować je do twoich rozliczeń.',
                 cta: 'Dodaj adres',
             },
             fixFailedBilling: {title: 'Nie mogliśmy obciążyć zapisanej karty', subtitle: 'Subskrypcja'},
@@ -1222,11 +1221,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Wymagany adres domowy',
+            title: 'Adres domowy jest wymagany',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Zanim zaczniesz rejestrować dystans, musisz dodać swój adres domowy do prywatnego profilu. ${workspaceName} używa tego adresu do odliczeń dojazdów.`
-                    : 'Zanim zaczniesz rejestrować dystans, musisz dodać swój adres domowy do prywatnego profilu. Ta przestrzeń robocza używa tego adresu do odliczeń dojazdów.',
+                    ? `Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. ${workspaceName} używa tego adresu do odliczeń za dojazdy do pracy.`
+                    : 'Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. To miejsce pracy wykorzystuje ten adres do odliczeń za dojazdy.',
             cta: 'Dodaj adres domowy',
         },
         amount: 'Kwota',
@@ -6818,24 +6817,21 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 summaryDisabled: 'Bez wykluczenia dojazdów',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Wyklucz ${distance} ${unit} na zgłoszenie`,
                 optionDisabledTitle: 'Nie wykluczaj dojazdów',
-                optionDisabledHelp: 'Z roszczeń nie jest usuwany żaden dojazd.',
+                optionDisabledHelp: 'Nie usunięto żadnego dojazdu z rozliczeń.',
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
                 summaryHomeAndOffice: 'Użyj lokalizacji domu i biura',
-                optionHomeAndOfficeTitle: 'Oblicz na podstawie domu i biura',
-                optionHomeAndOfficeHelp: 'Użyj adresu domowego, modelu pracy i przypisania biura członka do obliczenia wykluczeń dojazdów.',
+                optionHomeAndOfficeTitle: 'Oblicz według domu i biura',
+                optionHomeAndOfficeHelp: 'Użyj adresu domowego członka, jego modelu pracy i przypisania do biura, aby obliczyć wyłączenia z dojazdów.',
                 workspaceAddressRequired: {
-                    title: 'Nie tak szybko...',
-                    promptStart: 'Nie możesz włączyć ustawienia oblicz na podstawie domu i biura, dopóki nie dodasz adresu biura w sekcji ',
+                    title: 'Nie tak szybko…',
+                    promptStart: 'Nie możesz włączyć ustawienia obliczania według domu i biura, dopóki najpierw nie dodasz lokalizacji biura w',
                     linkText: 'Przegląd',
                     promptEnd: '.',
-                    cta: 'Rozumiem',
+                    cta: 'Jasne',
                 },
-                errors: {
-                    distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.',
-                    invalidAddress: 'Wprowadź prawidłowy adres',
-                },
+                errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', invalidAddress: 'Wpisz prawidłowy adres'},
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',

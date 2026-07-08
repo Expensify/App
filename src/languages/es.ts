@@ -1,6 +1,3 @@
-import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -12,12 +9,14 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import CONST from '@src/CONST';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
-
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -942,10 +941,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Validar',
             },
             addHomeAddress: {
-                title: 'Añade una dirección de casa',
+                title: 'Añade una dirección de domicilio',
                 subtitle:
-                    'Tu administrador habilitó exclusiones de desplazamientos para los gastos por distancia. Añade una dirección de casa para que podamos aplicarlas a tus reclamaciones.',
-                cta: 'Añadir dirección',
+                    'Tu administrador habilitó exclusiones de desplazamientos para los gastos de distancia. Añade una dirección de casa para que podamos aplicarlas a tus reclamaciones.',
+                cta: 'Añade dirección',
             },
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
@@ -1188,11 +1187,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Se requiere la dirección de casa',
+            title: 'La dirección particular es obligatoria',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Antes de registrar distancia, debes añadir tu dirección de casa a tu perfil privado. ${workspaceName} usa esta dirección para las deducciones de desplazamientos.`
-                    : 'Antes de registrar distancia, debes añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo usa esta dirección para las deducciones de desplazamientos.',
+                    ? `Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. ${workspaceName} utiliza esta dirección para las deducciones por desplazamiento al trabajo.`
+                    : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo utiliza esta dirección para las deducciones por desplazamiento.',
             cta: 'Añadir dirección de casa',
         },
         amount: 'Importe',
@@ -6781,25 +6780,22 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Excluir desplazamientos al trabajo',
                 summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
-                summaryHomeAndOffice: 'Usar las ubicaciones de casa y oficina',
+                summaryHomeAndOffice: 'Usar ubicaciones de casa y oficina',
                 optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
-                optionDisabledHelp: 'No se elimina ningún desplazamiento de las reclamaciones.',
+                optionDisabledHelp: 'Ningún desplazamiento se elimina de las solicitudes.',
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 optionHomeAndOfficeTitle: 'Calcular por casa y oficina',
-                optionHomeAndOfficeHelp: 'Usa la dirección de casa, el arreglo de trabajo y la asignación de oficina del miembro para calcular las exclusiones de desplazamientos.',
+                optionHomeAndOfficeHelp: 'Utiliza la dirección de casa del miembro, su modalidad de trabajo y la asignación de oficina para calcular las exclusiones de desplazamiento.',
                 distanceLabel: 'Distancia',
                 workspaceAddressRequired: {
-                    title: 'Espera un momento...',
-                    promptStart: 'No puedes activar el cálculo por casa y oficina hasta que añadas una dirección de oficina en ',
-                    linkText: 'Vista general',
+                    title: 'No tan rápido...',
+                    promptStart: 'No puedes habilitar el ajuste de calcular por casa y oficina hasta que primero añadas una ubicación de oficina en',
+                    linkText: 'Resumen',
                     promptEnd: '.',
                     cta: 'Entendido',
                 },
-                errors: {
-                    distanceMustBePositive: 'La distancia debe ser un número entero positivo.',
-                    invalidAddress: 'Introduce una dirección válida',
-                },
+                errors: {distanceMustBePositive: 'La distancia debe ser un número entero positivo.', invalidAddress: 'Por favor, introduce una dirección válida'},
             },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',

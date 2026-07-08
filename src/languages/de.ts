@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -983,8 +982,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             validateAccount: {title: 'Bestätigen Sie Ihr Konto', subtitle: 'Konto', cta: 'Bestätigen'},
             addHomeAddress: {
-                title: 'Heimadresse hinzufügen',
-                subtitle: 'Dein Administrator hat Pendlerausschlüsse für Distanzausgaben aktiviert. Füge eine Heimadresse hinzu, damit wir sie auf deine Abrechnungen anwenden können.',
+                title: 'Fügen Sie eine Privatadresse hinzu',
+                subtitle: 'Ihre Verwaltung hat Pendlerausnahmen für Entfernungskosten aktiviert. Fügen Sie eine Privatadresse hinzu, damit wir diese auf Ihre Abrechnungen anwenden können.',
                 cta: 'Adresse hinzufügen',
             },
             fixFailedBilling: {title: 'Wir konnten Ihre hinterlegte Karte nicht belasten', subtitle: 'Abonnement'},
@@ -1228,12 +1227,12 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Heimadresse erforderlich',
+            title: 'Privatadresse ist erforderlich',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Bevor du Distanz erfassen kannst, musst du deine Heimadresse zu deinem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Pendlerabzüge.`
-                    : 'Bevor du Distanz erfassen kannst, musst du deine Heimadresse zu deinem privaten Profil hinzufügen. Dieser Arbeitsbereich verwendet diese Adresse für Pendlerabzüge.',
-            cta: 'Heimadresse hinzufügen',
+                    ? `Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Pendlerabzüge.`
+                    : 'Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. Dieser Workspace verwendet diese Adresse für Pendlerabzüge.',
+            cta: 'Privatadresse hinzufügen',
         },
         amount: 'Betrag',
         percent: 'Prozent',
@@ -6867,24 +6866,21 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
                 optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
-                optionDisabledHelp: 'Keine Pendelstrecke wird aus Abrechnungen entfernt.',
+                optionDisabledHelp: 'Keine Pendelfahrt wird von den Abrechnungen entfernt.',
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                summaryHomeAndOffice: 'Heim- und Bürostandorte verwenden',
+                summaryHomeAndOffice: 'Standort für Zuhause und Büro verwenden',
                 optionHomeAndOfficeTitle: 'Nach Zuhause und Büro berechnen',
-                optionHomeAndOfficeHelp: 'Verwende die Heimadresse, das Arbeitsmodell und die Bürozuweisung des Mitglieds, um Pendelausschlüsse zu berechnen.',
+                optionHomeAndOfficeHelp: 'Verwenden Sie die Privatadresse, die Arbeitsregelung und die Bürozuordnung des Mitglieds, um Fahrtkostenausschlüsse zu berechnen.',
                 workspaceAddressRequired: {
-                    title: 'Nicht so schnell...',
-                    promptStart: 'Du kannst die Berechnung nach Zuhause und Büro erst aktivieren, wenn du in ',
+                    title: 'Nur langsam …',
+                    promptStart: 'Sie können die Einstellung „Nach Zuhause und Büro berechnen“ nicht aktivieren, bevor Sie nicht zuerst einen Bürostandort in  hinzugefügt haben',
                     linkText: 'Übersicht',
                     promptEnd: ' eine Büroadresse hinzugefügt hast.',
                     cta: 'Verstanden',
                 },
-                errors: {
-                    distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.',
-                    invalidAddress: 'Bitte gib eine gültige Adresse ein',
-                },
+                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.', invalidAddress: 'Bitte geben Sie eine gültige Adresse ein'},
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',

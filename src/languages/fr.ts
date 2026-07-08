@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -988,7 +987,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addHomeAddress: {
                 title: 'Ajouter une adresse personnelle',
                 subtitle:
-                    'Votre administrateur a activé les exclusions de trajet pour les dépenses de distance. Ajoutez une adresse personnelle pour que nous puissions les appliquer à vos réclamations.',
+                    'Votre administrateur a activé des exclusions de trajet domicile-travail pour les dépenses de distance. Ajoutez une adresse de domicile afin que nous puissions les appliquer à vos demandes.',
                 cta: 'Ajouter une adresse',
             },
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
@@ -1233,11 +1232,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Adresse personnelle requise',
+            title: 'L’adresse du domicile est obligatoire',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Avant de pouvoir suivre la distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de trajet.`
-                    : 'Avant de pouvoir suivre la distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions de trajet.',
+                    ? `Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de frais de déplacement domicile-travail.`
+                    : 'Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions liées aux trajets domicile-travail.',
             cta: 'Ajouter une adresse personnelle',
         },
         amount: 'Montant',
@@ -6894,24 +6893,21 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclure ${distance} ${unit} par demande`,
                 optionDisabledTitle: 'Ne pas exclure les trajets domicile-travail',
-                optionDisabledHelp: 'Aucun trajet n’est retiré des réclamations.',
+                optionDisabledHelp: 'Aucun trajet domicile-travail n’est supprimé des déclarations.',
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                summaryHomeAndOffice: 'Utiliser les emplacements du domicile et du bureau',
+                summaryHomeAndOffice: 'Utiliser les emplacements domicile et bureau',
                 optionHomeAndOfficeTitle: 'Calculer par domicile et bureau',
-                optionHomeAndOfficeHelp: 'Utilise l’adresse personnelle, le mode de travail et l’affectation au bureau du membre pour calculer les exclusions de trajet.',
+                optionHomeAndOfficeHelp: 'Utilise l’adresse du domicile du membre, son mode de travail et son affectation de bureau pour calculer les exclusions de trajet domicile-travail.',
                 workspaceAddressRequired: {
-                    title: 'Pas si vite...',
-                    promptStart: 'Vous ne pouvez pas activer le calcul par domicile et bureau tant que vous n’avez pas ajouté une adresse de bureau dans ',
-                    linkText: 'Vue d’ensemble',
+                    title: 'Pas si vite…',
+                    promptStart: 'Vous ne pouvez pas activer le paramètre de calcul domicile-bureau avant d’ajouter d’abord un lieu de bureau dans',
+                    linkText: 'Aperçu',
                     promptEnd: '.',
                     cta: 'Compris',
                 },
-                errors: {
-                    distanceMustBePositive: 'La distance doit être un nombre entier positif.',
-                    invalidAddress: 'Veuillez saisir une adresse valide',
-                },
+                errors: {distanceMustBePositive: 'La distance doit être un nombre entier positif.', invalidAddress: 'Veuillez saisir une adresse valide'},
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
