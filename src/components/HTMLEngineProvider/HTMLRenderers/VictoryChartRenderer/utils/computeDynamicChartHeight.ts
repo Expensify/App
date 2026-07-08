@@ -59,5 +59,4 @@ function computeDynamicChartHeight({designHeight, isHorizontal, itemCount, paddi
     return Math.min(Math.round(dynamicHeight), designHeight);
 }
 
-export {HORIZONTAL_BAR_REFERENCE_ROW_COUNT, computeDynamicChartHeight};
-export type {ComputeDynamicChartHeightParams};
+export default computeDynamicChartHeight;

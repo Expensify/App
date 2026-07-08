@@ -1,4 +1,4 @@
-import {computeDynamicChartHeight} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
+import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 
 describe('computeDynamicChartHeight', () => {
     const horizontalChartPadding = {top: 92, bottom: 84, left: 150, right: 32};
