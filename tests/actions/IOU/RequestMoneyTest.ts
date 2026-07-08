@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';

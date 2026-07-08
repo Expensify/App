@@ -42,7 +42,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-restricted-types
 function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): key is keyof T {
     return key in obj;
 }

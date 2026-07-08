@@ -5489,7 +5489,7 @@ function getDisplayValue(
 
 function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
     filterKey: K,
-    values: Partial<SearchAdvancedFiltersForm> | undefined,
+    values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
 ): {
     isNegated: boolean;
     value: SearchAdvancedFiltersForm[K] | undefined;
@@ -5499,10 +5499,7 @@ function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
         return {isNegated: false, value: values?.[filterKey]};
     }
 
-    // A negatable filter's negated key always shares the value type of its base key (e.g. `policyID` and `policyIDNot` are both `string[]`),
-    // so read it through a view of the form that reflects that relationship instead of the full value union.
-    const negatedValues = values as Partial<Record<typeof negatedFilterKey, SearchAdvancedFiltersForm[K]>>;
-    return {isNegated: true, value: negatedValues[negatedFilterKey]};
+    return {isNegated: true, value: values[negatedFilterKey]};
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
