@@ -188,7 +188,7 @@ function AddPersonalBankAccountPage() {
     }, [error]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'PersonalInfoPage', isRedirecting}} />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddPersonalBankAccountPage', isRedirecting}} />;
     }
 
     return (
@@ -206,6 +206,6 @@ function AddPersonalBankAccountPage() {
     );
 }
 
-AddPersonalBankAccountPage.displayName = 'PersonalInfoPage';
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default AddPersonalBankAccountPage;
