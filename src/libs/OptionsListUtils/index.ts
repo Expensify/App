@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsByIDs, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsByIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -349,7 +349,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant & {keyForList: string} {
+function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, translate: LocalizedTranslate): Participant & {keyForList: string} {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -363,10 +363,10 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     if (participant?.displayName) {
         displayName = participant.displayName;
     } else if (detail?.login) {
-        displayName = formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login));
+        displayName = formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: login, translate}));
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from device contacts should fall through to the formatted phone number
-        displayName = participant?.text || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login));
+        displayName = participant?.text || formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: login, translate}));
     }
 
     return {
@@ -415,7 +415,7 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
     if (!lastActorDetails) {
         return '';
     }
@@ -426,8 +426,8 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
-        : translateLocal('common.you');
+          lastActorDetails.firstName || formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate}))
+        : translate('common.you');
 }
 
 function shouldShowLastActorDisplayName(
@@ -435,6 +435,7 @@ function shouldShowLastActorDisplayName(
     lastActorDetails: Partial<PersonalDetails> | null,
     lastAction: OnyxEntry<ReportAction>,
     currentUserAccountIDParam: number,
+    translate: LocalizedTranslate,
 ) {
     // Use lastAction directly instead of getLastVisibleReportAction to avoid using stale cache data
     const lastReportAction = lastAction;
@@ -452,7 +453,7 @@ function shouldShowLastActorDisplayName(
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
 
     if (!lastActorDisplayName) {
         return false;
@@ -569,7 +570,7 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
     return matching;
 }
 
-function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
+function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string, translate: LocalizedTranslate) {
     let memberDetails = '';
     if (personalDetail.login) {
         memberDetails += ` ${personalDetail.login}`;
@@ -581,7 +582,7 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
         memberDetails += ` ${personalDetail.lastName}`;
     }
     if (personalDetail.displayName) {
-        memberDetails += ` ${getDisplayNameOrDefault(personalDetail)}`;
+        memberDetails += ` ${temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate})}`;
     }
     if (personalDetail.phoneNumber) {
         memberDetails += ` ${personalDetail.phoneNumber}`;
@@ -589,8 +590,10 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
     return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
-function hasHiddenDisplayNames(accountIDs: number[]) {
-    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
+function hasHiddenDisplayNames(accountIDs: number[], translate: LocalizedTranslate) {
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some(
+        (personalDetail) => !temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, shouldFallbackToHidden: false, translate}),
+    );
 }
 
 function getLatestVisibleMoneyRequestAction(
@@ -636,6 +639,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
     currentUserAccountIDParam: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
+    translate: LocalizedTranslate,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     lastAction?: OnyxEntry<ReportAction>,
 ): string {
@@ -656,11 +660,11 @@ function getLastActorDisplayNameFromLastVisibleActions(
         }
 
         if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam);
+            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
         }
     }
 
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
+    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
 }
 
 /**
@@ -752,7 +756,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails)),
+                    displayName: formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate})),
                     policyName: getPolicyName({report, policy}),
                 });
                 break;
@@ -1027,7 +1031,7 @@ function getLastMessageTextForReport({
 
     // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
     // so we reconstruct the last message text of the report from the last report action.
-    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
+    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction), translate)) {
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
     }
 
@@ -1245,8 +1249,11 @@ function createOption({
             : computedReportName;
     } else {
         reportName =
-            getDisplayNameForParticipant({accountID: accountIDs.at(0), personalDetailsData: personalDetails ?? undefined, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
-            formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
+            getDisplayNameForParticipant({
+                accountID: accountIDs.at(0),
+                personalDetailsData: personalDetails ?? undefined,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            }) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -2966,11 +2973,13 @@ function getSearchOptions({
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, translate: LocalizedTranslate, amountText?: string): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
-        text: formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(personalDetail, login)),
-        alternateText: formatPhoneNumberPhoneUtils(login || getDisplayNameOrDefault(personalDetail, '', false)),
+        text: formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: login, translate})),
+        alternateText: formatPhoneNumberPhoneUtils(
+            login || temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate}),
+        ),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
@@ -2993,6 +3002,7 @@ function getFilteredRecentAttendees(
     recentAttendees: Attendee[],
     currentUserEmail: string,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
 ): Option[] {
     const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail || attendee.login === currentUserEmail);
     if (!recentAttendeeHasCurrentUser && currentUserEmail) {
@@ -3030,7 +3040,7 @@ function getFilteredRecentAttendees(
             ...getPersonalDetailByEmail(attendee.email),
             keyForList: `${currentUserAccountID}`,
         }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetails));
+        .map((attendee) => getParticipantsOption(attendee, personalDetails, translate));
 
     return filteredRecentAttendees;
 }
@@ -3121,6 +3131,7 @@ function formatSectionsFromSearchTerm(
     privateIsArchivedMap: Record<string, boolean>,
     currentUserAccountID: number,
     allPolicies: OnyxCollection<Policy>,
+    translate: LocalizedTranslate,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
@@ -3144,7 +3155,7 @@ function formatSectionsFromSearchTerm(
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                               return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
                           }
-                          return getParticipantsOption(participant, personalDetails);
+                          return getParticipantsOption(participant, personalDetails, translate);
                       })
                     : selectedOptions,
             },
@@ -3177,7 +3188,7 @@ function formatSectionsFromSearchTerm(
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                           return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
                       }
-                      return getParticipantsOption(participant, personalDetails);
+                      return getParticipantsOption(participant, personalDetails, translate);
                   })
                 : selectedParticipantsWithoutDetails,
         },
