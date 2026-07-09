@@ -194,7 +194,7 @@ describe('SearchPageNarrow', () => {
                 search: {
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     offset: 0,
-                    hash: 929718687,
+                    hash: failedQueryJSON?.hash,
                     isLoading: false,
                     hasMoreResults: false,
                 },

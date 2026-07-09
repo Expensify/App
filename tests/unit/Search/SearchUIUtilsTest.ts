@@ -5647,7 +5647,7 @@ describe('SearchUIUtils', () => {
                           filters: status.map((value) => ({operator, value})),
                       },
                   ]
-                : undefined;
+                : [];
             return {
                 type: expenseType,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,

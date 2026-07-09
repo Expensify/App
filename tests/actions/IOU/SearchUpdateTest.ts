@@ -176,9 +176,9 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 344995086,
-                recentSearchHash: 1106848141,
-                similarSearchHash: 1135147670,
+                hash: 939629734,
+                recentSearchHash: 1023339253,
+                similarSearchHash: 1855682507,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -232,10 +232,10 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 1343227670,
+                hash: 1685631874,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
-                recentSearchHash: 1216776837,
-                similarSearchHash: 911924256,
+                recentSearchHash: 244251677,
+                similarSearchHash: 1539858783,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -295,10 +295,10 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 280939045,
+                hash: 1967417738,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding reimbursable:yes',
-                recentSearchHash: 2045056096,
-                similarSearchHash: 1931622284,
+                recentSearchHash: 1043581824,
+                similarSearchHash: 1832274510,
             } as SearchQueryJSON;
 
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
