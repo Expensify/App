@@ -7,14 +7,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -25,23 +24,21 @@ import {setTitleValue} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type NewTaskTitlePageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
-
-function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
+function DynamicNewTaskTitlePage() {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_TITLE.path);
 
-    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
+    const goBack = () => Navigation.goBack(backPath);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
@@ -65,7 +62,9 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'NewTaskTitlePage'};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DynamicNewTaskTitlePage',
+        };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
@@ -73,7 +72,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID="NewTaskTitlePage"
+            testID="DynamicNewTaskTitlePage"
         >
             <HeaderWithBackButton
                 title={translate('task.title')}
@@ -108,4 +107,4 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
     );
 }
 
-export default NewTaskTitlePage;
+export default DynamicNewTaskTitlePage;

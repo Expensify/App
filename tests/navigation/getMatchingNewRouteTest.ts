@@ -217,6 +217,23 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
     });
 
+    it('redirects legacy new task flat routes to the new nested dynamic routes', () => {
+        expect(getMatchingNewRoute('/new/task/details')).toBe('/task-details');
+        expect(getMatchingNewRoute('/new/task')).toBe('/task-details/task-confirm');
+        expect(getMatchingNewRoute('/new/task/title')).toBe('/task-details/task-confirm/task-title');
+        expect(getMatchingNewRoute('/new/task/description')).toBe('/task-details/task-confirm/task-description');
+        expect(getMatchingNewRoute('/new/task/assignee')).toBe('/task-details/task-confirm/task-assignee');
+    });
+
+    it('preserves query params when redirecting legacy new task routes', () => {
+        expect(getMatchingNewRoute('/new/task?backTo=/home')).toBe('/task-details/task-confirm?backTo=/home');
+        expect(getMatchingNewRoute('/new/task/title?backTo=/home')).toBe('/task-details/task-confirm/task-title?backTo=/home');
+    });
+
+    it('does not redirect the unchanged new task share destination route', () => {
+        expect(getMatchingNewRoute('/new/task/share-destination')).toBe(undefined);
+    });
+
     it('redirects legacy profile avatar path to new avatar route', () => {
         expect(getMatchingNewRoute('/a/123/avatar')).toBe('/avatar/123');
     });

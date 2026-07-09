@@ -453,12 +453,12 @@ const SCREENS = {
     },
 
     NEW_TASK: {
-        ROOT: 'NewTask_Root',
-        TASK_ASSIGNEE_SELECTOR: 'NewTask_TaskAssigneeSelector',
+        DYNAMIC_ROOT: 'Dynamic_NewTask_Root',
+        DYNAMIC_TASK_ASSIGNEE: 'Dynamic_NewTask_TaskAssigneeSelector',
+        DYNAMIC_TASK_TITLE: 'Dynamic_NewTask_Title',
+        DYNAMIC_TASK_DESCRIPTION: 'Dynamic_NewTask_Description',
+        DYNAMIC_TASK_DETAILS: 'Dynamic_NewTask_Details',
         TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
-        DETAILS: 'NewTask_Details',
-        TITLE: 'NewTask_Title',
-        DESCRIPTION: 'NewTask_Description',
     },
 
     TASK: {

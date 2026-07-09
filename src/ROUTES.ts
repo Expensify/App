@@ -975,6 +975,26 @@ const DYNAMIC_ROUTES = {
         path: 'assignee',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
+    NEW_TASK_ASSIGNEE: {
+        path: 'task-assignee',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    NEW_TASK_TITLE: {
+        path: 'task-title',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    NEW_TASK_DESCRIPTION: {
+        path: 'task-description',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    NEW_TASK_DETAILS: {
+        path: 'task-details',
+        entryScreens: ['*'],
+    },
+    NEW_TASK: {
+        path: 'task-confirm',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS],
+    },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
         entryScreens: [
@@ -2134,27 +2154,7 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('new/task', backTo),
     },
-    NEW_TASK_ASSIGNEE: {
-        route: 'new/task/assignee',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/assignee', backTo),
-    },
     NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
-    NEW_TASK_DETAILS: {
-        route: 'new/task/details',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/details', backTo),
-    },
-    NEW_TASK_TITLE: {
-        route: 'new/task/title',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/title', backTo),
-    },
-    NEW_TASK_DESCRIPTION: {
-        route: 'new/task/description',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/description', backTo),
-    },
 
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
