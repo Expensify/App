@@ -1,11 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import MoneyRequestReportTransactionsNavigation from '@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 /**
  * These tests verify the navigation resolution of MoneyRequestReportTransactionsNavigation:
