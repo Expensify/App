@@ -150,9 +150,9 @@ function createAgent(
 
     write(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
-        // reportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
+        // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, reportID: optimisticReportID},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID},
         {optimisticData, successData, failureData},
     );
 

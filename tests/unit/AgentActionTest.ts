@@ -197,7 +197,7 @@ describe('createAgent', () => {
     it('passes the optimistic reportID through to CreateAgent so the DM is created under that exact ID', () => {
         const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({reportID: result.optimisticReportID}), expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticReportID: result.optimisticReportID}), expect.any(Object));
     });
 
     it('optimistic data writes the owner<->agent DM report with both participants and a pending createChat field', () => {

@@ -8,7 +8,7 @@ type CreateAgentParams = {
     policyID?: string;
     optimisticAccountID: string;
     isPersonalAgent: boolean;
-    reportID: string;
+    optimisticReportID: string;
 };
 
 export default CreateAgentParams;
