@@ -1,16 +1,20 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
@@ -109,7 +113,7 @@ function ApprovalWorkflowSection({
                             src={icons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal]}

@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
@@ -13,12 +13,19 @@ import {
     isPrimaryMarkAsResolvedAction,
     isReviewDuplicatesAction,
 } from '@libs/ReportPrimaryActionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {InvoiceTestData} from '../data/Invoice';
+
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import * as InvoiceData from '../data/Invoice';
-import type {InvoiceTestData} from '../data/Invoice';
 import createMock from '../utils/createMock';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -78,6 +85,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [],
                 violations: {},
@@ -109,6 +117,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -143,6 +152,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -177,6 +187,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -212,6 +223,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -246,6 +258,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -281,6 +294,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -314,6 +328,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -353,6 +368,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -390,6 +406,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -535,6 +552,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -578,6 +596,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -610,11 +629,61 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
                 policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should return PAY for non-reimburser payments admin in manual reimbursement mode when owner is payer', async () => {
+        const ownerEmail = 'owner@manual-test.com';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 10,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -300,
+            isWaitingOnBankAccount: false,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            owner: ownerEmail,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimburser: ownerEmail,
+            employeeList: {
+                [CURRENT_USER_EMAIL]: {
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                },
+                [ownerEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: ownerEmail,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -644,6 +713,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -677,6 +747,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -717,6 +788,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -758,6 +830,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -796,6 +869,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -834,6 +908,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [],
                 violations: {},
@@ -899,6 +974,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -957,6 +1033,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1029,6 +1106,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1089,6 +1167,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1130,6 +1209,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1168,6 +1248,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1206,6 +1287,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1244,6 +1326,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1283,6 +1366,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1319,6 +1403,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1358,6 +1443,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport: invoiceChatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1408,7 +1494,7 @@ describe('isReviewDuplicatesAction', () => {
             ],
         };
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, violation)).toBe(true);
+        expect(isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, violation)).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -1428,7 +1514,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, undefined)).toBe(false);
+        expect(isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, undefined)).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -1449,7 +1535,7 @@ describe('isReviewDuplicatesAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
         expect(
-            isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, {
+            isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
                     createMock<TransactionViolation>({
                         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -1499,7 +1585,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, createMock<Report>({}), transaction, [], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, createMock<Report>({}), undefined, transaction, [], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD,
         );
     });
@@ -1527,9 +1613,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         });
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, transaction, [violation], policy as Policy, false)).toBe(
-            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
-        );
+        expect(
+            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
+        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES);
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -1556,9 +1642,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         });
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, transaction, [violation], policy as Policy, false)).toBe(
-            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
-        );
+        expect(
+            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
+        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -1584,9 +1670,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         });
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, transaction, [violation], policy as Policy, false)).toBe(
-            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
-        );
+        expect(
+            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
+        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
     it('Should return empty string when we are waiting for user to add a bank account', async () => {
@@ -1618,6 +1704,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1658,6 +1745,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1699,6 +1787,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
