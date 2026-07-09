@@ -21,6 +21,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
+    getReportActionHtml,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -172,7 +173,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {scrollOffsetRef} = useContext(ActionListContext);
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
-    const {clearDraft} = useConciergeDraftActions();
+    const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
@@ -197,6 +198,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasNewerActions,
     });
 
+    const persistedDraftReportAction = useMemo(() => {
+        if (!draftReportAction) {
+            return undefined;
+        }
+
+        return sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID);
+    }, [draftReportAction, sortedVisibleReportActions]);
+
     const renderedVisibleReportActions = useMemo(() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
@@ -209,7 +218,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
-                if (!isDraftPendingCompletion) {
+                const isDraftStillRevealingPersistedAction = getReportActionHtml(action) !== getReportActionHtml(draftReportAction);
+                if (!isDraftPendingCompletion && !isDraftStillRevealingPersistedAction) {
                     return sortedVisibleReportActions;
                 }
 
@@ -242,6 +252,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         clearDraft();
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
 
+    useEffect(() => {
+        if (!draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
+            return;
+        }
+
+        revealDraftFromReportAction(persistedDraftReportAction);
+    }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
+
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetIndex = useMemo(() => {
         const targetID = reportAttributes?.actionTargetReportActionID;
@@ -262,7 +280,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
-        initialScrollKey,
+        initialScrollIndex,
+        initialScrollIndexParams,
         maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
@@ -271,6 +290,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
+        renderedVisibleReportActions,
+        keyExtractor,
+        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
@@ -308,8 +330,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         });
     };
 
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
-
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -339,22 +359,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, renderedVisibleReportActions, report]);
 
-    // Precompute a reportActionID -> index map so renderItem can resolve the real index in O(1)
-    // instead of scanning renderedVisibleReportActions with indexOf on every render.
-    const actionIndexMap = useMemo(() => {
-        const map = new Map<string, number>();
-        for (const [i, action] of renderedVisibleReportActions.entries()) {
-            map.set(action.reportActionID, i);
-        }
-        return map;
-    }, [renderedVisibleReportActions]);
-
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
-            // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
-            // FlashList index offset from the full array and causing wrong displayAsGroup computation.
-            const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
             const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
             return (
@@ -368,8 +374,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         chatReport={chatReportStable}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, safeIndex, isOffline)
+                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
                         }
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
@@ -392,7 +398,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
             );
         },
         [
-            actionIndexMap,
             draftReportActionID,
             firstVisibleReportActionID,
             hasPreviousMessages,
@@ -516,12 +521,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
                     }}
                     getItemType={(item) => item.actionName}
-                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
-                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
-                    initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
+                    initialScrollIndex={initialScrollIndex}
+                    initialScrollIndexParams={initialScrollIndexParams}
                     maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
-                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
