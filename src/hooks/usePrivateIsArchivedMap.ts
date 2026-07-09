@@ -7,7 +7,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
-type PrivateIsArchivedMap = Record<string, boolean>;
+// Readonly because consumers receive a shared cached reference (see below) — a write would corrupt it for every other consumer.
+type PrivateIsArchivedMap = Readonly<Record<string, boolean>>;
 
 // Single-entry cache so the derived map keeps a stable reference across renders and remounts
 // while the underlying REPORT_NAME_VALUE_PAIRS collection is referentially unchanged.
@@ -31,7 +32,7 @@ function buildPrivateIsArchivedMap(allReportNVP: OnyxCollection<ReportNameValueP
         return cachedMap;
     }
 
-    const map: PrivateIsArchivedMap = {};
+    const map: Record<string, boolean> = {};
     if (allReportNVP) {
         for (const [key, value] of Object.entries(allReportNVP)) {
             map[key] = !!value?.private_isArchived;
@@ -39,13 +40,14 @@ function buildPrivateIsArchivedMap(allReportNVP: OnyxCollection<ReportNameValueP
     }
 
     cachedSource = allReportNVP;
-    cachedMap = map;
-    return map;
+    // Freezing in dev makes a write through a type cast throw instead of silently corrupting the shared cache.
+    cachedMap = __DEV__ ? Object.freeze(map) : map;
+    return cachedMap;
 }
 
 /**
  * Hook that returns a map of report IDs to their private_isArchived values.
- * The returned map is a shared cached reference — treat it as read-only; mutating it corrupts the cache.
+ * The returned map is a shared cached reference — read-only by type, and frozen in dev.
  */
 function usePrivateIsArchivedMap(): PrivateIsArchivedMap {
     const [allReportNVP] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);

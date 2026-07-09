@@ -1619,6 +1619,34 @@ function cloneOptionList(optionList: OptionList): OptionList {
     };
 }
 
+// Enforces the cloneOptionList invariant in dev: the cached entry's nested objects are shared with every
+// clone handed out, so freezing them makes a consumer that mutates one throw immediately instead of
+// silently corrupting the cache for other screens. The clones' top-level objects stay mutable because
+// spreading a frozen object produces a new unfrozen one — which covers all mutations consumers do today.
+//
+// `item` and the members of `participantsList` are exempt: they are Onyx snapshot objects shared with the
+// whole app, not structures this cache created, and existing code still writes to them in place (e.g.
+// getPersonalDetailsForAccountIDs sets accountID during every option build), so freezing them would crash
+// unrelated flows in dev. Mutating them corrupts app-wide Onyx state, which is beyond this cache's invariant.
+function deepFreeze(value: unknown) {
+    if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
+        return;
+    }
+    Object.freeze(value);
+    for (const [key, child] of Object.entries(value)) {
+        if (key === 'item') {
+            continue;
+        }
+        if (key === 'participantsList') {
+            if (Array.isArray(child)) {
+                Object.freeze(child);
+            }
+            continue;
+        }
+        deepFreeze(child);
+    }
+}
+
 /** Clears the createFilteredOptionList cache. For tests that measure or exercise the build path with unchanged inputs. */
 function clearFilteredOptionListCache() {
     filteredOptionListCache.clear();
@@ -1804,6 +1832,9 @@ function createFilteredOptionList(
         if (oldestEntryKey !== undefined) {
             filteredOptionListCache.delete(oldestEntryKey);
         }
+    }
+    if (__DEV__) {
+        deepFreeze(result);
     }
     filteredOptionListCache.set(cacheEntryKey, {inputs: cacheInputs, result});
 
