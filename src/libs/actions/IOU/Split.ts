@@ -2069,6 +2069,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewAction,
             transactionThreadReportID,
             createdReportActionIDForThread,
+            payerAccountID,
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
@@ -2166,6 +2167,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reimbursable,
             transactionThreadReportID,
             createdReportActionIDForThread,
+            payerAccountID,
             payerEmail,
             customUnitRateID,
             customUnitPolicyID,

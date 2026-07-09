@@ -16,7 +16,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
-import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil, isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +77,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         : selectedReport?.ownerAccountID;
     const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
     const isPerDiemTransaction = isPerDiemRequest(transaction);
+    const isUnreportedManagedCardTransaction = isUnreportedManagedCardTransactionUtil(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -87,7 +88,12 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeRequestUtil(transaction), targetExpensePolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
+        isPerDiemTransaction,
+        isTimeRequestUtil(transaction),
+        targetExpensePolicyID,
+        isUnreportedManagedCardTransaction,
+    );
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
     const hasViolations = false;
@@ -149,7 +155,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!isPerDiemTransaction && !policyForMovingExpenses?.id) {
+        if (!isPerDiemTransaction && !isUnreportedManagedCardTransaction && !policyForMovingExpenses?.id) {
             return;
         }
 
@@ -184,7 +190,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             handleCreateReport();
             return;
         }
-        if (!isPerDiemTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!isPerDiemTransaction && !isUnreportedManagedCardTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -216,7 +222,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             isPerDiemRequest={transaction ? isPerDiemTransaction : false}
             isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
-            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
+            isUnreportedManagedCardTransaction={transaction ? isUnreportedManagedCardTransaction : false}
+            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction || isUnreportedManagedCardTransaction ? createReport : undefined}
             targetOwnerAccountID={ownerAccountID}
         />
     );

@@ -56,6 +56,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     isDistanceRequest,
+    isPending,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 
@@ -170,8 +171,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [defaultPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
     const [defaultPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
-    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
-    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
+    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -445,7 +445,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
-                    prompt: translate('iou.deleteConfirmation', {count: 1}),
+                    prompt: isPending(transaction) ? translate('iou.deleteConfirmationPendingBYOC') : translate('iou.deleteConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,

@@ -231,6 +231,7 @@ function handleMoneyRequestStepDistanceNavigation({
             isArchivedExpenseReport,
             reportAttributesDerived,
             reportDraft,
+            translate,
         );
 
         setDistanceRequestData?.(participants);

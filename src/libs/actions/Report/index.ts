@@ -53,7 +53,6 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -414,8 +413,7 @@ type AddAttachmentWithCommentParams = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-// map of reportID to all reportActions for that report
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions> = {};
 const STALE_DM_RECOVERY_TARGET_TTL_MS = 30000;
 const staleDMRecoveryTargetBySourceReportID: Record<string, string> = {};
 const staleDMRecoverySourceByTargetReportID: Record<string, string> = {};
@@ -466,19 +464,14 @@ function clearStaleDMRecoveryTargetByTargetReportID(targetReportID: string) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+    callback: (value) => {
+        allReportActions = value ?? {};
     },
 });
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -532,7 +525,6 @@ Onyx.connect({
 let allAttachments: OnyxCollection<Attachment> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allAttachments = value),
 });
 
@@ -1185,7 +1177,7 @@ function addComment({
 }
 
 function reportActionsExist(reportID: string): boolean {
-    return allReportActions?.[reportID] !== undefined;
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] !== undefined;
 }
 
 function updateChatName(reportID: string, oldReportName: string | undefined, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
@@ -4109,28 +4101,30 @@ function buildNewReportOptimisticData(
             value: {[reportActionID]: optimisticCreateAction},
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {[reportPreviewReportActionID]: optimisticReportPreview},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {iouReportID: reportID, ...outstandingChildRequest},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${parentReport?.reportID}`,
-            value: {
-                hasOnceLoadedReportActions: true,
-            },
-        },
-        {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStepDeprecated,
         },
     ];
+    if (parentReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: {[reportPreviewReportActionID]: optimisticReportPreview},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: {iouReportID: reportID, ...outstandingChildRequest},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${parentReport.reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+            },
+        });
+    }
 
     optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
@@ -4177,13 +4171,14 @@ function buildNewReportOptimisticData(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: {errors: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
-
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {hasOutstandingChildRequest: parentReport?.hasOutstandingChildRequest},
-        },
     ];
+    if (parentReport) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: {hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest},
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -4208,17 +4203,19 @@ function buildNewReportOptimisticData(
                 },
             },
         },
-        {
+    ];
+    if (parentReport) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
                     errors: null,
                 },
             },
-        },
-    ];
+        });
+    }
 
     return {
         optimisticReportName: optimisticReportData.reportName,
@@ -4573,7 +4570,13 @@ function setIsComposerFullSize(reportID: string, isComposerFullSize: boolean) {
  * @param isRemote whether or not this notification is a remote push notification
  * @param currentUserAccountID the current user's account ID
  */
-function shouldShowReportActionNotification(reportID: string, currentUserAccountID: number, action: ReportAction | null = null, isRemote = false): boolean {
+function shouldShowReportActionNotification(
+    reportID: string,
+    topmostOneTransactionThreadReportID: string | undefined,
+    currentUserAccountID: number,
+    action: ReportAction | null = null,
+    isRemote = false,
+): boolean {
     const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
     const topmostReportID = Navigation.getTopmostReportId();
 
@@ -4609,14 +4612,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     }
 
     // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notification.
-    const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
-    const topmostReportActions = allReportActions?.[`${topmostReport?.reportID}`];
-    const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
-    if (
-        reportID === ReportActionsUtils.getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions, isOfflineNetwork()) &&
-        Visibility.isVisible() &&
-        Visibility.hasFocus()
-    ) {
+    if (reportID === topmostOneTransactionThreadReportID && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because the report is a transaction thread associated with the current one-transaction report`);
         return false;
     }
@@ -4645,11 +4641,12 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
 function showReportActionNotification(
     reportID: string,
     reportAction: ReportAction,
+    topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    if (!shouldShowReportActionNotification(reportID, currentUserAccountID, reportAction)) {
+    if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
         return;
     }
 

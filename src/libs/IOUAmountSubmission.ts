@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +50,7 @@ import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFrom
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
+    translate: LocalizedTranslate;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -181,6 +184,7 @@ function submitAmount({
     duplicateTransactions,
     duplicateTransactionViolations,
     isTrackIntentUser,
+    translate,
     reportAttributesDerivedValue,
     betas,
     betaConfiguration,
@@ -243,7 +247,7 @@ function submitAmount({
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
                 return participantAccountID
-                    ? getParticipantsOption(participant, allPersonalDetails)
+                    ? getParticipantsOption(participant, allPersonalDetails, translate)
                     : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
