@@ -11,6 +11,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,6 +54,8 @@ function SearchTransactionsChangeReport() {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -169,6 +172,7 @@ function SearchTransactionsChangeReport() {
                 allTransactionViolation: transactionViolations,
                 allReports,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                selfDMReportActions,
             });
             clearSelectedTransactions();
         });
@@ -248,6 +252,7 @@ function SearchTransactionsChangeReport() {
             allTransactionViolation: transactionViolations,
             allReports,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            selfDMReportActions,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -268,6 +273,7 @@ function SearchTransactionsChangeReport() {
             allTransactionViolation: transactionViolations,
             allReports,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            selfDMReportActions,
         });
         clearSelectedTransactions();
         Navigation.goBack();

@@ -67,6 +67,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
 
     const selfDMReport = useSelfDMReport();
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -95,6 +96,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             isASAPSubmitBetaEnabled,
             delegateAccountID,
             selfDMReport,
+            selfDMReportActions,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;

@@ -1492,7 +1492,9 @@ function updateSplitTransactions({
         if (firstIOU && isCreationOfSplits) {
             // For selfDM splits, also resolve the Concierge "What would you like to do with this expense?"
             // whisper so it disappears along with the original expense when splits are created.
-            const whisperAction = isOriginalTransactionInSelfDM ? getTrackExpenseActionableWhisper(originalTransactionID, originalSelfDMReportID) : undefined;
+            const whisperAction = isOriginalTransactionInSelfDM
+                ? getTrackExpenseActionableWhisper(originalTransactionID, originalSelfDMReportID, allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalSelfDMReportID}`])
+                : undefined;
             const whisperActionID = whisperAction?.reportActionID;
             const updatedReportAction = {
                 [firstIOU.reportActionID]: {

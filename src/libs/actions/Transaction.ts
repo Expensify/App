@@ -70,6 +70,7 @@ import type {
     RecentWaypoint,
     Report,
     ReportAction,
+    ReportActions,
     ReportNextStepDeprecated,
     ReviewDuplicates,
     Transaction,
@@ -840,6 +841,7 @@ type ChangeTransactionsReportProps = {
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
     personalPolicyOutputCurrency: string | undefined;
+    selfDMReportActions: OnyxEntry<ReportActions>;
 };
 
 function changeTransactionsReport({
@@ -856,6 +858,7 @@ function changeTransactionsReport({
     allTransactionViolation = {},
     allReports: allReportsParam,
     personalPolicyOutputCurrency,
+    selfDMReportActions,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1427,7 +1430,7 @@ function changeTransactionsReport({
         }
 
         // 4. Optimistically update the IOU action reportID
-        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID, selfDMReportActions) : undefined;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
