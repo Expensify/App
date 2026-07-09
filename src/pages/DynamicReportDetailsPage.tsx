@@ -32,7 +32,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,7 +104,7 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
@@ -236,6 +236,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         [currentUserPersonalDetails?.email],
     );
     const {showConfirmModal} = useConfirmModal();
+    const reportAttributes = useReportAttributes();
+    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
@@ -263,7 +265,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
 
@@ -365,7 +367,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     } else if (caseID === CASES.DEFAULT) {
         deleteMenuItemTitle = translate('common.delete');
     }
-    const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
@@ -745,8 +746,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     ]);
 
     const icons = useMemo(
-        () => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isReportArchived),
-        [report, formatPhoneNumber, personalDetails, policy, isReportArchived],
+        () => getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived),
+        [report, formatPhoneNumber, translate, personalDetails, policy, isReportArchived],
     );
 
     const renderedAvatar = useMemo(() => {
@@ -1101,9 +1102,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     ]);
 
     const showDeleteModal = useCallback(async () => {
+        const deletePrompt = caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : getDeleteConfirmationPrompt(translate, iouTransaction);
         const {action} = await showConfirmModal({
-            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
-            prompt: caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1}),
+            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : getDeleteExpenseTitle(translate, iouTransaction),
+            prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -1127,7 +1129,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 waitForUpcomingTransition: true,
             });
         });
-    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransaction, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

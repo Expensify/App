@@ -600,36 +600,16 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(
-    extraSmall: boolean,
-    small: boolean,
-    medium: boolean,
-    large: boolean,
-    width: number,
-    height: number,
-    isButtonIcon: boolean,
-): Pick<ImageSVGProps, 'width' | 'height'> {
-    switch (true) {
-        case extraSmall:
-            return {
-                width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall,
-                height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall,
-            };
-        case small:
-            return {
-                width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall,
-                height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall,
-            };
-        case medium:
-            return {
-                width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal,
-                height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal,
-            };
-        case large:
-            return {
-                width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge,
-                height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge,
-            };
+function getIconWidthAndHeightStyle(size: ValueOf<typeof CONST.ICON_SIZE> | undefined, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+    switch (size) {
+        case CONST.ICON_SIZE.EXTRA_SMALL:
+            return {width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall, height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall};
+        case CONST.ICON_SIZE.SMALL:
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
+        case CONST.ICON_SIZE.MEDIUM:
+            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
+        case CONST.ICON_SIZE.LARGE:
+            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -1970,6 +1950,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                     ...getWidthStyle(variables.w80),
                     ...styles.alignItemsCenter,
                 };
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
                 columnWidth = {

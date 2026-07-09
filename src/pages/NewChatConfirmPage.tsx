@@ -145,14 +145,7 @@ function NewChatConfirmPage() {
     const participants = newGroupDraft?.participants ?? [];
 
     const selectedOptions: Participant[] = participants.map((participant) =>
-        getParticipantsOption(
-            {
-                accountID: participant.accountID,
-                login: participant?.login,
-                reportID: '',
-            },
-            allPersonalDetails,
-        ),
+        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails, translate),
     );
 
     const selectedParticipants: ListItem[] = selectedOptions
