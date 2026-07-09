@@ -405,7 +405,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: shouldShowConnectionStatus || isUserPersonalCard ? undefined : card.errors,
+                        errors: (shouldShowConnectionStatus && shouldShowCardConnectionMessage) || isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator,
@@ -485,7 +485,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    errors: shouldShowConnectionStatus ? undefined : card.errors,
+                    errors: shouldShowConnectionStatus && shouldShowCardConnectionMessage ? undefined : card.errors,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator,
@@ -597,7 +597,7 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
-                brickRoadIndicator: shouldShowConnectionStatus ? bankConnectionStatus?.brickRoadIndicator : existingBrickRoadIndicator,
+                brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
             };
         });
