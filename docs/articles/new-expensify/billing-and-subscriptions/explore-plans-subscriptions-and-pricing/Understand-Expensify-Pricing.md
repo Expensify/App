@@ -1,20 +1,18 @@
 ---
 title: Understand Expensify Pricing
-description: Learn the current pricing for Collect and Control Workspaces, including subscription rates, Annual pricing, Expensify Card discounts, localized pricing, and legacy Collect pricing.
+description: Learn the current pricing for Collect and Control workspaces, including subscription rates, Expensify Card discounts, and legacy Collect pricing.
 keywords: [billing, pricing, Collect, Control, subscription, currency, seat count, Expensify Card, workspace eligibility, NZD billing, GBP billing, EUR billing, AUD billing]
 internalScope: Covers current pricing for Collect and Control Workspaces, Annual and Pay-per-use subscriptions, localized pricing, Expensify Card discounts, and legacy Collect pricing. Does not explain how subscription charges are calculated or how to manage subscriptions.
-retrievalIntent: Current subscription pricing, Annual pricing, Expensify Card discounts, legacy Collect pricing, localized pricing.
+retrievalIntent: How much does Expensify cost
 contentType: topic
 platform: new
 ---
 
 # Understand Expensify Pricing
 
-Expensify pricing depends on your Workspace plan, subscription type, billing currency, and, for some subscriptions, qualifying Expensify Card usage. This article lists the current subscription rates and pricing rules.
+Expensify pricing depends on your Workspace plan, subscription type, billing currency, and, for eligible subscriptions, qualifying Expensify Card usage. This article provides an overview of the current pricing model. For the latest pricing details and feature comparison, visit [Expensify Pricing](https://www.expensify.com/pricing).
 
-For an explanation of how subscription charges are calculated, see How Your Plan and Subscription Determine Your Bill.
-
-## Find your subscription price
+## Find your subscription pricing
 
 Select your billing currency to view the subscription prices.
 
@@ -111,7 +109,7 @@ During your subscription term:
  - You can increase your subscription size at any time.
  - You can't decrease your subscription size until your subscription renews.
 
-For more information about managing an Annual subscription, see Manage Annual Subscription Settings.
+For more information about managing an Annual subscription, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Settings).
 
 ---
 
@@ -119,13 +117,13 @@ For more information about managing an Annual subscription, see Manage Annual Su
 
 Control Workspaces with an Annual subscription can receive up to a 50% discount on their subscription pricing based on Expensify Card usage.
 
-Your discount is calculated each billing month based on the percentage of qualifying USD spend that is incurred on the Expensify Card. As your Expensify Card usage increases, your discount increases proportionally, up to a maximum of 50%.
+Your discount is calculated based on the percentage of all approved USD expenses in your Workspace during the billing month that were incurred on the Expensify Card. As that percentage increases, your subscription discount increases proportionally, up to a maximum of 50%.
 
 With the full discount, subscription prices are reduced by 50%. For example, on USD billing, the price for members included in your subscription size is reduced from $18 to $9 per member/month, and the price for active members above your subscription size is reduced from $36 to $18 per member/month.
 
-Only approved USD spend incurred on the Expensify Card during the billing month counts toward the discount calculation.
-
-## Understand legacy Collect pricing 
+---
+   
+## How legacy Collect pricing works
 
 The current Collect pricing applies only if your organization's first workspace was created on or after April 1, 2025.
 
@@ -146,10 +144,6 @@ To learn about the difference between active members and unique members, see [Le
 
 # FAQ
 
-## Does every customer qualify for the current Collect price?
-
-No. The current Collect price applies only if your organization's first Workspace was created on or after April 1, 2025.
-
 ## Are localized prices converted from USD?
 
 No. Expensify uses fixed regional pricing rather than converting prices based on daily exchange rates.
@@ -157,3 +151,18 @@ No. Expensify uses fixed regional pricing rather than converting prices based on
 ## Are taxes included in the prices shown?
 
 No. Applicable taxes are calculated separately based on your billing location and tax status.
+
+## Which Workspaces can use an Annual subscription?
+
+Only Control Workspaces can use an Annual subscription. Collect Workspaces are available only with a Pay-per-use subscription.
+
+## Can my subscription price change during an Annual term?
+
+Yes. If you increase your subscription size or exceed it during an Annual subscription, additional members are billed at the Pay-per-use rate.
+
+## Which currencies does Expensify support for localized pricing?
+
+Expensify offers localized pricing for USD, GBP, EUR, AUD, and NZD billing.
+
+
+
