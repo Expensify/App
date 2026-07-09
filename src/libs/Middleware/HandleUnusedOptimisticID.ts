@@ -27,7 +27,7 @@ function getRestoredPersonalDetails(responseOnyxData: AnyOnyxUpdate[], reportID:
     }
 
     const settledParticipantIDs = new Set<string>();
-    const loginlessDetailIDs = new Set<string>();
+    const missingLoginDetailIDs = new Set<string>();
     for (const update of responseOnyxData) {
         if (update.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
             const participants = (update.value as Report | undefined)?.participants ?? {};
@@ -40,12 +40,12 @@ function getRestoredPersonalDetails(responseOnyxData: AnyOnyxUpdate[], reportID:
                 if (!detail || detail.login) {
                     continue;
                 }
-                loginlessDetailIDs.add(accountID);
+                missingLoginDetailIDs.add(accountID);
             }
         }
     }
 
-    const candidates = [...settledParticipantIDs].filter((accountID) => loginlessDetailIDs.has(accountID) && !(accountID in redundantParticipants));
+    const candidates = [...settledParticipantIDs].filter((accountID) => missingLoginDetailIDs.has(accountID) && !(accountID in redundantParticipants));
     const settledAccountID = candidates.length === 1 ? Number(candidates.at(0)) : undefined;
     if (!settledAccountID) {
         return {};
