@@ -229,6 +229,7 @@ function handleMoneyRequestStepDistanceNavigation({
             isArchivedExpenseReport,
             reportAttributesDerived,
             reportDraft,
+            translate,
         );
 
         setDistanceRequestData?.(participants);
@@ -330,6 +331,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                             currentUserLocalCurrency,
+                            reportActionsList: undefined,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
