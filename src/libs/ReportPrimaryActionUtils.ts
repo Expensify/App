@@ -138,20 +138,18 @@ function isSubmitAction(
     }
 
     const reportTransactionsList = reportTransactions ?? [];
-    const hasNoSubmittableTransaction =
-        reportTransactionsList.length > 0 &&
-        reportTransactionsList.every(
-            (transaction) => isScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report),
-        );
-
-    if (hasNoSubmittableTransaction) {
-        return false;
-    }
-
-    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+    const isTransactionSubmittable = (transaction: Transaction) => {
+        if (isScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
             return false;
         }
+        if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+            return !hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+        }
+        return true;
+    };
+
+    if (reportTransactionsList.length > 0 && !reportTransactionsList.some(isTransactionSubmittable)) {
+        return false;
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);

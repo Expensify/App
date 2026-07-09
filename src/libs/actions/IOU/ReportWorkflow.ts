@@ -273,11 +273,12 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
-    const hasNoSubmittableTransaction =
-        transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || (isExpensifyCardTransaction(t) && isPending(t)) || hasSmartScanFailedWithMissingFields([t], report));
-    const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
-        hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy),
-    );
+    const isTransactionSubmittable = (transaction: OnyxTypes.Transaction) =>
+        !isScanningTransaction(transaction) &&
+        !(isExpensifyCardTransaction(transaction) && isPending(transaction)) &&
+        !hasSmartScanFailedWithMissingFields([transaction], report) &&
+        !hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
+    const hasNoSubmittableTransaction = transactions.length > 0 && !transactions.some(isTransactionSubmittable);
 
     return (
         isOpenExpenseReport &&
@@ -286,7 +287,6 @@ function canSubmitReport(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
-        !hasAnySubmissionBlockingViolations &&
         transactions.length > 0
     );
 }
