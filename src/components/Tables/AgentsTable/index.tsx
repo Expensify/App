@@ -1,8 +1,11 @@
+import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -13,6 +16,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import AgentsTableRow from './AgentsTableRow';
 
@@ -38,8 +42,10 @@ type AgentsTableProps = {
 };
 
 export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -90,6 +96,18 @@ export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRo
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('agentsPage.findAgent')} />
+            <Table.EmptyState
+                headerMedia={illustrations.TvScreenRobot}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={styles.agentsPageEmptyStateIllustration}
+                title={translate('agentsPage.emptyAgents.title')}
+                subtitleText={
+                    <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
+                        <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
+                    </View>
+                }
+            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>
