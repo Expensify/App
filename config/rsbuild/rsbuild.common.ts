@@ -2,7 +2,6 @@ import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
-import {pluginBabel} from '@rsbuild/plugin-babel';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -41,36 +40,40 @@ const localBranchName = getCurrentBranchName();
 
 /**
  * These RN packages ship non-transpiled JSX and rely on the "react-native" import (aliased to
- * react-native-web below), so they need to go through the same babel-loader pipeline as our own
- * source rather than being treated as opaque, already-built node_modules.
+ * react-native-web below), so they need to go through the same OXC transform pipeline as our own
+ * source rather than being treated as opaque, already-built node_modules (see Rule B below).
+ * React Compiler must NOT run on them since they intentionally mutate state in ways that violate
+ * the Rules of React.
  */
-const includeModules = new RegExp(
-    `node_modules/(?!(${[
-        'react-native-reanimated',
-        'react-native-worklets',
-        'react-native-picker-select',
-        'react-native-web',
-        'react-native-webview',
-        '@react-native-picker',
-        '@react-navigation/material-top-tabs',
-        '@react-navigation/native',
-        '@react-navigation/native-stack',
-        '@react-navigation/stack',
-        'react-native-gesture-handler',
-        'react-native-google-places-autocomplete',
-        'react-native-qrcode-svg',
-        'react-native-view-shot',
-        '@react-native/assets',
-        'expo',
-        'expo-audio',
-        'expo-video',
-        'expo-image',
-        'expo-image-manipulator',
-        'expo-modules-core',
-        'victory-native',
-        '@shopify/react-native-skia',
-    ].join('|')})/).*|\\.native\\.(js|jsx|ts|tsx)$`,
-);
+const INCLUDED_NODE_MODULES = [
+    'react-native-reanimated',
+    'react-native-worklets',
+    'react-native-picker-select',
+    'react-native-web',
+    'react-native-webview',
+    '@react-native-picker',
+    '@react-navigation/material-top-tabs',
+    '@react-navigation/native',
+    '@react-navigation/native-stack',
+    '@react-navigation/stack',
+    'react-native-gesture-handler',
+    'react-native-google-places-autocomplete',
+    'react-native-qrcode-svg',
+    'react-native-view-shot',
+    '@react-native/assets',
+    'expo',
+    'expo-audio',
+    'expo-video',
+    'expo-image',
+    'expo-image-manipulator',
+    'expo-modules-core',
+    'victory-native',
+    '@shopify/react-native-skia',
+];
+
+// Matches node_modules paths that ARE in the allowlist above (Rule B — transformed but without
+// React Compiler).
+const includedNodeModules = new RegExp(`node_modules/(${INCLUDED_NODE_MODULES.join('|')})`);
 
 const environmentToLogoSuffixMap: Record<string, string> = {
     production: '-dark',
@@ -114,7 +117,7 @@ function getDefineValues(file: string): DefinePluginOptions {
 
 /**
  * Config shared between the main app build (below) and Storybook (via
- * `.storybook/rsbuild.config.ts`): source defines, module resolution, and the SVG/babel loader
+ * `.storybook/rsbuild.config.ts`): source defines, module resolution, and the SVG/OXC transform
  * pipeline. Deliberately excludes anything that assumes a single-page `web/index.html` app shell
  * (HTML template, service worker, Sentry release upload, static asset copying), since Storybook
  * manages its own HTML/output and isn't a deployable release of the app.
@@ -162,16 +165,6 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 svgrOptions: {exportType: 'default'},
                 exclude: /node_modules/,
             }),
-            pluginBabel({
-                include: /\.(js|ts)x?$/,
-                exclude: [includeModules],
-                babelLoaderOptions: {
-                    configFile: path.resolve(dirname, '../../babel.config.js'),
-                    babelrc: false,
-                    presets: [],
-                    plugins: [],
-                },
-            }),
         ],
         tools: {
             rspack: (config, {addRules}) => {
@@ -201,6 +194,76 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 };
 
                 addRules([
+                    // Rule A — app source files (React Compiler enabled).
+                    {
+                        test: /\.(js|ts)x?$/,
+                        // Exclude ALL node_modules (including includedNodeModules — handled by Rule B below).
+                        exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
+                        use: [
+                            // Pass 3: worklets (on OXC's plain-JS output — no presets needed).
+                            {
+                                loader: 'babel-loader',
+                                options: {
+                                    babelrc: false,
+                                    configFile: false,
+                                    plugins: ['react-native-worklets/plugin'],
+                                },
+                            },
+                            // Pass 2: React Compiler + all transforms via our thin wrapper loader.
+                            // oxc-react-compiler-loader calls oxc-transform directly and demotes
+                            // non-fatal React Compiler diagnostics to warnings instead of hard build
+                            // errors (workaround for oxc-project/oxc#23587).
+                            {
+                                loader: path.resolve(dirname, './oxc-react-compiler-loader.cjs'),
+                                options: {
+                                    reactCompiler: {target: '19', panicThreshold: 'none'},
+                                    target: 'node20',
+                                    jsx: {runtime: 'automatic'},
+                                },
+                            },
+                            // Pass 1: Fullstory annotation (sees annotated JSX before OXC transforms it).
+                            {
+                                loader: path.resolve(dirname, './fullstory-annotation-loader.cjs'),
+                            },
+                        ],
+                    },
+                    // Rule B — included node_modules that need transforms but NOT React Compiler.
+                    {
+                        test: /\.tsx?$/,
+                        include: [includedNodeModules],
+                        exclude: [/\.native\.(ts|tsx)$/],
+                        use: [
+                            {
+                                loader: 'babel-loader',
+                                options: {
+                                    babelrc: false,
+                                    configFile: false,
+                                    plugins: ['react-native-worklets/plugin'],
+                                },
+                            },
+                            {loader: 'oxc-loader', options: {target: 'node20'}},
+                        ],
+                    },
+                    // Rule B2: JavaScript — need explicit jsx to upgrade .js lang to jsx.
+                    {
+                        test: /\.jsx?$/,
+                        include: [includedNodeModules],
+                        exclude: [/\.native\.(js|jsx)$/],
+                        use: [
+                            {
+                                loader: 'babel-loader',
+                                options: {
+                                    babelrc: false,
+                                    configFile: false,
+                                    plugins: ['react-native-worklets/plugin'],
+                                },
+                            },
+                            {
+                                loader: 'oxc-loader',
+                                options: {target: 'node20', jsx: {runtime: 'automatic'}},
+                            },
+                        ],
+                    },
                     // We are importing this worker as a string by using asset/source otherwise it will
                     // default to loading via an HTTPS request later. This causes issues if we have gone
                     // offline before the pdfjs web worker is set up as we won't be able to load it from
@@ -500,4 +563,4 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 };
 
 export default getCommonConfiguration;
-export {getDefineValues, getSharedConfiguration, includeModules};
+export {getDefineValues, getSharedConfiguration};
