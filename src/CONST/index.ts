@@ -8842,6 +8842,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'More Concierge AI upgrades, plus agent beta',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
+                publishedDate: '2026-07-01',
+            },
+            {
                 title: 'Ask Concierge AI: charts, insights & more',
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
@@ -8852,12 +8858,6 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
                 publishedDate: '2026-06-24',
-            },
-            {
-                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
-                publishedDate: '2026-06-08',
             },
         ],
     },
