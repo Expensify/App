@@ -1,10 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxKey, UseOnyxResult} from 'react-native-onyx';
+
 import useOnyx from '@hooks/useOnyx';
 import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
+
 import * as Search from '@libs/actions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxKey, UseOnyxResult} from 'react-native-onyx';
 
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn(() => [undefined])}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
