@@ -135,8 +135,8 @@ function toggleEmojiReaction(
     const hexEntry = emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined;
     const nameEntry = existingReactions?.[emoji.name];
 
-    const userReactedUnderName = !!nameEntry && hasAccountIDEmojiReacted(currentUserAccountID, nameEntry.users, skinToneToCheck);
-    const userReactedUnderHex = !!hexEntry && hasAccountIDEmojiReacted(currentUserAccountID, hexEntry.users, skinToneToCheck);
+    const userReactedUnderName = !!nameEntry?.users && hasAccountIDEmojiReacted(currentUserAccountID, nameEntry.users, skinToneToCheck);
+    const userReactedUnderHex = !!hexEntry?.users && hasAccountIDEmojiReacted(currentUserAccountID, hexEntry.users, skinToneToCheck);
 
     if (userReactedUnderHex && emoji.hexcode) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.hexcode);
