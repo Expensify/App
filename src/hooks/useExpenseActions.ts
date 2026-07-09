@@ -67,6 +67,7 @@ import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import usePermissions from './usePermissions';
@@ -237,6 +238,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
+
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
             return;
@@ -269,6 +272,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                policyTagList,
             });
         }
     };

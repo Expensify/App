@@ -1,6 +1,3 @@
-import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -12,12 +9,14 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import CONST from '@src/CONST';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
-
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -2743,6 +2742,7 @@ ${amount} para ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agentes',
         subtitle: `<muted-text>Los agentes gestionan tus flujos de trabajo por ti, para que recuperes horas en tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
+        findAgent: 'Buscar agente',
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
@@ -5376,6 +5376,36 @@ ${amount} para ${merchant} - ${date}`,
             enableNewAccountsDescription: 'Las nuevas cuentas de Rillet estarán disponibles como categorías.',
             dimensionsImport: 'Todas las dimensiones de Rillet se importan como etiquetas',
             importDescription: 'Elige qué configuraciones de codificación quieres importar desde Rillet.',
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Rillet y sincroniza la conexión de nuevo',
+            noAccountsFound: 'No se encontraron cuentas',
+            noAccountsFoundDescription: 'Por favor, añade cuentas en Rillet y sincroniza la conexión de nuevo',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Rillet.',
+            exportReimbursable: {label: 'Exportar gastos reembolsables como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Facturas de proveedor'}}},
+            exportDate: {
+                label: 'Fecha de factura del proveedor',
+                description: 'Usa esta fecha al exportar informes a Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a Rillet.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Exportar gastos de tarjetas de empresa como', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Tarjetas de crédito'}}},
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado de la tarjeta de empresa',
+                description: 'Elige un proveedor Rillet predeterminado para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {label: 'Cuenta de tarjeta de empresa', description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.'},
         },
         type: {
             free: 'Gratis',
