@@ -116,14 +116,12 @@ let allReports: OnyxCollection<OnyxTypes.Report>;
 let allPolicies: OnyxCollection<OnyxTypes.Policy>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
 });
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicies = value;
     },
@@ -324,6 +322,7 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
+    shouldClearAppLoading = false,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
     let commandName: string;
     if (isOpenApp) {
@@ -372,7 +371,16 @@ function getOnyxDataForOpenOrReconnect(
             key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
+    }
 
+    // Clear IS_LOADING_APP in finallyData for OpenApp and ReconnectApp, not just OpenApp. The optimistic `true`
+    // above persists immediately, while finallyData for write commands is held in memory until the sequential
+    // queue flushes (see QueuedOnyxUpdates), so an interrupted session can leave `true` persisted with no OpenApp
+    // left to clear it — once HAS_LOADED_APP is set, the app only ever runs ReconnectApp. Having ReconnectApp also
+    // clear the flag makes it self-healing. Callers outside that family (GetMissingOnyxMessages) must not clear
+    // it: they run as side-effect requests outside the sequential queue, so they could race a legitimate in-flight
+    // OpenApp and drop the loading gate before its data lands.
+    if (isOpenApp || shouldClearAppLoading) {
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
@@ -506,7 +514,11 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         const isFullReconnect = !updateIDFrom;
-        return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+        return API.writeWithNoDuplicatesReconnectConflictAction(
+            WRITE_COMMANDS.RECONNECT_APP,
+            params,
+            getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
+        ).finally(() => {
             if (!bootsplashSpan) {
                 return;
             }

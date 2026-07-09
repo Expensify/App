@@ -11,6 +11,8 @@ import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
+import React from 'react';
+
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
 
 import WorkspaceTaxesTableRow from './WorkspaceTaxesTableRow';
