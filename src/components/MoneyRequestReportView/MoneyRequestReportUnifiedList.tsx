@@ -215,13 +215,7 @@ function MoneyRequestReportUnifiedList({
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
             initialScrollIndex={initialScrollIndex}
-            maintainVisibleContentPosition={{
-                // In the windowed-table case `data` is report actions only, so during hydration the list briefly sits
-                // within the 0-threshold of the bottom and would auto-stick there (opening at the bottom of chat).
-                // The table lives in the header, so we want to open at the top; the app handles "jump to latest"
-                // explicitly (floating counter + current-user sends), so bottom auto-stick isn't needed here.
-                autoscrollToBottomThreshold: isHorizontalTable ? undefined : 0,
-            }}
+            maintainVisibleContentPosition={isHorizontalTable ? {disabled: true} : {autoscrollToBottomThreshold: undefined}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
             onEndReached={onEndReached}
