@@ -5,11 +5,12 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
@@ -21,7 +22,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 const POLICY_ID = 'testPolicy123';
 const ADMIN_EMAIL = 'admin@company.com';
 const USER_LOGIN = 'user@company.com';
-const TCS_ROUTE = `terms/${CONST.TRAVEL.DEFAULT_DOMAIN}/accept/${POLICY_ID}`;
+const ENABLE_TRAVEL_ROUTE = ROUTES.TRAVEL_ENABLE.getRoute(POLICY_ID);
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -40,7 +41,6 @@ jest.mock('@libs/actions/Travel', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        setTravelProvisioningNextStep: jest.fn(),
         cleanupTravelProvisioningSession: jest.fn(),
         requestTravelAccess: jest.fn(),
     };
@@ -105,7 +105,7 @@ describe('BookTravelButton', () => {
     });
 
     describe('when the workspace is provisioned but terms are not yet accepted', () => {
-        it('navigates a validated admin straight to the Travel terms screen using the default domain', async () => {
+        it('navigates a validated admin straight to the enablement stepper', async () => {
             // Given a provisioned, terms-not-accepted workspace and a validated admin
             await seedOnyx(true);
             renderBookTravelButton();
@@ -115,14 +115,12 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then it routes directly to the terms-and-conditions screen with the default domain sentinel
-            expect(Navigation.navigate).toHaveBeenCalledWith(TCS_ROUTE);
-            // And it does not dead-end through the verify-account hop that previously produced a not-found page
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('verify-account'));
-            expect(setTravelProvisioningNextStep).not.toHaveBeenCalled();
+            // Then it routes to the enablement stepper, which computes the steps this workspace still needs
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(cleanupTravelProvisioningSession).toHaveBeenCalled();
         });
 
-        it('validates an unvalidated admin first, storing the terms screen as the next step', async () => {
+        it('also navigates an unvalidated admin to the enablement stepper, deferring OTP verification to the stepper itself', async () => {
             // Given a provisioned, terms-not-accepted workspace and an admin who has not validated their account
             await seedOnyx(false);
             renderBookTravelButton();
@@ -132,10 +130,8 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then the terms screen is stored as the post-validation destination
-            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(TCS_ROUTE);
-            // And the admin is sent to verify their account first
-            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('travel/verify-account'));
+            // Then it still routes to the enablement stepper; the stepper's own verify-account step handles OTP
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
         });
     });
 

@@ -61,7 +61,7 @@ function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
+    const errorMessage = getLatestErrorMessage(travelProvisioning);
     const isLoading = travelProvisioning?.isLoading;
     const domain = resolvedDomain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : resolvedDomain;
 
@@ -100,6 +100,8 @@ function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
 
                 // Handle verification required error - show modal and reject to close Safari window if open
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
+                    // The modal communicates the error, so clear the provisioning error to avoid also showing it inline behind the modal
+                    cleanupTravelProvisioningSession();
                     showConfirmModal({
                         title: translate('travel.verifyCompany.title'),
                         titleStyles: styles.textHeadlineH1,
@@ -122,7 +124,7 @@ function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
                     return Promise.reject(new Error('Verification required'));
                 }
 
-                // Handle general API failure
+                // Any other backend failure surfaces its error inline via the travelProvisioning Onyx key set by the backend
                 if (response?.jsonCode !== 200) {
                     return Promise.reject(new Error('Request failed'));
                 }

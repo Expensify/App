@@ -94,9 +94,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
-        animationTypeForReplace: 'push',
-    },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
         animationTypeForReplace: 'push',
     },
@@ -233,16 +230,12 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
     [SCREENS.TRAVEL.MY_TRIPS]: () => require<ReactComponentModule>('../../../../pages/Travel/MyTripsPage').default,
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelDotLinkWebview').default,
-    [SCREENS.TRAVEL.DYNAMIC_TCS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelTerms').default,
     [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelUpgrade').default,
     [SCREENS.TRAVEL.TRIP_SUMMARY]: () => require<ReactComponentModule>('../../../../pages/Travel/TripSummaryPage').default,
     [SCREENS.TRAVEL.TRIP_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TripDetailsPage').default,
-    [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainSelectorPage').default,
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicPublicDomainErrorPage').default,
     [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceConfirmationForTravelPage').default,
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
-    [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalEntityTaxIDPage').default,
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
     [SCREENS.TRAVEL.ENABLE]: () => require<ReactComponentModule>('../../../../pages/Travel/EnableTravel').default,
 });
