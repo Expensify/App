@@ -13,7 +13,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -88,6 +88,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
+    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
@@ -105,13 +106,13 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             }
 
             return (
-                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, isParentReportArchived).workspaceName ??
+                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived).workspaceName ??
                 getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived)
             );
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate]);
+    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate, derivedParentReportName]);
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
