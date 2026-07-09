@@ -1,5 +1,5 @@
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, ReportNameValuePairs} from '@src/types/onyx';
 
 /**
  * This file should only be used in context of optimistic report name updates.
@@ -9,7 +9,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getTitleReportField, isChatReport} from './ReportUtils';
+import {getTitleReportField} from './ReportUtils';
 
 let allReportNameValuePairs: Record<string, ReportNameValuePairs> = {};
 
@@ -67,50 +67,4 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): Array
     return optimisticData;
 }
 
-/**
- * Remove title field from report's rNVP when report is manually renamed to indicate that the manual name should be preserved, and the custom report name formula should no longer update the name.
- */
-function removeTitleFieldFromReport(reportID: string): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> {
-    if (!reportID) {
-        return [];
-    }
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-            value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                expensify_text_title: null,
-            },
-        },
-    ];
-
-    return optimisticData;
-}
-
-/**
- * Check if a report should have its title field updated based on conditions
- */
-function shouldUpdateTitleField(report: Report): boolean {
-    // todo: this should be more sophisticated function. check for iou etc
-    if (!report) {
-        return false;
-    }
-    // Skip chat reports
-    if (isChatReport(report)) {
-        return false;
-    }
-
-    // Skip if report has statement card ID (backend check: !getValue(db, reportID, NVP_STATEMENT_CARD_ID).empty())
-    // This would need to be implemented based on how statement card IDs are stored in the frontend
-
-    const reportTitleField = getTitleFieldFromRNVP(report.reportID);
-    if (!reportTitleField) {
-        return false;
-    }
-
-    return true;
-}
-
-export {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy};
+export {getTitleFieldFromRNVP, updateTitleFieldToMatchPolicy};

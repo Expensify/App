@@ -61,6 +61,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Car',
         'CreditCard',
+        'CreditCardHourglass',
         'CreditCardLock',
         'CreditCardWithPlane',
         'CreditCardWithPlaneHourglass',
@@ -74,14 +75,23 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
     const isManagedCard = isManagedCardTransaction(transactionItem);
     const isTravelInvoicingCard = isTravelCardTransaction(transactionItem.feedCountry, card);
-    const isPendingExpensifyCardTransaction = isExpensifyCard && isPending(transactionItem);
-    const pendingIcon = isTravelInvoicingCard ? expensifyIcons.CreditCardWithPlaneHourglass : expensifyIcons.ExpensifyCardHourglass;
-    const typeIcon = isPendingExpensifyCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
-    const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
+    const isPendingCardTransaction = isPending(transactionItem);
+    const getPendingIcon = () => {
+        if (isTravelInvoicingCard) {
+            return expensifyIcons.CreditCardWithPlaneHourglass;
+        }
+        if (isExpensifyCard) {
+            return expensifyIcons.ExpensifyCardHourglass;
+        }
+        return expensifyIcons.CreditCardHourglass;
+    };
+    const pendingIcon = getPendingIcon();
+    const typeIcon = isPendingCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
+    const typeText = isPendingCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
     const styles = useThemeStyles();
 
     const getTooltipText = () => {
-        if (isPendingExpensifyCardTransaction) {
+        if (isPendingCardTransaction) {
             return translate('iou.pending');
         }
         if (isTravelInvoicingCard) {
