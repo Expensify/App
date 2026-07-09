@@ -2199,6 +2199,12 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
+        // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
+        // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
+        ATTRIBUTE_WIDE_LAYOUT: 'wide_layout',
+        // Stamped on the navigate-to-inbox-tab span when the app-loading skeleton was shown instead of the
+        // report list, so durations that include the openApp wait can be excluded from render measurements.
+        ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
