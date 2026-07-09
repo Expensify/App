@@ -61,6 +61,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         isValidatingReceipts: false,
         isValidatingMultipleFiles: false,
     });
+    const isMountedRef = useRef(true);
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
@@ -83,6 +84,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     useEffect(() => {
         return () => {
+            isMountedRef.current = false;
             if (!loaderTimeoutRef.current) {
                 return;
             }
@@ -146,6 +148,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             shouldShowCancelButton: currentValidationState.current.isValidatingMultipleFiles,
         });
 
+        if (!isMountedRef.current) {
+            return;
+        }
+
         if (result.action === ModalActions.CONFIRM) {
             // Handle MAX_FILE_LIMIT_EXCEEDED separately
             if (error.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
@@ -170,7 +176,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             const sortedFiles = sortFilesByOriginalOrder(validFilesToUploadRef.current, originalFileOrder.current);
             // If we're validating attachments we need to wait for the error modal close
             // transition to finish before opening the attachment modal
-            if (currentValidationState.current.isValidatingReceipts === false && error) {
+            if (currentValidationState.current.isValidatingReceipts === false) {
                 pendingAfterHide.current = () => {
                     if (sortedFiles.length !== 0) {
                         onFilesValidated(sortedFiles, dataTransferItemList.current);
@@ -192,6 +198,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const checkIfAllValidatedAndProceed = () => {
+        if (!isMountedRef.current) {
+            return;
+        }
+
         if (!validatedPDFs.current || !validFiles.current) {
             return;
         }
@@ -349,6 +359,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
 
         const handleNext = () => {
+            if (!isMountedRef.current) {
+                return;
+            }
+
             if (pdfsToLoad.length) {
                 validFiles.current = validNonPdfFiles;
                 setPdfFilesToRender(pdfsToLoad);
