@@ -1198,10 +1198,7 @@ function buildFilterFormValuesFromQuery(
 
         const isNegated = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
