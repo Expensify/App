@@ -521,32 +521,28 @@ describe('Middleware', () => {
                 requestIndex: 13,
             });
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
-                            value: {
-                                reportID: optimisticReportID,
-                                participants: {[settledAccountID]: {notificationPreference: 'always'}},
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
                             },
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                [settledAccountID]: {
-                                    accountID: settledAccountID,
-                                },
-                            },
-                        },
-                    ],
-                }),
-            }));
+                    },
+                ],
+            });
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -593,33 +589,29 @@ describe('Middleware', () => {
                 requestIndex: 14,
             });
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
-                            value: {
-                                reportID: optimisticReportID,
-                                participants: {[settledAccountID]: {notificationPreference: 'always'}},
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                                login: serverLogin,
                             },
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                [settledAccountID]: {
-                                    accountID: settledAccountID,
-                                    login: serverLogin,
-                                },
-                            },
-                        },
-                    ],
-                }),
-            }));
+                    },
+                ],
+            });
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -636,6 +628,63 @@ describe('Middleware', () => {
             });
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[settledAccountID]?.login).toBe(serverLogin);
+        });
+
+        test('OpenReport restores the invited login when the participant is already known without one from a server search', async () => {
+            const optimisticReportID = '1234';
+            const knownAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [knownAccountID]: {
+                        accountID: knownAccountID,
+                        login: '',
+                        displayName: '',
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 15,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe(invitedEmail);
         });
     });
 });

@@ -2090,21 +2090,23 @@ function createGroupChat(
 
 function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
-): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>; missingLoginParticipants: number[]} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
         return undefined;
     }
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
+    const missingLoginParticipants: number[] = [];
     for (const accountID in existingReport.participants) {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
-            continue;
+        if (allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            settledPersonalDetails[accountID] = null;
+            redundantParticipants[accountID] = null;
+        } else if (allPersonalDetails?.[accountID] && !allPersonalDetails[accountID].login) {
+            missingLoginParticipants.push(Number(accountID));
         }
-        settledPersonalDetails[accountID] = null;
-        redundantParticipants[accountID] = null;
     }
-    return {settledPersonalDetails, redundantParticipants};
+    return {settledPersonalDetails, redundantParticipants, missingLoginParticipants};
 }
 
 /**
