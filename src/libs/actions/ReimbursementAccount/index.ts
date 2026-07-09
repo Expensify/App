@@ -1,6 +1,5 @@
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 
-import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -55,7 +54,7 @@ function prepareNewBankAccountSetup(currency: string) {
     clearReimbursementAccount();
     clearReimbursementAccountDraft();
     updateReimbursementAccountDraft({
-        country: mapCurrencyToCountry(currency) as Country,
+        country: mapCurrencyToCountry(currency),
         currency,
     });
     Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
