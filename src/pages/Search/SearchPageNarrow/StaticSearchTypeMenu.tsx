@@ -43,8 +43,8 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const submitSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
 
     const tabs: TabSelectorBaseItem[] = [
-        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath)},
         {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath)},
+        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath)},
     ];
 
     if (hasGroupPolicy) {
