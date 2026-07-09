@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,9 +50,11 @@ import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFrom
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
+    translate: LocalizedTranslate;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -145,6 +149,7 @@ function submitAmount({
     transaction,
     splitDraftTransaction,
     policy,
+    policyTags,
     isDraftChatReport,
     selectedCurrency,
     decimals,
@@ -177,6 +182,7 @@ function submitAmount({
     userBillingGracePeriodEnds,
     duplicateTransactions,
     duplicateTransactionViolations,
+    translate,
     reportAttributesDerivedValue,
     betas,
     betaConfiguration,
@@ -239,13 +245,13 @@ function submitAmount({
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
                 return participantAccountID
-                    ? getParticipantsOption(participant, allPersonalDetails)
+                    ? getParticipantsOption(participant, allPersonalDetails, translate)
                     : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
+            const participant = participants.at(0);
 
             if (shouldSkipConfirmation) {
-                const participant = participants.at(0);
                 const defaultReimbursable = calculateDefaultReimbursable({
                     iouType,
                     policy,
@@ -309,7 +315,7 @@ function submitAmount({
                             participantParams: {
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                             },
                             transactionParams: {
                                 amount: backendAmount,
@@ -330,6 +336,7 @@ function submitAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            reportActionsList: undefined,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -337,7 +344,7 @@ function submitAmount({
                             report,
                             betas,
                             participantParams: {
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
                             },
@@ -350,6 +357,7 @@ function submitAmount({
                                 reimbursable: defaultReimbursable,
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                             },
+                            policyParams: {policyTagList: policyTags},
                             shouldGenerateTransactionThreadReport: false,
                             isASAPSubmitBetaEnabled,
                             currentUserAccountIDParam,

@@ -112,6 +112,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
                 guidesEmailsByReport: {},
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -132,6 +133,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
                 guidesEmailsByReport: {},
+                conciergeReportID: undefined,
             }),
         );
     });

@@ -787,7 +787,6 @@ describe('PerDiem', () => {
             const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (val) => {
                         resolve(val ?? {});
                         Onyx.disconnect(connection);
@@ -927,7 +926,6 @@ describe('PerDiem', () => {
             const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);

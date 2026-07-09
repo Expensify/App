@@ -753,6 +753,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -765,6 +766,7 @@ describe('DebugUtils', () => {
                 draftComment: 'Hello world!',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -780,6 +782,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -794,6 +797,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -812,6 +816,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -838,6 +843,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -857,6 +863,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -871,6 +878,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -882,6 +890,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -942,6 +951,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1002,6 +1012,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1014,6 +1025,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });

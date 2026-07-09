@@ -1,16 +1,13 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
@@ -28,7 +25,6 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
@@ -48,8 +44,6 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
-
-import variables from '@styles/variables';
 
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
@@ -130,7 +124,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Lightbulb',
         'Lock',
         'Users',
-        'Emoji',
         'CreditCard',
         'Wallet',
         'Bolt',
@@ -157,12 +150,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
@@ -274,19 +265,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
             action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
         },
-        ...(!isAgentAccount
-            ? [
-                  {
-                      translationKey: 'common.wallet' as const,
-                      icon: icons.Wallet,
-                      screenName: SCREENS.SETTINGS.WALLET.ROOT,
-                      brickRoadIndicator: walletBrickRoadIndicator,
-                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
-                      action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-                      badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
-                  },
-              ]
-            : []),
+        {
+            translationKey: 'common.wallet',
+            icon: icons.Wallet,
+            screenName: SCREENS.SETTINGS.WALLET.ROOT,
+            brickRoadIndicator: walletBrickRoadIndicator,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
+        },
         {
             translationKey: 'expenseRulesPage.title',
             icon: icons.Bolt,
@@ -294,17 +281,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.RULES,
             action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
         },
-        ...(!isAgentAccount
-            ? [
-                  {
-                      translationKey: 'common.preferences' as const,
-                      icon: icons.Gear,
-                      screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
-                      action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
-                  },
-              ]
-            : []),
+        {
+            translationKey: 'common.preferences',
+            icon: icons.Gear,
+            screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+        },
         {
             translationKey: 'delegate.copilot',
             icon: icons.Users,
@@ -312,18 +295,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
             action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
         },
-        ...(!isAgentAccount
-            ? [
-                  {
-                      translationKey: 'initialSettingsPage.security' as const,
-                      icon: icons.Lock,
-                      screenName: SCREENS.SETTINGS.SECURITY,
-                      brickRoadIndicator: securityBrickRoadIndicator,
-                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
-                      action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
-                  },
-              ]
-            : []),
+        {
+            translationKey: 'initialSettingsPage.security' as const,
+            icon: icons.Lock,
+            screenName: SCREENS.SETTINGS.SECURITY,
+            brickRoadIndicator: securityBrickRoadIndicator,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
+        },
     ];
 
     if (!isAgentAccount && isBetaEnabled(CONST.BETAS.CUSTOM_AGENT)) {
@@ -339,7 +318,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         });
     }
 
-    if (!isAgentAccount && (subscriptionPlan || (amountOwed ?? 0) > 0)) {
+    if (subscriptionPlan || (amountOwed ?? 0) > 0) {
         accountItems.splice(1, 0, {
             translationKey: 'allSettingsScreen.subscription',
             icon: icons.CreditCard,
@@ -517,32 +496,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     reasonAttributes={skeletonReasonAttributes}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
-                    <Tooltip text={translate('statusPage.status')}>
-                        <PressableWithFeedback
-                            accessibilityLabel={
-                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
-                            }
-                            accessibilityRole="button"
-                            accessible
-                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                {emojiCode ? (
-                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
-                                ) : (
-                                    <Icon
-                                        src={icons.Emoji}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                        fill={theme.icon}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    </Tooltip>
                 </View>
             )}
         </View>
