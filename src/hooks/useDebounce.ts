@@ -35,7 +35,7 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
     const {leading, maxWait, trailing = true, shouldExecuteOnUnmount = false} = options ?? {};
     const isUnmounted = useRef(false);
 
-    // Registered after the debounce effect so this cleanup runs first on unmount and the debounce
+    // Registered before the debounce effect so this cleanup runs first on unmount and the debounce
     // cleanup can distinguish unmount from a dependency change.
     useEffect(() => {
         return () => {
