@@ -96,6 +96,7 @@ type UpdateMultipleMoneyRequestsParams = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
+    personalPolicyOutputCurrency?: string;
 };
 
 function updateMultipleMoneyRequests({
@@ -112,6 +113,7 @@ function updateMultipleMoneyRequests({
     allPolicies,
     currentUserAccountID,
     delegateAccountID,
+    personalPolicyOutputCurrency,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -347,6 +349,7 @@ function updateMultipleMoneyRequests({
             transactionChanges,
             isFromExpenseReport,
             policy: transactionPolicy,
+            personalPolicyOutputCurrency,
         });
         const isTransactionOnHold = isOnHold(transaction);
 
