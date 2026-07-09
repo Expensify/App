@@ -3,6 +3,7 @@ import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
+import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
@@ -15,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -105,6 +106,19 @@ function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOver
         return (
             <ReportFieldPopup
                 values={searchAdvancedFiltersForm}
+                closeOverlay={closeOverlay}
+                updateFilterForm={closeModalAndUpdateFilterForm}
+            />
+        );
+    }
+
+    if (isTextFilterKey(filterKey)) {
+        return (
+            <TextFilterPopup
+                key={filterKey}
+                filterKey={filterKey}
+                value={searchAdvancedFiltersForm[filterKey]}
+                label={label}
                 closeOverlay={closeOverlay}
                 updateFilterForm={closeModalAndUpdateFilterForm}
             />
