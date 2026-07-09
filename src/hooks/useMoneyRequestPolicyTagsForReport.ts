@@ -28,6 +28,7 @@ function useMoneyRequestPolicyTagsForReport({report, currentUserAccountID, exist
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const chatReportID = isMoneyRequestReport ? getNonEmptyStringOnyxID(report?.chatReportID) : undefined;
 
+    // Subscribe reactively (the chat report may load after first render) and narrow to the primitive policyID to avoid re-renders on unrelated field changes.
     const [chatReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: selectReportPolicyID});
     const [chatReportDraftPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, {selector: selectReportPolicyID});
 
