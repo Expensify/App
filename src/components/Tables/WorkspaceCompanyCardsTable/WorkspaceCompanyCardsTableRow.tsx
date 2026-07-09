@@ -3,7 +3,6 @@ import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -167,6 +166,7 @@ function WorkspaceCompanyCardTableRow({
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -176,12 +176,12 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={customCardName ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {customCardName}
-                            </Text>
+                            />
                         </View>
                     )}
 
