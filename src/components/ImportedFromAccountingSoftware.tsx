@@ -69,7 +69,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                             src={icon}
                             height={variables.iconSizeMedium}
                             width={variables.iconSizeMedium}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_SMALL, ''), styles.appBG]}
                         />
                     ) : undefined
                 }

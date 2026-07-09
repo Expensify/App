@@ -68,8 +68,12 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
 
     useEffect(() => {
         setTaskReport(report);
@@ -234,7 +238,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                             accessibilityRole={CONST.ROLE.BUTTON}
                                                             accessibilityLabel={taskAccessibilityLabel}
                                                             accessibilityHint={titlePressableAccessibilityHint}
-                                                            accessibilityState={{disabled: isDisableInteractive}}
+                                                            accessibilityState={{
+                                                                disabled: isDisableInteractive,
+                                                            }}
                                                             disabled={isDisableInteractive}
                                                             onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
                                                             style={[styles.flexRow, styles.flex1]}
@@ -272,10 +278,13 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {report?.managerID ? (
                                 <MenuItem
                                     label={translate('task.assignee')}
-                                    title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber})}
+                                    title={getDisplayNameForParticipant({
+                                        accountID: report.managerID,
+                                        formatPhoneNumber,
+                                    })}
                                     iconAccountID={report.managerID}
                                     iconType={CONST.ICON_TYPE_AVATAR}
-                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                                    avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     titleStyle={styles.assigneeTextStyle}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}

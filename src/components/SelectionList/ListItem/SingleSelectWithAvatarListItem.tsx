@@ -1,8 +1,7 @@
 import Avatar from '@components/Avatar';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -19,6 +18,7 @@ import SingleSelectListItem from './SingleSelectListItem';
  */
 function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperStyle, ...props}: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icon = item.icons?.at(0);
 
     if (!icon) {
@@ -40,7 +40,7 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
                 avatarID={icon.id}
                 type={icon.type ?? CONST.ICON_TYPE_AVATAR}
                 fallbackIcon={icon.fallbackIcon}
-                iconAdditionalStyles={[{width: variables.avatarSizeNormal, height: variables.avatarSizeNormal}, styles.mr3]}
+                iconAdditionalStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
             />
         </View>
     );

@@ -5,7 +5,7 @@ import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/
 const MOCK_STYLES = {
     receiptPlaceholder: {width: 44, marginRight: 8, height: 52},
     receiptPlaceholderLandscape: {height: 52, marginBottom: 8, width: 44},
-    singleAvatarMedium: {height: 52, width: 52},
+    singleAvatarXLarge: {height: 52, width: 52},
     ph4: {paddingHorizontal: 16},
     ph6: {paddingHorizontal: 24},
     pv2: {paddingVertical: 8},

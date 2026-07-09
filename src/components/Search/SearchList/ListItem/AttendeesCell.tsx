@@ -35,7 +35,14 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const attendeeIcons: IconType[] = attendees.map((attendee) => ({
         id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
         name: attendee.displayName ?? attendee.email,
-        source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
+        source:
+            (attendee.avatarUrl ||
+                getDefaultAvatar({
+                    accountID: attendee.accountID,
+                    accountEmail: attendee.email,
+                    defaultAvatars,
+                })) ??
+            '',
         type: CONST.ICON_TYPE_AVATAR,
     }));
 
@@ -46,7 +53,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const size = CONST.AVATAR_SIZE.SMALLER;
+    const size = CONST.AVATAR_SIZE.X_SMALL;
     const maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
@@ -119,7 +126,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             }),
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
-                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
                             icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
                             StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                         ]}

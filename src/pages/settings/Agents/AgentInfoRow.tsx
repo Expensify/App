@@ -4,8 +4,6 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -33,9 +31,9 @@ function AgentInfoRow({accountID, displayName, login, isPendingDeletion = false}
         <>
             <ReportActionAvatars
                 accountIDs={[accountID]}
-                size={CONST.AVATAR_SIZE.LARGE_NORMAL}
+                size={CONST.AVATAR_SIZE.LARGE}
                 shouldShowTooltip={false}
-                singleAvatarContainerStyle={[StyleUtils.getWidthAndHeightStyle(variables.avatarSizeLargeNormal)]}
+                singleAvatarContainerStyle={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE))]}
             />
             <View style={[styles.flex1, styles.gap1]}>
                 <Text

@@ -84,12 +84,12 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                     <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
-                        imageStyles={[styles.avatarXLarge]}
+                        containerStyles={[styles.avatarXxxxLarge, styles.mv5, styles.noOutline]}
+                        imageStyles={[styles.avatarXxxxLarge]}
                         source={details.avatar}
                         avatarID={accountID}
                         type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
                     {!!(details.displayName ?? '') && (

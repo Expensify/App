@@ -220,13 +220,21 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
-        currentUserPersonalDetails?.email,
-    ]);
+    const [filteredPoliciesInfo] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email),
+        },
+        [currentUserPersonalDetails?.email],
+    );
     const {showConfirmModal} = useConfirmModal();
     const reportAttributes = useReportAttributes();
     const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
@@ -351,7 +359,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
-    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {
+        action: requestParentReportAction,
+    });
     if (shouldShowEditSplitOnDeleteAction) {
         deleteMenuItemTitle = translate('iou.editSplits');
     } else if (caseID === CASES.DEFAULT) {
@@ -759,7 +769,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 <View style={styles.mb3}>
                     <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         useProfileNavigationWrapper
                         singleAvatarContainerStyle={[]}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
@@ -773,8 +783,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 source={icons.at(0)?.source}
                 avatarID={icons.at(0)?.id}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                avatarStyle={styles.avatarXLarge}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                avatarStyle={styles.avatarXxxxLarge}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -796,7 +806,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isGroupChat,
         icons,
         report,
-        styles.avatarXLarge,
+        styles.avatarXxxxLarge,
         styles.smallEditIconAccount,
         styles.mt6,
         styles.w100,
@@ -857,7 +867,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         shouldShowRightIcon={false}
                         interactive={false}
                         description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
+                        title={getPolicyName({
+                            report,
+                            unavailableTranslation: translate('workspace.common.unavailable'),
+                        })}
                         numberOfLinesTitle={2}
                         shouldBreakWord
                     />
@@ -1035,7 +1048,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             ) {
                 if (isSuperWideRHPDisplayed) {
                     const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;
-                    navigationRef.dispatch({...StackActions.pop(distanceToPop), target: rhp?.state?.key});
+                    navigationRef.dispatch({
+                        ...StackActions.pop(distanceToPop),
+                        target: rhp?.state?.key,
+                    });
                     return;
                 }
                 Navigation.dismissModal();
@@ -1108,7 +1124,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
-            TransitionTracker.runAfterTransitions({callback: deleteTransaction, waitForUpcomingTransition: true});
+            TransitionTracker.runAfterTransitions({
+                callback: deleteTransaction,
+                waitForUpcomingTransition: true,
+            });
         });
     }, [showConfirmModal, translate, caseID, iouTransaction, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 

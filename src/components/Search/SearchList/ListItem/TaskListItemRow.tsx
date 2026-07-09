@@ -90,7 +90,9 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskItem.report);
     const parentReportAction = useParentReportAction(taskItem.report);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
     const isTaskActionable = canActionTask(taskItem.report, parentReportAction, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
@@ -195,7 +197,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         {!!item.assignee.accountID && (
                             <Avatar
                                 imageStyles={[styles.alignSelfCenter]}
-                                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 source={item.assignee.avatar}
                                 name={item.formattedAssignee}
                                 type={CONST.ICON_TYPE_AVATAR}

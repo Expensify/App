@@ -83,8 +83,14 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
-const rulesDocumentThumbnailStyle = {maxWidth: variables.rulesDocumentThumbnailMaxWidth, height: variables.rulesDocumentThumbnailHeight};
-const rulesDocumentMenuPositionStyle = {top: variables.spacing2, right: variables.spacing2};
+const rulesDocumentThumbnailStyle = {
+    maxWidth: variables.rulesDocumentThumbnailMaxWidth,
+    height: variables.rulesDocumentThumbnailHeight,
+};
+const rulesDocumentMenuPositionStyle = {
+    top: variables.spacing2,
+    right: variables.spacing2,
+};
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
@@ -106,12 +112,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
     // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
-    const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
+    const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: canDowngradeSelector,
+    });
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)}, [
-        currentUserPersonalDetails.accountID,
-    ]);
+    const [ownedPaidPoliciesCounts] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID),
+        },
+        [currentUserPersonalDetails.accountID],
+    );
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
@@ -264,21 +276,23 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const DefaultAvatar = useCallback(
         () => (
             <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                containerStyles={styles.avatarXxxxLarge}
+                imageStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 name={policyName}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXxxxLarge],
     );
 
-    const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
+    const dropdownMenuRef = useRef<{
+        setIsMenuVisible: (visible: boolean) => void;
+    } | null>(null);
 
     const handleLeaveWorkspace = () => {
         if (!policy) {
@@ -531,9 +545,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatarID={policyID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         name={policyName}
-                        avatarStyle={styles.avatarXLarge}
+                        avatarStyle={styles.avatarXxxxLarge}
                         enablePreview
                         DefaultAvatar={DefaultAvatar}
                         type={CONST.ICON_TYPE_WORKSPACE}

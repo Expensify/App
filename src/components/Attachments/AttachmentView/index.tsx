@@ -213,8 +213,8 @@ function AttachmentView({
         return (
             <Icon
                 src={source}
-                height={variables.defaultAvatarPreviewSize}
-                width={variables.defaultAvatarPreviewSize}
+                height={variables.avatarPreview}
+                width={variables.avatarPreview}
                 fill={iconFillColor}
                 additionalStyles={additionalStyles}
                 enableMultiGestureCanvas
