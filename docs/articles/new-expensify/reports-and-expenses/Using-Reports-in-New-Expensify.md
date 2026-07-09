@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, paid status column]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -67,6 +67,7 @@ You can choose from a wide range of columns, including:
 - **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
 - **Submitted** – The date the report was submitted for approval
+- **Paid status** – How a paid report was settled: **Marked as paid**, **Withdrawing**, or **Confirmed**
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
 - **Action** – Shows available actions like approve or reject
