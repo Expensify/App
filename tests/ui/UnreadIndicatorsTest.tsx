@@ -536,6 +536,7 @@ describe('Unread Indicators', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -617,6 +618,7 @@ describe('Unread Indicators', () => {
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
                         delegateAccountID: undefined,
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -672,6 +674,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -691,6 +694,7 @@ describe('Unread Indicators', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: USER_A_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -874,6 +878,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
