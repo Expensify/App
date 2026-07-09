@@ -47,6 +47,12 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
 
+    // The list page is only part of the flow when merging starts from a single expense (the list is where the source
+    // is picked, which populates `eligibleTransactions`). When merging two selected expenses directly, the list is
+    // skipped, so back navigation from the first step must exit to the entry screen instead of the list.
+    const cameFromList = mergeTransaction?.eligibleTransactions !== undefined;
+    const backRoute = cameFromList ? createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transactionID, isOnSearch), backPath) : backPath;
+
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
     const handleSelect = (receipt: Receipt | undefined) => {
@@ -70,10 +76,10 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch), backPath));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch), backPath), {forceReplace: true});
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, isOnSearch), backPath));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, isOnSearch), backPath), {forceReplace: true});
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
@@ -94,7 +100,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.receiptPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack();
+                        Navigation.goBack(backRoute);
                     }}
                 />
                 <ScrollView style={[styles.pv3, styles.ph5]}>

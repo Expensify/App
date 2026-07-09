@@ -25,6 +25,7 @@ import {
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
     isEmptyMergeValue,
+    shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -154,9 +155,23 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch), backPath));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch), backPath), {forceReplace: true});
         }
     }, [mergeTransaction, conflictFields, transactionID, isOnSearch, backPath]);
+
+    // The details page is reached after the receipt review step (when both transactions have a receipt), or directly
+    // from the list page (single-expense merge), or directly from the entry screen (merging two selected expenses).
+    // Point back navigation at whichever step actually preceded it so the wizard steps back one page at a time.
+    const cameFromList = mergeTransaction?.eligibleTransactions !== undefined;
+    const backRoute = useMemo(() => {
+        if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+            return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, isOnSearch), backPath);
+        }
+        if (cameFromList) {
+            return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transactionID, isOnSearch), backPath);
+        }
+        return backPath;
+    }, [targetTransaction, sourceTransaction, cameFromList, transactionID, isOnSearch, backPath]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
@@ -213,7 +228,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.detailsPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack();
+                        Navigation.goBack(backRoute);
                     }}
                 />
                 <ScrollView style={[styles.flex1, styles.ph5]}>

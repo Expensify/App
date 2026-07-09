@@ -105,9 +105,16 @@ function setupMergeTransactionDataAndNavigate(
     } else {
         setupMergeTransactionData(navigationTransactionID, setupData);
     }
+
+    // When advancing from the list page (after selecting a source), the merge RHP modal is already open, so we must
+    // replace the current dynamic screen rather than pushing a new one. Pushing a second dynamic merge screen makes
+    // getPathFromState concatenate both suffixes into an invalid doubled URL (e.g. .../merge/ID/merge/ID/receipt).
+    // Fresh entries (bulk selection) open the modal normally.
+    const navigationOptions = isSelectingSourceTransaction ? {forceReplace: true} : undefined;
+
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, isOnSearch), base));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, isOnSearch), base), navigationOptions);
     } else {
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
@@ -127,11 +134,11 @@ function setupMergeTransactionDataAndNavigate(
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, isOnSearch), base));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, isOnSearch), base), navigationOptions);
             return;
         }
 
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, isOnSearch), base));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, isOnSearch), base), navigationOptions);
     }
 }
 

@@ -8,8 +8,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +21,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getMergeableDataAndConflictFields, getTransactionThreadReportID, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,26 +32,30 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
 
 function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.path);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
+        mergeTransaction,
+    });
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetTransactionPolicy?.id}`);
@@ -70,6 +77,52 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
+
+    // The confirmation page can be reached after the details step (when the transactions had conflicting fields),
+    // after the receipt step (both had a receipt but no conflicts), directly from the list page (single-expense merge),
+    // or directly from the entry screen (merging two selected expenses). Recompute the same branching so back
+    // navigation returns to the exact step that preceded it. The list is only part of the flow when it populated
+    // `eligibleTransactions`; otherwise the flow was entered directly and back must exit to the entry screen.
+    const cameFromList = mergeTransaction?.eligibleTransactions !== undefined;
+    const backRoute = useMemo(() => {
+        if (targetTransaction && sourceTransaction) {
+            const {conflictFields} = getMergeableDataAndConflictFields(
+                targetTransaction,
+                sourceTransaction,
+                localeCompare,
+                getCurrencyDecimals,
+                [targetTransactionReport, sourceTransactionReport],
+                targetTransactionPolicy,
+                sourceTransactionPolicy,
+            );
+            if (conflictFields.length > 0) {
+                return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, isOnSearch), backPath);
+            }
+        }
+
+        if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+            return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, isOnSearch), backPath);
+        }
+
+        if (cameFromList) {
+            return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transactionID, isOnSearch), backPath);
+        }
+
+        return backPath;
+    }, [
+        targetTransaction,
+        sourceTransaction,
+        localeCompare,
+        getCurrencyDecimals,
+        targetTransactionReport,
+        sourceTransactionReport,
+        targetTransactionPolicy,
+        sourceTransactionPolicy,
+        cameFromList,
+        transactionID,
+        isOnSearch,
+        backPath,
+    ]);
 
     const handleMergeExpenses = () => {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
@@ -136,7 +189,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack();
+                        Navigation.goBack(backRoute);
                     }}
                 />
                 <ScrollView>
