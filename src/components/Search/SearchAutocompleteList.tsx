@@ -107,8 +107,12 @@ const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 // excludes hidden/muted chats, so the visible list can come out shorter than this number. 100 leaves
 // enough buffer that a few hidden chats near the top of a user's recency ordering won't visibly thin
 // the initial list, while still cutting the default 500 by 5x.
+// createFilteredOptionList rebuilds the whole top-N slice from scratch on every call rather than
+// appending incrementally, so a small batch size means repeated full rebuilds of already-processed
+// reports as the user keeps scrolling. Using the original 500-report batch size keeps pagination to a
+// single extra rebuild for the (rare) user who scrolls past the initial screenful.
 const INITIAL_MAX_RECENT_REPORTS = 100;
-const RECENT_REPORTS_BATCH_SIZE = 100;
+const RECENT_REPORTS_BATCH_SIZE = 500;
 
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
@@ -622,6 +626,19 @@ function SearchAutocompleteList({
     ]);
 
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
+
+    // Guard for the INITIAL_MAX_RECENT_REPORTS cap above: if every report within that raw cap gets excluded by
+    // getSearchOptions (e.g. all hidden/muted chats) and no other section has rows, "sections" is empty and
+    // SelectionListWithSections renders its empty state instead of a FlashList — onEndReached never mounts there,
+    // so loadMoreRecentReports would otherwise never run and the user would be stuck looking at an empty
+    // "Recent chats" list. Escalate the cap ourselves until either a row surfaces or we've truly run out of reports.
+    useEffect(() => {
+        if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || suggestionsCount > 0 || !hasMoreRecentReports) {
+            return;
+        }
+        loadMoreRecentReports();
+    }, [trimmedAutocompleteQueryValue, isLoadingOptions, suggestionsCount, hasMoreRecentReports, loadMoreRecentReports]);
+
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
