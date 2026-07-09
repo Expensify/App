@@ -191,6 +191,7 @@ type GetTrackExpenseInformationParams = {
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
@@ -854,6 +855,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         currentUserEmailParam,
         introSelected,
         activePolicy,
+        conciergeChat,
         quickAction,
         betas,
         isSelfTourViewed,
@@ -1005,6 +1007,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserEmailParam,
             introSelected,
             activePolicy,
+            conciergeChat,
             // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
             hasActiveAdminPolicies: undefined,
             betas,
@@ -2349,6 +2352,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUser,
         introSelected,
         activePolicy,
+        conciergeChat,
         quickAction,
         recentWaypoints = [],
         betas,
@@ -2513,6 +2517,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserEmailParam,
         introSelected,
         activePolicy,
+        conciergeChat,
         quickAction,
         betas,
         isSelfTourViewed,

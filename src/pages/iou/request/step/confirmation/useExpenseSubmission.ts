@@ -273,6 +273,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -700,6 +702,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,
                 activePolicy,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,

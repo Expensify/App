@@ -33,6 +33,8 @@ function DynamicWorkspaceConfirmationPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
@@ -69,6 +71,7 @@ function DynamicWorkspaceConfirmationPage() {
             routeToNavigateAfterCreate: routeToNavigate,
             lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),

@@ -594,6 +594,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
@@ -620,6 +621,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -658,6 +660,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             lastUsedPaymentMethod,
             introSelected,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam,
             currentUserEmailParam,
             allReportsParam: allReports,
@@ -700,6 +703,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         file,
         lastUsedPaymentMethod,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -728,6 +732,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         lastUsedPaymentMethod,
         introSelected,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam: allReports,
@@ -749,6 +754,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
@@ -772,6 +778,7 @@ function savePolicyDraftByNewWorkspace({
     lastUsedPaymentMethod,
     introSelected,
     activePolicy,
+    conciergeChat,
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
@@ -793,6 +800,7 @@ function savePolicyDraftByNewWorkspace({
         lastUsedPaymentMethod,
         introSelected,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -830,6 +838,7 @@ function setUpPoliciesAndNavigate(
     hasActiveAdminPolicies: boolean,
     lastWorkspaceNumber: number | undefined,
     translate: LocalizedTranslate,
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -859,6 +868,7 @@ function setUpPoliciesAndNavigate(
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,

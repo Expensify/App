@@ -85,6 +85,8 @@ function PayActionButton({
     const {convertToDisplayString} = useCurrencyListActions();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const activePolicy = usePolicy(activePolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
@@ -200,6 +202,7 @@ function PayActionButton({
                     methodID,
                     paymentMethod,
                     activePolicy,
+                    conciergeChat,
                     betas,
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
@@ -215,6 +218,7 @@ function PayActionButton({
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,
+                    conciergeChat,
                     policy,
                     chatReportPolicy,
                     betas,

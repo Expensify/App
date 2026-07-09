@@ -80,6 +80,8 @@ function IOURequestStepUpgrade({
     const isWeb = platform === CONST.PLATFORM.WEB;
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const createReportForCurrentUser = useCreateNewReport();
@@ -281,6 +283,7 @@ function IOURequestStepUpgrade({
             hasOutstandingChildRequest: false,
             introSelected,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: email,
             onboardingPurposeSelected,
@@ -307,6 +310,7 @@ function IOURequestStepUpgrade({
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             introSelected,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,

@@ -38,6 +38,8 @@ function PersonalCardUpgradePage() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email = ''} = currentUserPersonalDetails;
@@ -56,6 +58,7 @@ function PersonalCardUpgradePage() {
             policyID,
             lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email,
             shouldCreateControlPolicy: false,

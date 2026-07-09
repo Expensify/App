@@ -65,6 +65,7 @@ type PayInvoiceArgs = {
     methodID?: number;
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
@@ -107,6 +108,7 @@ type PayMoneyRequestFunctionParams = {
     paymentPolicyID?: string;
     full?: boolean;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -157,6 +159,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
     activePolicy,
+    conciergeChat,
     iouReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
@@ -177,6 +180,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -230,6 +234,7 @@ function getPayMoneyRequestParams({
             currentUserEmailParam: currentUserEmailParam ?? '',
             introSelected,
             activePolicy,
+            conciergeChat,
             companySize: introSelected?.companySize as OnboardingCompanySize,
             betas,
             isSelfTourViewed,
@@ -802,6 +807,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         userBillingGracePeriodEnds,
         full = true,
         activePolicy,
+        conciergeChat,
         policy,
         chatReportPolicy,
         betas,
@@ -837,6 +843,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         full,
         paymentPolicyID,
         activePolicy,
+        conciergeChat,
         reportPolicy: policy,
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
@@ -1056,6 +1063,7 @@ function payInvoice({
     methodID,
     paymentMethod,
     activePolicy,
+    conciergeChat,
     invoiceReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
@@ -1090,6 +1098,7 @@ function payInvoice({
         bankAccountID: methodID,
         existingB2BInvoiceReport,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         currentUserLocalCurrency,

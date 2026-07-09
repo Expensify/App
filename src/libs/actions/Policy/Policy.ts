@@ -260,6 +260,8 @@ type BuildPolicyDataOptions = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam?: OnyxCollection<Report>;
+    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat?: OnyxEntry<Report>;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
@@ -2609,6 +2611,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         currency,
         file,
         shouldAddOnboardingTasks = true,
+        conciergeChat,
         companySize,
         userReportedIntegration,
         isAnnualSubscription = false,
@@ -3096,6 +3099,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
+            conciergeChat,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};

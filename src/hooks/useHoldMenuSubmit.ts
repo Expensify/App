@@ -38,6 +38,8 @@ type UseHoldMenuSubmitParams = {
 function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const activePolicy = usePolicy(activePolicyID);
@@ -105,6 +107,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 currentUserLogin: currentUserDetails.login ?? '',
                 full,
                 activePolicy,
+                conciergeChat,
                 policy,
                 chatReportPolicy,
                 betas,
