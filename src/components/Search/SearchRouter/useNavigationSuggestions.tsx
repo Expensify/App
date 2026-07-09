@@ -107,7 +107,7 @@ function WorkspaceContext({policy}: WorkspaceContextProps) {
                 type={CONST.ICON_TYPE_WORKSPACE}
                 name={policy.name}
                 avatarID={policy.id}
-                size={CONST.AVATAR_SIZE.SMALL}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
             />
             <Text style={styles.textLabelSupporting}>{policy.name}</Text>
         </View>
@@ -588,7 +588,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     );
 
     return useMemo(() => {
-        return buildNavigationSuggestions(query, [topLevelItems, spendItems, accountItems, workspaceItems, domainItems, createItems], localeCompare);
+        return buildNavigationSuggestions(query, [topLevelItems, spendItems, workspaceItems, accountItems, domainItems, createItems], localeCompare);
     }, [accountItems, createItems, domainItems, localeCompare, query, spendItems, topLevelItems, workspaceItems]);
 }
 
