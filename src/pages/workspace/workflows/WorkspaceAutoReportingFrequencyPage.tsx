@@ -7,9 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -59,12 +62,20 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const {translate, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
         if (!policy?.id) {
             return;
         }
-        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey, policy.autoReportingFrequency, policy.harvesting);
+        setWorkspaceAutoReportingFrequency(
+            policy.id,
+            item.keyForList as AutoReportingFrequencyKey,
+            policy.autoReportingFrequency,
+            policy.harvesting,
+            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
+        );
 
         if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             return;

@@ -7,7 +7,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +23,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearPolicyErrorField, setPolicyMaxExpenseAmountNoItemizedReceipt, setPolicyMaxExpenseAmountNoReceipt} from '@userActions/Policy/Policy';
+import {getReviewWorkspaceSettingsTaskCompletionData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +48,8 @@ function RulesRequireReceiptsPage({
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -137,7 +142,12 @@ function RulesRequireReceiptsPage({
             const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
 
             if (receiptChanged) {
-                setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
+                setPolicyMaxExpenseAmountNoReceipt(
+                    policyID,
+                    receiptValue,
+                    policy?.maxExpenseAmountNoReceipt,
+                    getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
+                );
             }
             if (itemizedChanged) {
                 setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
@@ -154,6 +164,8 @@ function RulesRequireReceiptsPage({
             policyID,
             policy?.maxExpenseAmountNoReceipt,
             policy?.maxExpenseAmountNoItemizedReceipt,
+            reviewWorkspaceSettingsTaskInformation,
+            currentUserAccountID,
         ],
     );
 

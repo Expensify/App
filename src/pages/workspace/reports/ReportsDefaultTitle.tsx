@@ -10,10 +10,13 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -44,6 +47,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const isInputInitializedRef = useRef(false);
     const RULE_EXAMPLE_BULLET_POINTS = [
         translate('workspace.reports.customNameEmailPhoneExample'),
@@ -79,7 +84,12 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     });
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-        setPolicyDefaultReportTitle(policyID, values.defaultTitle, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+        setPolicyDefaultReportTitle(
+            policyID,
+            values.defaultTitle,
+            policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE],
+            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
+        );
         Navigation.goBack();
     };
 

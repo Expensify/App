@@ -151,7 +151,7 @@ import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDepreca
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -776,6 +776,7 @@ function setWorkspaceAutoReportingFrequency(
     frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>,
     currentAutoReportingFrequency: Policy['autoReportingFrequency'],
     currentHarvesting: Policy['harvesting'],
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
 ) {
     const wasPolicyOnManualReporting =
         PolicyUtils.getCorrectedAutoReportingFrequency({autoReportingFrequency: currentAutoReportingFrequency, harvesting: currentHarvesting} as Policy) ===
@@ -833,13 +834,18 @@ function setWorkspaceAutoReportingFrequency(
     ];
 
     const params: SetWorkspaceAutoReportingFrequencyParams = {policyID, frequency};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
+    API.write(
+        WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY,
+        params,
+        withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 function setWorkspaceAutoReportingMonthlyOffset(
     policyID: string,
     autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>,
     currentAutoReportingOffset: AutoReportingOffset | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
 ) {
     const value = JSON.stringify({autoReportingOffset});
 
@@ -877,7 +883,11 @@ function setWorkspaceAutoReportingMonthlyOffset(
     ];
 
     const params: SetWorkspaceAutoReportingMonthlyOffsetParams = {policyID, value};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
+    API.write(
+        WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET,
+        params,
+        withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 function setWorkspaceApprovalMode(
@@ -1987,7 +1997,12 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currencyValue?: string) {
+function updateGeneralSettings(
+    policy: OnyxEntry<Policy>,
+    name: string,
+    currencyValue?: string,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     if (!policy?.id) {
         return;
     }
@@ -2131,11 +2146,27 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
         return;
     }
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
-        optimisticData,
-        finallyData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData, failureData}, reviewWorkspaceSettingsTaskData));
+}
+
+/**
+ * Merge the optimistic "Review your workspace settings" onboarding-task completion data (built in the calling
+ * component via getReviewWorkspaceSettingsTaskCompletionData) into a workspace-settings command's onyxData.
+ */
+function withReviewWorkspaceSettingsTaskData<TKey extends OnyxKey>(
+    onyxData: OnyxData<TKey>,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>,
+) {
+    const merged = {
+        ...onyxData,
+        optimisticData: [...(onyxData.optimisticData ?? []), ...(reviewWorkspaceSettingsTaskData.optimisticData ?? [])],
+        successData: [...(onyxData.successData ?? []), ...(reviewWorkspaceSettingsTaskData.successData ?? [])],
+        failureData: [...(onyxData.failureData ?? []), ...(reviewWorkspaceSettingsTaskData.failureData ?? [])],
+    };
+    // The merged arrays mix the caller's keys with REPORT/REPORT_ACTIONS updates; the runtime shape is
+    // correct, but TS can't reconcile the generic key union per-property, so widen the whole object.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return merged;
 }
 
 function updateWorkspaceDescription(
@@ -2192,12 +2223,7 @@ function updateWorkspaceDescription(
         description: parsedDescription,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, {
-        optimisticData: [...optimisticData, ...(reviewWorkspaceSettingsTaskData.optimisticData ?? [])],
-        finallyData,
-        successData: reviewWorkspaceSettingsTaskData.successData ?? [],
-        failureData: [...failureData, ...(reviewWorkspaceSettingsTaskData.failureData ?? [])],
-    });
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData, failureData}, reviewWorkspaceSettingsTaskData));
 }
 
 function updateWorkspaceClientID(policyID: string, clientID: string, currentClientID: string | undefined) {
@@ -6126,7 +6152,12 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
  * @param policyID - id of the policy to set the receipt required amount
  * @param maxExpenseAmountNoReceipt - new value of the receipt required amount
  */
-function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNoReceipt: string, currentMaxExpenseAmountNoReceipt: number | undefined) {
+function setPolicyMaxExpenseAmountNoReceipt(
+    policyID: string,
+    maxExpenseAmountNoReceipt: string,
+    currentMaxExpenseAmountNoReceipt: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     const parsedMaxExpenseAmountNoReceipt = maxExpenseAmountNoReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoReceipt));
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -6170,7 +6201,7 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
         maxExpenseAmountNoReceipt: parsedMaxExpenseAmountNoReceipt,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -6231,7 +6262,12 @@ function setPolicyMaxExpenseAmountNoItemizedReceipt(policyID: string, maxExpense
  * @param policyID - id of the policy to set the max expense amount
  * @param maxExpenseAmount - new value of the max expense amount
  */
-function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string, currentMaxExpenseAmount: number | undefined) {
+function setPolicyMaxExpenseAmount(
+    policyID: string,
+    maxExpenseAmount: string,
+    currentMaxExpenseAmount: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -6275,7 +6311,7 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string, c
         maxExpenseAmount: parsedMaxExpenseAmount,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -6361,7 +6397,12 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
  * @param policyID - id of the policy to set the max expense age
  * @param maxExpenseAge - the max expense age value given in days
  */
-function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string, currentMaxExpenseAge: number | undefined) {
+function setPolicyMaxExpenseAge(
+    policyID: string,
+    maxExpenseAge: string,
+    currentMaxExpenseAge: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     const parsedMaxExpenseAge = maxExpenseAge === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : parseInt(maxExpenseAge, 10);
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -6406,7 +6447,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string, current
         maxExpenseAge: parsedMaxExpenseAge,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -6475,7 +6516,13 @@ function updateCustomRules(policyID: string, customRules: string, currentCustomR
  * @param policyID - id of the policy to enable or disable the billable mode
  * @param defaultBillable - whether the billable mode is enabled in the given policy
  */
-function setPolicyBillableMode(policyID: string, defaultBillable: boolean, currentDefaultBillable: boolean | undefined, currentDefaultBillableDisabled: boolean | undefined) {
+function setPolicyBillableMode(
+    policyID: string,
+    defaultBillable: boolean,
+    currentDefaultBillable: boolean | undefined,
+    currentDefaultBillableDisabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -6528,7 +6575,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean, curre
         }),
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashExpenseMode | undefined {
@@ -6853,7 +6900,12 @@ function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEn
  * @param policyID - id of the policy to apply the naming pattern to
  * @param customName - name pattern to be used for the reports
  */
-function setPolicyDefaultReportTitle(policyID: string, customName: string, currentReportTitleField: PolicyReportField | undefined) {
+function setPolicyDefaultReportTitle(
+    policyID: string,
+    customName: string,
+    currentReportTitleField: PolicyReportField | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     if (customName === currentReportTitleField?.defaultValue) {
         return;
     }
@@ -6910,11 +6962,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string, curre
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE, parameters, withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -6922,7 +6970,12 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string, curre
  * @param policyID - id of the policy to apply the naming pattern to
  * @param enforced - flag whether to enforce policy name
  */
-function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean, currentReportTitleField: PolicyReportField | undefined) {
+function setPolicyPreventMemberCreatedTitle(
+    policyID: string,
+    enforced: boolean,
+    currentReportTitleField: PolicyReportField | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     // When fieldList is empty, deletable is undefined. We treat undefined as true (not enforced) to match OldDot's fallback behavior.
     const currentDeletable = currentReportTitleField?.deletable ?? true;
     if (!enforced === currentDeletable) {
@@ -6974,11 +7027,11 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean,
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_MEMBER_CREATED_TITLE, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.SET_POLICY_PREVENT_MEMBER_CREATED_TITLE,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
