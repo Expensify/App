@@ -99,10 +99,17 @@ function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, 
             // the header height — internally). Only `contentOffset.y` is read for a vertical list, so nothing else is
             // populated; windowing comes from the `overrideWindowSize` prop, not this event.
             const y = Math.max(0, store.getOffset() - offsetTop);
-            // Synthesizing a native scroll event requires an assertion: NativeSyntheticEvent's target/currentTarget are
-            // RN HostInstances that can't be constructed in JS. FlashList's vertical handler reads only contentOffset.y.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            onScroll?.({nativeEvent: {contentOffset: {x: 0, y}}} as NativeSyntheticEvent<NativeScrollEvent>);
+            try {
+                // Synthesizing a native scroll event requires an assertion: NativeSyntheticEvent's target/currentTarget
+                // are RN HostInstances that can't be constructed in JS. FlashList's vertical handler reads only
+                // contentOffset.y.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                onScroll?.({nativeEvent: {contentOffset: {x: 0, y}}} as NativeSyntheticEvent<NativeScrollEvent>);
+            } catch (error) {
+                if (!(error instanceof Error) || !error.message.includes('LayoutManager is not initialized')) {
+                    throw error;
+                }
+            }
         };
         // Seed the initial window, then track subsequent parent scrolls. Re-subscribes only when the store, the
         // measured offset, or FlashList's scroll handler change — none of which happen per scroll frame.
