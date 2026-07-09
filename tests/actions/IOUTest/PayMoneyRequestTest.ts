@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -11,6 +8,7 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -24,12 +22,19 @@ import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/ony
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../../utils/TestHelper';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -166,7 +171,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -199,7 +203,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connection);
 
@@ -221,7 +224,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(allTransactions ?? {}).length).toBe(1);
@@ -262,7 +264,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -286,7 +287,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connection);
 
@@ -310,7 +310,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -334,7 +333,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connection);
 
@@ -392,7 +390,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
@@ -439,7 +436,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
@@ -475,7 +471,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(allActions ?? {})).toEqual(
@@ -505,7 +500,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     const updatedIOUReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
@@ -558,7 +552,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
@@ -605,7 +598,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
@@ -642,7 +634,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
@@ -1379,7 +1370,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() =>
                     getOnyxData({
                         key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
                         callback: (allReports) => {
                             chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                         },
@@ -1422,7 +1412,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     // And given an expense report has now been created which holds the IOU
                     getOnyxData({
                         key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
                         callback: (allReports) => {
                             expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                         },
@@ -1460,7 +1449,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() =>
                     getOnyxData({
                         key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
                         callback: (allReports) => {
                             const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
                             // Then the policy expense chat report has the iouReportID of the IOU expense report
@@ -1506,7 +1494,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Get the policy expense chat report
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (allReports) => {
                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                 },
@@ -1547,7 +1534,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // And given an expense report has now been created which holds the IOU
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (allReports) => {
                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                 },
@@ -1756,7 +1742,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Get the policy expense chat report
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (allReports) => {
                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                 },
@@ -1797,7 +1782,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // And given an expense report has now been created which holds the IOU
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (allReports) => {
                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                 },

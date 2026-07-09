@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -9,16 +19,9 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import dedent from '@libs/StringUtils/dedent';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -151,6 +154,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Escaneando',
         analyzing: 'Analisando...',
         thinking: 'Concierge está pensando...',
+        agentThinking: 'Pensando...',
         addCardTermsOfService: 'Termos de Serviço da Expensify',
         perPerson: 'por pessoa',
         phone: 'Telefone',
@@ -396,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'ID do saque',
         internationalReimbursementIDs: 'IDs de reembolso internacional',
         withdrawalStatus: 'Status do saque',
+        paidStatus: 'Status pago',
         bankAccounts: 'Contas bancárias',
         chooseFile: 'Escolher arquivo',
         chooseFiles: 'Escolher arquivos',
@@ -515,6 +520,9 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrições',
         tagGLCode: 'Marcar código GL',
         off: 'Desligado',
+        unableToDisplayChart: 'Não foi possível exibir o gráfico',
+        webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
+        apiKey: 'Chave de API',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -718,17 +726,17 @@ const translations: TranslationDeepObject<typeof en> = {
         revealCardDetail: {couldNotReveal: 'Não foi possível exibir os detalhes do seu cartão. Tente novamente.'},
     },
     validateCodeModal: {
-        successfulSignInTitle: dedent(`
+        successfulSignInTitle: Str.dedent(`
             Abracadabra,
             você entrou!
         `),
         successfulSignInDescription: 'Volte para a sua aba original para continuar.',
         title: 'Aqui está seu código mágico',
-        description: dedent(`
+        description: Str.dedent(`
             Insira o código no dispositivo
             onde ele foi solicitado originalmente
         `),
-        doNotShare: dedent(`
+        doNotShare: Str.dedent(`
             Não compartilhe seu código com ninguém.
             A Expensify nunca vai pedir esse código para você!
         `),
@@ -737,11 +745,11 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeTitle: 'Código mágico expirado',
         expiredCodeDescription: 'Volte ao dispositivo original e solicite um novo código',
         successfulNewCodeRequest: 'Código solicitado. Verifique seu dispositivo.',
-        tfaRequiredTitle: dedent(`
+        tfaRequiredTitle: Str.dedent(`
             Autenticação de dois fatores
             obrigatória
         `),
-        tfaRequiredDescription: dedent(`
+        tfaRequiredDescription: Str.dedent(`
             Insira o código de autenticação em duas etapas
             no dispositivo em que você está tentando entrar.
         `),
@@ -844,7 +852,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Entrar na conversa',
         leaveThread: 'Sair da conversa',
         copyOnyxData: 'Copiar dados do Onyx',
-        copyAgentZeroRequestID: 'Copiar ID de solicitação do AgentZero',
+        viewAgentZeroTrace: 'Ver rastreamento do AgentZero',
         flagAsOffensive: 'Sinalizar como ofensivo',
         menu: 'Menu',
     },
@@ -981,6 +989,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Carteira',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'Adicione seus dados pessoais',
+                subtitle: 'Adicione seus dados para visualizar e começar a usar seu Cartão Expensify.',
+                cta: 'Adicionar detalhes',
+            },
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
         announcements: 'Comunicados',
@@ -1060,6 +1073,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Conectar à contabilidade',
             customizeCategories: 'Personalizar categorias contábeis',
             linkCompanyCards: 'Vincular cartões corporativos',
+            issueExpensifyCards: 'Emitir cartões Expensify',
+            issueExpensifyCardsSubtitle: 'Personalize os controles e simplifique os gastos',
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
         },
@@ -1219,7 +1234,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Aprovado',
         cash: 'Dinheiro',
         card: 'Cartão',
-        original: 'Original',
+        purchase: 'Compra',
         split: 'Dividir',
         splitExpense: 'Dividir despesa',
         splitDates: 'Dividir datas',
@@ -1719,6 +1734,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        deletePendingExpense: 'Excluir despesa pendente',
+        deleteConfirmationPendingBYOC: 'Tem certeza de que quer excluir esta despesa? Ela está pendente e podemos importá-la novamente se for lançada.',
+        deleteConfirmationSomePendingBYOC: 'Tem certeza de que quer excluir estas despesas? Algumas estão pendentes e podemos importá-las novamente se forem lançadas.',
         categoryDisabledAlert: {
             title: 'Categoria desativada',
             prompt: 'Ative as categorias no workspace para editar os detalhes da despesa ou excluir a categoria desta despesa.',
@@ -2318,7 +2336,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Você não vai mais precisar de um app autenticador para entrar no Expensify.',
         stepCodes: 'Códigos de recuperação',
         keepCodesSafe: 'Mantenha estes códigos em segurança!',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Se você perder o acesso ao seu app autenticador e não tiver esses códigos, ficará bloqueado fora da sua conta.<br><br>
             <strong>Observação</strong>: Ativar a 2FA desconecta você de todas as outras sessões.
         `),
@@ -2347,6 +2365,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Substituir dispositivo de dois fatores',
         verifyOldDeviceTitle: 'Verificar dispositivo antigo',
         verifyOldDeviceDescription: 'Digite o código de seis dígitos do seu aplicativo autenticador atual para confirmar que você tem acesso a ele.',
+        verifyOldDeviceDescriptionWithRecovery: 'Insira um código de recuperação válido para confirmar que você tem acesso à sua conta.',
         verifyNewDeviceTitle: 'Configurar novo dispositivo',
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
         downloadCodes: 'Baixar códigos',
@@ -2501,6 +2520,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inativo',
         assignedCards: 'Cartões',
         assignedCardsDescription: 'As transações de cartões atribuídos são sincronizadas automaticamente.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Por favor, insira seus dados pessoais para começar a usar seu cartão',
+            cta: 'Adicionar detalhes',
+        },
         expensifyCard: 'Cartão Expensify',
         walletActivationPending: 'Estamos analisando suas informações. Volte a conferir em alguns minutos!',
         walletActivationFailed: 'Infelizmente, sua carteira não pode ser ativada neste momento. Converse com o Concierge para obter mais ajuda.',
@@ -2787,8 +2810,6 @@ ${amount} para ${merchant} - ${date}`,
         activatePhysicalCard: 'Ativar cartão físico',
         error: {
             thatDidNotMatch: 'Isso não correspondeu aos últimos 4 dígitos do seu cartão. Tente novamente.',
-            throttled:
-                'Você digitou incorretamente os últimos 4 dígitos do seu Cartão Expensify muitas vezes. Se tiver certeza de que os números estão corretos, entre em contato com o Concierge para resolver. Caso contrário, tente novamente mais tarde.',
         },
     },
     getPhysicalCard: {
@@ -2865,6 +2886,7 @@ ${amount} para ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
             'Rejeite despesas relacionadas a jogos de azar, cinema ou outros motivos claramente não relacionados ao negócio.\n\nLembre o usuário de sempre incluir uma imagem do recibo em que a gorjeta fique clara.\n\nAprove o relatório se ele for muito semelhante a relatórios anteriores do mesmo usuário.\n\nRejeite relatórios com mais de US$ 500 em despesas de viagem.',
+        copilotNote: 'Este agente será adicionado como Copilot com acesso total à sua conta, para que possa agir em seu nome.',
     },
     editAgentPage: {
         title: 'Editar agente',
@@ -3138,7 +3160,7 @@ ${amount} para ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Adicionar aprovações de despesas',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Adicione aprovações de despesas* para revisar os gastos da sua equipe e mantê-los sob controle.
 
                         Veja como:
@@ -3160,7 +3182,7 @@ ${amount} para ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crie um [espaço de trabalho](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Crie um espaço de trabalho* para acompanhar despesas, digitalizar recibos, conversar e muito mais.
 
                         1. Clique em *Espaços de trabalho* > *Novo espaço de trabalho*.
@@ -3170,7 +3192,7 @@ ${amount} para ${merchant} - ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Configurar [categorias](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configure categorias* para que sua equipe possa classificar despesas e facilitar os relatórios.
 
                         1. Clique em *Espaços de trabalho*.
@@ -3184,8 +3206,9 @@ ${amount} para ${merchant} - ${date}`,
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Criar uma despesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Crie uma despesa* inserindo um valor ou digitalizando um recibo.
+
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -3198,8 +3221,9 @@ ${amount} para ${merchant} - ${date}`,
             },
             adminSubmitExpenseTask: {
                 title: 'Criar uma despesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Crie uma despesa* inserindo um valor ou escaneando um recibo.
+
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -3212,7 +3236,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             trackExpenseTask: {
                 title: 'Registrar uma despesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Acompanhe uma despesa* em qualquer moeda, com ou sem recibo.
 
                     1. Clique no botão *+*.
@@ -3228,7 +3252,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Conectar${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'para'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Conecte ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : 'para'} ${integrationName} para categorização automática de despesas e sincronização que deixam o fechamento de fim de mês muito mais fácil.
 
                         1. Clique em *Workspaces*.
@@ -3243,7 +3267,7 @@ ${amount} para ${merchant} - ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecte [seus cartões corporativos](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Conecte os cartões que você já tem para importar transações automaticamente, conciliar recibos e fazer a reconciliação.
 
                         1. Clique em *Workspaces*.
@@ -3256,7 +3280,7 @@ ${amount} para ${merchant} - ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Convide [sua equipe](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Convide sua equipe* para o Expensify para que possam começar a registrar despesas hoje.
 
                         1. Clique em *Workspaces*.
@@ -3271,7 +3295,7 @@ ${amount} para ${merchant} - ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configure [categorias](${workspaceCategoriesLink}) e [etiquetas](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configure categorias e tags* para que sua equipe possa classificar despesas e facilitar os relatórios.
 
                         Importe-as automaticamente [conectando seu software de contabilidade](${workspaceAccountingLink}) ou configure-as manualmente nas [configurações do seu workspace](${workspaceCategoriesLink}).`),
@@ -3279,7 +3303,7 @@ ${amount} para ${merchant} - ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Configurar [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Use tags para adicionar detalhes extras de despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, é possível fazer upgrade para o plano Control.
 
                         1. Clique em *Espaços de trabalho*.
@@ -3296,7 +3320,7 @@ ${amount} para ${merchant} - ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Convide seu [contador](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Convide sua contabilidade* para colaborar no seu workspace e gerenciar as despesas da sua empresa.
 
                         1. Clique em *Workspaces*.
@@ -3309,7 +3333,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             startChatTask: {
                 title: 'Iniciar chat',
-                description: dedent(`
+                description: Str.dedent(`
                     *Inicie um chat* com qualquer pessoa usando o e-mail ou número de telefone dela.
 
                     1. Clique no botão *+*.
@@ -3323,7 +3347,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             splitExpenseTask: {
                 title: 'Dividir uma despesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Divida despesas* com uma ou mais pessoas.
 
                     1. Clique no botão *+*.
@@ -3338,7 +3362,7 @@ ${amount} para ${merchant} - ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Revise suas [configurações do workspace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Veja como revisar e atualizar as configurações do seu workspace:
                         1. Clique em Workspaces.
                         2. Selecione seu workspace.
@@ -3347,7 +3371,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             createReportTask: {
                 title: 'Crie seu primeiro relatório',
-                description: dedent(`
+                description: Str.dedent(`
                     Veja como criar um relatório:
 
                     1. Clique no botão *+*.
@@ -3368,11 +3392,11 @@ ${amount} para ${merchant} - ${date}`,
             onboardingPersonalSpendMessage: 'Veja como acompanhar seus gastos em poucos cliques.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # Seu teste gratuito começou! Vamos fazer a configuração.
                         👋 Olá, eu sou o executivo de contas da sua conta Expensify. Eu já criei um workspace para ajudar a gerenciar os recibos e despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de teste gratuito, é só seguir as etapas restantes de configuração abaixo!
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # Sua avaliação gratuita começou! Vamos configurar tudo.
                         👋 Oi, eu sou o executivo de contas da sua conta Expensify. Agora que você criou um workspace, aproveite ao máximo seus 30 dias de avaliação gratuita seguindo as etapas abaixo!
                     `),
@@ -4113,7 +4137,7 @@ ${amount} para ${merchant} - ${date}`,
         codiceFiscale: 'Código fiscal',
         codiceFiscaleDescription: 'Codice Fiscale para signatários, usuários autorizados e beneficiários finais.',
         PDSandFSG: 'Documentação de divulgação do PDS + FSG',
-        PDSandFSGDescription: dedent(`
+        PDSandFSGDescription: Str.dedent(`
             Nossa parceria com a Corpay utiliza uma conexão de API para aproveitar sua vasta rede de parceiros bancários internacionais e impulsionar os Reembolsos Globais no Expensify. De acordo com a regulamentação australiana, estamos fornecendo o Guia de Serviços Financeiros (FSG) e o Documento de Divulgação de Produto (PDS) da Corpay.
 
             Leia com atenção os documentos FSG e PDS, pois eles contêm todos os detalhes e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.
@@ -4170,7 +4194,7 @@ ${amount} para ${merchant} - ${date}`,
         subheader: 'Verificação',
         verificationFailed: 'A verificação falhou, então precisaremos de documentos adicionais para verificar você e sua empresa',
         taxIDVerification: 'Verificação de ID fiscal',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Envie um dos seguintes arquivos:
             • Carta de atribuição de TIN/EIN do IRS
             • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
@@ -4179,7 +4203,7 @@ ${amount} para ${merchant} - ${date}`,
         nameChangeDocument: 'Documento de alteração de nome',
         nameChangeDocumentDescription: 'Se o nome da sua empresa mudou desde a solicitação do TIN/EIN, precisamos deste documento para verificar o número de identificação fiscal informado',
         companyAddressVerification: 'Verificação de endereço da empresa',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Envie um dos seguintes arquivos:
             • Conta recente de serviços públicos com nome e endereço da empresa
             • Extrato bancário com nome e endereço da empresa
@@ -4188,7 +4212,7 @@ ${amount} para ${merchant} - ${date}`,
             • Documento de atribuição de TIN com nome e endereço da empresa
         `),
         userAddressVerification: 'Verificação de endereço',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Envie um dos seguintes arquivos:
             • Título de eleitor
             • Carteira de motorista
@@ -4352,6 +4376,12 @@ ${amount} para ${merchant} - ${date}`,
         carRental: 'aluguel de carro',
         nightIn: 'noite em',
         nightsIn: 'noites em',
+        taxID: {
+            title: 'CPF/CNPJ',
+            subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
+            inputLabel: 'CNPJ da pessoa jurídica',
+            error: {required: 'Insira o CNPJ da sua entidade legal.'},
+        },
     },
     workspace: {
         common: {
@@ -5019,11 +5049,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Antes de conectar',
                 installBundle: 'Instalar o pacote do Expensify',
                 installBundlePSAHeader: 'Para conexões PSA/SRP:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote Expensify no Salesforce clicando neste link: <a href="${href}">Instalar pacote PSA/SRP Expensify (versão ${version})</a>`,
+                installBundleDescription: 'Instale o pacote Expensify no Salesforce clicando neste link:',
+                installBundlePSALink: ({version}: {version: string}) => `Instalar pacote PSA/SRP Expensify (versão ${version})`,
                 installBundleFFAHeader: 'Para conexões FFA:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar o pacote do Expensify para FFA (versão ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Instalar o pacote do Expensify para FFA (versão ${version})`,
                 installBundleConfirm: 'Eu instalei o pacote',
                 setupContacts: 'Configurar usuário e contatos',
                 setupContactsBullet1:
@@ -5035,6 +5064,7 @@ ${amount} para ${merchant} - ${date}`,
                 oauth: 'Entrar pelo Salesforce',
                 oauthDescription: 'Para concluir a configuração, você precisa entrar pelo Salesforce e pela Certinia.\n\nUse o botão abaixo para continuar.',
                 connectButton: 'Conectar ao Certinia',
+                connectSandboxButton: 'Conectar ao Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plano de contas',
@@ -5118,12 +5148,12 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Faturas de fornecedores',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             As despesas reembolsáveis serão exportadas como contas a pagar ao fornecedor do NetSuite especificado abaixo.
 
                             Se quiser definir um fornecedor específico para cada cartão, acesse *Configurações > Domínios > Cartões Corporativos*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             As despesas do cartão corporativo serão exportadas como contas a pagar para o fornecedor NetSuite especificado abaixo.
 
                             Se quiser definir um fornecedor específico para cada cartão, acesse *Configurações > Domínios > Cartões Corporativos*.
@@ -5131,12 +5161,12 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Lançamentos contábeis',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             As despesas reembolsáveis serão exportadas como lançamentos contábeis para a conta do NetSuite especificada abaixo.
 
                             Se quiser definir um fornecedor específico para cada cartão, vá em *Configurações > Domínios > Cartões Corporativos*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             As despesas do cartão corporativo serão exportadas como lançamentos contábeis para a conta do NetSuite especificada abaixo.
 
                             Se quiser definir um fornecedor específico para cada cartão, vá em *Configurações > Domínios > Cartões Corporativos*.
@@ -5462,6 +5492,21 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Configuração do Rillet',
+            enterCredentials: 'Insira sua chave de API Rillet',
+            howToFindAPIKey:
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Vá para Conta -> Configurações</li><li>Copie a chave de API abaixo</li></ol>',
+            subsidiary: 'Subsidiária',
+            subsidiarySelectDescription: 'Escolha a subsidiária no Rillet da qual você gostaria de importar dados.',
+            noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
+            noSubsidiariesFoundDescription: 'Adicione uma subsidiária no Rillet e sincronize a conexão novamente',
+            accountTypesDescription: 'Suas contas Rillet serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar novas contas importadas',
+            enableNewAccountsDescription: 'Novas contas Rillet estarão disponíveis como categorias.',
+            dimensionsImport: 'Todas as dimensões Rillet são importadas como tags',
+            importDescription: 'Escolha quais configurações de codificação importar do Rillet.',
+        },
         type: {
             free: 'Grátis',
             control: 'Controle',
@@ -5701,6 +5746,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `Se você alterar o tipo de limite deste cartão para Mensal, novas transações serão recusadas porque o limite mensal de ${limit} já foi atingido.`,
             addShippingDetails: 'Adicionar detalhes de envio',
+            addPersonalDetails: 'Adicionar dados pessoais',
             issuedCard: (assignee: string) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: (assignee: string) => `emitiu um Cartão Expensify para ${assignee}! O cartão será enviado assim que os dados de envio forem confirmados.`,
             issuedCardVirtual: (assignee: string, link: string) => `emitiu um Cartão Expensify virtual para ${assignee}! O ${link} já pode ser usado imediatamente.`,
@@ -6219,6 +6265,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             importedFromAccountingSoftware: 'Os impostos abaixo são importados do seu',
             taxCode: 'Código tributário',
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, tente novamente',
+            taxRates: 'Alíquotas de imposto',
         },
         duplicateWorkspace: {
             title: 'Dê um nome ao seu novo workspace',
@@ -6268,6 +6315,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 conciergeNotificationTitle: 'O Concierge vai avisar você',
                 conciergeNotificationDescription: 'Quando o processo for concluído, o Concierge vai enviar uma mensagem para você.',
                 copyCompleted: 'As configurações do seu workspace foram copiadas.',
+            },
+            upgrade: {
+                title: 'Alguns recursos exigem um plano Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} usa ${features}, que exigem um plano Control.
+
+Para levar esses recursos para seus outros espaços de trabalho, faça o upgrade deles para continuar.
+
+O plano Control começa em US$ 9 por membro ativo por mês.`,
             },
         },
         emptyWorkspace: {
@@ -6324,6 +6379,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 one: 'Tornar auditor',
                 other: 'Tornar auditores',
             }),
+            makePeopleAdmin: () => ({
+                one: 'Tornar administrador de pessoas',
+                other: 'Tornar administradores de pessoas',
+            }),
+            makePaymentsAdmin: () => ({
+                one: 'Tornar administrador de pagamentos',
+                other: 'Tornar administradores de pagamentos',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Ocorreu um problema ao adicionar este membro do workspace',
@@ -6356,6 +6419,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
             makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
             cardAdmins: 'Administradores de cartões',
+            peopleAdmins: 'Administradores de pessoas',
+            paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
         },
         card: {
@@ -6429,6 +6494,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6446,6 +6512,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6671,6 +6739,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             return 'Importando dimensoes';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marcando relatorios como reembolsados';
+                        case 'rilletSyncTitle':
+                            return 'Sincronizando dados do Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Inicializando conexão com Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Carregando dados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
                         }
@@ -6937,6 +7011,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a Certinia está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Rillet. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Rillet para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a Rillet está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprovações Avançadas',
                 description: `Se você quiser adicionar mais camadas de aprovação ao processo – ou apenas garantir que as maiores despesas recebam uma segunda revisão – nós ajudamos você. As aprovações avançadas ajudam a colocar os controles certos em cada nível, para manter os gastos da sua equipe sob controle.`,
@@ -7129,6 +7209,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            unlockFeatures: 'Desbloqueie estes recursos!',
         },
         downgrade: {
             commonFeatures: {
@@ -7501,7 +7582,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
             },
-            tabs: {general: 'Geral', cardRestrictions: 'Restrições do cartão', expenseDefaults: 'Padrões de despesa'},
+            tabs: {
+                general: 'Geral',
+                cardRestrictions: 'Restrições do cartão',
+                expenseDefaults: 'Padrões de despesa',
+                requireFields: 'Tornar campos obrigatórios',
+                flagForReview: 'Marcar para revisão',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'Excluir regra',
@@ -7558,6 +7645,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 restrictCardSpendDescription: 'Bloqueie ou limite gastos no ponto de venda',
                 applyExpenseDefaults: 'Aplicar padrões de despesa',
                 applyExpenseDefaultsDescription: 'Atualizar campos sem o responsável pelo envio fazer nada',
+                flagForReview: 'Marcar para revisão',
+                flagForReviewDescription: 'Notificar aprovadores quando as despesas excederem os limites da categoria',
+                requireFields: 'Tornar campos obrigatórios',
+                requireFieldsDescription: 'Certifique-se de que os campos principais estejam preenchidos antes de enviar as despesas',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7567,6 +7658,59 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 rename: 'Renomear',
                 update: 'Atualizar',
                 merchantIs: (merchant: string) => `O comerciante é "${merchant}"`,
+                merchantTypeIs: (merchantType: string) => `O tipo de estabelecimento é "${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: 'Tipo de comerciante', saveRule: 'Salvar regra', confirmErrorCategory: 'Selecione uma categoria.'},
+            requireFieldsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condição',
+                tableColumnRule: 'Regra',
+                findRule: 'Encontrar regra',
+                typeLabel: 'Tornar campos obrigatórios',
+                conditionCategoryIs: (category: string) => `A categoria é "${category}"`,
+                requireDescription: 'Descrição obrigatória',
+                requireAttendees: 'Exigir participantes',
+                requireItemizedReceipt: 'Exigir recibo detalhado',
+                requireItemizedReceiptOver: (amount: string) => `Exigir recibo detalhado acima de ${amount}`,
+                alwaysRequireReceipt: 'Sempre exigir recibo',
+                requireReceiptOver: (amount: string) => `Exigir recibo acima de ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Identifique detalhes faltando desde o início',
+                subtitle: 'Certifique-se de que os campos principais estejam preenchidos antes de enviar as despesas.',
+                cta: 'Criar regra obrigatória',
+            },
+            requireFieldsRule: {
+                title: 'Tornar campos obrigatórios',
+                subtitle: 'Exigir recibos, categorias etc. ao enviar.',
+                thenWarnMember: 'Depois, avisar o membro se campos estiverem faltando:',
+                itemizedReceipt: 'Recibo detalhado',
+                saveRule: 'Salvar regra',
+                confirmErrorCategory: 'Selecione uma categoria.',
+                confirmErrorField: 'Selecione pelo menos um campo para tornar obrigatório.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condição',
+                tableColumnRule: 'Regra',
+                findRule: 'Encontrar regra',
+                typeLabel: 'Marcar',
+                conditionCategoryAndAmount: (category: string, amount: string) => `A categoria é "${category}" e o valor é acima de ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `A categoria é "${category}" e o total diário da categoria está acima de ${amount}`,
+                flagForReview: 'Marcar para revisão',
+            },
+            flagForReviewEmptyState: {
+                title: 'Identifique despesas que precisam de uma análise mais detalhada',
+                subtitle: 'Alerte aprovadores quando determinadas despesas merecerem uma revisão extra.',
+                cta: 'Criar regra de sinalização',
+            },
+            flagForReviewRule: {
+                title: 'Marcar para revisão',
+                subtitle: 'Notificar aprovadores quando as seguintes condições forem atendidas.',
+                saveRule: 'Salvar regra',
+                confirmErrorCategory: 'Selecione uma categoria.',
+                confirmErrorAmount: 'Insira um valor.',
+                thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
         },
         planTypePage: {
@@ -7673,6 +7817,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
             },
+            notSync: 'Não sincronizado',
+            authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
+            reconnect: 'Reconectar',
+            reconnectLink: 'Reconectar.',
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8279,6 +8427,46 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateDateRangeFrom: (date: string) => `de ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `até ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas as datas`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `visão geral copiada de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou membros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 campo de relatório de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} campos de relatório de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de contabilidade copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de parceiro de recibos copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou as configurações de RH de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 categoria de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} categorias de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 etiqueta de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} tags de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 alíquota de imposto de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} taxas de imposto de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou as configurações de controle de horas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `fluxos de trabalho copiados de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `regras copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 regra de comerciante de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} regras de comerciante de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 taxa de distância de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} taxas de distância de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 tarifa de diária de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} taxas de diária de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de fatura copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de viagem copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -8478,6 +8666,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             past: 'Passado',
             submitted: 'Enviado',
             approved: 'Aprovado',
+            firstApprover: 'Primeira pessoa aprovadora',
+            firstApproved: 'Primeira aprovada',
             paid: 'Pago',
             exported: 'Exportado',
             posted: 'Publicado',
@@ -8635,10 +8825,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             pending: 'Pendente',
             cleared: 'Compensado',
             failed: 'Falhou',
+            never: 'Nunca',
         },
         failedError: ({link}: {link: string}) => `Tentaremos processar este acerto novamente quando você <a href="${link}">desbloquear sua conta</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Marcado como pago', withdrawing: 'Sacando', confirmed: 'Confirmado'},
     reportLayout: {
         reportLayout: 'Layout do relatório',
         groupByLabel: 'Agrupar por:',
@@ -8770,13 +8962,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         stopTimer: (duration: string) => `Parar cronômetro (${duration})`,
         scheduleOOO: 'Agendar ausência',
         scheduleOOOTitle: 'Agendar ausência do escritório',
-        date: 'Data',
+        date: 'Data de início',
+        endDate: 'Data de término',
         time: 'Horário (formato de 24 horas)',
         durationAmount: 'Duração',
         durationUnit: 'Unidade',
         reason: 'Motivo',
         workingPercentage: 'Porcentagem de trabalho',
-        dateRequired: 'A data é obrigatória.',
+        dateRequired: 'A data de início é obrigatória.',
+        endDateBeforeStart: 'A data de término não pode ser anterior à data de início.',
         invalidTimeFormat: 'Insira um horário válido no formato 24 horas (por exemplo, 14:30).',
         enterANumber: 'Insira um número.',
         hour: 'horas',
@@ -9254,6 +9448,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         resolvedDuplicates: 'resolveu o duplicado',
         companyCardRequired: 'Compras com cartão corporativo obrigatórias',
         noRoute: 'Selecione um endereço válido',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `A tarifa só é válida de ${startDate} até ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
@@ -9536,6 +9733,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
             collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
             pricing: 'Preços',
+            editSubscription: 'Editar assinatura',
         },
         cancelSubscription: {
             title: 'Cancelar assinatura',
@@ -9611,7 +9809,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         enterMagicCode: (contactMethod: string) => `Insira o código mágico enviado para ${contactMethod} para adicionar um copiloto. Ele deve chegar em um ou dois minutos.`,
         enterMagicCodeUpdate: (contactMethod: string) => `Insira o código mágico enviado para ${contactMethod} para atualizar seu copiloto.`,
         notAllowed: 'Não tão rápido...',
-        noAccessMessage: dedent(`
+        noAccessMessage: Str.dedent(`
             Como copiloto, você não tem acesso a
             esta página. Desculpe!
         `),
@@ -9704,6 +9902,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             theresAProblemWithYourWalletTerms: 'Há um problema com os termos da sua carteira',
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
             completeHrSetup: 'Concluir configuração de RH',
+            theresAProblemWithAnHRConnection: 'Há um problema com uma conexão de RH',
         },
     },
     emptySearchView: {
@@ -9723,7 +9922,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
-        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
+        accountSwitcher: '<tooltip>Agora você pode fazer copiloto em outra conta!</tooltip>',
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',

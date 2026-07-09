@@ -1,8 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/dist/str';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -11,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -21,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addComment} from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -28,13 +25,22 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+
 import colors from '@styles/theme/colors';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TravelProvisioning} from '@src/types/onyx';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TCS>;
 
@@ -65,7 +71,9 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
             return;
         }
 
-        const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
+        const message = translate('travel.verifyCompany.conciergeMessage', {
+            domain: Str.extractEmailDomain(account?.primaryLogin ?? ''),
+        });
 
         addComment({
             report: conciergeReport,
@@ -80,7 +88,7 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
     };
 
     const acceptTermsAndOpenTravelDot = () => {
-        acceptSpotnanaTerms(domain, policyID)
+        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);

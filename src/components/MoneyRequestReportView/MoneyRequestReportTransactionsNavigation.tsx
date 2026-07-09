@@ -1,23 +1,22 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -25,6 +24,13 @@ import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/sel
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;

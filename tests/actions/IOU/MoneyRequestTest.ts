@@ -1,25 +1,32 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type * as IOU from '../../../src/libs/actions/IOU';
+import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
+
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
-import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -42,7 +49,7 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actualSplit,
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: 'distance-chat-id', transactionID: 'distance-written-id'})),
         startSplitBill: jest.fn(),
         resetSplitShares: jest.fn(),
     };
@@ -754,7 +761,7 @@ describe('MoneyRequest', () => {
         });
 
         // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
-        it('should pass the draft transaction id (not the optimistic id) to cleanup for a non-track distance submission', async () => {
+        it('should pass the written transaction id from createDistanceRequest (not the draft or optimistic id) to cleanup for a non-track distance submission', async () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 shouldSkipConfirmation: true,
@@ -768,7 +775,7 @@ describe('MoneyRequest', () => {
 
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    transactionID: fakeTransaction.transactionID,
+                    transactionID: 'distance-written-id',
                 }),
             );
         });
@@ -894,13 +901,16 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
+            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
         it('should call createDistanceRequest for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
@@ -933,13 +943,16 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
+            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
         it('should navigate to confirmation page when not skipping confirmation', async () => {
@@ -1171,17 +1184,17 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123', undefined, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123', undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456', undefined, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456', undefined, undefined, undefined, translateLocal);
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1189,7 +1202,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1198,26 +1211,26 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly

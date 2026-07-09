@@ -1,20 +1,29 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {KeyValueMapping} from 'react-native-onyx';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
+
 import HeaderView from '@pages/inbox/HeaderView';
+
 import {joinRoom} from '@userActions/Report';
 import type * as ReportType from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {KeyValueMapping} from 'react-native-onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createRandomReport} from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -90,7 +99,9 @@ describe('HeaderView', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);
+        // Report attributes recompute is coalesced onto a macrotask, so the title can settle a tick after
+        // the initial flush; waitFor retries until the derived recompute + re-render lands.
+        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
 
         // When the invoice receiver display name is updated
         displayName = 'test edit';
@@ -103,7 +114,7 @@ describe('HeaderView', () => {
         });
 
         // Then the header title should be updated using the new display name
-        expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);
+        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
     });
 
     it('should display join button', async () => {

@@ -1,16 +1,20 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect} from 'react';
+
 import DomainMembersTableRow from './DomainMembersTableRow';
 
 type DomainMembersTableColumnKey = 'member' | 'group' | 'actions';
@@ -39,8 +43,6 @@ type DomainMembersTableProps = {
     EmptyStateComponent: React.ReactElement;
 };
 
-const ALL_MEMBERS_VALUE = 'all';
-
 /**
  * Clears stale group filter values when the filter is hidden or the selected group disappears from Onyx.
  */
@@ -49,18 +51,18 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = typeof groupFilterValue === 'string' ? groupFilterValue : undefined;
+        const activeGroupFilter = groupFilterValue?.at(0);
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {
-            if (activeGroupFilter && activeGroupFilter !== ALL_MEMBERS_VALUE) {
-                tableMethods.updateFilter({key: 'group', value: ALL_MEMBERS_VALUE});
+            if (activeGroupFilter) {
+                tableMethods.updateFilter({key: 'group', value: []});
             }
             return;
         }
 
-        if (activeGroupFilter && activeGroupFilter !== ALL_MEMBERS_VALUE && !groupOptionValues.includes(activeGroupFilter)) {
-            tableMethods.updateFilter({key: 'group', value: ALL_MEMBERS_VALUE});
+        if (activeGroupFilter && !groupOptionValues.includes(activeGroupFilter)) {
+            tableMethods.updateFilter({key: 'group', value: []});
         }
     }, [shouldShowGroupFilter, groupOptionValuesKey, groupFilterValue, tableMethods]);
 
@@ -77,12 +79,10 @@ export default function DomainMembersTable({
     isItemInFilter,
     EmptyStateComponent,
 }: DomainMembersTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    const shouldShowSearchBar = members.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const shouldShowGroupFilter = !!filterConfig;
     const groupOptionValuesKey = filterConfig?.group.options.map((option) => option.value).join(',') ?? '';
     const isEmpty = members.length === 0;
@@ -157,12 +157,7 @@ export default function DomainMembersTable({
                         shouldShowGroupFilter={shouldShowGroupFilter}
                         groupOptionValuesKey={groupOptionValuesKey}
                     />
-                    {shouldShowGroupFilter && (
-                        <View style={[styles.mh5, styles.mb3]}>
-                            <Table.FilterButtons />
-                        </View>
-                    )}
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
+                    <Table.FilterBar label={translate('domain.members.findMember')} />
                     <Table.Header />
                     <Table.Body />
                 </>

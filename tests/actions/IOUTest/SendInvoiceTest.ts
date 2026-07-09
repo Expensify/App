@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -14,13 +14,19 @@ import type {PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags, Report} f
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {InvoiceTestData} from '../../data/Invoice';
+import type {MockFetch} from '../../utils/TestHelper';
+
 import * as InvoiceData from '../../data/Invoice';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -655,7 +661,6 @@ describe('actions/SendInvoice', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (allTransactions) => {
                         Onyx.disconnect(connection);
                         const transactionValue = Object.values(allTransactions).at(0);
