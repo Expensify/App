@@ -1124,6 +1124,62 @@ describe('ReportNameUtils', () => {
 
             expect(name).toBe('HiddenMarker');
         });
+
+        test('Invoice room (current user receiver) resolves the workspace-unavailable fallback through the provided translate function', () => {
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
+            const report: Report = {
+                reportID: 'invoice-chat-6',
+                // Current user is the receiver but the policy cannot be resolved, so the name falls back to the unavailable label.
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy: undefined,
+                personalDetails: {},
+                policy: undefined,
+                currentUserAccountID,
+                translate: translateWithUnavailableMarker,
+            });
+
+            expect(name).toBe('UnavailableMarker');
+        });
+
+        test('Invoice room (business receiver) resolves the workspace-unavailable fallback through the provided translate function', () => {
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
+            const report: Report = {
+                reportID: 'invoice-chat-7',
+                // Business receiver with no resolvable receiver policy falls back to the unavailable label.
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'missing-policy'},
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy: undefined,
+                personalDetails: {},
+                policy: undefined,
+                currentUserAccountID,
+                translate: translateWithUnavailableMarker,
+            });
+
+            expect(name).toBe('UnavailableMarker');
+        });
+
+        test('Invoice payer name resolves the workspace-unavailable fallback through the provided translate function', () => {
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
+            const report: Report = {
+                reportID: 'invoice-chat-8',
+                // Business receiver with no resolvable policy falls back to the unavailable label.
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'missing-policy'},
+            };
+
+            const name = getInvoicePayerName(report, translateWithUnavailableMarker, undefined, null);
+
+            expect(name).toBe('UnavailableMarker');
+        });
     });
 
     describe('getPolicyExpenseChatName', () => {
