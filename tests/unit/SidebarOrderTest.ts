@@ -20,6 +20,7 @@ import Onyx from 'react-native-onyx';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked Permissions libraries or else the beta tests won't work
@@ -514,9 +515,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(iouReport.reportID))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the report data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
@@ -525,6 +524,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so the LHN mounts once in its final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(iouReport.reportID))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
@@ -617,9 +619,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(expenseReport.reportID))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
@@ -629,6 +629,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(expenseReport.reportID))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
@@ -873,9 +876,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
@@ -885,6 +886,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the reports are ordered by Pinned / GBR > Draft > Rest
                     // there is a pencil icon
@@ -931,9 +935,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
@@ -942,6 +944,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the reports are in alphabetical order
                     .then(() => {
@@ -955,6 +960,7 @@ describe('Sidebar', () => {
 
                     // When a new report is added
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then they are still in alphabetical order
                     .then(() => {
@@ -993,9 +999,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
@@ -1005,6 +1009,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the reports are in alphabetical order
                     .then(() => {
@@ -1025,6 +1032,7 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then they are still in alphabetical order
                     .then(() => {
@@ -1088,9 +1096,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
@@ -1101,6 +1107,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the first report is in last position
                     .then(() => {
@@ -1157,9 +1166,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
@@ -1168,6 +1175,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the reports are ordered alphabetically since their lastVisibleActionCreated are the same
                     .then(() => {
@@ -1198,9 +1208,7 @@ describe('Sidebar', () => {
             return (
                 waitForBatchedUpdates()
                     .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, LHNTestUtils.fakePersonalDetails))
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
-                    // Given the sidebar is rendered in #focus mode (hides read chats)
-                    // with all reports having unread comments
+                    // Given the sidebar is in #focus mode (hides read chats) with all reports having unread comments
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
@@ -1208,6 +1216,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the reports are in alphabetical order
                     .then(() => {
@@ -1221,6 +1232,7 @@ describe('Sidebar', () => {
 
                     // When a new report is added
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then they are still in alphabetical order
                     .then(() => {
@@ -1259,9 +1271,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
-
-                    // When Onyx is updated with the data and the sidebar re-renders
+                    // When Onyx is updated with the data
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
@@ -1272,6 +1282,9 @@ describe('Sidebar', () => {
                             ...reportCollectionDataSet,
                         }),
                     )
+                    // Let the derived reportAttributes settle before the list mounts, so it mounts in final order.
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                    .then(() => waitForBatchedUpdatesWithAct())
 
                     // Then the first report is in last position
                     .then(() => {
