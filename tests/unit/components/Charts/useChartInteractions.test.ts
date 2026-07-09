@@ -197,4 +197,30 @@ describe('useChartInteractions', () => {
 
         expect(result.current.tooltipPlacement).toBe('right');
     });
+
+    it('returns right-placed tooltip coordinates from initialTooltipPosition', () => {
+        const {result} = renderHook(() =>
+            useChartInteractions({
+                ...defaultProps,
+                tooltipPlacement: 'right',
+            }),
+        );
+
+        expect(result.current.initialTooltipPosition.get()).toEqual({
+            x: TOOLTIP_BAR_GAP,
+            y: 0,
+        });
+    });
+
+    it('returns above-placed tooltip coordinates from initialTooltipPosition', () => {
+        const {result} = renderHook(() => {
+            const yZero = useSharedValue(120);
+            return useChartInteractions({...defaultProps, yZero});
+        });
+
+        expect(result.current.initialTooltipPosition.get()).toEqual({
+            x: 0,
+            y: -TOOLTIP_BAR_GAP,
+        });
+    });
 });

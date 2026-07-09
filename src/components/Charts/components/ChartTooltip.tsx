@@ -12,6 +12,8 @@ import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react
 
 /** Clamps tooltip left position when placement is to the right of the anchor point. */
 function clampRightPlacementTooltipLeft(anchorX: number, chartWidth: number, tooltipWidth: number): number {
+    'worklet';
+
     return Math.max(0, Math.min(chartWidth - tooltipWidth, anchorX));
 }
 
@@ -38,6 +40,7 @@ type ChartTooltipProps = {
 function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosition, placement = 'above'}: ChartTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isRightPlacement = placement === 'right';
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
@@ -69,25 +72,8 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
         return Math.max(halfWidth, Math.min(chartWidth - halfWidth, x));
     }, [initialTooltipPosition, tooltipMeasuredWidth, chartWidth]);
 
-    /**
-     * Animated style for the main tooltip container.
-     * Calculates the clamped center to keep the box within chart boundaries.
-     */
-    const tooltipStyle = useAnimatedStyle(() => {
-        const {x, y} = initialTooltipPosition.get();
-
-        if (placement === 'right') {
-            const width = tooltipMeasuredWidth.get();
-            const clampedLeft = clampRightPlacementTooltipLeft(x, chartWidth, width);
-
-            return {
-                position: 'absolute',
-                left: clampedLeft,
-                top: y,
-                transform: [{translateY: '-50%'}],
-                opacity: width > 0 ? 1 : 0,
-            };
-        }
+    const tooltipStyleAbove = useAnimatedStyle(() => {
+        const {y} = initialTooltipPosition.get();
 
         return {
             position: 'absolute',
@@ -97,32 +83,45 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
             transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             opacity: tooltipMeasuredWidth.get() > 0 ? 1 : 0,
         };
-    }, [initialTooltipPosition, placement, chartWidth]);
+    }, [initialTooltipPosition, chartWidth]);
 
-    /**
-     * Animated style for the pointer (triangle).
-     * Calculates the relative offset to keep the pointer pinned to the data point (initialX)
-     * even when the main container is clamped to the edges.
-     */
-    const pointerStyle = useAnimatedStyle(() => {
+    const tooltipStyleRight = useAnimatedStyle(() => {
+        const {x, y} = initialTooltipPosition.get();
+        const width = tooltipMeasuredWidth.get();
+        const clampedLeft = clampRightPlacementTooltipLeft(x, chartWidth, width);
+
+        return {
+            position: 'absolute',
+            left: clampedLeft,
+            top: y,
+            transform: [{translateY: '-50%'}],
+            opacity: width > 0 ? 1 : 0,
+        };
+    }, [initialTooltipPosition, chartWidth]);
+
+    const tooltipStyle = isRightPlacement ? tooltipStyleRight : tooltipStyleAbove;
+
+    const pointerStyleAbove = useAnimatedStyle(() => {
         const {x} = initialTooltipPosition.get();
-
-        if (placement === 'right') {
-            const width = tooltipMeasuredWidth.get();
-            const clampedLeft = clampRightPlacementTooltipLeft(x, chartWidth, width);
-            const relativeOffset = x - clampedLeft - VictoryTheme.tooltip.pointerWidth;
-
-            return {
-                transform: [{translateX: relativeOffset}],
-            };
-        }
-
         const relativeOffset = x - clampedCenter.get();
 
         return {
             transform: [{translateX: relativeOffset}],
         };
-    }, [initialTooltipPosition, placement, chartWidth]);
+    }, [initialTooltipPosition, chartWidth]);
+
+    const pointerStyleRight = useAnimatedStyle(() => {
+        const {x} = initialTooltipPosition.get();
+        const width = tooltipMeasuredWidth.get();
+        const clampedLeft = clampRightPlacementTooltipLeft(x, chartWidth, width);
+        const relativeOffset = x - clampedLeft - VictoryTheme.tooltip.pointerWidth;
+
+        return {
+            transform: [{translateX: relativeOffset}],
+        };
+    }, [initialTooltipPosition, chartWidth]);
+
+    const pointerStyle = isRightPlacement ? pointerStyleRight : pointerStyleAbove;
 
     return (
         <Animated.View
@@ -130,8 +129,8 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
             pointerEvents="none"
             ref={tooltipWrapperRef}
         >
-            <View style={[styles.chartTooltipWrapper, placement === 'right' && styles.chartTooltipWrapperRight]}>
-                {placement === 'right' && (
+            <View style={[styles.chartTooltipWrapper, isRightPlacement && styles.chartTooltipWrapperRight]}>
+                {isRightPlacement && (
                     <Animated.View
                         style={[
                             styles.chartTooltipPointer,
@@ -155,7 +154,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
                         {content}
                     </Text>
                 </View>
-                {placement === 'above' && (
+                {!isRightPlacement && (
                     <Animated.View
                         style={[
                             styles.chartTooltipPointer,

@@ -12,6 +12,8 @@ const TOOLTIP_BAR_GAP = 8;
 
 /** X position for a tooltip placed to the right of a horizontal bar end. */
 function getRightTooltipAnchorX(targetX: number): number {
+    'worklet';
+
     return targetX + TOOLTIP_BAR_GAP;
 }
 
@@ -346,17 +348,9 @@ function useChartInteractions({
      * We return these as individual derived values so the caller can
      * compose them into their own useAnimatedStyle.
      */
-    const initialTooltipPosition = useDerivedValue(() => {
+    const initialTooltipPositionAbove = useDerivedValue(() => {
         const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
-
-        if (tooltipPlacement === 'right') {
-            return {
-                x: getRightTooltipAnchorX(targetX),
-                y: targetY,
-            };
-        }
-
         const currentYZero = yZero?.get() ?? targetY;
         const barTopY = Math.min(targetY, currentYZero);
 
@@ -365,6 +359,18 @@ function useChartInteractions({
             y: barTopY - TOOLTIP_BAR_GAP,
         };
     });
+
+    const initialTooltipPositionRight = useDerivedValue(() => {
+        const targetX = chartInteractionState.x.position.get();
+        const targetY = chartInteractionState.y.y.position.get();
+
+        return {
+            x: getRightTooltipAnchorX(targetX),
+            y: targetY,
+        };
+    });
+
+    const initialTooltipPosition = tooltipPlacement === 'right' ? initialTooltipPositionRight : initialTooltipPositionAbove;
 
     const customGestures = Gesture.Race(hoverGesture(), tapGesture());
 
