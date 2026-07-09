@@ -1742,6 +1742,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        deletePendingExpense: 'Ausstehende Ausgabe löschen',
+        deleteConfirmationPendingBYOC: 'Möchten Sie diese Ausgabe wirklich löschen? Sie ist ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht wird.',
+        deleteConfirmationSomePendingBYOC:
+            'Möchten Sie diese Ausgaben wirklich löschen? Einige davon sind ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht werden.',
         categoryDisabledAlert: {
             title: 'Kategorie deaktiviert',
             prompt: 'Aktivieren Sie Kategorien im Arbeitsbereich, um die Ausgabendetails zu bearbeiten oder die Kategorie aus dieser Ausgabe zu löschen.',

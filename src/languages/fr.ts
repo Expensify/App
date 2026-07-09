@@ -1748,6 +1748,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
         deleted: 'Supprimé',
+        deletePendingExpense: 'Supprimer la dépense en attente',
+        deleteConfirmationPendingBYOC: 'Voulez-vous vraiment supprimer cette dépense ? Elle est en attente et nous pourrions l’importer à nouveau si elle est comptabilisée.',
+        deleteConfirmationSomePendingBYOC: 'Voulez-vous vraiment supprimer ces dépenses ? Certaines sont en attente et nous pourrions les importer à nouveau si elles sont comptabilisées.',
         categoryDisabledAlert: {
             title: 'Catégorie désactivée',
             prompt: 'Activez les catégories dans l’espace de travail pour modifier les détails de la dépense ou supprimer la catégorie de cette dépense.',

@@ -1694,6 +1694,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
+        deletePendingExpense: 'Eliminar gasto pendiente',
+        deleteConfirmationPendingBYOC: '¿Seguro que quieres eliminar este gasto? Está pendiente y es posible que lo volvamos a importar si se contabiliza.',
+        deleteConfirmationSomePendingBYOC: '¿Seguro que quieres eliminar estos gastos? Algunos están pendientes y es posible que los volvamos a importar si se contabilizan.',
         categoryDisabledAlert: {
             title: 'Categoría deshabilitada',
             prompt: 'Habilita las categorías en el espacio de trabajo para editar los detalles del gasto o eliminar la categoría de este gasto.',
