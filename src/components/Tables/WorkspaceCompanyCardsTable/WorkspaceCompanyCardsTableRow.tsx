@@ -151,11 +151,13 @@ function WorkspaceCompanyCardTableRow({
 
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={memberColumnTitle}
                                 style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
                             />
                             {!!memberCardSubtitle && (
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={memberCardSubtitle}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
