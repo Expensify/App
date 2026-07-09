@@ -74,7 +74,7 @@ Yes. You can select multiple admins when sharing.
 The **Share** option only appears if:
 - The account is verified
 - The account supports withdrawals (deposit-only accounts cannot be shared)
-- There is at least one eligible Workspace Admin you haven’t shared it with
+- There is at least one eligible admin you haven’t shared it with
 
 ## What if the other admin already has a copy of the account?
 
