@@ -337,17 +337,17 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
  *
  * Prefers values already stored on the transaction (set optimistically or by the backend),
  * otherwise previews the exclusion from the policy's commuter exclusion configuration
- * (unless shouldFallbackToStoredPolicyCommuter is true).
+ * (unless shouldUseStoredExclusionOnly is true).
  *
  * @param transaction - The distance transaction being confirmed/edited
  * @param policy - The policy the expense belongs to
  * @param distanceInMeters - The full route distance in meters
  * @param distanceUnit - The display unit (mi/km) the breakdown is expressed in
- * @param shouldFallbackToStoredPolicyCommuter - When true, only use the commuter exclusion data
+ * @param options.shouldUseStoredExclusionOnly - When true, only use the commuter exclusion data
  *                                               already stored on the transaction (from the policy
  *                                               at creation time). For historical/readonly views.
- *                                               When false (default), fall back to the current
- *                                               policy's commuterExclusions to preview/compute.
+ *                                               When false (default), use the current policy's
+ *                                               commuterExclusions to preview/compute.
  * @returns The commuter exclusion and reimbursable distance, or null when no exclusion applies
  */
 function getCommuterExclusionData(
@@ -355,13 +355,13 @@ function getCommuterExclusionData(
     policy: OnyxEntry<Policy>,
     distanceInMeters: number,
     distanceUnit: Unit,
-    shouldFallbackToStoredPolicyCommuter = false,
+    {shouldUseStoredExclusionOnly = false}: {shouldUseStoredExclusionOnly?: boolean} = {},
 ): {commuterExclusion: number; reimbursableDistance: number; distanceUnit: Unit} | null {
     const customUnit = transaction?.comment?.customUnit;
 
     const hasStoredExclusionData = typeof customUnit?.commuterExclusion === 'number' || typeof customUnit?.reimbursableDistance === 'number';
 
-    if (shouldFallbackToStoredPolicyCommuter && !hasStoredExclusionData) {
+    if (shouldUseStoredExclusionOnly && !hasStoredExclusionData) {
         return null;
     }
 
@@ -375,7 +375,7 @@ function getCommuterExclusionData(
     let commuterExclusion = customUnit?.commuterExclusion;
     let reimbursableDistance = customUnit?.reimbursableDistance;
 
-    if (!commuterExclusion && policy?.commuterExclusions) {
+    if (!commuterExclusion && !shouldUseStoredExclusionOnly && policy?.commuterExclusions) {
         const exclusionConfig = policy.commuterExclusions;
         if (exclusionConfig.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && quantityInUnit > 0) {
             const fixedDistanceUnit: Unit =

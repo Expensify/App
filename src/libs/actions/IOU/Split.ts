@@ -2126,10 +2126,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         onyxData = moneyRequestOnyxData;
         distanceIouReport = iouReport;
 
-        // Compute the commuter exclusion client-side for `fixedDistance` so the breakdown and
-        // system message render instantly. The server's createDistanceRequest response will
-        // confirm or correct these values via the success-data replay. For any other method
-        // (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
+        // Compute the commuter exclusion client-side for `fixedDistance` so the transaction
+        // breakdown renders instantly. The COMMUTER_EXCLUSION system message is created by the
+        // server from the authoritative distance calculation, so it is not seeded optimistically.
+        // For any other method (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
         const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
         const selectedRate = DistanceRequestUtils.getRate({transaction, policy});
         const distanceRate = selectedRate?.rate ?? 0;
