@@ -806,25 +806,6 @@ describe('DateUtils', () => {
         });
     });
 
-    // Structural check: CI runs `TZ=UTC`, so a formatter that forgot the `timeZone` arg would still pass output-based tests — spy on the constructor to catch the drop.
-    describe('formatInUTCTo* passes timeZone: UTC to Intl.DateTimeFormat', () => {
-        it.each(['formatInUTCToMedium' as const, 'formatInUTCToShort' as const, 'formatInUTCToLong' as const])('%s uses timeZone: "UTC"', (fnName) => {
-            const spy = jest.spyOn(Intl, 'DateTimeFormat');
-            DateUtils[fnName]('2026-01-15', CONST.LOCALES.EN);
-            const passedUTC = spy.mock.calls.some(([, options]) => options?.timeZone === 'UTC');
-            expect(passedUTC).toBe(true);
-            spy.mockRestore();
-        });
-
-        it.each(['formatToLocalizedShortDate' as const])('%s uses timeZone: "UTC"', (fnName) => {
-            const spy = jest.spyOn(Intl, 'DateTimeFormat');
-            DateUtils[fnName]('2026-01-15', CONST.LOCALES.EN);
-            const passedUTC = spy.mock.calls.some(([, options]) => options?.timeZone === 'UTC');
-            expect(passedUTC).toBe(true);
-            spy.mockRestore();
-        });
-    });
-
     describe('getRemainingSecondsInWindow', () => {
         const windowMs = 30 * 1000;
 

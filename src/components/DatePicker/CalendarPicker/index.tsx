@@ -219,7 +219,7 @@ function CalendarPicker({
 
     const monthNames = DateUtils.getMonthNames(preferredLocale);
     const daysOfWeekLong = DateUtils.getDaysOfWeek(preferredLocale);
-    const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale);
+    const daysOfWeek = DateUtils.getDaysOfWeekShort(preferredLocale);
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
