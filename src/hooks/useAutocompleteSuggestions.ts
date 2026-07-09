@@ -360,7 +360,7 @@ function useAutocompleteSuggestions({
                     default:
                         suggestedStatuses = DEFAULT_STATUS_VALUES;
                 }
-                return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
+                return suggestedStatuses.map(getUserFriendlyValue);
             })();
             const filteredStatuses = statusAutocompleteList
                 .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(status))
