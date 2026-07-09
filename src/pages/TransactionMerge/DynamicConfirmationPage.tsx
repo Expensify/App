@@ -39,14 +39,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
+type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
 
-function ConfirmationPage({route}: ConfirmationPageProps) {
+function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, isOnSearch, backTo} = route.params;
+    const {transactionID, isOnSearch} = route.params;
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -128,7 +128,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     return (
         <ScreenWrapper
-            testID="ConfirmationPage"
+            testID="DynamicConfirmationPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -136,7 +136,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(backTo);
+                        Navigation.goBack();
                     }}
                 />
                 <ScrollView>
@@ -165,4 +165,4 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     );
 }
 
-export default ConfirmationPage;
+export default DynamicConfirmationPage;

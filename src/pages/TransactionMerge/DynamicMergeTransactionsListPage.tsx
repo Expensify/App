@@ -19,11 +19,11 @@ import React from 'react';
 
 import MergeTransactionsListContent from './MergeTransactionsListContent';
 
-type MergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.LIST_PAGE>;
+type DynamicMergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE>;
 
-function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
+function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListPageProps) {
     const {translate} = useLocalize();
-    const {transactionID, backTo} = route.params;
+    const {transactionID} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
 
@@ -37,7 +37,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
 
     return (
         <ScreenWrapper
-            testID="MergeTransactionsListPage"
+            testID="DynamicMergeTransactionsListPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -45,7 +45,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.listPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(backTo);
+                        Navigation.goBack();
                     }}
                 />
                 <MergeTransactionsListContent
@@ -57,4 +57,4 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     );
 }
 
-export default MergeTransactionsListPage;
+export default DynamicMergeTransactionsListPage;
