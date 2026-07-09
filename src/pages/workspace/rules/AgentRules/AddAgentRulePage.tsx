@@ -100,6 +100,11 @@ function AddAgentRulePage({
             linkPressedRef.current = true;
             closeModal();
         };
+
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        }
+
         Navigation.dismissModal({
             afterTransition: () => {
                 showConfirmModal({
@@ -127,14 +132,10 @@ function AddAgentRulePage({
                         marginTop: 12,
                     },
                 }).then(() => {
-                    if (linkPressedRef.current) {
-                        Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+                    if (!linkPressedRef.current) {
                         return;
                     }
-
-                    if (isRulesRevampEnabled) {
-                        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-                    }
+                    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
                 });
             },
         });
