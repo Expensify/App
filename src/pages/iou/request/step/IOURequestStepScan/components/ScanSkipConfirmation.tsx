@@ -4,7 +4,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
-import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -25,7 +25,7 @@ import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
-import {getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
@@ -175,13 +175,10 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     };
 
     const participant = participants.at(0);
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-    const policyTagList = useMoneyRequestPolicyTags({
-        moneyRequestReportID,
-        parentChatReportPolicyID: parentChatReport?.policyID,
-        participantReportID: participant?.reportID ?? undefined,
+    // Resolve tags reactively from the report (money-request report vs its chat/chat-draft, plus participant); the chat report may load after first render.
+    const policyTagList = useMoneyRequestPolicyTagsForReport({
+        report,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
     const submitDirectly = (files: ReceiptFile[], locationPermissionGranted: boolean) => {
