@@ -1,8 +1,4 @@
-import Onyx from 'react-native-onyx';
-
 import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ES_NUMBER = '+34702474537';
 const US_NUMBER = '+18332403627';
@@ -12,22 +8,11 @@ const US_NUMBER_WITH_SMS_DOMAIN = '+15857527441@expensify.sms';
 const ES_NUMBER_WITH_SMS_DOMAIN = '+34702474537@expensify.sms';
 
 describe('LocalePhoneNumber utils', () => {
-    beforeAll(() =>
-        Onyx.init({
-            keys: ONYXKEYS,
-        }),
-    );
+    beforeEach(() => {
+        LocalePhoneNumber.setCountryCodeByIP(1);
+    });
 
     describe('formatPhoneNumber function', () => {
-        beforeEach(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: 'current@user.com'},
-                [ONYXKEYS.COUNTRY_CODE]: 1,
-            }).then(waitForBatchedUpdates),
-        );
-
-        afterEach(() => Onyx.clear());
-
         it('should display a number from the same region formatted locally', () => {
             expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('(833) 240-3627');
         });
@@ -50,6 +35,22 @@ describe('LocalePhoneNumber utils', () => {
 
         it('should strip @expensify.sms domain and format a foreign number internationally', () => {
             expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER_WITH_SMS_DOMAIN)).toBe('+34 702 47 45 37');
+        });
+
+        it('should use the synced country code when formatting locally', () => {
+            LocalePhoneNumber.setCountryCodeByIP(34);
+
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('702 47 45 37');
+        });
+    });
+
+    describe('formatPhoneNumberWithCountryCode function', () => {
+        it('should format a number from the same region locally', () => {
+            expect(LocalePhoneNumber.formatPhoneNumberWithCountryCode(US_NUMBER, 1)).toBe('(833) 240-3627');
+        });
+
+        it('should format a number from another region internationally', () => {
+            expect(LocalePhoneNumber.formatPhoneNumberWithCountryCode(ES_NUMBER, 1)).toBe('+34 702 47 45 37');
         });
     });
 });
