@@ -1719,6 +1719,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
+        deletePendingExpense: '保留中の経費を削除',
+        deleteConfirmationPendingBYOC: 'この経費を削除してもよろしいですか？現在保留中のため、処理が完了すると再度取り込まれる可能性があります。',
+        deleteConfirmationSomePendingBYOC: 'これらの経費を削除してもよろしいですか？一部は保留中のため、処理が完了すると再度取り込まれる可能性があります。',
         categoryDisabledAlert: {
             title: 'カテゴリは無効です',
             prompt: 'ワークスペースでカテゴリを有効にすると、この経費の詳細を編集したり、この経費からカテゴリを削除したりできます。',
@@ -2349,6 +2352,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: '2 要素認証デバイスを変更',
         verifyOldDeviceTitle: '古い端末を確認',
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
+        verifyOldDeviceDescriptionWithRecovery: 'アカウントにアクセスできることを確認するために、有効な復旧コードを入力してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
@@ -2862,6 +2866,7 @@ ${date} の ${merchant} への ${amount}`,
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
             'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
+        copilotNote: 'このエージェントは、アカウントへのフルアクセス権を持つCopilotとして追加され、あなたの代わりに操作できるようになります。',
     },
     editAgentPage: {
         title: 'エージェントを編集',
@@ -4349,6 +4354,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         carRental: 'レンタカー',
         nightIn: '宿泊数',
         nightsIn: '泊（滞在先）',
+        taxID: {
+            title: '納税者番号',
+            subtitle: '現地通貨での出張費の請求を設定できるように、法人の納税者番号を入力してください。',
+            inputLabel: '法人納税者番号',
+            error: {required: '法的事業体の納税者番号を入力してください。'},
+        },
     },
     workspace: {
         common: {
@@ -5002,11 +5013,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 title: '接続する前に',
                 installBundle: 'Expensify バンドルをインストールします',
                 installBundlePSAHeader: 'PSA/SRP 接続の場合：',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">PSA/SRP Expensify バンドル（バージョン ${version}）をインストール</a>`,
+                installBundleDescription: 'このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：',
+                installBundlePSALink: ({version}: {version: string}) => `PSA/SRP Expensify バンドル（バージョン ${version}）をインストール`,
                 installBundleFFAHeader: 'FFA 接続用:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA 用 Expensify バンドルをインストール（バージョン ${version}）</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `FFA 用 Expensify バンドルをインストール（バージョン ${version}）`,
                 installBundleConfirm: 'バンドルをインストールしました',
                 setupContacts: 'ユーザーと連絡先を設定',
                 setupContactsBullet1:
@@ -5018,6 +5028,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 oauth: 'Salesforce からログイン',
                 oauthDescription: '設定を完了するには、Salesforce と Certinia を通じてサインインする必要があります。\n\n続行するには、下のボタンを使用してください。',
                 connectButton: 'Certinia に接続',
+                connectSandboxButton: 'Certinia Sandbox に接続',
             },
             import: {
                 chartOfAccounts: '勘定科目表',
@@ -6250,6 +6261,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 conciergeNotificationDescription: '処理が完了すると、Concierge からメッセージが送信されます。',
                 copyCompleted: 'ワークスペースの設定がコピーされました。',
             },
+            upgrade: {
+                title: '一部の機能は Control プランへの加入が必要です',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} は ${features} を使用しており、これらには Control プランが必要です。
+
+これらの機能を他のワークスペースでも利用するには、アップグレードして続行してください。
+
+Control プランは、アクティブメンバー1人あたり月額 $9 からご利用いただけます。`,
+            },
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -6309,6 +6328,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 one: 'People 管理者にする',
                 other: 'People 管理者にする',
             }),
+            makePaymentsAdmin: () => ({
+                one: '支払い管理者にする',
+                other: '支払い管理者にする',
+            }),
             selectAll: 'すべて選択',
             error: {
                 genericAdd: 'このワークスペースメンバーを追加する際に問題が発生しました',
@@ -6342,6 +6365,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             makeCardAdmin: () => ({one: 'カード管理者にする', other: 'カード管理者に設定'}),
             cardAdmins: 'カード管理者',
             peopleAdmins: 'People 管理者',
+            paymentsAdmins: '支払い管理者',
             members: 'メンバー',
         },
         card: {
@@ -7125,6 +7149,7 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
+            unlockFeatures: 'これらの機能をアンロックしましょう！',
         },
         downgrade: {
             commonFeatures: {
@@ -8717,6 +8742,7 @@ ${reportName}`,
             pending: '保留中',
             cleared: '支払済み',
             failed: '失敗しました',
+            never: 'なし',
         },
         failedError: ({link}: {link: string}) => `<a href="${link}">アカウントのロックを解除</a>すると、この精算を再試行します。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date}・出金 ID：${withdrawalID}`,
@@ -8852,13 +8878,15 @@ ${reportName}`,
         stopTimer: (duration: string) => `タイマーを停止 (${duration})`,
         scheduleOOO: '不在予定を設定',
         scheduleOOOTitle: '不在予定を設定',
-        date: '日付',
+        date: '開始日',
+        endDate: '終了日',
         time: '時間（24時間表記）',
         durationAmount: '期間',
         durationUnit: '単位',
         reason: '理由',
         workingPercentage: '稼働率',
-        dateRequired: '日付は必須です。',
+        dateRequired: '開始日が必要です。',
+        endDateBeforeStart: '終了日は開始日より前にはできません。',
         invalidTimeFormat: '有効な24時間表記の時刻を入力してください（例: 14:30）。',
         enterANumber: '数字を入力してください。',
         hour: '時間',
@@ -9612,6 +9640,7 @@ ${reportName}`,
             changesBasedOn: 'これは、お客様の Expensify カードの利用状況と、以下のサブスクリプションオプションによって変わります。',
             collectBillingDescription: 'Collect ワークスペースは、年間契約なしで、メンバーごとに毎月課金されます。',
             pricing: '料金',
+            editSubscription: 'サブスクリプションを編集',
         },
         cancelSubscription: {
             title: 'サブスクリプションをキャンセル',
@@ -9799,7 +9828,7 @@ ${reportName}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
-        accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
+        accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
