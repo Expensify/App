@@ -2438,7 +2438,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
-                isReportActionsExist: true,
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -2550,7 +2550,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
-                isReportActionsExist: true,
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,

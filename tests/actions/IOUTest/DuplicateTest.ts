@@ -462,7 +462,7 @@ describe('actions/Duplicate', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
-                isReportActionsExist: true,
+                hasReportActions: true,
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
                 personalDetails: allPersonalDetails,
@@ -472,7 +472,7 @@ describe('actions/Duplicate', () => {
                 parentReportActionID: iouAction1?.reportActionID,
             });
             openReport({
-                isReportActionsExist: true,
+                hasReportActions: true,
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
                 personalDetails: allPersonalDetails,

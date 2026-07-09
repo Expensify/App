@@ -59,15 +59,15 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
 
-    const isReportActionsExist = !!reportActions;
+    const hasReportActions = !!reportActions;
 
     const shouldFetchReport = useMemo(() => {
         return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport({reportID, introSelected, reportActionID, betas, isReportActionsExist});
-    }, [reportID, introSelected, reportActionID, betas, isReportActionsExist]);
+        openReport({reportID, introSelected, reportActionID, betas, hasReportActions});
+    }, [reportID, introSelected, reportActionID, betas, hasReportActions]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {

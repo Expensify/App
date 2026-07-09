@@ -45,7 +45,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     } = route.params;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const isReportActionsExist = !!reportActions;
+    const hasReportActions = !!reportActions;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -75,8 +75,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             return;
         }
 
-        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas, isReportActionsExist});
-    }, [reportActionReportID, shouldFetchReport, introSelected, reportActionID, betas, isReportActionsExist]);
+        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas, hasReportActions});
+    }, [reportActionReportID, shouldFetchReport, introSelected, reportActionID, betas, hasReportActions]);
 
     const onCarouselAttachmentChange = (attachment: Attachment) => {
         const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({

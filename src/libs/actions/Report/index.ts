@@ -361,7 +361,7 @@ type OpenReportActionParams = {
     hasCompletedGuidedSetupFlow?: boolean;
 
     /** Whether the report has report actions or not */
-    isReportActionsExist?: boolean;
+    hasReportActions?: boolean;
 
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
@@ -1485,7 +1485,7 @@ function openReport(params: OpenReportActionParams) {
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        isReportActionsExist,
+        hasReportActions,
     } = params;
     if (!reportID) {
         return;
@@ -1496,7 +1496,7 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    const optimisticReport: Partial<Pick<Report, 'reportName'>> = (isReportActionsExist ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
+    const optimisticReport: Partial<Pick<Report, 'reportName'>> = (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
     const optimisticData: Array<
         OnyxUpdate<
