@@ -37,6 +37,7 @@ let allPolicies: OnyxCollection<Policy>;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
 });
 

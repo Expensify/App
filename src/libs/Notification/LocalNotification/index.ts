@@ -14,6 +14,7 @@ let allPolicies: OnyxCollection<Policy>;
 // see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicies = value;
     },
@@ -24,6 +25,7 @@ let allPolicyTags: OnyxCollection<PolicyTagLists>;
 // see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicyTags = value;
     },
