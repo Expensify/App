@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
@@ -42,7 +44,6 @@ import {
     isGroupChat as isGroupChatUtils,
     isMoneyRequestReport,
     isOpenExpenseReport,
-    isPolicyAdmin,
     isPolicyExpenseChat,
     isSelfDM,
     isTaskReport,
@@ -89,6 +90,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
+    const policy = usePolicy(report.policyID);
     const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy);
     const shouldShowInviteButton = isReportSubmitterOrAdmin && (isGroupChat || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
@@ -247,10 +249,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report) || isGroupChat
             ? translate('common.members')
             : translate('common.details');
-
-    const memberNotFoundMessage = shouldShowInviteButton
-        ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
-        : translate('roomMembersPage.memberNotFound');
 
     return (
         <ScreenWrapper
