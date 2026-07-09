@@ -1985,7 +1985,6 @@
 "../../tests/unit/LocalizeTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/LogTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/MentionUserRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
-"../../tests/unit/MentionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/MiddlewareTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/unit/ModifiedExpenseMessageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/ModifiedExpenseMessageTest.ts"	"no-restricted-imports"	1
@@ -2048,7 +2047,6 @@
 "../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	136
 "../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/Search/buildSubstitutionsMapTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/Search/getSpendOverTimeStateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/Search/searchTotalsLoadingDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/useLiveRowCapabilitiesTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -2152,7 +2150,6 @@
 "../../tests/unit/hooks/usePendingConciergeResponse.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/hooks/useReceiptTraining.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useRestoreWorkspacesTabOnNavigate.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/unit/hooks/useSaveSortedReportIDs.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/hooks/useSearchBulkActionsDeleteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useSearchBulkActionsDuplicateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../tests/unit/hooks/useSearchSections.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
