@@ -45,7 +45,6 @@ import type {
     LastSelectedDistanceRates,
     PersonalDetailsList,
     Policy,
-    PolicyTagLists,
     QuickAction,
     RecentWaypoint,
     Report,
@@ -65,6 +64,7 @@ import type {ValueOf} from 'type-fest';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
+import type BasePolicyParams from './types/BasePolicyParams';
 import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
 import {getAllTransactionDrafts} from './index';
@@ -85,7 +85,7 @@ type CreateTransactionParams = {
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
-    policyParams?: {policy: OnyxEntry<Policy>; policyTagList?: OnyxEntry<PolicyTagLists>};
+    policyParams?: BasePolicyParams;
     billable?: boolean;
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
@@ -159,7 +159,7 @@ function createTransaction({
                     taxAmount,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
-                ...(policyParams ?? {}),
+                policyParams: policyParams ?? {},
                 draftTransactionIDs,
                 isASAPSubmitBetaEnabled,
                 currentUser: {
