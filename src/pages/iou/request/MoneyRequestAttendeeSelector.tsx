@@ -85,7 +85,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
-    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID);
+    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID, translate);
 
     const initialSelectedOptions = sortAlphabetically([...attendees], 'displayName', localeCompare).map((attendee) => ({
         ...attendee,
@@ -222,6 +222,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             true,
             undefined,
@@ -269,7 +270,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, translate);
                 }) as OptionData[],
                 sectionIndex: 3,
             });
