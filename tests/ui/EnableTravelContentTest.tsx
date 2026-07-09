@@ -51,7 +51,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useConfirmModal', () => jest.fn().mockImplementation(() => ({showConfirmModal: jest.fn(), closeModal: jest.fn()})));
 
 jest.mock('@components/RenderHTML', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const ReactMock = require('react') as typeof React;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
 
     return ({html}: {html: string}) => {
@@ -70,6 +72,9 @@ const PROVISIONED_POLICY: Policy = {
 
 const VALIDATED_ACCOUNT: Partial<Account> = {validated: true, primaryLogin: 'admin@company.com'};
 const COMPLETE_PERSONAL_DETAILS: Partial<PrivatePersonalDetails> = {legalFirstName: 'Test', legalLastName: 'User'};
+
+const ADMIN_DOMAIN_A_EMAIL = 'admin1@domain-a.com';
+const ADMIN_DOMAIN_B_EMAIL = 'admin2@domain-b.com';
 
 function renderContent(policy: Policy, account: Partial<Account>, privatePersonalDetails: Partial<PrivatePersonalDetails>) {
     return render(
@@ -128,8 +133,8 @@ describe('EnableTravelContent', () => {
             outputCurrency: 'GBP',
             address: undefined,
             employeeList: {
-                'admin1@domain-a.com': {role: CONST.POLICY.ROLE.ADMIN},
-                'admin2@domain-b.com': {role: CONST.POLICY.ROLE.ADMIN},
+                [ADMIN_DOMAIN_A_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [ADMIN_DOMAIN_B_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
             },
         };
         renderContent(policy, VALIDATED_ACCOUNT, COMPLETE_PERSONAL_DETAILS);
@@ -138,7 +143,7 @@ describe('EnableTravelContent', () => {
         expect(screen.queryAllByRole('group')).toHaveLength(0);
     });
 
-    it('shows a step for every applicable condition on an unprovisioned, non-USD workspace with multiple admin domains and no address', async () => {
+    it('shows a step for every applicable condition on a not-yet-provisioned, non-USD workspace with multiple admin domains and no address', async () => {
         const policy: Policy = {
             ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
             id: POLICY_ID,
@@ -146,11 +151,11 @@ describe('EnableTravelContent', () => {
             travelSettings: {},
             address: undefined,
             employeeList: {
-                'admin1@domain-a.com': {role: CONST.POLICY.ROLE.ADMIN},
-                'admin2@domain-b.com': {role: CONST.POLICY.ROLE.ADMIN},
+                [ADMIN_DOMAIN_A_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [ADMIN_DOMAIN_B_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
             },
         };
-        renderContent(policy, {validated: false, primaryLogin: 'admin1@domain-a.com'}, {});
+        renderContent(policy, {validated: false, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
         await waitForBatchedUpdatesWithAct();
 
         // legal name, verify account, domain selector, workspace address, tax ID, terms

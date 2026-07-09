@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -11,6 +11,8 @@ import {setTravelProvisioningDomain} from '@libs/actions/Travel';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
+
+import CONST from '@src/CONST';
 
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -61,12 +63,13 @@ function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
                 footerContent={
                     <Button
                         isDisabled={!selectedDomain}
-                        success
-                        large
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={handleContinue}
-                        text={translate('common.continue')}
-                    />
+                    >
+                        <Button.Text>{translate('common.continue')}</Button.Text>
+                    </Button>
                 }
             />
         </>
