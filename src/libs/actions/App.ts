@@ -116,12 +116,14 @@ let allReports: OnyxCollection<OnyxTypes.Report>;
 let allPolicies: OnyxCollection<OnyxTypes.Policy>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
 });
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicies = value;
     },
