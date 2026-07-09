@@ -454,7 +454,6 @@ export type {
     SearchDateKey,
     SearchAmountFilterKeys,
     SearchAmountValues,
-    SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
     ReportFieldKey,
