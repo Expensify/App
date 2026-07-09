@@ -20,7 +20,6 @@ let allReportNameValuePairs: Record<string, ReportNameValuePairs> = {};
  */
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (val) => {
         allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
     },
