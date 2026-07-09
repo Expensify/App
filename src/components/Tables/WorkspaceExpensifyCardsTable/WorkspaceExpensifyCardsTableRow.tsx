@@ -65,7 +65,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             <Icon
                 src={icons.FreezeCard}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
             <Text
                 numberOfLines={1}

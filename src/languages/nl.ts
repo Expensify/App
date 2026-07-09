@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -1735,6 +1734,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Je kunt maximaal ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} uitgaven tegelijk dupliceren. Selecteer minder uitgaven en probeer het opnieuw.`,
         deleted: 'Verwijderd',
+        deletePendingExpense: 'Verwijder in behandeling zijnde uitgave',
+        deleteConfirmationPendingBYOC: 'Weet je zeker dat je deze uitgave wilt verwijderen? Hij is in behandeling en we kunnen hem opnieuw importeren als hij wordt geboekt.',
+        deleteConfirmationSomePendingBYOC: 'Weet je zeker dat je deze uitgaven wilt verwijderen? Sommige zijn in behandeling en we kunnen ze opnieuw importeren als ze worden geboekt.',
         categoryDisabledAlert: {
             title: 'Categorie uitgeschakeld',
             prompt: 'Schakel categorieën in de workspace in om de onkostendetails te bewerken of de categorie uit deze onkost te verwijderen.',
@@ -2870,6 +2872,7 @@ ${amount} voor ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agenten',
         subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
+        findAgent: 'Agent zoeken',
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',
@@ -4382,6 +4385,12 @@ ${amount} voor ${merchant} - ${date}`,
         carRental: 'autoverhuur',
         nightIn: 'nacht in',
         nightsIn: 'nachten in',
+        taxID: {
+            title: 'Belastingnummer',
+            subtitle: 'Voer het fiscale nummer van je rechtspersoon in zodat we reisfacturatie in je lokale valuta kunnen instellen.',
+            inputLabel: 'Belastingnummer rechtspersoon',
+            error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
+        },
     },
     workspace: {
         common: {
@@ -5063,6 +5072,7 @@ ${amount} voor ${merchant} - ${date}`,
                 oauth: 'Log in via Salesforce',
                 oauthDescription: 'Om de installatie te voltooien, moet je je aanmelden via Salesforce en Certinia.\n\nGebruik de knop hieronder om door te gaan.',
                 connectButton: 'Verbind met Certinia',
+                connectSandboxButton: 'Verbind met Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Rekeningschema',
@@ -5504,6 +5514,33 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             enableNewAccountsDescription: 'Nieuwe Rillet-rekeningen zijn beschikbaar als categorieën.',
             dimensionsImport: 'Alle Rillet-dimensies worden als tags geïmporteerd',
             importDescription: 'Kies welke codeerconfiguraties je uit Rillet wilt importeren.',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Rillet en synchroniseer de verbinding opnieuw',
+            noAccountsFound: 'Geen accounts gevonden',
+            noAccountsFoundDescription: 'Voeg alsjeblieft rekeningen toe in Rillet en synchroniseer de verbinding opnieuw',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Rillet.',
+            exportReimbursable: {label: 'Vergoedbare uitgaven exporteren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'}}},
+            exportDate: {
+                label: 'Factuurdatum leverancier',
+                description: 'Gebruik deze datum bij het exporteren van rapporten naar Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum van de laatste uitgave',
+                        description: 'Datum van de meest recente uitgave op het rapport.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum waarop het rapport naar Rillet is geëxporteerd.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Inleverdatum',
+                        description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Bedrijfspaskosten exporteren als', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Creditcards'}}},
+            defaultCompanyCardVendor: {label: 'Standaard leverancier bedrijfspas', description: 'Kies een standaard Rillet-leverancier voor uitgaven die niet automatisch worden gekoppeld.'},
+            companyCardAccount: {label: 'Bedrijfskaartrekening', description: 'Kies waar je transacties van bedrijfskaarten naartoe wilt exporteren.'},
         },
         type: {
             free: 'Gratis',
@@ -6311,6 +6348,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 conciergeNotificationTitle: 'Concierge laat je het weten',
                 conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
                 copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
+            },
+            upgrade: {
+                title: 'Voor sommige functies is een Control-abonnement vereist',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} gebruikt ${features}, waarvoor een Control-abonnement nodig is.
+
+Wil je deze functies ook in je andere werkruimtes gebruiken, upgrade die dan om door te gaan.
+
+Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             },
         },
         emptyWorkspace: {
@@ -7198,6 +7243,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            unlockFeatures: 'Ontgrendel deze functies!',
         },
         downgrade: {
             commonFeatures: {
@@ -8817,6 +8863,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             pending: 'In behandeling',
             cleared: 'Verrekend',
             failed: 'Mislukt',
+            never: 'Nooit',
         },
         failedError: ({link}: {link: string}) => `We proberen deze afrekening opnieuw zodra je <a href="${link}">je account ontgrendelt</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
@@ -8953,13 +9000,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Afwezigheid plannen',
         scheduleOOOTitle: 'Afwezigheid plannen',
-        date: 'Datum',
+        date: 'Startdatum',
+        endDate: 'Einddatum',
         time: 'Tijd (24-uursnotatie)',
         durationAmount: 'Duur',
         durationUnit: 'Eenheid',
         reason: 'Reden',
         workingPercentage: 'Werkpercentage',
-        dateRequired: 'Datum is verplicht.',
+        dateRequired: 'Startdatum is verplicht.',
+        endDateBeforeStart: 'Einddatum kan niet vóór de startdatum liggen.',
         invalidTimeFormat: 'Voer een geldige 24-uurs tijd in (bijv. 14:30).',
         enterANumber: 'Voer een getal in.',
         hour: 'uren',

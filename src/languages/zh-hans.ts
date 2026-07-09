@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -1675,6 +1674,9 @@ const translations: TranslationDeepObject<typeof en> = {
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
         bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
+        deletePendingExpense: '删除待处理报销',
+        deleteConfirmationPendingBYOC: '您确定要删除这笔报销吗？它目前处于待处理状态，如果入账后，我们可能会再次导入。',
+        deleteConfirmationSomePendingBYOC: '您确定要删除这些报销吗？其中一些处于待处理状态，如果入账后，我们可能会再次导入。',
         categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
     },
@@ -2773,6 +2775,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     agentsPage: {
         title: '代理人',
         subtitle: `<muted-text>智能代理为你处理工作流程，让你每天多出数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解详情</a>。</muted-text>`,
+        findAgent: '查找代理',
         newAgent: '新代理人',
         emptyAgents: {
             title: '尚未创建代理',
@@ -4265,6 +4268,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         carRental: '租车',
         nightIn: '夜宿',
         nightsIn: '入住晚数',
+        taxID: {title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
     },
     workspace: {
         common: {
@@ -4919,6 +4923,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 oauth: '通过 Salesforce 登录',
                 oauthDescription: '要完成设置，您需要通过 Salesforce 和 Certinia 登录。\n\n请使用下方按钮继续。',
                 connectButton: '连接到 Certinia',
+                connectSandboxButton: '连接到 Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: '会计科目表',
@@ -5352,6 +5357,33 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
             dimensionsImport: '所有 Rillet 维度将作为标签导入',
             importDescription: '选择要从 Rillet 导入的编码配置。',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Rillet 中添加供应商，然后再次同步连接',
+            noAccountsFound: '未找到账户',
+            noAccountsFoundDescription: '请在 Rillet 中添加账户并重新同步连接',
+            exportDescription: '配置 Expensify 数据导出到 Rillet 的方式。',
+            exportReimbursable: {label: '将可报销费用导出为', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: '供应商账单'}}},
+            exportDate: {
+                label: '供应商账单日期',
+                description: '将报表导出到 Rillet 时使用此日期。',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 Rillet 的日期。',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportCompanyCard: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: '信用卡'}}},
+            defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
+            companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
         },
         type: {
             free: '免费',
@@ -6131,6 +6163,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 conciergeNotificationTitle: 'Concierge 会通知你',
                 conciergeNotificationDescription: '流程完成后，Concierge 会向你发送一条消息。',
                 copyCompleted: '您的工作区设置已复制。',
+            },
+            upgrade: {
+                title: '部分功能需要 Control 方案',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) =>
+                    `${workspaceName} 使用了 ${features}，这些功能需要控制方案。\r\n\r\n若要在其他工作区中使用这些功能，请升级这些工作区以继续。\r\n\r\n控制方案起价为每位活跃成员每月 9 美元。`,
             },
         },
         emptyWorkspace: {
@@ -6997,6 +7034,7 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            unlockFeatures: '解锁这些功能！',
         },
         downgrade: {
             commonFeatures: {
@@ -8544,6 +8582,7 @@ ${reportName}`,
             pending: '待处理',
             cleared: '已入账',
             failed: '失败',
+            never: '从不',
         },
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
@@ -8675,13 +8714,15 @@ ${reportName}`,
         stopTimer: (duration: string) => `停止计时器 (${duration})`,
         scheduleOOO: '安排外出办公',
         scheduleOOOTitle: '安排外出办公',
-        date: '日期',
+        date: '开始日期',
+        endDate: '结束日期',
         time: '时间（请使用24小时制）',
         durationAmount: '时长',
         durationUnit: '单位',
         reason: '原因',
         workingPercentage: '工作百分比',
-        dateRequired: '日期为必填项。',
+        dateRequired: '开始日期为必填项。',
+        endDateBeforeStart: '结束日期不能早于开始日期。',
         invalidTimeFormat: '请输入有效的 24 小时制时间（例如：14:30）。',
         enterANumber: '请输入一个数字。',
         hour: '小时',

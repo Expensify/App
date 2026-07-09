@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -1742,6 +1741,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        deletePendingExpense: 'Ausstehende Ausgabe löschen',
+        deleteConfirmationPendingBYOC: 'Möchten Sie diese Ausgabe wirklich löschen? Sie ist ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht wird.',
+        deleteConfirmationSomePendingBYOC:
+            'Möchten Sie diese Ausgaben wirklich löschen? Einige davon sind ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht werden.',
         categoryDisabledAlert: {
             title: 'Kategorie deaktiviert',
             prompt: 'Aktivieren Sie Kategorien im Arbeitsbereich, um die Ausgabendetails zu bearbeiten oder die Kategorie aus dieser Ausgabe zu löschen.',
@@ -2877,6 +2880,7 @@ ${amount} für ${merchant} – ${date}`,
     agentsPage: {
         title: 'Agenten',
         subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
+        findAgent: 'Agent suchen',
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -4401,6 +4405,12 @@ ${amount} für ${merchant} – ${date}`,
         carRental: 'Autovermietung',
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
+        taxID: {
+            title: 'Steuer-ID',
+            subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
+            inputLabel: 'Steuer-ID der juristischen Person',
+            error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
+        },
     },
     workspace: {
         common: {
@@ -5088,6 +5098,7 @@ ${amount} für ${merchant} – ${date}`,
                 oauth: 'Über Salesforce anmelden',
                 oauthDescription: 'Um die Einrichtung abzuschließen, müssen Sie sich über Salesforce und Certinia anmelden.\n\nVerwenden Sie die Schaltfläche unten, um fortzufahren.',
                 connectButton: 'Mit Certinia verbinden',
+                connectSandboxButton: 'Mit Certinia Sandbox verbinden',
             },
             import: {
                 chartOfAccounts: 'Kontenplan',
@@ -5530,6 +5541,36 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             enableNewAccountsDescription: 'Neue Rillet-Konten werden als Kategorien verfügbar sein.',
             dimensionsImport: 'Alle Rillet-Dimensionen werden als Tags importiert',
             importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Rillet importiert werden sollen.',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Konten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Rillet exportiert werden.',
+            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Lieferantenrechnungen'}}},
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum der letzten Ausgabe',
+                        description: 'Datum der letzten im Bericht erfassten Ausgabe.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum, an dem der Bericht nach Rillet exportiert wurde.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Einreichungsdatum',
+                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Firmenkartenausgaben exportieren als', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Kreditkarten'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für Firmenkarten',
+                description: 'Wählen Sie einen standardmäßigen Rillet-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.'},
         },
         type: {
             free: 'Kostenlos',
@@ -6341,6 +6382,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
                 conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
                 copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
+            },
+            upgrade: {
+                title: 'Einige Funktionen erfordern einen Control-Tarif',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} verwendet ${features}, die einen Control-Tarif erfordern.
+
+Um diese Funktionen in Ihre anderen Arbeitsbereiche zu übernehmen, upgraden Sie diese bitte, um fortzufahren.
+
+Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
         },
         emptyWorkspace: {
@@ -7235,6 +7284,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            unlockFeatures: 'Schalten Sie diese Funktionen frei!',
         },
         downgrade: {
             commonFeatures: {
@@ -8858,6 +8908,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             pending: 'Ausstehend',
             cleared: 'Ausgeglichen',
             failed: 'Fehlgeschlagen',
+            never: 'Nie',
         },
         failedError: ({link}: {link: string}) => `Wir versuchen diese Abrechnung erneut, sobald du <a href="${link}">dein Konto entsperrst</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
@@ -8994,13 +9045,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Abwesenheit planen',
         scheduleOOOTitle: 'Abwesenheit planen',
-        date: 'Datum',
+        date: 'Startdatum',
+        endDate: 'Enddatum',
         time: 'Zeit (24-Stunden-Format)',
         durationAmount: 'Dauer',
         durationUnit: 'Einheit',
         reason: 'Grund',
         workingPercentage: 'Arbeitsprozentsatz',
-        dateRequired: 'Datum ist erforderlich.',
+        dateRequired: 'Startdatum ist erforderlich.',
+        endDateBeforeStart: 'Das Enddatum darf nicht vor dem Startdatum liegen.',
         invalidTimeFormat: 'Bitte geben Sie eine gültige Uhrzeit im 24‑Stunden-Format ein (z. B. 14:30).',
         enterANumber: 'Bitte geben Sie eine Zahl ein.',
         hour: 'Stunden',
