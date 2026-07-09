@@ -20,28 +20,44 @@ import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-// Mock the ReportUtils predicates so we test getSendMessageSource's precedence logic in isolation,
-// not ReportUtils' report-shape rules. Every predicate defaults to false; each test flips the ones it needs.
-jest.mock('@libs/ReportUtils', () => ({
-    isChatRoom: jest.fn(() => false),
-    isChatThread: jest.fn(() => false),
-    isConciergeChatReport: jest.fn(() => false),
-    isDM: jest.fn(() => false),
-    isGroupChat: jest.fn(() => false),
-    isInvoiceReport: jest.fn(() => false),
-    isInvoiceRoom: jest.fn(() => false),
-    isMoneyRequestReport: jest.fn(() => false),
-    isOneTransactionReport: jest.fn(() => false),
-    isPolicyExpenseChat: jest.fn(() => false),
-    isReportTransactionThread: jest.fn(() => false),
-    isSelfDM: jest.fn(() => false),
-    isTaskReport: jest.fn(() => false),
-}));
+import Onyx from 'react-native-onyx';
+
+import createRandomReportAction from '../utils/collections/reportActions';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+// The ReportUtils namespace type, used only to type jest.requireActual below. A `* as` import is banned for this
+// module (it pulls restricted paid-policy members), so derive the type inline here instead.
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+type ReportUtilsModuleType = typeof import('@libs/ReportUtils');
+
+// Wrap the ReportUtils predicates so the precedence suite can force each true/false in isolation, while every
+// other export (and the integration suite) keeps the real implementation. The file-level beforeEach resets the
+// wrapped predicates to false for the precedence tests; the integration suite restores their real behavior.
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<ReportUtilsModuleType>('@libs/ReportUtils');
+    return {
+        ...actual,
+        isChatRoom: jest.fn(actual.isChatRoom),
+        isChatThread: jest.fn(actual.isChatThread),
+        isConciergeChatReport: jest.fn(actual.isConciergeChatReport),
+        isDM: jest.fn(actual.isDM),
+        isGroupChat: jest.fn(actual.isGroupChat),
+        isInvoiceReport: jest.fn(actual.isInvoiceReport),
+        isInvoiceRoom: jest.fn(actual.isInvoiceRoom),
+        isMoneyRequestReport: jest.fn(actual.isMoneyRequestReport),
+        isOneTransactionReport: jest.fn(actual.isOneTransactionReport),
+        isPolicyExpenseChat: jest.fn(actual.isPolicyExpenseChat),
+        isReportTransactionThread: jest.fn(actual.isReportTransactionThread),
+        isSelfDM: jest.fn(actual.isSelfDM),
+        isTaskReport: jest.fn(actual.isTaskReport),
+    };
+});
 
 // Every value is prefixed with the tab the send is on; mock the topmost tab route so each test controls it.
 jest.mock('@libs/Navigation/helpers/getTopmostFullScreenRoute', () => jest.fn(() => undefined));
@@ -53,6 +69,9 @@ jest.mock('@libs/Navigation/helpers/getRouteBeneathTopmostRHP', () => jest.fn(()
 // The central-pane report id (behind the RHP overlay) is the other drill-down signal: it marks `_from_report`
 // when it matches a transaction thread's parent. Default to none; the central-pane test overrides it.
 jest.mock('@libs/Navigation/helpers/getCentralPaneReportID', () => jest.fn(() => undefined));
+
+// Real predicate implementations, used by the integration block below to classify genuine report shapes.
+const actualReportUtils = jest.requireActual<ReportUtilsModuleType>('@libs/ReportUtils');
 
 const PREDICATES = [
     isChatRoom,
@@ -344,5 +363,62 @@ describe('getSendMessageSource', () => {
         it('returns other_chat when nothing matches', () => {
             expect(getSendMessageSource(params())).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.OTHER_CHAT));
         });
+    });
+});
+
+// The suite above mocks the ReportUtils predicates to test precedence/composition in isolation. This block points
+// them at the REAL implementations (with Onyx-backed fixtures) so genuine report shapes drive classification —
+// guarding the one thing mocks can't: that a real report matches the predicate the ladder assumes (e.g. a
+// single-transaction expense is a money-request report, and a transaction thread — which also satisfies
+// isChatThread — wins the precedence guard).
+describe('getSendMessageSource — integration with real ReportUtils', () => {
+    // The transaction thread's parent: an EXPENSE report holding an IOU/create action, so the real
+    // isReportTransactionThread can resolve the parent and classify the thread as an expense request.
+    const PARENT_EXPENSE_REPORT_ID = '100';
+    const PARENT_IOU_ACTION_ID = '200';
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_EXPENSE_REPORT_ID}`, {reportID: PARENT_EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_EXPENSE_REPORT_ID}`, {
+            [PARENT_IOU_ACTION_ID]: {
+                ...createRandomReportAction(1),
+                reportActionID: PARENT_IOU_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            },
+        });
+        await waitForBatchedUpdates();
+    });
+
+    afterAll(() => Onyx.clear());
+
+    // The file-level beforeEach forces every predicate to false; restore the real implementations for the ones
+    // these fixtures exercise (the rest correctly stay false for these report shapes).
+    beforeEach(() => {
+        jest.mocked(isMoneyRequestReport).mockImplementation(actualReportUtils.isMoneyRequestReport);
+        jest.mocked(isOneTransactionReport).mockImplementation(actualReportUtils.isOneTransactionReport);
+        jest.mocked(isReportTransactionThread).mockImplementation(actualReportUtils.isReportTransactionThread);
+        jest.mocked(isChatThread).mockImplementation(actualReportUtils.isChatThread);
+    });
+
+    it('classifies a multi-transaction expense report as expense_report_multi', () => {
+        const multiExpenseReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 2} as Report;
+        expect(getSendMessageSource(params({report: multiExpenseReport}))).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_REPORT_MULTI));
+    });
+
+    it('classifies a single-transaction expense report as expense_report_single (a money-request report, not a thread)', () => {
+        const singleExpenseReport = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 1} as Report;
+        expect(getSendMessageSource(params({report: singleExpenseReport}))).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_REPORT_SINGLE));
+    });
+
+    it('classifies a transaction thread as expense_transaction_thread, beating the chat-thread check it also matches', () => {
+        const transactionThread = {reportID: '300', type: CONST.REPORT.TYPE.CHAT, parentReportID: PARENT_EXPENSE_REPORT_ID, parentReportActionID: PARENT_IOU_ACTION_ID} as Report;
+        expect(getSendMessageSource(params({report: transactionThread}))).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+    });
+
+    it('classifies a plain chat thread (no expense parent) as report_thread', () => {
+        const chatThread = {reportID: '301', type: CONST.REPORT.TYPE.CHAT, parentReportID: '999', parentReportActionID: '998'} as Report;
+        expect(getSendMessageSource(params({report: chatThread}))).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.REPORT_THREAD));
     });
 });
