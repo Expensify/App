@@ -126,15 +126,15 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
     // Once the server returns the full-result count for select-all, show "<count> selected" instead of the
-    // generic label. Fall back to the generic label while that count is still loading - the count is
-    // `undefined` before the recount and cleared to `null` while the snapshot reloads (see getOnyxLoadingData
-    // in src/libs/actions/Search.ts), so only render the number once it's an actual numeric value.
+    // generic label. The count is `undefined` before the recount and cleared to `null` while the snapshot
+    // reloads (see getOnyxLoadingData in src/libs/actions/Search.ts), so only render the number once it's an
+    // actual numeric value and fall back to the generic label until then.
     const allMatchingItemsCount = currentSearchResults?.search?.count;
-    // While the select-all recount is in flight the count is momentarily unavailable (undefined before the
-    // request, cleared to null while the snapshot reloads). Show a spinner on the button during that window
-    // so we don't flicker the generic label and then the number. Offline the recount can't arrive, so fall
-    // back to the generic label instead of spinning forever.
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline;
+    // While the select-all recount is in flight the count is momentarily unavailable, so show a spinner on the
+    // button to avoid flickering the generic label and then the number. We gate on the real `search.isLoading`
+    // state (and `!isOffline`) so the spinner clears once the request settles - including on failure, where
+    // `getOnyxLoadingData` resets `isLoading` but leaves `count` unset - instead of spinning forever.
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
         selectionButtonText =
