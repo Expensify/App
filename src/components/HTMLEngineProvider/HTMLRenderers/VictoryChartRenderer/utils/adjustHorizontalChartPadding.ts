@@ -12,7 +12,7 @@ const CHART_TITLE_LEFT_MARGIN = 32;
  * gutter, it also shrinks the plot bottom using the category axis font metrics.
  * That duplicates `padding.bottom`, which was sized for the value-axis labels.
  */
-function adjustHorizontalChartPadding({isHorizontal, padding, yAxis}: ProcessNodeResult): ProcessNodeResult['padding'] {
+function adjustHorizontalChartPadding({isHorizontal, padding, yAxis, legendItems}: ProcessNodeResult): ProcessNodeResult['padding'] {
     if (!isHorizontal || !padding || typeof padding !== 'object') {
         return padding;
     }
@@ -30,7 +30,7 @@ function adjustHorizontalChartPadding({isHorizontal, padding, yAxis}: ProcessNod
     const categoryFontSize = categoryAxis?.font?.getSize?.() ?? 0;
     const categoryLabelOffset = categoryAxis?.labelOffset ?? 0;
     const victoryNativeBottomInset = categoryFontSize + categoryLabelOffset * 2;
-    const adjustedBottom = typeof padding.bottom === 'number' ? Math.max(0, padding.bottom - victoryNativeBottomInset) : padding.bottom;
+    const adjustedBottom = legendItems.length > 0 || typeof padding.bottom !== 'number' ? padding.bottom : Math.max(0, padding.bottom - victoryNativeBottomInset);
 
     return {
         ...padding,
