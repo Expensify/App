@@ -149,3 +149,20 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
         expect(params.emojiCode).toBe(THUMBSUP_HEX);
     });
 });
+
+describe('addEmojiReaction — finallyData', () => {
+    it('NILs the optimistic name key and clears pending on the hex key instead of recreating a name-key stub', () => {
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, {}, SKIN_TONE, USER_A);
+
+        expect(writeMock).toHaveBeenCalledTimes(1);
+        const [command, , onyxData] = writeMock.mock.calls.at(0) as [string, unknown, {finallyData: Array<{value: Record<string, unknown>}>}];
+        expect(command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
+
+        const finallyValue = onyxData.finallyData.at(0)?.value;
+        // The name key must be NILed so it doesn't linger as a stub without `users` once the
+        // server's hex-keyed onyxData response has already landed.
+        expect(finallyValue?.['+1']).toBeNull();
+        // Pending state must be cleared on the canonical hex key instead.
+        expect(finallyValue?.['1F44D']).toEqual({pendingAction: null});
+    });
+});
