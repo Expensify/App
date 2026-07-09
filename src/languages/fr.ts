@@ -2887,6 +2887,7 @@ ${amount} pour ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agents',
         subtitle: `<muted-text>Les agents gèrent vos workflows pour vous, afin que vous gagniez des heures dans votre journée. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
+        findAgent: 'Trouver un agent',
         newAgent: 'Nouvel agent',
         emptyAgents: {
             title: 'Aucun agent créé',
