@@ -278,7 +278,6 @@ import {
     isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDemoTransaction,
     isDistanceRequest,
-    isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -4435,7 +4434,7 @@ function getReasonAndReportActionThatRequiresAttention(
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
     const transactions = getReportTransactions(iouReportID);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it

@@ -28,7 +28,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,13 +116,13 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     };
 
     const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
+        const singleSelectedTransaction = selectedTransactionIDs.length === 1 ? transactions.find((t) => t.transactionID === selectedTransactionIDs.at(0)) : undefined;
+        const selectedTransactions = transactions.filter((t) => selectedTransactionIDs.includes(t.transactionID));
+        const hasSomePending = selectedTransactionIDs.length > 1 && selectedTransactions.some((t) => isPending(t));
+        const deletePrompt = getDeleteConfirmationPrompt(translate, singleSelectedTransaction, selectedTransactionIDs.length, hasSomePending);
         showConfirmModal({
-            title: translate('iou.deleteExpense', {
-                count: selectedTransactionIDs.length,
-            }),
-            prompt: translate('iou.deleteConfirmation', {
-                count: selectedTransactionIDs.length,
-            }),
+            title: getDeleteExpenseTitle(translate, singleSelectedTransaction, selectedTransactionIDs.length),
+            prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
