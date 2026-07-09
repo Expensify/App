@@ -1735,6 +1735,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Je kunt maximaal ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} uitgaven tegelijk dupliceren. Selecteer minder uitgaven en probeer het opnieuw.`,
         deleted: 'Verwijderd',
+        deletePendingExpense: 'Verwijder in behandeling zijnde uitgave',
+        deleteConfirmationPendingBYOC: 'Weet je zeker dat je deze uitgave wilt verwijderen? Hij is in behandeling en we kunnen hem opnieuw importeren als hij wordt geboekt.',
+        deleteConfirmationSomePendingBYOC: 'Weet je zeker dat je deze uitgaven wilt verwijderen? Sommige zijn in behandeling en we kunnen ze opnieuw importeren als ze worden geboekt.',
         categoryDisabledAlert: {
             title: 'Categorie uitgeschakeld',
             prompt: 'Schakel categorieën in de workspace in om de onkostendetails te bewerken of de categorie uit deze onkost te verwijderen.',
@@ -4404,6 +4407,12 @@ ${amount} voor ${merchant} - ${date}`,
         carRental: 'autoverhuur',
         nightIn: 'nacht in',
         nightsIn: 'nachten in',
+        taxID: {
+            title: 'Belastingnummer',
+            subtitle: 'Voer het fiscale nummer van je rechtspersoon in zodat we reisfacturatie in je lokale valuta kunnen instellen.',
+            inputLabel: 'Belastingnummer rechtspersoon',
+            error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
+        },
     },
     workspace: {
         common: {
@@ -5070,11 +5079,10 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Installeer het Expensify-pakket',
                 installBundlePSAHeader: 'Voor PSA/SRP-koppelingen:',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Installeer PSA/SRP Expensify-bundel (versie ${version})</a>`,
+                installBundleDescription: 'Installeer de Expensify-bundel in Salesforce door op deze link te klikken:',
+                installBundlePSALink: ({version}: {version: string}) => `Installeer PSA/SRP Expensify-bundel (versie ${version})`,
                 installBundleFFAHeader: 'Voor FFA-verbindingen:',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor FFA installeren (versie ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Expensify-bundel voor FFA installeren (versie ${version})`,
                 installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
                 setupContacts: 'Gebruiker en contacten instellen',
                 setupContactsBullet1:
@@ -5086,6 +5094,7 @@ ${amount} voor ${merchant} - ${date}`,
                 oauth: 'Log in via Salesforce',
                 oauthDescription: 'Om de installatie te voltooien, moet je je aanmelden via Salesforce en Certinia.\n\nGebruik de knop hieronder om door te gaan.',
                 connectButton: 'Verbind met Certinia',
+                connectSandboxButton: 'Verbind met Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Rekeningschema',
@@ -6335,6 +6344,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
                 copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
             },
+            upgrade: {
+                title: 'Voor sommige functies is een Control-abonnement vereist',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} gebruikt ${features}, waarvoor een Control-abonnement nodig is.
+
+Wil je deze functies ook in je andere werkruimtes gebruiken, upgrade die dan om door te gaan.
+
+Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -7221,6 +7238,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            unlockFeatures: 'Ontgrendel deze functies!',
         },
         downgrade: {
             commonFeatures: {
@@ -8840,6 +8858,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             pending: 'In behandeling',
             cleared: 'Verrekend',
             failed: 'Mislukt',
+            never: 'Nooit',
         },
         failedError: ({link}: {link: string}) => `We proberen deze afrekening opnieuw zodra je <a href="${link}">je account ontgrendelt</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
@@ -8976,13 +8995,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Afwezigheid plannen',
         scheduleOOOTitle: 'Afwezigheid plannen',
-        date: 'Datum',
+        date: 'Startdatum',
+        endDate: 'Einddatum',
         time: 'Tijd (24-uursnotatie)',
         durationAmount: 'Duur',
         durationUnit: 'Eenheid',
         reason: 'Reden',
         workingPercentage: 'Werkpercentage',
-        dateRequired: 'Datum is verplicht.',
+        dateRequired: 'Startdatum is verplicht.',
+        endDateBeforeStart: 'Einddatum kan niet vóór de startdatum liggen.',
         invalidTimeFormat: 'Voer een geldige 24-uurs tijd in (bijv. 14:30).',
         enterANumber: 'Voer een getal in.',
         hour: 'uren',
@@ -9936,7 +9957,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Hernoem hier je opgeslagen zoekopdrachten</strong>!</tooltip>',
-        accountSwitcher: '<tooltip>Krijg hier toegang tot je <strong>Copilot-accounts</strong></tooltip>',
+        accountSwitcher: '<tooltip>Je kunt nu copilot worden in een ander account!</tooltip>',
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
