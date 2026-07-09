@@ -13,6 +13,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {generateAccountID} from '@libs/UserUtils';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
@@ -26,6 +27,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 
 import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
@@ -38,6 +40,8 @@ function useComposerSubmit(reportID: string) {
     const {availableLoginsList} = useShortMentionsList();
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
+    const route = useRoute();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -157,6 +161,7 @@ function useComposerSubmit(reportID: string) {
                 attributes: {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                     [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
+                    [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
                 },
             });
         }

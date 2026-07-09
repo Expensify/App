@@ -2191,6 +2191,7 @@ const CONST = {
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2271,6 +2272,43 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        SEND_MESSAGE_SOURCE: {
+            CONCIERGE_SIDE_PANEL: 'concierge_side_panel',
+            // Side Panel hosting the workspace admins chat (admin onboarding), not Concierge.
+            SIDE_PANEL: 'side_panel',
+            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table).
+            // Central pane is bare; every RHP report route (e/:id, search/r/:id, search/view/:id) adds `_rhp`
+            // (e.g. `home_expense_report_multi_rhp`). e/:id and search/r/:id render the same component, so they
+            // share this base rather than one owning a separate `_search` value.
+            EXPENSE_REPORT_SINGLE: 'expense_report_single',
+            EXPENSE_REPORT_MULTI: 'expense_report_multi',
+            // Single-transaction expense thread (chat-type, expense parent). Central pane bare; RHP adds `_rhp`.
+            EXPENSE_TRANSACTION_THREAD: 'expense_transaction_thread',
+            CONCIERGE: 'concierge',
+            REPORT_THREAD: 'report_thread',
+            INVOICE_ROOM: 'invoice_room',
+            WORKSPACE_ROOM: 'workspace_room',
+            // policyExpenseChat isn't a "room", so it needs its own bucket.
+            POLICY_EXPENSE_CHAT: 'policy_expense_chat',
+            TASK_REPORT: 'task_report',
+            GROUP_CHAT: 'group_chat',
+            DIRECT_MESSAGE: 'direct_message',
+            SELF_DM: 'self_dm',
+            OTHER_CHAT: 'other_chat',
+        },
+        // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
+        // (Workspaces/Settings) or an unresolved tab.
+        SEND_MESSAGE_SOURCE_TAB: {
+            HOME: 'home',
+            INBOX: 'inbox',
+            SPEND: 'spend',
+            OTHER: 'other',
+        },
+        // Surface suffix, added for the RHP report routes (e/:id, search/r/:id, search/view/:id), e.g.
+        // `inbox_report_thread_rhp`. Central pane has no suffix; the Side Panel lives in the base.
+        SEND_MESSAGE_SOURCE_SURFACE: {
+            RHP: 'rhp',
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
