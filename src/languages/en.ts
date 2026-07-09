@@ -1413,6 +1413,9 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
+        deletePendingExpense: 'Delete pending expense',
+        deleteConfirmationPendingBYOC: "Are you sure that you want to delete this expense? It's pending and we may import it again if it posts.",
+        deleteConfirmationSomePendingBYOC: 'Are you sure that you want to delete these expenses? Some of them are pending and we may import them again if they post.',
         deleteReport: () => ({
             one: 'Delete report',
             other: 'Delete reports',
@@ -4434,6 +4437,14 @@ const translations = {
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        taxID: {
+            title: 'Tax ID',
+            subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
+            inputLabel: 'Legal entity tax ID',
+            error: {
+                required: 'Please enter your legal entity tax ID.',
+            },
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -5187,6 +5198,7 @@ const translations = {
                 oauth: 'Log in through Salesforce',
                 oauthDescription: "To finish setup, you'll have to sign in through Salesforce and Certinia.\n\nUse the button below to continue.",
                 connectButton: 'Connect to Certinia',
+                connectSandboxButton: 'Connect to Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Chart of accounts',
@@ -6391,6 +6403,11 @@ const translations = {
                 continue: 'Continue without members',
                 description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             },
+            upgrade: {
+                title: 'Some features require a Control plan',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) =>
+                    `${workspaceName} uses ${features}, which require a Control plan.\n\nTo bring these features to your other workspaces, upgrade them to continue.\n\nThe Control plan starts at $9 per active member per month.`,
+            },
             progress: {
                 copyInProgressTitle: 'Copy in progress...',
                 copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',
@@ -7340,6 +7357,7 @@ const translations = {
             },
             note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
+            unlockFeatures: 'Unlock these features!',
             completed: {
                 headline: `You've upgraded your workspace!`,
                 successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
@@ -8929,6 +8947,7 @@ const translations = {
             pending: 'Pending',
             cleared: 'Cleared',
             failed: 'Failed',
+            never: 'Never',
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
@@ -9067,13 +9086,15 @@ const translations = {
         stopTimer: (duration: string) => `Stop Timer (${duration})`,
         scheduleOOO: 'Schedule OOO',
         scheduleOOOTitle: 'Schedule Out of Office',
-        date: 'Date',
+        date: 'Start date',
+        endDate: 'End date',
         time: 'Time (use 24-hour format)',
         durationAmount: 'Duration',
         durationUnit: 'Unit',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
-        dateRequired: 'Date is required.',
+        dateRequired: 'Start date is required.',
+        endDateBeforeStart: 'End date cannot be before start date.',
         invalidTimeFormat: 'Please enter a valid 24-hour time (e.g., 14:30).',
         enterANumber: 'Please enter a number.',
         hour: 'hours',

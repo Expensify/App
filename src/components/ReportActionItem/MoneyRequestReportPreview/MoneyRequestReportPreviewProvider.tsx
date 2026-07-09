@@ -21,7 +21,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,7 +178,7 @@ function MoneyRequestReportPreviewProvider({
     // preserves the pre-decomposition behavior (including optimistically-deleted rows), and lets React Compiler
     // recompute these values when the report's transactions change.
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
-    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReportID, allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
 
@@ -272,7 +272,17 @@ function MoneyRequestReportPreviewProvider({
         isSubmittingAnimationRunning,
     });
 
-    const dataValue = {iouReportID, chatReportID, action, iouReport, chatReport, transactions, policy, invoiceReceiverPolicy, invoiceReceiverPersonalDetail};
+    const dataValue = {
+        iouReportID,
+        chatReportID,
+        action,
+        iouReport,
+        chatReport,
+        transactions,
+        policy,
+        invoiceReceiverPolicy,
+        invoiceReceiverPersonalDetail,
+    };
     const uiStateValue = {
         isTransitionPending,
         shouldShowPreviewLoading,
@@ -289,7 +299,11 @@ function MoneyRequestReportPreviewProvider({
         reportPreviewStyles,
         buttonMaxWidth,
     };
-    const animationStateValue = {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning};
+    const animationStateValue = {
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+    };
     const carouselStateValue = {isPreviousDisabled, isNextDisabled};
     const actionsValue = {
         openReportFromPreview,
