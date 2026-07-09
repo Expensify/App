@@ -370,12 +370,12 @@ describe('DistanceRequestUtils', () => {
 
     describe('getDistanceForDisplay', () => {
         it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
-            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, translateLocal, false, false);
             expect(result).toBe('');
         });
 
         it('formats zero distance when isManualDistanceRequest is true', () => {
-            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, translateLocal, false, true);
             expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
         });
 
@@ -390,7 +390,6 @@ describe('DistanceRequestUtils', () => {
                 true,
                 DistanceRequestUtils.convertToDistanceInMeters(1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
                 CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                67,
                 translateLocal,
                 false,
                 false,
