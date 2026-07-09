@@ -214,14 +214,14 @@ function ReportActionAvatarSubscript({
             return styles.secondAvatarSubscriptSmall;
         }
 
-        if (size === CONST.AVATAR_SIZE.XXXXX_LARGE) {
-            return styles.secondAvatarSubscriptXxxxxLarge;
+        if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
+            return styles.secondAvatarSubscriptXxxxLarge;
         }
 
         return styles.secondAvatarSubscript;
     }, [size, styles]);
 
-    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.XXXXX_LARGE ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.XX_SMALL;
+    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.XXXX_LARGE ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.XX_SMALL;
 
     return (
         <View
@@ -336,8 +336,7 @@ function ReportActionAvatarMultipleHorizontal({
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const overlapSize = oneAvatarSize.width / overlapDivider;
-    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
-    const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
+    const height = StyleUtils.getAvatarSizeWithBorder(size);
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
 
     const icons = useMemo(() => {
@@ -439,7 +438,7 @@ function ReportActionAvatarMultipleHorizontal({
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
-                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
                             icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
                         ]}
                     >
@@ -488,7 +487,7 @@ function ReportActionAvatarMultipleDiagonal({
         () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
         [shouldShowTooltip, icons, formatPhoneNumber],
     );
-    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.XXXXX_LARGE;
+    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.XXXX_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
@@ -501,7 +500,7 @@ function ReportActionAvatarMultipleDiagonal({
                 singleAvatarStyle: styles.singleAvatarXLarge,
                 secondAvatarStyles: styles.secondAvatarXLarge,
             },
-            [CONST.AVATAR_SIZE.XXXXX_LARGE]: {
+            [CONST.AVATAR_SIZE.XXXX_LARGE]: {
                 singleAvatarStyle: styles.singleAvatarXxLarge,
                 secondAvatarStyles: styles.secondAvatarXxLarge,
             },
@@ -522,7 +521,7 @@ function ReportActionAvatarMultipleDiagonal({
             return CONST.AVATAR_SIZE.X_LARGE;
         }
 
-        if (size === CONST.AVATAR_SIZE.XXXXX_LARGE) {
+        if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
             return CONST.AVATAR_SIZE.XX_LARGE;
         }
 

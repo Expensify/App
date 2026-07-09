@@ -1,6 +1,7 @@
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -81,6 +82,7 @@ function ReceiptEmptyState({
     setReceiptFile = () => {},
 }: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
@@ -138,11 +140,11 @@ function ReceiptEmptyState({
                                     height={variables.eReceiptEmptyIconWidth}
                                 />
                                 {!isThumbnail && (
-                                    <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeSmall, height: variables.avatarSizeSmall}]}>
+                                    <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))]}>
                                         <ReceiptPlaceholderPlusIcon
                                             circleFill={theme.success}
                                             plusFill={theme.receiptPlaceholderPlus}
-                                            size={variables.avatarSizeSmall}
+                                            size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)}
                                         />
                                     </View>
                                 )}

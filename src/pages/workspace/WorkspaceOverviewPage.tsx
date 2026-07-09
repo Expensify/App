@@ -276,18 +276,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const DefaultAvatar = useCallback(
         () => (
             <Avatar
-                containerStyles={styles.avatarXxxxxLarge}
-                imageStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
+                containerStyles={styles.avatarXxxxLarge}
+                imageStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 name={policyName}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXxxxxLarge],
+        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXxxxLarge],
     );
 
     const dropdownMenuRef = useRef<{
@@ -545,9 +545,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatarID={policyID}
-                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         name={policyName}
-                        avatarStyle={styles.avatarXxxxxLarge}
+                        avatarStyle={styles.avatarXxxxLarge}
                         enablePreview
                         DefaultAvatar={DefaultAvatar}
                         type={CONST.ICON_TYPE_WORKSPACE}

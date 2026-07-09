@@ -2,14 +2,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +44,7 @@ const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePair
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
     });
@@ -94,8 +94,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
-            iconWidth: variables.avatarSizeLarge,
-            iconHeight: variables.avatarSizeLarge,
+            iconWidth: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
+            iconHeight: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
             wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
             interactive: false,
             titleStyle: styles.ml2,

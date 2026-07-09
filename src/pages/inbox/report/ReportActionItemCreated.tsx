@@ -107,7 +107,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         >
                             <ReportActionAvatars
                                 reportID={reportID}
-                                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{
                                     displayInRows: shouldUseNarrowLayout,
                                     maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,

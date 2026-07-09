@@ -4394,7 +4394,6 @@ const CONST = {
         XX_LARGE: 'xx-large',
         XXX_LARGE: 'xxx-large',
         XXXX_LARGE: 'xxxx-large',
-        XXXXX_LARGE: 'xxxxx-large',
     },
 
     COMPANY_CARD: {

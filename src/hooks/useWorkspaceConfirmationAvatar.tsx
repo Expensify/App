@@ -16,17 +16,17 @@ function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: str
     return useCallback(
         () => (
             <Avatar
-                containerStyles={styles.avatarXxxxxLarge}
-                imageStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
+                containerStyles={styles.avatarXxxxLarge}
+                imageStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
                 source={source}
                 fallbackIcon={icons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 name={name}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [name, policyID, source, styles.alignSelfCenter, styles.avatarXxxxxLarge, icons.FallbackWorkspaceAvatar],
+        [name, policyID, source, styles.alignSelfCenter, styles.avatarXxxxLarge, icons.FallbackWorkspaceAvatar],
     );
 }
 

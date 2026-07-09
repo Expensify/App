@@ -25,7 +25,6 @@ import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 import type {ThemeStyles} from '..';
 import type {
     AllStyles,
-    AvatarSize,
     AvatarSizeName,
     AvatarStyle,
     ButtonSizeValue,
@@ -130,11 +129,11 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
+    [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.componentBorderRadiusRounded,
-    [CONST.AVATAR_SIZE.XXXXX_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.componentBorderRadiusLarge,
 };
 
 const avatarSizes = {
@@ -149,7 +148,6 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.avatarSizeXxLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarSizeXxxLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarSizeXxxxLarge,
-    [CONST.AVATAR_SIZE.XXXXX_LARGE]: variables.avatarSizeXxxxxLarge,
 } satisfies Record<AvatarSizeName, number>;
 
 type AvatarSizeValue = ValueOf<typeof avatarSizes>;
@@ -161,6 +159,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
+    [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.fontSizeXLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.fontSizeXLarge,
@@ -168,17 +167,17 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
 };
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.XXXX_SMALL]: 2,
-    [CONST.AVATAR_SIZE.XXX_SMALL]: 2,
-    [CONST.AVATAR_SIZE.XX_SMALL]: 2,
-    [CONST.AVATAR_SIZE.X_SMALL]: 2,
-    [CONST.AVATAR_SIZE.SMALL]: 2,
-    [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.X_LARGE]: 3,
-    [CONST.AVATAR_SIZE.XX_LARGE]: 3,
-    [CONST.AVATAR_SIZE.XXX_LARGE]: 4,
-    [CONST.AVATAR_SIZE.XXXX_LARGE]: 4,
-    [CONST.AVATAR_SIZE.XXXXX_LARGE]: 4,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarBorderWidthDefault,
+    [CONST.AVATAR_SIZE.LARGE]: variables.avatarBorderWidthDefault,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarBorderWidthDefault,
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.avatarBorderWidthDefault,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarBorderWidthLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarBorderWidthLarge,
 };
 
 /**
@@ -263,6 +262,15 @@ function getAvatarSize(size: AvatarSizeName): AvatarSizeValue {
 }
 
 /**
+ * Return the avatar footprint including border width on both sides
+ */
+function getAvatarSizeWithBorder(size: AvatarSizeName): number {
+    const avatarSize = getAvatarSize(size);
+    const borderWidth = avatarBorderWidths[size] ?? avatarBorderWidths[CONST.AVATAR_SIZE.DEFAULT] ?? 0;
+    return avatarSize + 2 * borderWidth;
+}
+
+/**
  * Return the width style from an avatar size constant
  */
 function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
@@ -319,7 +327,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  * Returns the avatar subscript icon container styles
  */
 function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): ViewStyle {
-    const borderWidth = 2;
+    const borderWidth = variables.avatarBorderWidthSmall;
 
     // The width of the container is the width of the icon + 2x border width (left and right)
     const containerWidth = iconWidth + 2 * borderWidth;
@@ -943,11 +951,14 @@ function getHorizontalStackedAvatarStyle(index: number, overlapSize: number, fir
 /**
  * Get computed avatar styles of '+1' overlay based on size
  */
-function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAvatarBorderWidth: number): ViewStyle {
+function getHorizontalStackedOverlayAvatarStyle(size: AvatarSizeName): ViewStyle {
+    const avatarSize = getAvatarSize(size);
+    const borderWidth = avatarBorderWidths[size] ?? avatarBorderWidths[CONST.AVATAR_SIZE.DEFAULT] ?? 0;
+
     return {
-        borderWidth: oneAvatarBorderWidth,
-        borderRadius: oneAvatarSize.width,
-        marginLeft: -(oneAvatarSize.width + oneAvatarBorderWidth * 2),
+        borderWidth,
+        borderRadius: avatarSize,
+        marginLeft: -getAvatarSizeWithBorder(size),
         zIndex: 6,
         borderStyle: 'solid',
     };
@@ -1401,6 +1412,7 @@ const staticStyleUtils = {
     getAvatarBorderWidth,
     getAvatarExtraFontSizeStyle,
     getAvatarSize,
+    getAvatarSizeWithBorder,
     getAvatarWidthStyle,
     getAvatarSubscriptIconContainerStyle,
     getBackgroundAndBorderStyle,
@@ -1584,7 +1596,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {
             height: avatarSize,
             width: avatarSize,
-            borderRadius: avatarSize,
+            borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.border,
         };
     },
@@ -1954,9 +1966,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
                 columnWidth = {...getWidthStyle(variables.w130)};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
-                columnWidth = {...getWidthStyle(variables.w130)};
-                break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
                 columnWidth = {
                     ...getWidthStyle(variables.w130),
@@ -2113,8 +2122,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.AVATAR_SIZE.XXX_LARGE:
                 containerStyles = [styles.emptyAvatarXxxLarge, styles.mb2, styles.mr2];
                 break;
-            case CONST.AVATAR_SIZE.XXXXX_LARGE:
-                containerStyles = [styles.emptyAvatarXxxxxLarge, styles.mb3, styles.mr3];
+            case CONST.AVATAR_SIZE.XXXX_LARGE:
+                containerStyles = [styles.emptyAvatarXxxxLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
@@ -2181,9 +2190,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     }),
 
     getTripReservationIconContainer: (isSmallIcon: boolean): StyleProp<ViewStyle> => ({
-        width: isSmallIcon ? variables.avatarSizeSmall : variables.avatarSizeMedium,
-        height: isSmallIcon ? variables.avatarSizeSmall : variables.avatarSizeMedium,
-        borderRadius: isSmallIcon ? variables.avatarSizeSmall : variables.componentBorderRadiusXLarge,
+        width: getAvatarSize(isSmallIcon ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT),
+        height: getAvatarSize(isSmallIcon ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT),
+        borderRadius: isSmallIcon ? getAvatarSize(CONST.AVATAR_SIZE.SMALL) : variables.componentBorderRadiusXLarge,
         backgroundColor: theme.border,
         alignItems: 'center',
         justifyContent: 'center',

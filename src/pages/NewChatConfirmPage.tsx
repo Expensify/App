@@ -108,8 +108,8 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                             avatarFileType: null,
                         });
                     }}
-                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
-                    avatarStyle={styles.avatarXxxxxLarge}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                    avatarStyle={styles.avatarXxxxLarge}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}

@@ -22,8 +22,10 @@ const avatarSizes = {
     avatarSizeXLarge: 52,
     avatarSizeXxLarge: 60,
     avatarSizeXxxLarge: 80,
-    avatarSizeXxxxLarge: 88,
-    avatarSizeXxxxxLarge: 100,
+    avatarSizeXxxxLarge: 100,
+    avatarBorderWidthSmall: 2,
+    avatarBorderWidthDefault: 3,
+    avatarBorderWidthLarge: 4,
 };
 
 export default {
@@ -95,7 +97,6 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
-    sidebarAvatarSize: 28,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,

@@ -1828,17 +1828,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: variables.sidebarAvatarSize,
-            height: variables.sidebarAvatarSize,
-            width: variables.sidebarAvatarSize,
+            borderRadius: variables.avatarSizeSmall,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
         },
 
         selectedAvatarBorder: {
             padding: 1,
             borderWidth: 2,
             borderRadius: 20,
-            height: variables.sidebarAvatarSize + 6,
-            width: variables.sidebarAvatarSize + 6,
+            height: variables.avatarSizeSmall + 6,
+            width: variables.avatarSizeSmall + 6,
             borderColor: theme.success,
             right: -3,
             top: -3,
@@ -2493,31 +2493,31 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         singleAvatarXSmall: {
-            height: 24,
-            width: 24,
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
             backgroundColor: theme.icon,
-            borderRadius: 12,
+            borderRadius: variables.avatarSizeXSmall / 2,
         },
 
         singleAvatarXxxSmall: {
-            height: 16,
-            width: 16,
+            height: variables.avatarSizeXxxSmall,
+            width: variables.avatarSizeXxxSmall,
             backgroundColor: theme.icon,
-            borderRadius: 8,
+            borderRadius: variables.avatarSizeXxxSmall / 2,
         },
 
         singleAvatarXLarge: {
-            height: 52,
-            width: 52,
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
             backgroundColor: theme.icon,
-            borderRadius: 52,
+            borderRadius: variables.avatarSizeXLarge,
         },
 
         singleAvatarXxLarge: {
-            height: 60,
-            width: 60,
+            height: variables.avatarSizeXxLarge,
+            width: variables.avatarSizeXxLarge,
             backgroundColor: theme.icon,
-            borderRadius: 80,
+            borderRadius: variables.avatarSizeXxLarge,
         },
 
         secondAvatarXSmall: {
@@ -2552,7 +2552,7 @@ const staticStyles = (theme: ThemeColors) =>
             right: -42,
             bottom: -42,
             borderWidth: 3,
-            borderRadius: 80,
+            borderRadius: variables.avatarSizeXxLarge,
             borderColor: 'transparent',
         },
 
@@ -2562,7 +2562,7 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: -6,
         },
 
-        secondAvatarSubscriptXxxxxLarge: {
+        secondAvatarSubscriptXxxxLarge: {
             position: 'absolute',
             right: -10,
             bottom: -10,
@@ -2583,9 +2583,9 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarXxxxxLarge: {
-            width: variables.avatarSizeXxxxxLarge,
-            height: variables.avatarSizeXxxxxLarge,
+        avatarXxxxLarge: {
+            width: variables.avatarSizeXxxxLarge,
+            height: variables.avatarSizeXxxxLarge,
         },
 
         avatarInnerText: {
@@ -2630,9 +2630,9 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.avatarSizeXxxLarge,
         },
 
-        emptyAvatarXxxxxLarge: {
-            height: variables.avatarSizeXxxxxLarge,
-            width: variables.avatarSizeXxxxxLarge,
+        emptyAvatarXxxxLarge: {
+            height: variables.avatarSizeXxxxLarge,
+            width: variables.avatarSizeXxxxLarge,
         },
 
         emptyAvatarMargin: {
@@ -2957,7 +2957,7 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             backgroundColor: theme.overlay,
             opacity: variables.overlayOpacity,
-            borderRadius: 88,
+            borderRadius: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
         },
 
         avatarInnerTextChat: {
@@ -2966,7 +2966,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             textAlign: 'center',
             position: 'absolute',
-            width: 88,
+            width: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
             left: -16,
         },
 

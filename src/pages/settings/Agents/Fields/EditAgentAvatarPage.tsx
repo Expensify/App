@@ -161,11 +161,11 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
                     <Avatar
-                        containerStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
-                        imageStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
+                        containerStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
+                        imageStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
                         source={previewSource}
                         avatarID={accountID}
-                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         type={CONST.ICON_TYPE_AVATAR}
                     />
                     <AttachmentPicker

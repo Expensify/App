@@ -65,8 +65,8 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     source={icon.source || report.avatarUrl}
                     avatarID={icon.id}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
-                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
-                    avatarStyle={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                    avatarStyle={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}
@@ -94,8 +94,8 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
             >
                 <Avatar
                     source={icon.source}
-                    imageStyles={styles.avatarXxxxxLarge}
-                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                    imageStyles={styles.avatarXxxxLarge}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     name={icon.name}
                     avatarID={icon.id}
                     type={icon.type}
@@ -107,11 +107,12 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
     const iconsToDisplay = icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
 
+    const roomHeaderAvatarFootprint = StyleUtils.getAvatarSizeWithBorder(CONST.AVATAR_SIZE.XXX_LARGE);
     const iconStyle = [
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.XXXX_LARGE),
+        StyleUtils.getWidthAndHeightStyle(roomHeaderAvatarFootprint),
     ];
     return (
         <View style={styles.pointerEventsBoxNone}>
@@ -123,7 +124,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                         style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
                         <PressableWithoutFocus
-                            style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXXX_LARGE, icon.type)]}
+                            style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
@@ -132,7 +133,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                             <Avatar
                                 source={icon.source}
                                 size={CONST.AVATAR_SIZE.XXX_LARGE}
-                                containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXXX_LARGE, icon.type)]}
+                                containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, icon.type)]}
                                 name={icon.name}
                                 avatarID={icon.id}
                                 type={icon.type}
@@ -147,7 +148,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                                         styles.roomHeaderAvatar,
                                         styles.mln4,
                                         ...iconStyle,
-                                        StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXXX_LARGE, icon.type),
+                                        StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, icon.type),
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
