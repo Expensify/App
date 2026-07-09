@@ -1694,6 +1694,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
+        deletePendingExpense: 'Eliminar gasto pendiente',
+        deleteConfirmationPendingBYOC: '¿Seguro que quieres eliminar este gasto? Está pendiente y es posible que lo volvamos a importar si se contabiliza.',
+        deleteConfirmationSomePendingBYOC: '¿Seguro que quieres eliminar estos gastos? Algunos están pendientes y es posible que los volvamos a importar si se contabilizan.',
         categoryDisabledAlert: {
             title: 'Categoría deshabilitada',
             prompt: 'Habilita las categorías en el espacio de trabajo para editar los detalles del gasto o eliminar la categoría de este gasto.',
@@ -4969,6 +4972,7 @@ ${amount} para ${merchant} - ${date}`,
                 oauth: 'Inicia sesión con Salesforce',
                 oauthDescription: 'Para terminar la configuración, tendrás que iniciar sesión a través de Salesforce y Certinia.\n\nUsa el botón de abajo para continuar.',
                 connectButton: 'Conectar con Certinia',
+                connectSandboxButton: 'Conectar con Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plan de cuentas',
@@ -6174,6 +6178,14 @@ ${amount} para ${merchant} - ${date}`,
                 conciergeNotificationDescription: 'Cuando el proceso se complete, Concierge te enviará un mensaje.',
                 copyCompleted: 'Se han copiado la configuración de tu espacio de trabajo.',
             },
+            upgrade: {
+                title: 'Algunas funciones requieren un plan Controlar',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} usa ${features}, que requieren un plan Controlar.
+
+Para llevar estas funciones a tus otros espacios de trabajo, mejóralos para continuar.
+
+El plan Controlar empieza en 9 $ por miembro activo al mes.`,
+            },
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
@@ -7162,6 +7174,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Los roles especializados del espacio de trabajo solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            unlockFeatures: '¡Desbloquea estas funciones!',
         },
         downgrade: {
             commonFeatures: {
@@ -8777,13 +8790,15 @@ ${amount} para ${merchant} - ${date}`,
         stopTimer: (duration: string) => `Detener temporizador (${duration})`,
         scheduleOOO: 'Programar ausencia',
         scheduleOOOTitle: 'Programar fuera de oficina',
-        date: 'Fecha',
+        date: 'Fecha de inicio',
+        endDate: 'Fecha de finalización',
         time: 'Hora (formato de 24 horas)',
         durationAmount: 'Duración',
         durationUnit: 'Unidad',
         reason: 'Motivo',
         workingPercentage: 'Porcentaje de trabajo',
-        dateRequired: 'La fecha es obligatoria.',
+        dateRequired: 'La fecha de inicio es obligatoria.',
+        endDateBeforeStart: 'La fecha de finalización no puede ser anterior a la fecha de inicio.',
         invalidTimeFormat: 'Ingresa una hora válida (ej., 14:30).',
         enterANumber: 'Ingresa un número.',
         hour: 'horas',
