@@ -23,6 +23,9 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
+
+    /** Show the "Expense added" growl even on the non-global-create path (e.g. the Share flow, whose drafts never set isFromGlobalCreate). */
+    shouldAlwaysShowFeedback?: boolean;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -37,6 +40,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     isInvoice,
     linkedTrackedExpenseReportAction,
     action,
+    shouldAlwaysShowFeedback,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({
         draftTransactionIDs,
@@ -59,6 +63,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         isInvoice,
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
+        shouldAlwaysShowFeedback,
     });
 }
 

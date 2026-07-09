@@ -356,6 +356,8 @@ function SubmitDetailsPage({
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             optimisticChatReportID: reportOrAccountID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+            // Share drafts never set isFromGlobalCreate, but the user still deserves the "Expense added" growl.
+            shouldAlwaysShowFeedback: true,
         });
     };
 

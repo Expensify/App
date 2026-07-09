@@ -73,6 +73,9 @@ type NavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
+
+    /** Show the "Expense added" growl even on the non-global-create path (e.g. the Share flow, whose drafts never set isFromGlobalCreate). */
+    shouldAlwaysShowFeedback?: boolean;
 };
 
 type ShowExpenseAddedGrowlParams = {
@@ -289,17 +292,22 @@ function navigateAfterExpenseCreate({
 
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
+    shouldAlwaysShowFeedback = false,
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
     const isUserOnSpend = isSearchTopmostFullScreenRoute();
 
     // If the expense is not created from global create or there is no transaction to link,
     // we just need to dismiss the money request flow screens and open the report chat
-    // containing the IOU report. No growl is shown in this case.
+    // containing the IOU report. No growl is shown in this case (landing in the report is
+    // the feedback), unless the caller opts in via shouldAlwaysShowFeedback.
     if (!isFromGlobalCreate || !transactionID) {
         dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
+        }
+        if (shouldAlwaysShowFeedback && transactionID) {
+            showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice});
         }
         return;
     }

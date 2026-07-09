@@ -1,3 +1,4 @@
+import Growl from '@libs/Growl';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -51,6 +52,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
+jest.mock('@libs/Growl', () => ({
+    __esModule: true,
+    default: {success: jest.fn()},
+}));
+
+jest.mock('@libs/actions/Report', () => ({
+    createTransactionThreadReport: jest.fn(),
+    setOptimisticTransactionThread: jest.fn(),
+}));
+
 describe('navigateAfterExpenseCreate', () => {
     beforeAll(() => {
         const followUpMock = require('@libs/telemetry/submitFollowUpAction') as {setPendingSubmitFollowUpAction: jest.Mock};
@@ -76,6 +87,21 @@ describe('navigateAfterExpenseCreate', () => {
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
         expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Growl.success).not.toHaveBeenCalled();
+    });
+
+    it('should show the expense added growl on the non-global path when shouldAlwaysShowFeedback is set', () => {
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            transactionThreadReportID: 'thread-1',
+            isFromGlobalCreate: false,
+            hasMultipleTransactions: false,
+            shouldAlwaysShowFeedback: true,
+        });
+
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
+        expect(Growl.success).toHaveBeenCalledWith(expect.any(String), expect.any(Number), expect.objectContaining({label: expect.any(String), onPress: expect.any(Function)}));
     });
 
     it('should dismiss to report when user is on inbox tab', () => {
