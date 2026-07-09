@@ -120,9 +120,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: accountGuideDetailsSelector,
-    });
+    const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -166,19 +164,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const subtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
-        ? getReportStatusTranslation({
-              stateNum: reportHeaderData?.stateNum,
-              statusNum: reportHeaderData?.statusNum,
-              translate,
-          })
+        ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const statusTooltipForInvoiceReport = isParentInvoiceAndIsChatThread
-        ? getReportStatusTooltipTranslation({
-              stateNum: reportHeaderData?.stateNum,
-              statusNum: reportHeaderData?.statusNum,
-              translate,
-          })
+        ? getReportStatusTooltipTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, translate, derivedParentReportName, isParentReportHeaderDataArchived);

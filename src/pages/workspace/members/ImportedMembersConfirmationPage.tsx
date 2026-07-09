@@ -150,11 +150,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     />
                 </View>
                 <View style={[styles.mb5]}>
-                    <Text>
-                        {translate('spreadsheet.importMemberConfirmation', {
-                            count: newMembers?.length ?? 0,
-                        })}
-                    </Text>
+                    <Text>{translate('spreadsheet.importMemberConfirmation', {count: newMembers?.length ?? 0})}</Text>
                 </View>
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>

@@ -39,18 +39,10 @@ function UserInfoAndActionButtonRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const statusText = getReportStatusTranslation({
-        stateNum,
-        statusNum,
-        translate,
-    });
+    const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
     const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
     const badgeBackgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, undefined, isSelected);
-    const tooltipText = getReportStatusTooltipTranslation({
-        stateNum,
-        statusNum,
-        translate,
-    });
+    const tooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
     const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, containerStyles]}>

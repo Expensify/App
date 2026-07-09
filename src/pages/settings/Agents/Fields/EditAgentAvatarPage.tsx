@@ -62,9 +62,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (list) => list?.[accountID],
-    });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
     const initialBotAvatar = useMemo<AgentAvatarID | null>(() => {
         if (!initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID)) {

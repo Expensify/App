@@ -53,10 +53,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const avatarStyle = [styles.avatarXxxxLarge, styles.alignSelfCenter];
     const [selectedPresetID, setSelectedPresetID] = useState<AgentAvatarID | null>(() => AGENT_AVATARS.ordered.at(Math.floor(Math.random() * AGENT_AVATARS.ordered.length))?.id ?? null);
     const [uploadedURI, setUploadedURI] = useState<string | null>(null);
-    const pendingFileRef = useRef<{
-        file: File | CustomRNImageManipulatorResult;
-        uri: string;
-    } | null>(null);
+    const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
 
     useFocusEffect(
         useCallback(() => {

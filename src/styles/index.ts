@@ -103,10 +103,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
-type TwoFactorAuthCodesBoxParams = {
-    isExtraSmallScreenWidth: boolean;
-    isSmallScreenWidth: boolean;
-};
+type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
@@ -4808,12 +4805,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() &&
-                !isMobile() && {
-                    transform: 'scale(.5)',
-                    fontSize: 22,
-                    overflow: 'visible',
-                }),
+            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
@@ -4969,12 +4961,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
-        currentPositionDot: {
-            backgroundColor: colors.blue400,
-            width: 16,
-            height: 16,
-            borderRadius: 16,
-        },
+        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,
@@ -6543,17 +6530,9 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({
-                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth,
-                flex: 1,
-            }) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
 
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({
-                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth,
-                flex: 1,
-            }) satisfies ViewStyle,
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
         activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
             const browser = getBrowser();
@@ -6642,9 +6621,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             minHeight,
         }),
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({
-            aspectRatio: animation.w / animation.h,
-        }),
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
@@ -6711,9 +6688,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
-            return {
-                maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio),
-            };
+            return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
         },
 
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
@@ -6972,21 +6947,9 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
             }) satisfies ViewStyle,
 
-        homePageLeftColumn: {
-            flex: 7,
-            flexBasis: '58.333%',
-            maxWidth: variables.homePageLeftColumnMaxWidth,
-            flexDirection: 'column',
-            gap: 20,
-        } satisfies ViewStyle,
+        homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: {
-            flex: 5,
-            flexBasis: '41.667%',
-            maxWidth: variables.homePageRightColumnMaxWidth,
-            flexDirection: 'column',
-            gap: 20,
-        } satisfies ViewStyle,
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

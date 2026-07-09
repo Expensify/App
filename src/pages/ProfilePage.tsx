@@ -82,9 +82,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: reportsSelector,
-    });
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -92,9 +90,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const switchToDelegator = useSwitchToDelegator();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
@@ -129,11 +125,7 @@ function ProfilePage({route}: ProfilePageProps) {
         } else {
             // If we don't have the personal details in Onyx, we can create an optimistic account
             const optimisticAccountID = generateAccountID(loginParams);
-            details = {
-                accountID: optimisticAccountID,
-                login: loginParams,
-                displayName: loginParams,
-            };
+            details = {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
         }
     }
 
@@ -201,16 +193,7 @@ function ProfilePage({route}: ProfilePageProps) {
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
     if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
         promotedActions.push(
-            PromotedActions.message({
-                reportID: report?.reportID,
-                personalDetails,
-                accountID,
-                login: loginParams,
-                currentUserAccountID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-            }),
+            PromotedActions.message({reportID: report?.reportID, personalDetails, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed, betas}),
         );
     }
 

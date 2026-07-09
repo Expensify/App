@@ -182,9 +182,7 @@ function TransactionPreviewContent({
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const requestMerchant = truncate(merchant, {
-        length: CONST.REQUEST_PREVIEW.MAX_LENGTH,
-    });
+    const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
     const isIOUSettled = !pendingAction && isSettled(report);
@@ -308,10 +306,7 @@ function TransactionPreviewContent({
                                         participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
                                         participantTo={to}
                                         avatarSize={CONST.AVATAR_SIZE.XXX_SMALL}
-                                        infoCellsTextStyle={{
-                                            ...styles.textMicroBold,
-                                            lineHeight: 14,
-                                        }}
+                                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                                         infoCellsAvatarStyle={styles.pr1}
                                         style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}
                                     />

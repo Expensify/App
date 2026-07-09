@@ -161,11 +161,7 @@ function WorkspaceConfirmationForm({
         };
     }, []);
 
-    const [workspaceAvatar, setWorkspaceAvatar] = useState<{
-        avatarUri: string | null;
-        avatarFileName?: string | null;
-        avatarFileType?: string | null;
-    }>({
+    const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
         avatarFileName: null,
         avatarFileType: null,
@@ -207,19 +203,11 @@ function WorkspaceConfirmationForm({
                     source={stashedLocalAvatarImage}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
-                        setWorkspaceAvatar({
-                            avatarUri: image.uri ?? '',
-                            avatarFileName: image.name ?? '',
-                            avatarFileType: image.type,
-                        });
+                        setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                     }}
                     onImageRemoved={() => {
                         setAvatarFile(undefined);
-                        setWorkspaceAvatar({
-                            avatarUri: null,
-                            avatarFileName: null,
-                            avatarFileType: null,
-                        });
+                        setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     avatarStyle={[styles.avatarXxxxLarge, styles.alignSelfCenter]}

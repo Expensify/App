@@ -261,10 +261,7 @@ function WorkspaceInviteMessageComponent({
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            fullPageNotFoundViewProps={{
-                subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized',
-                onLinkPress: goBackFromInvalidPolicy,
-            }}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

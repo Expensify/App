@@ -71,11 +71,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
 
         const onFailure = () => {
             setAvatarFile(undefined);
-            setGroupDraft({
-                avatarUri: null,
-                avatarFileName: null,
-                avatarFileType: null,
-            });
+            setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
         };
 
         // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
@@ -94,19 +90,11 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                     source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
-                        setGroupDraft({
-                            avatarUri: image.uri ?? '',
-                            avatarFileName: image.name ?? '',
-                            avatarFileType: image.type,
-                        });
+                        setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                     }}
                     onImageRemoved={() => {
                         setAvatarFile(undefined);
-                        setGroupDraft({
-                            avatarUri: null,
-                            avatarFileName: null,
-                            avatarFileType: null,
-                        });
+                        setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     avatarStyle={styles.avatarXxxxLarge}
@@ -137,9 +125,7 @@ function NewChatConfirmPage() {
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: guidedSetupAndTourStatusSelector,
-    });
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const participants = newGroupDraft?.participants ?? [];

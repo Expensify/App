@@ -35,14 +35,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const attendeeIcons: IconType[] = attendees.map((attendee) => ({
         id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
         name: attendee.displayName ?? attendee.email,
-        source:
-            (attendee.avatarUrl ||
-                getDefaultAvatar({
-                    accountID: attendee.accountID,
-                    accountEmail: attendee.email,
-                    defaultAvatars,
-                })) ??
-            '',
+        source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
         type: CONST.ICON_TYPE_AVATAR,
     }));
 

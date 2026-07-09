@@ -74,12 +74,7 @@ type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_S
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
-function ProfileAvatar(
-    props: Parameters<typeof Avatar>[0] & {
-        useProfileNavigationWrapper?: boolean;
-        reportID?: string;
-    },
-) {
+function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean; reportID?: string}) {
     const {translate} = useLocalize();
     const {avatarID, useProfileNavigationWrapper, type, name, reportID} = props;
 

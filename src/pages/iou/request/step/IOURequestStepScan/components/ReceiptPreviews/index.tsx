@@ -116,9 +116,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
     };
 
     const slideInStyle = useAnimatedStyle(() => {
-        const sizeValue = withTiming(isPreviewsVisible.get() ? previewsSize : 0, {
-            duration: 300,
-        });
+        const sizeValue = withTiming(isPreviewsVisible.get() ? previewsSize : 0, {duration: 300});
 
         if (isInLandscapeMode) {
             return {width: sizeValue};
@@ -136,11 +134,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     horizontal={!isInLandscapeMode}
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={renderItem}
-                    getItemLayout={(data, index) => ({
-                        length: previewItemSize,
-                        offset: previewItemSize * index,
-                        index,
-                    })}
+                    getItemLayout={(data, index) => ({length: previewItemSize, offset: previewItemSize * index, index})}
                     style={isInLandscapeMode ? styles.ph2 : styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}
