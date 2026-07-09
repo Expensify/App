@@ -1,16 +1,17 @@
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import MultiGestureIcon from '@components/MultiGestureIcon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -178,6 +179,14 @@ function AttachmentView({
 
     const [imageError, setImageError] = useState(false);
 
+    const cachedSource = useCachedAttachmentSource(attachmentID, typeof source === 'string' ? source : undefined);
+
+    const [prevCachedSource, setPrevCachedSource] = useState(cachedSource);
+    if (cachedSource !== prevCachedSource) {
+        setPrevCachedSource(cachedSource);
+        setImageError(false);
+    }
+
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {
@@ -203,10 +212,19 @@ function AttachmentView({
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
 
-        const IconComponent = canUseTouchScreen() ? MultiGestureIcon : Icon;
+        if (canUseTouchScreen()) {
+            return (
+                <MultiGestureIcon
+                    src={source}
+                    contentSize={{width: variables.defaultAvatarPreviewSize, height: variables.defaultAvatarPreviewSize}}
+                    fill={iconFillColor}
+                    additionalStyles={additionalStyles}
+                />
+            );
+        }
 
         return (
-            <IconComponent
+            <Icon
                 src={source}
                 height={variables.defaultAvatarPreviewSize}
                 width={variables.defaultAvatarPreviewSize}
@@ -322,7 +340,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
 
         if (isHighResolution) {
             if (!isUploaded) {

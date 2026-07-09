@@ -386,7 +386,7 @@ describe('UserAvatarUtils', () => {
             const url = UserAvatarUtils.getLetterAvatarURL(42, 'Dave', 'Lee', 'dave@example.com');
             const parsed = UserAvatarUtils.parseLetterAvatarURL(url);
             expect(parsed?.initials).toBe('DL');
-            expect(parsed?.colors).toEqual(UserAvatarUtils.getLetterAvatarScheme('blue100'));
+            expect(parsed?.colors).toEqual({backgroundColor: '#B0D9FF', fillColor: '#0164BF'});
         });
     });
 });

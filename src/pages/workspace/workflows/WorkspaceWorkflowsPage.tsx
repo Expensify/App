@@ -48,7 +48,7 @@ import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRRea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canAccessSubmitWorkspaceFeatures,
     canMemberRead,
@@ -56,7 +56,6 @@ import {
     hasDynamicExternalWorkflow,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
-    isPolicyAdmin as isPolicyAdminUtil,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -176,10 +175,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const accountManagerReportID = account?.accountManagerReportID;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
+    const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -196,9 +197,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+    const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
     const displayNameForAuthorizedPayer = useMemo(
-        () => getDisplayNameOrDefault(getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? ''), policy?.achAccount?.reimburser),
-        [policy?.achAccount?.reimburser],
+        () =>
+            temporaryGetDisplayNameOrDefault({
+                passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
+                defaultValue: policyReimburserEmail,
+                translate,
+            }),
+        [policyReimburserEmail, translate],
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -223,7 +230,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
-    const isPolicyAdmin = isPolicyAdminUtil(policy);
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const {canWrite: canWriteWorkflows, showReadOnlyModal, withReadOnlyFallback: withWorkflowsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const {canWrite: canWriteApprovals, withReadOnlyFallback: withApprovalsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
@@ -255,8 +261,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const promptConfigureApprovalsInHR = useCallback(async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-            prompt: translate('workflowsPage.hrApprovalWorkflowLockedPrompt', {provider: hrProviderName}),
-            confirmText: translate('workflowsPage.goToHRSettings', {provider: hrProviderName}),
+            prompt: translate('workflowsPage.hrApprovalWorkflowLockedPrompt', {
+                provider: hrProviderName,
+            }),
+            confirmText: translate('workflowsPage.goToHRSettings', {
+                provider: hrProviderName,
+            }),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
@@ -369,7 +379,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         return (
             <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
                 {translate('workflowsPage.addApprovalsDescription')}{' '}
-                <TextLink onPress={navigateToHRSettings}>{translate('workflowsPage.configureViaHR', {provider: hrProviderName})}</TextLink>
+                <TextLink onPress={navigateToHRSettings}>
+                    {translate('workflowsPage.configureViaHR', {
+                        provider: hrProviderName,
+                    })}
+                </TextLink>
             </Text>
         );
     }, [isHRConnected, hrProviderName, navigateToHRSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
@@ -387,10 +401,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldShowPayer = shouldShowBankAccount || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
         const bankAccountPendingAction = bankAccountConnectedToWorkspace?.pendingAction;
         const isBankAccountPendingDelete = bankAccountPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-        const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
+        const bankIcon = getBankIcon({
+            bankName: bankName as BankName,
+            isCard: false,
+            styles,
+        });
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
@@ -559,7 +578,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             shouldBlockApprovalWorkflowEditing
                                                 ? undefined
                                                 : () => {
-                                                      selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
+                                                      selectApprovalWorkflowForEdit({
+                                                          workflow,
+                                                          defaultWorkflowMembers: availableMembers,
+                                                          usedApproverEmails,
+                                                      });
                                                       Navigation.navigate(
                                                           ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
                                                               route.params.policyID,
@@ -635,7 +658,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                               let newReimbursementChoice;
                               if (!isEnabled) {
                                   newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                              } else if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                              } else if (
+                                  (!isBankAccountFullySetup && !bankAccountConnectedToWorkspace) ||
+                                  !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)
+                              ) {
                                   newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                               } else {
                                   newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -688,7 +714,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                                 }
                                                             }
 
-                                                            navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
+                                                            navigateToBankAccountRoute({
+                                                                policyID: route.params.policyID,
+                                                                backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                            });
                                                         }
                                                       : undefined
                                               }
@@ -699,12 +728,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               iconStyles={bankIcon.iconStyles}
                                               titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                               descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                              disabled={isOffline || !isPolicyAdmin}
+                                              disabled={isOffline || !canWritePayments}
                                               badgeText={getBadgeText(accountData?.state)}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                              badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
+                                              badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined}
                                               isBadgeSuccess={isAccountInSetupState}
-                                              isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
+                                              isBadgeError={isBusinessBankAccountLocked && canWritePayments}
                                               shouldShowRightIcon={canWritePayments}
                                               interactive={canWritePayments}
                                               shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
@@ -746,13 +775,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                       );
                                                       return;
                                                   }
-                                                  navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
+                                                  navigateToBankAccountRoute({
+                                                      policyID: route.params.policyID,
+                                                      backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                  });
                                               }}
                                               icon={expensifyIcons.Plus}
                                               iconHeight={20}
                                               iconWidth={20}
                                               shouldShowRightIcon
-                                              disabled={isOffline || !isPolicyAdmin}
+                                              disabled={isOffline || !canWritePayments}
                                               shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
                                               wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
@@ -760,7 +792,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           />
                                       )
                                   )}
-                                  {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
+                                  {shouldShowPayer && (
                                       <OfflineWithFeedback
                                           pendingAction={policy?.pendingFields?.reimburser}
                                           shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
@@ -773,7 +805,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               titleStyle={styles.textNormalThemeText}
                                               descriptionTextStyle={styles.textLabelSupportingNormal}
                                               description={translate('workflowsPayerPage.payer')}
-                                              onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                              onPress={canWritePayments ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID)) : undefined}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
                                               shouldShowRightIcon={canWritePayments}
                                               interactive={canWritePayments}
@@ -828,7 +860,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hiddenWorkflowsCount,
         addApprovalAction,
         isOffline,
-        isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
