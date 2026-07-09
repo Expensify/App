@@ -1451,10 +1451,37 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Check if all transactions are pending Expensify card transactions.
+ * Returns the appropriate delete dialog title for an expense.
+ * Shows "Delete pending expense" when deleting a single pending transaction.
+ */
+function getDeleteExpenseTitle(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1): string {
+    if (count === 1 && isPending(transaction)) {
+        return translate('iou.deletePendingExpense');
+    }
+    return translate('iou.deleteExpense', {count});
+}
+
+/**
+ * Returns the appropriate delete confirmation prompt for an expense.
+ * - Single pending transaction: shows a BYOC-specific warning (may be re-imported once it posts).
+ * - Multiple transactions where some are pending: warns that some may be re-imported.
+ * - Otherwise: shows the standard delete confirmation.
+ */
+function getDeleteConfirmationPrompt(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1, hasSomePending = false): string {
+    if (count === 1 && isPending(transaction)) {
+        return translate('iou.deleteConfirmationPendingBYOC');
+    }
+    if (count > 1 && hasSomePending) {
+        return translate('iou.deleteConfirmationSomePendingBYOC');
+    }
+    return translate('iou.deleteConfirmation', {count});
+}
+
+/**
+ * Check if all transactions are pending (includes both Expensify Card and BYOC card transactions).
  */
 function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    return transactions.length > 0 && transactions.every((t) => isPending(t));
 }
 
 /**
@@ -1788,13 +1815,14 @@ function getVisibleTransactionViolations(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     shouldShowRterForSettledReport = true,
 ): TransactionViolations {
     return mergeProhibitedViolations(
         transactionViolations.filter(
             (violation) =>
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
                 shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
         ),
     );
@@ -1993,6 +2021,7 @@ function isDuplicate(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
@@ -2002,7 +2031,15 @@ function isDuplicate(
 
     const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
-    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(
+        transaction,
+        duplicatedTransactionViolation,
+        currentUserEmail,
+        currentUserAccountID,
+        iouReport,
+        policy,
+        iouReportOwnerLogin,
+    );
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
@@ -2028,6 +2065,7 @@ function isViolationDismissed(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    iouReportOwnerLogin?: string,
 ): boolean {
     if (!transaction || !violation) {
         return false;
@@ -2059,7 +2097,7 @@ function isViolationDismissed(
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
     if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
-        const reportOwnerEmail = getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
+        const reportOwnerEmail = iouReportOwnerLogin ?? getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
         if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
             return true;
         }
@@ -2107,6 +2145,7 @@ function hasDuplicateTransactions(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
@@ -2121,6 +2160,7 @@ function hasDuplicateTransactions(
                 currentUserEmail,
                 currentUserAccountID,
                 iouReport,
+                ownerLogin,
                 policy,
                 allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
             ),
@@ -2967,6 +3007,10 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
+function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean {
+    return isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+}
+
 /**
  * Returns true if the violation should block report submission.
  */
@@ -3182,6 +3226,8 @@ export {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
     getCardName,
+    getDeleteExpenseTitle,
+    getDeleteConfirmationPrompt,
     hasReceiptSource,
     hasOdometerImageSource,
     shouldShowAttendees,
@@ -3233,4 +3279,5 @@ export {
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
     getDistanceRequestType,
+    isUnreportedManagedCardTransaction,
 };

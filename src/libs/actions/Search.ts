@@ -341,6 +341,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                ownerLogin: submitterLogin,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -605,6 +606,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    ownerLogin: string | undefined;
 };
 
 function getApproveActionCallback({
@@ -622,6 +624,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    ownerLogin,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -644,6 +647,7 @@ function getApproveActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerLogin,
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
