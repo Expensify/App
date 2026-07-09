@@ -6,6 +6,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -29,17 +30,19 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 
-type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE>;
+type DynamicInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE>;
 
-function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
+function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddInCar']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.path);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
@@ -183,10 +186,10 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
     if (isInvitationSent || shouldSkipToAllSet) {
         return (
-            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
+            <ScreenWrapper testID="DynamicInviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.allSet')}
-                    onBackButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ConfirmationPage
                     illustration={illustrations.ToddInCar}
@@ -195,7 +198,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={() => Navigation.dismissModal()}
+                    onButtonPress={() => Navigation.goBack(backPath)}
                     descriptionStyle={styles.colorMuted}
                 />
             </ScreenWrapper>
@@ -208,10 +211,10 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
+            <ScreenWrapper testID="DynamicInviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <SelectionList
                     data={allMembersWithState}
@@ -230,4 +233,4 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     );
 }
 
-export default InviteReceiptPartnerPolicyPage;
+export default DynamicInviteReceiptPartnerPolicyPage;
