@@ -65,7 +65,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             <Icon
                 src={icons.FreezeCard}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
             <Text
                 numberOfLines={1}
@@ -106,7 +106,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={cardholderName}
-                                style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
+                                style={[styles.optionDisplayName, styles.pre]}
                             />
                             {shouldUseNarrowTableLayout ? (
                                 <TextWithTooltip

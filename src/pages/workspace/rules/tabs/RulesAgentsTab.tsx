@@ -1,5 +1,6 @@
 import AgentRulesList from '@components/AgentRules/AgentRulesList';
 import useAgentRulesSectionHeader from '@components/AgentRules/useAgentRulesSectionHeader';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 
@@ -7,16 +8,17 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getVisibleAgentRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
+import variables from '@styles/variables';
+
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
-
-import RulesTabEmptyState from './RulesTabEmptyState';
 
 type RulesAgentsTabProps = {
     policyID: string;
@@ -27,6 +29,7 @@ type RulesAgentsTabProps = {
 function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgentsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream']);
@@ -50,16 +53,32 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
 
     if (!hasRules) {
         return (
-            <RulesTabEmptyState
-                illustration={illustrations.AgentsIceCream}
-                headerContentStyles={styles.agentsRulesEmptyStateIllustration}
-                title={translate('workspace.rules.agentRulesEmptyState.title')}
-                subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
-                buttonText={translate('workspace.rules.agentRulesEmptyState.cta')}
-                buttonIcon={icons.Plus}
-                onPress={handleAddAgentRule}
-                isDisabled={!canWriteRules}
-            />
+            <ScrollView
+                style={[styles.flex1, styles.mnh0]}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter, styles.w100]}
+                addBottomSafeAreaPadding
+            >
+                <GenericEmptyStateComponent
+                    headerMedia={illustrations.AgentsIceCream}
+                    headerStyles={styles.emptyStateCardIllustrationContainer}
+                    headerContentStyles={styles.agentsRulesEmptyStateIllustration}
+                    title={translate('workspace.rules.agentRulesEmptyState.title')}
+                    subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
+                    subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                    minModalHeight={0}
+                    cardContentStyles={styles.ph0}
+                    containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
+                            buttonAction: handleAddAgentRule,
+                            success: true,
+                            icon: icons.Plus,
+                            isDisabled: !canWriteRules,
+                        },
+                    ]}
+                />
+            </ScrollView>
         );
     }
 

@@ -8,7 +8,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -83,7 +82,8 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            {admins.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('domain.admins.findAdmin')} />}
+            <Table.FilterBar label={translate('domain.admins.findAdmin')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>
