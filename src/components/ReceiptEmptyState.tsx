@@ -86,7 +86,7 @@ function ReceiptEmptyState({
     const isLoadedRef = useRef(false);
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFile);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -127,7 +127,6 @@ function ReceiptEmptyState({
                     style={containerStyle}
                 >
                     {PDFValidationComponent}
-                    {ErrorModal}
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <View style={styles.pRelative}>

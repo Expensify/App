@@ -18,7 +18,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useMemo} from 'react';
+import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilesValidation from './useFilesValidation';
@@ -43,7 +43,9 @@ function useReceiptScanDrop() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);
@@ -112,7 +114,7 @@ function useReceiptScanDrop() {
         }
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const initScanRequest = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -127,14 +129,11 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    const auxiliaryUI = (
-        <>
-            {PDFValidationComponent}
-            {ErrorModal}
-        </>
-    );
-
-    return {initScanRequest, auxiliaryUI, isDragDisabled: isAnonymousUser};
+    return {
+        initScanRequest,
+        auxiliaryUI: PDFValidationComponent,
+        isDragDisabled: isAnonymousUser,
+    };
 }
 
 export default useReceiptScanDrop;

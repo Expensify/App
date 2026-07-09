@@ -24,7 +24,7 @@ function ComposerActionMenu() {
     const {exceededMaxLength} = useComposerSendState();
     const {setMenuVisibility, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
     const {actionButtonRef, composerRef} = useComposerMeta();
-    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
+    const {pickAttachments, PDFValidationComponent} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
@@ -68,7 +68,6 @@ function ComposerActionMenu() {
                 shouldDisableAttachmentItem={!!exceededMaxLength}
             />
             {PDFValidationComponent}
-            {ErrorModal}
         </>
     );
 }

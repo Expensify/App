@@ -154,7 +154,7 @@ function IOURequestStepOdometerImage({
             });
     };
 
-    const {validateFiles, ErrorModal} = useFilesValidation(handleImageSelected);
+    const {validateFiles} = useFilesValidation(handleImageSelected);
 
     const capturePhoto = () => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
@@ -397,7 +397,6 @@ function IOURequestStepOdometerImage({
                     {/* Empty View matching gallery size so justifyContentAround keeps the shutter exactly centered - it's the simplest solution */}
                     <View style={{width: variables.iconSizeMenuItem, height: variables.iconSizeMenuItem}} />
                 </View>
-                {ErrorModal}
             </View>
         </StepScreenWrapper>
     );
