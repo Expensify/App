@@ -19,6 +19,10 @@ Onyx.connectWithoutView({
         if (!serverReconnectCutoff) {
             return;
         }
+        // We need to chain this Onyx connect otherwise we will have an edge case
+        // where the `serverReconnectCutoff` connection promise would resolve first
+        // and calls `doFullReconnectIfNecessary` while the `lastFullReconnectTime` is still unread (stale empty value)
+        // causing an unnecessary full-reconnect.
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
             callback: (lastFullReconnectTimeOnyxValue) => {
