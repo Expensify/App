@@ -49,7 +49,7 @@ const deliver = () => {
     }
 };
 
-const loadScheduler = (nodeEnv: string, messageChannelAvailable = true): ScheduleMacrotask => {
+const loadScheduler = (nodeEnv: typeof process.env.NODE_ENV, messageChannelAvailable = true): ScheduleMacrotask => {
     const originalNodeEnv = process.env.NODE_ENV;
     const originalMessageChannel = global.MessageChannel;
     process.env.NODE_ENV = nodeEnv;
