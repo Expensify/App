@@ -1,16 +1,21 @@
-import React, {useCallback} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
-import {revealVirtualCardDetails} from '@libs/actions/Card';
+
+import {revealTravelCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback} from 'react';
+
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
@@ -38,11 +43,8 @@ function TravelCVVVerifyAccountPage() {
 
         setIsLoading(true);
 
-        // Call revealVirtualCardDetails and only extract CVV
-
-        revealVirtualCardDetails(+travelCard.cardID, validateCode)
+        revealTravelCardDetails(+travelCard.cardID, validateCode)
             .then((cardDetails) => {
-                // Only store CVV - never persist PAN or other details
                 setCvv(cardDetails.cvv ?? null);
                 navigateBack();
             })

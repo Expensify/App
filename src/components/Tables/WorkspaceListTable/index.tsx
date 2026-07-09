@@ -1,19 +1,26 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
+
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import WorkspaceRow from './WorkspaceTableRow';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
@@ -32,6 +39,7 @@ type WorkspaceRowData = TableData & {
     ownerAvatar?: AvatarSource;
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+    isEligibleToCopy: boolean;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
@@ -48,12 +56,9 @@ type WorkspaceListTableProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets, passed down to the row menus */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -114,7 +119,6 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 onDeleteWorkspace={onDeleteWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
-                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         );
     };
@@ -132,7 +136,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
             <Table.Header />
             <Table.Body />
         </Table>

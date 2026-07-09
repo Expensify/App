@@ -1,10 +1,13 @@
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
-import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
 import {getUserFriendlyValue} from './SearchQueryUtils';
@@ -163,6 +166,7 @@ function filterOutRangesWithCorrectValue(
     const receiptTypeList = userFriendlyReceiptTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
+    const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
     const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
     const viewList = userFriendlyViewList;
@@ -206,6 +210,8 @@ function filterOutRangesWithCorrectValue(
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
             return withdrawalStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
+            return paidStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:

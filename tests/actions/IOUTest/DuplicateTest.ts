@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -15,6 +14,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -25,6 +25,11 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomReportAction from '../../utils/collections/reportActions';
@@ -526,6 +531,7 @@ describe('actions/Duplicate', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 await waitForBatchedUpdates();
             };
@@ -1333,8 +1339,10 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1397,8 +1405,10 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1453,8 +1463,10 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1502,8 +1514,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1551,8 +1565,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1603,8 +1619,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1665,8 +1683,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1712,8 +1732,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1752,8 +1774,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1795,8 +1819,10 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1844,8 +1870,10 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1909,8 +1937,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1974,8 +2004,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2023,8 +2055,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2083,8 +2117,10 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2256,6 +2292,7 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
+            delegateAccountID: undefined,
             ...overrides,
         });
 
@@ -2814,6 +2851,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetPolicyTags: {},
                 targetReport: policyExpenseChat,
+                policyTagList: {},
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
@@ -2825,6 +2863,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2940,6 +2979,7 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
+            delegateAccountID: undefined,
             ...overrides,
         });
 

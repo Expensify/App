@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
@@ -97,6 +98,12 @@ const ONYXKEYS = {
 
     /** Odometer draft stored for the Save for later flow */
     ODOMETER_DRAFT: 'odometerDraft',
+
+    /** Input image handed to the avatar crop screen */
+    AVATAR_CROP_DRAFT: 'avatarCropDraft',
+
+    /** Cropped image the avatar crop screen writes back for its opener */
+    AVATAR_CROP_RESULT: 'avatarCropResult',
 
     /** Contains all the info for Tasks */
     TASK: 'task',
@@ -222,6 +229,9 @@ const ONYXKEYS = {
 
     /** This NVP contains the training modals the user denied showing again */
     NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
+
+    /** Whether the "For You" section has ever shown an actionable to-do (keeps the section visible once seen) */
+    NVP_HAS_SEEN_FOR_YOU_TODO: 'nvp_hasSeenForYouTodo',
 
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
@@ -1091,6 +1101,8 @@ const ONYXKEYS = {
         EDIT_EXPENSIFY_CARD_LIMIT_DRAFT_FORM: 'editExpensifyCardLimitDraft',
         EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM: 'editTravelInvoicingMonthlyLimit',
         EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_DRAFT_FORM: 'editTravelInvoicingMonthlyLimitDraft',
+        TRAVEL_LEGAL_ENTITY_TAX_ID_FORM: 'travelLegalEntityTaxIDForm',
+        TRAVEL_LEGAL_ENTITY_TAX_ID_DRAFT_FORM: 'travelLegalEntityTaxIDFormDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM: 'editExpensifyCardLimitType',
         EDIT_EXPENSIFY_CARD_LIMIT_TYPE_DRAFT_FORM: 'editExpensifyCardLimitTypeDraft',
         SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
@@ -1161,6 +1173,14 @@ const ONYXKEYS = {
         EXPENSE_RULE_FORM_DRAFT: 'expenseRuleFormDraft',
         MERCHANT_RULE_FORM: 'merchantRuleForm',
         MERCHANT_RULE_FORM_DRAFT: 'merchantRuleFormDraft',
+        REQUIRE_FIELDS_RULE_FORM: 'requireFieldsRuleForm',
+        REQUIRE_FIELDS_RULE_FORM_DRAFT: 'requireFieldsRuleFormDraft',
+        FLAG_FOR_REVIEW_RULE_FORM: 'flagForReviewRuleForm',
+        FLAG_FOR_REVIEW_RULE_FORM_DRAFT: 'flagForReviewRuleFormDraft',
+        MERCHANT_TYPE_RULE_FORM: 'merchantTypeRuleForm',
+        MERCHANT_TYPE_RULE_FORM_DRAFT: 'merchantTypeRuleFormDraft',
+        FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM: 'flagForReviewRuleMaxAmountForm',
+        FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM_DRAFT: 'flagForReviewRuleMaxAmountFormDraft',
         SPEND_RULE_FORM: 'spendRuleForm',
         SPEND_RULE_FORM_DRAFT: 'spendRuleFormDraft',
         ADD_DOMAIN_MEMBER_FORM: 'addDomainMemberForm',
@@ -1185,6 +1205,8 @@ const ONYXKEYS = {
         ADD_AGENT_RULE_FORM_DRAFT: 'addAgentRuleFormDraft',
         EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
+        RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
+        RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1195,7 +1217,6 @@ const ONYXKEYS = {
         PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
-        LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1283,6 +1304,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
     [ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM]: FormTypes.EditTravelInvoicingMonthlyLimitForm;
+    [ONYXKEYS.FORMS.TRAVEL_LEGAL_ENTITY_TAX_ID_FORM]: FormTypes.TravelLegalEntityTaxIDForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM]: FormTypes.EditExpensifyCardLimitTypeForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM]: FormTypes.NetSuiteCustomFieldForm;
@@ -1318,6 +1340,10 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES]: FormTypes.SplitExpenseEditDateForm;
     [ONYXKEYS.FORMS.EXPENSE_RULE_FORM]: FormTypes.ExpenseRuleForm;
     [ONYXKEYS.FORMS.MERCHANT_RULE_FORM]: FormTypes.MerchantRuleForm;
+    [ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM]: FormTypes.RequireFieldsRuleForm;
+    [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM]: FormTypes.FlagForReviewRuleForm;
+    [ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM]: FormTypes.MerchantTypeRuleForm;
+    [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM]: FormTypes.FlagForReviewRuleMaxAmountForm;
     [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
@@ -1330,6 +1356,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
     [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
+    [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1443,6 +1470,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
     [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
+    [ONYXKEYS.AVATAR_CROP_DRAFT]: OnyxTypes.AvatarCropDraft;
+    [ONYXKEYS.AVATAR_CROP_RESULT]: OnyxTypes.AvatarCropResult;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -1546,6 +1575,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
+    [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.IS_BETA]: boolean;
@@ -1682,7 +1712,6 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
-    [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
