@@ -56,7 +56,7 @@ The receipt is automatically SmartScanned to the account owner's Expensify accou
 ## How to exit a Copilot account and return to your own account
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
-2. At the top of the page, select the account owner's name to open the account switcher.
+2. At the top of the page, select **Switch** to open the account switcher.
 3. Select your name.
 
 ## What happens after you switch to a Copilot account
