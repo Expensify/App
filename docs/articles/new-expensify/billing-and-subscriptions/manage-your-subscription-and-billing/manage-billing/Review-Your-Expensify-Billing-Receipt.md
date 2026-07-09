@@ -1,6 +1,6 @@
 ---
 title: Review Your Expensify Billing Receipt
-description: Learn how to read your Expensify billing receipt, including the summary, billing breakdown, discounts, and workspace activity.
+description: Learn how to read your Expensify billing receipt, including billing breakdown, activity breakdown and discounts. 
 keywords: [what does my receipt mean, receipt breakdown, receipt sections, billing summary, discounts]
 internalScope: Audience is Workspace owners. Explains the purpose and sections of the monthly Expensify billing receipt. Does not explain billing calculations, pricing rules, or how to resolve billing issues.
 platform: new
@@ -9,77 +9,87 @@ contentType: topic
 
 # Review Your Expensify Billing Receipt
 
-Your monthly Expensify billing receipt summarizes your subscription charges across every Workspace you own. It explains what you were charged, where discounts were applied, and how each Workspace contributed to your total bill.
+Your monthly Expensify billing receipt summarizes your subscription charges for the billing period. It shows your total charge, any discounts or credits that were applied, and how subscription usage was distributed across the Workspaces you own.
 
-Only the Workspace owner can view subscription receipts.
+If you haven't accessed your receipt yet, [learn how to find your Expensify billing receipt](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt).
 
-[Learn how to find your Expensify billing receipt](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt).
+---
 
-## How your billing receipt is organized
+## What the Billing breakdown shows
 
-Your receipt is organized into several sections that explain different parts of your monthly bill.
+The Billing breakdown lists the charges and credits included in your total subscription cost.
 
-It begins with a high-level summary of your subscription, followed by any available savings or discounts. It then provides a detailed billing breakdown before showing activity for each Workspace.
+Depending on your subscription, it may include:
 
-Together, these sections explain both what you were charged and how your monthly total was calculated.
+ - Inactive members
+ - Monthly or annual subscription charges
+ - Expensify Card discounts
+ - Expensify Card cashback credits
+ - Promotional discounts or credits
+ - Total amount charged
 
-## What the receipt summary shows
+Each line item includes the quantity, applicable rate, and resulting charge or credit, making it easier to understand how your final total was calculated.
 
-The summary provides an overview of your monthly subscription.
+---
 
-It includes:
+## What discounts and credits appear on your receipt
 
- - The total amount charged across all Workspaces you own.
- - Your effective price per member.
- - The members who generated billable activity during the billing period.
-
-This section provides a quick snapshot of your subscription before the detailed breakdown.
-
-## What savings and discounts appear on your receipt
-
-If your account qualifies for discounts or credits, they're displayed in the savings section of your receipt.
+If discounts or credits were applied during the billing period, they're included in the Billing breakdown.
 
 Depending on your subscription, you may see:
 
  - Expensify Card discounts
  - Expensify Card cash back
- - Promotional discounts
+ - Promotional discounts or credits
 
-This section may also highlight opportunities to reduce future subscription costs, such as qualifying for Expensify Card pricing or switching to an annual subscription.
+Your receipt may also include informational messages about additional savings opportunities, such as qualifying for Expensify Card pricing.
 
 [Learn how the Expensify Card discount works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
 
-## What the billing breakdown includes
+---
 
-The billing breakdown itemizes every charge and credit included in your monthly total.
+## What the Activity breakdown shows
 
-Depending on your subscription, this section may include:
- 
- - Billable members
- - Non-billable members
- - Subscription charges
- - Discounts
- - Credits
- - The final amount charged
+The Activity breakdown shows how subscription usage was distributed across your Workspaces during the billing period.
 
-Each line helps explain how your overall subscription cost was calculated.
-
-## What Workspace activity appears on your receipt
-
-If you pay for multiple Workspaces, your receipt includes a breakdown for each one.
-
-For every Workspace, you'll see information such as:
+For each Workspace, you'll see:
 
  - Workspace name
  - Workspace ID
- - Subscription plan
- - Number of billable members
- - Amount charged
- - Applied discounts
+ - Amount of subscription usage attributed to that Workspace
 
-This section makes it easier to understand how each Workspace contributed to your total monthly charge.
+This section helps you understand which Workspaces contributed to your overall subscription charges.
+
+---
+
+## What annual subscription details appear on your receipt
+
+If you have an annual subscription, your billing receipt includes information about your subscription term and renewal.
+
+Depending on your subscription, you may see:
+
+- The date of your final payment for the current subscription term
+- Whether your subscription is set to renew automatically
+- Your renewal date
+- The date your first payment for the new subscription term will be charged
+
+This section helps you understand when your current annual subscription ends and when your next subscription period begins.
+
+---
 
 ## Related articles
 
  - [Learn About Billing Terms and Definitions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Terms-and-Definitions)
  - [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing)
+
+---
+
+# FAQ 
+
+## Why doesn't the Activity breakdown match the amount each Workspace spent?
+
+The Activity breakdown is a billing allocation, not a spending report. It shows how your subscription usage was attributed across your Workspaces for the billing period, which may differ from the expenses submitted or reimbursed in each Workspace.
+
+## Why doesn't the Activity breakdown add up the way I expected?
+
+The Activity breakdown is designed to explain how your subscription charges were allocated across your Workspaces. It's not an activity report and won't necessarily match the number of expenses, reports, reimbursements, or other Workspace metrics you see elsewhere in Expensify.
