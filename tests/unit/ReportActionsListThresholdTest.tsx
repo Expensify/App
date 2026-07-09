@@ -32,24 +32,31 @@ const THRESHOLD = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
 
 type ScrollEvent = {nativeEvent: {contentOffset: {y: number}}};
 type CapturedListProps = {
-    shouldMaintainVisibleContentPosition?: boolean;
+    maintainVisibleContentPosition?: {disabled: boolean};
     onScroll?: (event: ScrollEvent) => void;
 };
 
-// Capture the props the list is rendered with so we can observe `shouldMaintainVisibleContentPosition`,
-// which is `hasScrolledOverThreshold || shouldFocusToTopOnMount`. With no deep-link the latter is false,
-// so the prop mirrors the boolean under test.
+// Capture the props the list is rendered with so we can observe `maintainVisibleContentPosition`, whose
+// `disabled` flag is `!(hasScrolledOverThreshold || shouldFocusToTopOnMount)`. With no deep-link the latter
+// is false, so `!disabled` mirrors the boolean under test.
 let capturedListProps: CapturedListProps = {};
-// Every value `shouldMaintainVisibleContentPosition` has held, in render order. `[0]` is the value on the
-// list's very first render — the property that matters, since the boolean must be right before any effect runs.
+// Every value the maintain-visible-content-position flag has held (`!disabled`), in render order. `[0]` is the
+// value on the list's very first render — the property that matters, since it must be right before any effect runs.
 let mockMvcpHistory: Array<boolean | undefined> = [];
+
+// `!disabled` from the captured `maintainVisibleContentPosition`, or `undefined` before the list first renders.
+function isMvcpEnabled() {
+    const config = capturedListProps.maintainVisibleContentPosition;
+    return config ? !config.disabled : undefined;
+}
+
 jest.mock('@components/FlashList/InvertedFlashList', () => {
     const {forwardRef} = jest.requireActual<typeof React>('react');
     return {
         __esModule: true,
         default: forwardRef<unknown, CapturedListProps>((props) => {
             capturedListProps = props;
-            mockMvcpHistory.push(props.shouldMaintainVisibleContentPosition);
+            mockMvcpHistory.push(props.maintainVisibleContentPosition ? !props.maintainVisibleContentPosition.disabled : undefined);
             return null;
         }),
     };
@@ -104,7 +111,7 @@ async function renderList(initialOffset: number) {
             </ComposeProviders>
         </NavigationContainer>,
     );
-    await waitFor(() => expect(capturedListProps.shouldMaintainVisibleContentPosition).toBeDefined());
+    await waitFor(() => expect(capturedListProps.maintainVisibleContentPosition).toBeDefined());
     return utils;
 }
 
@@ -142,27 +149,27 @@ describe('ReportActionsList hasScrolledOverThreshold', () => {
         // Must be true on the FIRST render, not merely after an effect settles — deferring this to an effect
         // would let the mount-time mark-as-read path observe a wrong `isScrolledToEnd`.
         expect(mockMvcpHistory.at(0)).toBe(true);
-        expect(capturedListProps.shouldMaintainVisibleContentPosition).toBe(true);
+        expect(isMvcpEnabled()).toBe(true);
     });
 
     it('leaves maintainVisibleContentPosition off on first render when mounted at the bottom (offset below threshold)', async () => {
         await renderList(0);
 
-        expect(capturedListProps.shouldMaintainVisibleContentPosition).toBe(false);
+        expect(isMvcpEnabled()).toBe(false);
     });
 
     it('flips the flag as the user scrolls across the threshold', async () => {
         await renderList(0);
-        expect(capturedListProps.shouldMaintainVisibleContentPosition).toBe(false);
+        expect(isMvcpEnabled()).toBe(false);
 
         act(() => {
             capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: THRESHOLD + 50}}});
         });
-        expect(capturedListProps.shouldMaintainVisibleContentPosition).toBe(true);
+        expect(isMvcpEnabled()).toBe(true);
 
         act(() => {
             capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: 0}}});
         });
-        expect(capturedListProps.shouldMaintainVisibleContentPosition).toBe(false);
+        expect(isMvcpEnabled()).toBe(false);
     });
 });
