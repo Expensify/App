@@ -221,6 +221,7 @@ function AmountFilterContent({filterKey, value, autoFocus, largeButton, style, b
                             showTooltip={false}
                             keyForList={config.keyForList}
                             onSelectRow={() => setSelectedModifier(config.keyForList)}
+                            wrapperStyle={styles.optionRowCompact}
                         />
                         {config.isSelected &&
                             (config.keyForList === BETWEEN_MODIFIER ? (
