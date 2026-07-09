@@ -108,7 +108,9 @@ This section appears only if:
 
 If these conditions aren’t met, the section won’t appear.
 
-The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
+The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, linking a company card, and inviting an accountant.
+
+The customizing accounting categories and linking a company card steps follow their workspace **More features** toggles. If **Categories** or **Company cards** is turned off in **More features**, the matching step is hidden, and it reappears when the feature is turned back on.
 
 ---
 
