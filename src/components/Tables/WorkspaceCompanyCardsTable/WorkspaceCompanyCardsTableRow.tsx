@@ -166,12 +166,11 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
                                 numberOfLines={1}
+                                text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formattedCardDetails}
-                            </Text>
+                            />
                         </View>
                     )}
 
