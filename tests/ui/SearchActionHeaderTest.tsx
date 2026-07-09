@@ -11,6 +11,8 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import SearchActionHeader from '@pages/inbox/report/SearchActionHeader';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +54,7 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
 describe('SearchActionHeader', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
         await IntlStore.load(CONST.LOCALES.EN);
         await waitForBatchedUpdatesWithAct();
     });
