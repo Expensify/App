@@ -49,6 +49,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -6270,6 +6271,43 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, translateLocal, 'date', 'asc', undefined)).toStrictEqual(
                 transactionsListItems,
             );
+        });
+
+        it('sorts transactions by the policy name resolved through the provided translate function', () => {
+            const base = transactionsListItems.at(0);
+            if (!base) {
+                throw new Error('Missing base transaction fixture');
+            }
+            // A transaction whose policy cannot be resolved sorts by the translate-provided unavailable label ('Aaa ...'), which sorts before 'Mmm Workspace'.
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'Aaa Unavailable Marker' : translateLocal(path, ...parameters);
+            const reportedTransaction = {
+                ...base,
+                transactionID: 'txn-with-policy',
+                keyForList: 'txn-with-policy',
+                report: createMock<OnyxTypes.Report>({reportID: 'report-with-policy', type: CONST.REPORT.TYPE.EXPENSE, policyName: 'Mmm Workspace'}),
+                policy: undefined,
+            };
+            const noPolicyTransaction = {
+                ...base,
+                transactionID: 'txn-without-policy',
+                keyForList: 'txn-without-policy',
+                report: createMock<OnyxTypes.Report>({reportID: 'report-without-policy', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'missing-policy'}),
+                policy: undefined,
+            };
+
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [reportedTransaction, noPolicyTransaction],
+                localeCompare,
+                translateWithUnavailableMarker,
+                CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+
+            expect(result.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['txn-without-policy', 'txn-with-policy']);
         });
 
         it('should sort expense data by category GL code using policy categories', () => {
