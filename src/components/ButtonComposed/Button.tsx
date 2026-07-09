@@ -65,8 +65,11 @@ function Button({
             isHovered,
             variant,
             size,
+            onPress,
+            isDisabled,
+            isLoading,
         }),
-        [isHovered, variant, size],
+        [isHovered, variant, size, onPress, isDisabled, isLoading],
     );
 
     const buttonVariantStyles = useMemo(() => {
