@@ -175,6 +175,7 @@ describe('actions/IOU', () => {
             let updatedTransactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     updatedTransactionDrafts = val;
                 },
@@ -227,6 +228,7 @@ describe('actions/IOU', () => {
             let transactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactionDrafts = val;
                 },
@@ -268,6 +270,7 @@ describe('actions/IOU', () => {
             let transactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactionDrafts = val;
                 },
@@ -304,6 +307,7 @@ describe('actions/IOU', () => {
             let transactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactionDrafts = val;
                 },
