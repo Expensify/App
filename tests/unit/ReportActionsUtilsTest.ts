@@ -2107,6 +2107,58 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('doesReportHaveVisibleActions', () => {
+        const reportID = 'report_dhva_1';
+        const visibleComment: ReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2025-01-01 00:00:00.000',
+            message: [{type: 'COMMENT', html: 'hello', text: 'hello'}],
+        };
+        const createdAction: ReportAction = {
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: '2025-01-01 00:00:01.000',
+            message: [{type: 'COMMENT', html: '', text: ''}],
+        };
+        const taskCompletedAction: ReportAction = {
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED,
+            created: '2025-01-01 00:00:02.000',
+            message: [{type: 'COMMENT', html: 'completed', text: 'completed'}],
+        };
+
+        it('returns false when reportActions is undefined', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, undefined)).toBe(false);
+        });
+
+        it('returns false when reportActions is empty', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {})).toBe(false);
+        });
+
+        it('returns true when there is a visible comment action', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[visibleComment.reportActionID]: visibleComment})).toBe(true);
+        });
+
+        it('returns false when the only action is the CREATED system message', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[createdAction.reportActionID]: createdAction})).toBe(false);
+        });
+
+        it('returns false when the only action is a task system message', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[taskCompletedAction.reportActionID]: taskCompletedAction})).toBe(false);
+        });
+
+        it('returns true when a visible comment coexists with system messages', () => {
+            expect(
+                ReportActionsUtils.doesReportHaveVisibleActions(reportID, {
+                    [createdAction.reportActionID]: createdAction,
+                    [taskCompletedAction.reportActionID]: taskCompletedAction,
+                    [visibleComment.reportActionID]: visibleComment,
+                }),
+            ).toBe(true);
+        });
+    });
+
     describe('shouldReportActionBeVisible', () => {
         it('should return false for moved transaction if the report destination is unavailable', () => {
             // Given a moved transaction action but the report destination is not available
