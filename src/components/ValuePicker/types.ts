@@ -80,6 +80,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
 
+    /** Callback to call when the picker modal is shown */
+    onModalShow?: () => void;
+
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
