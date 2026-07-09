@@ -14,10 +14,7 @@ function isWithinGettingStartedPeriod(firstDayFreeTrial: string | undefined): bo
         return false;
     }
 
-    // `firstDayFreeTrial` is a UTC DB-time string ("YYYY-MM-DD HH:mm:ss", no timezone). Parse it as UTC
-    // via the repo convention (`fromZonedTime(..., 'UTC')`, as in DateUtils). `new Date(str)` would parse
-    // it as LOCAL time, so for users west of UTC the trial start lands in the future for the first several
-    // hours after signup → elapsed < 0 → the Getting Started section was wrongly hidden.
+    // Trial dates are UTC DB timestamps without a timezone suffix, so parse them as UTC.
     const trialStartMs = fromZonedTime(firstDayFreeTrial, 'UTC').getTime();
     if (Number.isNaN(trialStartMs)) {
         return false;
