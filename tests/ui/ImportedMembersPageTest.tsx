@@ -31,7 +31,15 @@ jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            goBack: jest.fn(),
+            addListener: () => jest.fn(),
+            isFocused: () => true,
+        }),
         useIsFocused: () => true,
+        useFocusEffect: jest.fn(),
+        usePreventRemove: jest.fn(),
     };
 });
 
