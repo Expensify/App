@@ -71,7 +71,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
 
@@ -91,7 +90,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
@@ -119,7 +117,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
 
@@ -139,7 +136,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
@@ -171,7 +167,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
@@ -1928,6 +1923,121 @@ describe('actions/Policy', () => {
             // And after API success, pending fields should be cleared
             rerender(fakePolicy.id);
             expect(policyData.current.policy?.pendingFields).toBeDefined();
+        });
+
+        it('should re-enable the tags it previously disabled when enabling the feature again', async () => {
+            // Given a policy whose tags were turned off when the Tags feature was disabled
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            const tagListName = 'Tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const existingTags = fakePolicyTags[tagListName]?.tags ?? {};
+            for (const tagName of Object.keys(existingTags)) {
+                existingTags[tagName].enabled = false;
+            }
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When re-enabling the feature
+            enablePolicyTags(policyData.current, true);
+            await waitForBatchedUpdates();
+
+            rerender(fakePolicy.id);
+
+            // Then the feature is on and the tags are restored to enabled, so a stale tagOutOfPolicy clears optimistically
+            expect(policyData.current.policy?.areTagsEnabled).toBe(true);
+            for (const tagName of Object.keys(existingTags)) {
+                expect(policyData.current?.tags?.[tagListName]?.tags[tagName]?.enabled).toBe(true);
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should disable only the first level when disabling a multi-level tag policy', async () => {
+            // Given a multi-level tag policy with two enabled levels (Department is the first level, Region the second)
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const multiLevelTags: PolicyTagLists = {
+                ...createRandomPolicyTags('Department', 2),
+                ...createRandomPolicyTags('Region', 2),
+            };
+            multiLevelTags.Region.orderWeight = 1;
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, multiLevelTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When disabling the feature
+            enablePolicyTags(policyData.current, false);
+            await waitForBatchedUpdates();
+
+            rerender(fakePolicy.id);
+
+            // Then only the first level's tags are disabled; deeper levels stay enabled (BE flags only the first level)
+            for (const tagName of Object.keys(multiLevelTags.Department.tags)) {
+                expect(policyData.current?.tags?.Department?.tags[tagName]?.enabled).toBe(false);
+            }
+            for (const tagName of Object.keys(multiLevelTags.Region.tags)) {
+                expect(policyData.current?.tags?.Region?.tags[tagName]?.enabled).toBe(true);
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should re-enable only the first level when re-enabling a multi-level tag policy', async () => {
+            // Given a multi-level tag policy whose tags are all currently disabled (Department first, Region second)
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            const multiLevelTags: PolicyTagLists = {
+                ...createRandomPolicyTags('Department', 2),
+                ...createRandomPolicyTags('Region', 2),
+            };
+            multiLevelTags.Region.orderWeight = 1;
+            for (const tagList of Object.values(multiLevelTags)) {
+                for (const tag of Object.values(tagList.tags)) {
+                    tag.enabled = false;
+                }
+            }
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, multiLevelTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When re-enabling the feature
+            enablePolicyTags(policyData.current, true);
+            await waitForBatchedUpdates();
+
+            rerender(fakePolicy.id);
+
+            // Then only the first level's tags are restored (mirrors the disable that only turned off the first level)
+            for (const tagName of Object.keys(multiLevelTags.Department.tags)) {
+                expect(policyData.current?.tags?.Department?.tags[tagName]?.enabled).toBe(true);
+            }
+            for (const tagName of Object.keys(multiLevelTags.Region.tags)) {
+                expect(policyData.current?.tags?.Region?.tags[tagName]?.enabled).toBe(false);
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         it('should reset changes when API returns error', async () => {
