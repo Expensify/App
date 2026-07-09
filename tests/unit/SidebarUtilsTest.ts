@@ -908,6 +908,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1019,6 +1020,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1037,6 +1039,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1058,6 +1061,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1081,6 +1085,7 @@ describe('SidebarUtils', () => {
                 isOffline: true,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1105,10 +1110,96 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toBeDefined();
             expect(typeof result.shouldDisplay).toBe('boolean');
+        });
+
+        /**
+         * conciergeReportID only changes the outcome for an *empty* chat: an empty Concierge chat must stay in the LHN,
+         * whereas an equivalent empty non-Concierge chat is hidden. These two tests hold everything else constant and
+         * flip only conciergeReportID, so they fail if the concierge exemption stops being threaded through.
+         */
+        it('keeps an empty Concierge chat in the LHN when conciergeReportID matches the report', async () => {
+            // Given the current user's session (shouldDisplayReportInLHN reads it to compute the hidden state)
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Given an empty (no messages) DM the current user participates in
+            const conciergeReportID = 'concierge-report-lhn';
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Concierge',
+                isPinned: false,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]: report};
+
+            // When the empty chat is identified as the Concierge chat, it should be displayed
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID,
+            });
+
+            expect(result.shouldDisplay).toBe(true);
+        });
+
+        it('hides an equivalent empty chat when conciergeReportID does not match the report', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Given the exact same empty DM as the previous test
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'concierge-report-lhn',
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Concierge',
+                isPinned: false,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report};
+
+            // When a non-matching conciergeReportID is supplied, the empty chat is excluded from the LHN
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: 'a-different-report-id',
+            });
+
+            expect(result.shouldDisplay).toBe(false);
         });
     });
 
@@ -3454,7 +3545,7 @@ describe('SidebarUtils', () => {
                     isForListPreview: true,
                     originalReportAction: lastReportPreviewAction,
                 });
-                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
+                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
             it("shouldn't add current user prefix if the current user isn't the report's manager for report preview action in a DM chat", async () => {
@@ -4111,6 +4202,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -4135,6 +4227,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4157,6 +4250,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4176,6 +4270,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4199,6 +4294,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4226,6 +4322,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // The function should run without errors with isOffline=false
@@ -4254,6 +4351,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // The function should run without errors with isOffline=true
@@ -4282,6 +4380,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
@@ -4320,6 +4419,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // Should not throw and should return a valid result
@@ -4349,6 +4449,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4376,6 +4477,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4401,6 +4503,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4437,6 +4540,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // Should not throw and should return a valid result

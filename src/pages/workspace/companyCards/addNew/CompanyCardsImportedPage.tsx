@@ -114,10 +114,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     }, [spreadsheet?.data, savedColumnMappings, columnRoles, shouldUseAdvancedFields]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
+    const {containsHeader = true} = spreadsheet ?? {};
 
     const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let errors: Errors = {};
+        const errors: Errors = {};
 
         const missingRequiredColumns = requiredColumns
             .filter((requiredColumn) => !columns.includes(requiredColumn.value))
@@ -125,14 +126,27 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             .join(', ');
         if (missingRequiredColumns) {
             errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns);
-        } else {
-            const duplicate = findDuplicate(columns);
-            if (duplicate) {
-                errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
-            } else {
-                errors = {};
-            }
+            return errors;
         }
+
+        const duplicate = findDuplicate(columns);
+        if (duplicate) {
+            errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
+            return errors;
+        }
+
+        const columnWithEmptyValues = requiredColumns.find((requiredColumn) => {
+            const columnIndex = columns.findIndex((column) => column === requiredColumn.value);
+            if (columnIndex === -1) {
+                return false;
+            }
+            const columnData = spreadsheet?.data?.at(columnIndex) ?? [];
+            return columnData.some((value, index) => (!containsHeader || index > 0) && !value?.toString().trim());
+        });
+        if (columnWithEmptyValues) {
+            errors.emptyValues = translate('spreadsheet.emptyMappedField', columnWithEmptyValues.text);
+        }
+
         return errors;
     };
 
