@@ -5888,10 +5888,7 @@ function upgradeSubmit(
     type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
 
     const now = new Date();
-    // The backend stores `firstDayFreeTrial`/`lastDayFreeTrial` as UTC DB timestamps, and every consumer parses
-    // them as UTC (see SubscriptionUtils and isWithinGettingStartedPeriod). Format the optimistic values in UTC too
-    // so a pending/offline upgrade doesn't leave a local-clock string that gets misread as UTC (which would hide the
-    // Getting Started section / skew trial calculations for users east of UTC).
+    // Match the backend's UTC DB timestamp format for optimistic trial dates.
     const optimisticFirstDayFreeTrial = formatInTimeZone(subMinutes(now, 1), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     const optimisticLastDayFreeTrial = formatInTimeZone(addDays(now, 30), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
