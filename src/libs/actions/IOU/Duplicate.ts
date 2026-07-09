@@ -20,9 +20,7 @@ import {
     canAddTransaction,
     generateReportID,
     getReimbursableTotal,
-    getReportOrDraftReport,
     getTransactionDetails,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -61,7 +59,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getMoneyRequestPolicyTags} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -653,7 +651,6 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
-    policyTagList,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -666,7 +663,6 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    policyTagList: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -675,7 +671,7 @@ function createExpenseByType({
                 participants,
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
-                policyParams: {...params.policyParams, policyTagList},
+                policyParams: params.policyParams,
                 existingTransaction: {
                     iouRequestType: getDuplicateRequestType(transaction),
                     amount: 0,
@@ -723,7 +719,7 @@ function createExpenseByType({
         default:
             return requestMoney({
                 ...params,
-                policyParams: {...(params.policyParams ?? {}), policyTagList},
+                policyParams: params.policyParams,
             });
     }
 }
@@ -772,7 +768,6 @@ function duplicateExpenseTransaction({
     betas,
     personalDetails,
     recentWaypoints,
-    targetPolicyTags,
     shouldPlaySound = true,
     shouldDeferAutoSubmit = false,
     existingIOUReport,
@@ -873,7 +868,7 @@ function duplicateExpenseTransaction({
 
     params.policyParams = {
         policy: targetPolicy,
-        policyTagList: targetPolicyTags,
+        policyTagList,
         policyCategories: targetPolicyCategories ?? {},
     };
 
@@ -889,7 +884,6 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
-        policyTagList,
     });
 }
 
@@ -1029,18 +1023,6 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
         };
 
-        const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-        const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-        const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
-        // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policyTagList = getMoneyRequestPolicyTags({
-            existingIOUReport: params.existingIOUReport,
-            moneyRequestReportID,
-            parentChatReport: currentChatReport,
-            participant: participants.at(0) ?? {},
-        });
-
         const result = createExpenseByType({
             transactionType: getTransactionType(transaction),
             params,
@@ -1053,7 +1035,6 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
-            policyTagList,
         });
 
         if (result?.iouReport) {
