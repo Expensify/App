@@ -12,6 +12,7 @@ import React from 'react';
 import createMock from '../../../utils/createMock';
 
 const mockSetMoneyRequestAmount = jest.fn();
+const mockSetMoneyRequestCommuterExclusionFields = jest.fn();
 const mockSetMoneyRequestMerchant = jest.fn();
 const mockSetMoneyRequestPendingFields = jest.fn();
 
@@ -45,6 +46,9 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     setMoneyRequestAmount: (...args: unknown[]) => {
         mockSetMoneyRequestAmount(...args);
     },
+    setMoneyRequestCommuterExclusionFields: (...args: unknown[]) => {
+        mockSetMoneyRequestCommuterExclusionFields(...args);
+    },
     setMoneyRequestMerchant: (...args: unknown[]) => {
         mockSetMoneyRequestMerchant(...args);
     },
@@ -68,7 +72,7 @@ describe('DistanceRequestController', () => {
         jest.clearAllMocks();
     });
 
-    it('uses commuter exclusion data when updating the distance merchant', () => {
+    it('updates the base distance merchant and delegates commuter fields to the commuter action', () => {
         render(
             <DistanceRequestController
                 transactionID="txn1"
@@ -96,14 +100,19 @@ describe('DistanceRequestController', () => {
                 selectedParticipantsProp={[]}
                 setFormError={jest.fn()}
                 clearFormErrors={jest.fn()}
-                commuterExclusionData={{
-                    commuterExclusion: 1,
-                    reimbursableDistance: 3,
-                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                }}
             />,
         );
 
-        expect(mockSetMoneyRequestMerchant).toHaveBeenCalledWith('txn1', '3.00 mi @ $0.67 / mi', true);
+        expect(mockSetMoneyRequestMerchant).toHaveBeenCalledWith('txn1', '4.00 mi @ $0.67 / mi', true);
+        expect(mockSetMoneyRequestCommuterExclusionFields).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionID: 'txn1',
+                transaction,
+                policy: undefined,
+                customUnitRateID: '',
+                routeDistanceMeters: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            }),
+        );
     });
 });

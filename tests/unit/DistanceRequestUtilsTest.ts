@@ -401,31 +401,63 @@ describe('DistanceRequestUtils', () => {
         });
     });
 
-    describe('getCommuterExclusionData', () => {
-        it('converts fixed distance exclusions into the request unit', () => {
+    describe('getCommuterExclusionDisplayData', () => {
+        it('returns stored commuter display data from custom unit', () => {
+            const result = DistanceRequestUtils.getCommuterExclusionDisplayData(
+                {
+                    quantity: 4,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+
+            expect(result).toEqual({
+                commuterExclusion: 1,
+                reimbursableDistance: 3,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
+        });
+    });
+
+    describe('getTransactionCommuterExclusionData', () => {
+        it('builds optimistic commuter fields from route distance in meters', () => {
+            const getCurrencySymbolMock = (currency: string): string | undefined => (currency === CONST.CURRENCY.USD ? '$' : undefined);
+            const toLocaleDigitMock = (digit: string) => digit;
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: '222AAF6B93BCB',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        routeDistanceMeters: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                    },
+                },
+            } as Transaction;
             const policy = {
                 ...FAKE_POLICY,
                 commuterExclusions: {
                     method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
                     fixedDistance: 1,
-                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                 },
             };
-            const transaction = {
-                ...createRandomTransaction(1),
-                comment: {customUnit: {quantity: 1, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}},
-            } as Transaction;
 
-            const result = DistanceRequestUtils.getCommuterExclusionData(
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
                 transaction,
                 policy,
-                DistanceRequestUtils.convertToDistanceInMeters(1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
-                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-            );
+                translate: translateLocal,
+                toLocaleDigit: toLocaleDigitMock,
+                getCurrencySymbol: getCurrencySymbolMock,
+            });
 
-            expect(result?.commuterExclusion).toBeCloseTo(0.62, 2);
-            expect(result?.reimbursableDistance).toBeCloseTo(0.38, 2);
-            expect(result?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            expect(result?.modifiedAmount).toBe(201);
+            expect(result?.modifiedMerchant).toBe('3.00 mi @ $0.67 / mi');
+            expect(result?.customUnit.quantity).toBe(4);
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
         });
     });
 
