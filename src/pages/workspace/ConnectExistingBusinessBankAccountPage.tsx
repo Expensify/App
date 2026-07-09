@@ -93,12 +93,18 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}});
-            } else {
+            if (!isBankAccountPartiallySetup(accountData?.state)) {
                 setReimbursementAccountLoading(false);
                 Navigation.closeRHPFlow();
+                return;
             }
+
+            if (isChangingBankAccount) {
+                Navigation.goBack(backTo);
+                return;
+            }
+
+            navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}});
         });
     };
 
