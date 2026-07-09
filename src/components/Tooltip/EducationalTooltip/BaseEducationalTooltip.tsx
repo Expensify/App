@@ -202,6 +202,12 @@ function BaseEducationalTooltip({
                         const target = e.target || e.nativeEvent.target;
                         tooltipElementRef.current = target;
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
+
+                        // The wrapped component just moved (e.g. the device rotated). measure() only reports the
+                        // new position once the native layout has landed, so this is the earliest we can trust it.
+                        if (hasDisplayedTooltipRef.current) {
+                            renderTooltip();
+                        }
                     },
                 });
             }}
