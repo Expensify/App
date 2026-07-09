@@ -78,6 +78,7 @@ import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-o
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
+import ReceiptWranglerSpaceCowgirl from '@assets/images/product-illustrations/receipt-wrangler-space-cowgirl.svg';
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -290,6 +291,7 @@ const Illustrations = {
     MushroomTopHat,
     PaymentHands,
     PlanetWithMobileApp,
+    ReceiptWranglerSpaceCowgirl,
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,

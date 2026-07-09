@@ -401,6 +401,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'Auszahlungs-ID',
         internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
         withdrawalStatus: 'Auszahlungsstatus',
+        paidStatus: 'Status: Bezahlt',
         bankAccounts: 'Bankkonten',
         chooseFile: 'Datei auswählen',
         chooseFiles: 'Dateien auswählen',
@@ -2373,6 +2374,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Zwei-Faktor-Gerät ersetzen',
         verifyOldDeviceTitle: 'Altes Gerät verifizieren',
         verifyOldDeviceDescription: 'Geben Sie den sechsstelligen Code aus Ihrer aktuellen Authentifizierungs-App ein, um zu bestätigen, dass Sie Zugriff darauf haben.',
+        verifyOldDeviceDescriptionWithRecovery: 'Geben Sie einen gültigen Wiederherstellungscode ein, um zu bestätigen, dass Sie Zugriff auf Ihr Konto haben.',
         verifyNewDeviceTitle: 'Neues Gerät einrichten',
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
@@ -5523,6 +5525,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Rillet aus, aus der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
             noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Tochtergesellschaft in Rillet hinzu und synchronisieren Sie die Verbindung erneut.',
+            accountTypesDescription: 'Ihre Rillet-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Rillet-Konten werden als Kategorien verfügbar sein.',
+            dimensionsImport: 'Alle Rillet-Dimensionen werden als Tags importiert',
+            importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Rillet importiert werden sollen.',
         },
         type: {
             free: 'Kostenlos',
@@ -6283,6 +6290,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             importedFromAccountingSoftware: 'Die Steuern unten werden importiert aus Ihrer',
             taxCode: 'Steuerschlüssel',
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuche es erneut.',
+            taxRates: 'Steuersätze',
         },
         duplicateWorkspace: {
             title: 'Benennen Sie Ihren neuen Arbeitsbereich',
@@ -8862,6 +8870,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         failedError: ({link}: {link: string}) => `Wir versuchen diese Abrechnung erneut, sobald du <a href="${link}">dein Konto entsperrst</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Als bezahlt markiert', withdrawing: 'Wird abgehoben', confirmed: 'Bestätigt'},
     reportLayout: {
         reportLayout: 'Berichts-Layout',
         groupByLabel: 'Gruppieren nach:',
