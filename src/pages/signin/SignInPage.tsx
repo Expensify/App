@@ -79,6 +79,7 @@ type GetRenderOptionsParams = {
     credentials: OnyxEntry<Credentials>;
     isAccountValidated?: boolean;
     isSupportalSession: boolean;
+    isAuthenticatingWithShortLivedToken: boolean;
 };
 
 /**
@@ -102,6 +103,7 @@ function getRenderOptions({
     credentials,
     isAccountValidated,
     isSupportalSession,
+    isAuthenticatingWithShortLivedToken,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -112,7 +114,10 @@ function getRenderOptions({
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account.
     // Supportal sessions authenticate with a support auth token and must bypass SAML entirely, so we never
     // initiate SAML during a supportal session, even when the customer's account has SAML required.
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession;
+    // A short-lived-token exchange (the /transition SAML redirect-back) also sets account.isLoading; re-initiating SAML
+    // while that exchange is in flight tears down the page before it can finish and loops the user back to their IdP,
+    // so we skip SAML while isAuthenticatingWithShortLivedToken is set.
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession && !isAuthenticatingWithShortLivedToken;
     const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
@@ -165,6 +170,7 @@ function SignInPage({ref}: SignInPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [isAuthenticatingWithShortLivedToken = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -227,6 +233,7 @@ function SignInPage({ref}: SignInPageProps) {
         credentials,
         isAccountValidated,
         isSupportalSession: isSupportalSessionUtils(),
+        isAuthenticatingWithShortLivedToken,
     });
 
     if (shouldInitiateSAMLLogin) {
