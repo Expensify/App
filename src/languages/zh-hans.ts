@@ -2354,7 +2354,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '您的借记卡已成功添加',
         expensifyPassword: 'Expensify 密码',
         error: {
-            invalidName: '姓名只能包含字母',
+            invalidName: '卡片上的姓名必须至少包含一个拉丁字符',
             addressZipCode: '请输入有效的邮政编码',
             debitCardNumber: '请输入有效的借记卡号',
             expirationDate: '请选择一个有效的到期日期',
@@ -2377,7 +2377,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '您的付款卡已成功添加',
         expensifyPassword: 'Expensify 密码',
         error: {
-            invalidName: '姓名只能包含字母',
+            invalidName: '卡片上的姓名必须至少包含一个拉丁字符',
             addressZipCode: '请输入有效的邮政编码',
             paymentCardNumber: '请输入有效的卡号',
             expirationDate: '请选择一个有效的到期日期',

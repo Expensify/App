@@ -429,6 +429,14 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Checks that the provided name contains at least one Latin character.
+ * Used for card embossing names, which may include digits and other characters.
+ */
+function containsLatinCharacter(name: string): boolean {
+    return CONST.REGEX.CONTAINS_LATIN_CHARS.test(name);
+}
+
+/**
  * Checks that the provided name doesn't contain special characters or numbers
  */
 function isValidPersonName(value: string) {
@@ -759,7 +767,10 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
  */
 function isValidInputLength(inputValue: string, byteLength: number) {
     const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
-    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
+    return {
+        isValid: valueByteLength <= byteLength,
+        byteLength: valueByteLength,
+    };
 }
 
 /**
@@ -912,6 +923,7 @@ export {
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
+    containsLatinCharacter,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,

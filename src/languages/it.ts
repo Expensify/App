@@ -2432,7 +2432,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'La tua carta di debito è stata aggiunta con successo',
         expensifyPassword: 'Password Expensify',
         error: {
-            invalidName: 'Il nome può includere solo lettere',
+            invalidName: 'Il nome sulla carta deve contenere almeno un carattere latino',
             addressZipCode: 'Inserisci un codice postale valido',
             debitCardNumber: 'Inserisci un numero di carta di debito valido',
             expirationDate: 'Seleziona una data di scadenza valida',
@@ -2455,7 +2455,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'La tua carta di pagamento è stata aggiunta correttamente',
         expensifyPassword: 'Password Expensify',
         error: {
-            invalidName: 'Il nome può includere solo lettere',
+            invalidName: 'Il nome sulla carta deve contenere almeno un carattere latino',
             addressZipCode: 'Inserisci un codice postale valido',
             paymentCardNumber: 'Inserisci un numero di carta valido',
             expirationDate: 'Seleziona una data di scadenza valida',

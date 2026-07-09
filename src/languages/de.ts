@@ -2435,7 +2435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Debitkarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Der Name auf der Karte muss mindestens ein lateinisches Zeichen enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             debitCardNumber: 'Bitte gib eine gültige Debitkartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
@@ -2458,7 +2458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Zahlungskarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Der Name auf der Karte muss mindestens ein lateinisches Zeichen enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             paymentCardNumber: 'Bitte gib eine gültige Kartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
