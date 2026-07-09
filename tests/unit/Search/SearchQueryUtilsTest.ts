@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-// we need "dirty" object key names in these tests
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ASTNode, QueryFilter, SearchQueryJSON} from '@components/Search/types';
+
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import {
@@ -38,6 +37,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+// we need "dirty" object key names in these tests
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
@@ -382,6 +386,30 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
+        test('receipt type filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                receiptType: ['ereceipt', 'hotel'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense receiptType:ereceipt,hotel');
+        });
+
+        test('negated receipt type filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                receiptTypeNot: ['hotel'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -receiptType:hotel');
+        });
+
         test('with Policy ID', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 policyID: ['12345'],
@@ -639,6 +667,30 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense withdrawalStatus:pending,cleared,failed');
+        });
+
+        test('with single paid status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report paidStatus:markedAsPaid');
+        });
+
+        test('with multi-value paid status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report paidStatus:markedAsPaid,withdrawing,confirmed');
         });
 
         test('with withdrawn filter', () => {
@@ -1165,6 +1217,47 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test('paid status filter parses valid values and drops invalid ones', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            let queryString = 'sortBy:date sortOrder:desc type:expense-report paid-status:markedAsPaid,withdrawing,confirmed';
+            let queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense-report',
+                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            });
+
+            // invalid values are dropped, valid ones retained
+            queryString = 'sortBy:date sortOrder:desc type:expense-report paid-status:markedAsPaid,INVALID,confirmed';
+            queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense-report',
+                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+                paidStatus: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            });
+        });
+
         test('parses negative backend amounts into filter form values', () => {
             const policyCategories = {};
             const policyTags = {};
@@ -1591,6 +1684,51 @@ describe('SearchQueryUtils', () => {
 
             // invalid should be filtered out, cash and card are valid CONST.SEARCH.TRANSACTION_TYPE values
             expect(result.expenseType).toEqual(['cash', 'card']);
+        });
+
+        test('receipt type filter validates against valid types', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense receipt-type:ereceipt,hotel,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // invalid should be filtered out, ereceipt and hotel are valid CONST.SEARCH.RECEIPT_TYPE values
+            expect(result.receiptType).toEqual(['ereceipt', 'hotel']);
+        });
+
+        test('negated receipt type filter populates receiptTypeNot', () => {
+            // Negation in the query syntax uses the "-" prefix, which round-trips to the receiptTypeNot form value.
+            const queryString = 'sortBy:date sortOrder:desc type:expense -receipt-type:hotel';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result.receiptTypeNot).toEqual(['hotel']);
+            expect(result.receiptType).toBeUndefined();
         });
 
         test('from:me resolves to current user account ID when currentUserAccountID is provided', () => {
@@ -2718,6 +2856,50 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(result).toBe('GL:travel');
+        });
+
+        it('should format bankAccount filter as "<bank> xx<last4>" using bankAccountList', () => {
+            const bankAccountList: OnyxTypes.BankAccountList = {
+                42: {
+                    accountData: {
+                        bankAccountID: 42,
+                        accountNumber: '123456789012',
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                } as OnyxTypes.BankAccountList[string],
+            };
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+                filterValue: '42',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                bankAccountList,
+            });
+
+            expect(result).toBe('Chase xx9012');
+        });
+
+        it('should return the bankAccountID when no matching bank account is found', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+                filterValue: '99',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                bankAccountList: {},
+            });
+
+            expect(result).toBe('99');
         });
     });
 

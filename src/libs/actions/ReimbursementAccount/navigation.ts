@@ -1,10 +1,12 @@
-import Onyx from 'react-native-onyx';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountStep} from '@src/types/onyx/ReimbursementAccount';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Navigate to a specific step in the VBA flow
