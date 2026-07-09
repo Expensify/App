@@ -122,6 +122,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS,
                 ],
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath)),
                 subscribedExportSettings: [

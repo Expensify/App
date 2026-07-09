@@ -701,6 +701,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksCustomersPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksTaxesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksLocationsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ITEMS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksItemsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksClassesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksClassesDisplayedAsPage').default,
