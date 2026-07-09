@@ -1,4 +1,5 @@
 import useAttendees from '@hooks/useAttendees';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -254,6 +255,11 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -512,7 +518,12 @@ function MoneyRequestConfirmationList({
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
+        onConfirm: () => {
+            if (shouldBlockManualOrOdometerDistanceRequest()) {
+                return;
+            }
+            onConfirm?.();
+        },
         onSendMoney,
     });
 
