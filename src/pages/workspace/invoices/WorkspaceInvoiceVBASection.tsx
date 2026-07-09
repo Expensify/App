@@ -147,7 +147,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             navigateToBankAccountRoute({
                 policyID: accountPolicyID,
                 backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID),
-                policyCurrency: policy?.outputCurrency,
+                policyCurrency: accountData?.additionalData?.currency,
                 bankAccountState: accountData?.state,
             });
         }
