@@ -3,6 +3,7 @@ title: Review Your Expensify Billing Receipt
 description: Learn how to read your Expensify billing receipt, including billing breakdown, activity breakdown and discounts. 
 keywords: [what does my receipt mean, receipt breakdown, receipt sections, billing summary, discounts]
 internalScope: Audience is Workspace owners. Explains the purpose and sections of the monthly Expensify billing receipt. Does not explain billing calculations, pricing rules, or how to resolve billing issues.
+retrievalIntent: What do the sections on my billing receipt mean
 platform: new
 contentType: topic
 ---
