@@ -33,7 +33,28 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    // Mirror the real getExportTemplates: the basic export (CSV download) template is only included when includeBasicExport is true
+    getExportTemplates: jest.fn(
+        (
+            _integrations: unknown,
+            _layouts: unknown,
+            translate: (key: string) => string,
+            _localeCompare: unknown,
+            _policy: unknown,
+            _includeReportLevelExport: unknown,
+            includeBasicExport = false,
+        ) =>
+            includeBasicExport
+                ? [
+                      {
+                          templateName: 'downloadCSV',
+                          name: translate('export.basicExport'),
+                          type: 'integrations',
+                          description: '',
+                      },
+                  ]
+                : [],
+    ),
 }));
 
 jest.mock('@libs/actions/SplitExpenses.ts', () => ({
