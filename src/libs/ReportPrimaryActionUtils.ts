@@ -56,13 +56,11 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
-    hasSmartScanFailedWithMissingFields,
-    hasSubmissionBlockingViolations,
     isDuplicate,
-    isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
+    isTransactionSubmittable,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
@@ -138,17 +136,10 @@ function isSubmitAction(
     }
 
     const reportTransactionsList = reportTransactions ?? [];
-    const isTransactionSubmittable = (transaction: Transaction) => {
-        if (isScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
-            return false;
-        }
-        if (violations && currentUserEmail && currentUserAccountID !== undefined) {
-            return !hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
-        }
-        return true;
-    };
-
-    if (reportTransactionsList.length > 0 && !reportTransactionsList.some(isTransactionSubmittable)) {
+    if (
+        reportTransactionsList.length > 0 &&
+        !reportTransactionsList.some((transaction) => isTransactionSubmittable(transaction, report, violations, currentUserEmail, currentUserAccountID, policy))
+    ) {
         return false;
     }
 

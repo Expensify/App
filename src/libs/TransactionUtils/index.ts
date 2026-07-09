@@ -3064,6 +3064,26 @@ function hasSubmissionBlockingViolations(
     return hasSubmissionBlockingViolationInList(violations);
 }
 
+function isTransactionSubmittable(
+    transaction: Transaction,
+    report: OnyxEntry<Report>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string | undefined,
+    currentUserAccountID: number | undefined,
+    policy: OnyxEntry<Policy>,
+    isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
+): boolean {
+    if (isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
+        return false;
+    }
+
+    if (transactionViolations && currentUserEmail && currentUserAccountID !== undefined) {
+        return !hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+    }
+
+    return true;
+}
+
 /**
  * Check if the initial transaction should be reused for the current file being processed.
  */
@@ -3240,6 +3260,7 @@ export {
     isPartialTransaction,
     isScanningTransaction,
     isScanning,
+    isTransactionSubmittable,
     isCategoryBeingAnalyzed,
     getOriginalTransactionWithSplitInfo,
     shouldRedirectDeleteToSplitExpenseEdit,

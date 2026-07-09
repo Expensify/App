@@ -65,14 +65,12 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
-    hasSmartScanFailedWithMissingFields,
-    hasSubmissionBlockingViolations,
     isDuplicate,
-    isExpensifyCardTransaction,
     isOnHold,
     isPending,
     isScanning,
     isScanningTransaction,
+    isTransactionSubmittable,
 } from '@libs/TransactionUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -273,12 +271,9 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
-    const isTransactionSubmittable = (transaction: OnyxTypes.Transaction) =>
-        !isScanningTransaction(transaction) &&
-        !(isExpensifyCardTransaction(transaction) && isPending(transaction)) &&
-        !hasSmartScanFailedWithMissingFields([transaction], report) &&
-        !hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
-    const hasNoSubmittableTransaction = transactions.length > 0 && !transactions.some(isTransactionSubmittable);
+    const hasNoSubmittableTransaction =
+        transactions.length > 0 &&
+        !transactions.some((transaction) => isTransactionSubmittable(transaction, report, allViolations, currentUserEmailParam, currentUserAccountID, policy, isScanningTransaction));
 
     return (
         isOpenExpenseReport &&
