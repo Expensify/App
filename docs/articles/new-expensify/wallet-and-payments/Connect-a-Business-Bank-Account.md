@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins and Payments Admins. Covers connecti
 
 # Connect a US Business Bank Account
 
-You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workspace Admin or a Payment Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
+You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workspace Admin or a Payments Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
 
 This article covers connecting US bank accounts only. If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
