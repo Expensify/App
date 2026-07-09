@@ -143,7 +143,6 @@ function TransactionDetailsFields({
                     hasRoute={distanceData.hasRoute}
                     distance={distanceData.distance}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
                     isGPSDistanceRequest={isGPSDistanceRequest}

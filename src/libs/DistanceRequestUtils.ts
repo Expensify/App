@@ -1,6 +1,5 @@
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,11 +34,8 @@ type MileageRate = {
     endDate?: string | null;
 };
 
-type TransactionCommuterExclusionData = {
-    modifiedAmount: number;
-    modifiedMerchant?: string;
-    customUnit: TransactionCustomUnit;
-};
+type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
+type TransactionCommuterExclusionData = Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit};
 
 /** @private Only for getRate function */
 let allPolicies: OnyxCollection<Policy>;
@@ -235,11 +231,10 @@ function getDistanceForDisplay(
     hasRoute: boolean,
     distanceInMeters: number,
     unit: Unit | undefined,
-    rate: number | undefined,
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
     isZeroDistanceAllowed?: boolean,
-    commuterExclusionData?: CommuterExclusionData,
+    commuterExclusionData?: CommuterExclusionData | null,
 ): string {
     const displayUnit = unit ?? commuterExclusionData?.distanceUnit;
     if (!hasRoute || !displayUnit) {
@@ -280,7 +275,7 @@ function getDistanceMerchant(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isZeroDistanceAllowed?: boolean,
-    commuterExclusionData?: CommuterExclusionData,
+    commuterExclusionData?: CommuterExclusionData | null,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
@@ -290,7 +285,7 @@ function getDistanceMerchant(
         return '';
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed, commuterExclusionData);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, translate, true, isZeroDistanceAllowed, commuterExclusionData);
     const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
@@ -383,18 +378,19 @@ function getTransactionCommuterExclusionData({
         ? (getRateByCustomUnitRateID({customUnitRateID: existingCustomUnit.customUnitRateID, policy}) ?? getRate({transaction, policy, personalPolicyOutputCurrency}))
         : getRate({transaction, policy, personalPolicyOutputCurrency});
     const requestDistanceUnit = existingCustomUnit?.distanceUnit ?? selectedRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const routeDistanceInMeters =
-        typeof existingCustomUnit?.routeDistanceMeters === 'number'
-            ? existingCustomUnit.routeDistanceMeters
-            : typeof transaction?.routes?.route0?.distance === 'number'
-              ? transaction.routes.route0.distance
-              : undefined;
-    const routeDistance =
-        typeof existingCustomUnit?.quantity === 'number'
-            ? existingCustomUnit.quantity
-            : routeDistanceInMeters !== undefined
-              ? convertDistanceUnit(routeDistanceInMeters, requestDistanceUnit)
-              : undefined;
+    let routeDistanceInMeters: number | undefined;
+    if (typeof existingCustomUnit?.routeDistanceMeters === 'number') {
+        routeDistanceInMeters = existingCustomUnit.routeDistanceMeters;
+    } else if (typeof transaction?.routes?.route0?.distance === 'number') {
+        routeDistanceInMeters = transaction.routes.route0.distance;
+    }
+
+    let routeDistance: number | undefined;
+    if (typeof existingCustomUnit?.quantity === 'number') {
+        routeDistance = existingCustomUnit.quantity;
+    } else if (routeDistanceInMeters !== undefined) {
+        routeDistance = convertDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
+    }
     if (routeDistance === undefined) {
         return;
     }
@@ -877,6 +873,5 @@ export default {
     getBestEligibleRate,
     getRateDateLabel,
 };
-export type {TransactionCommuterExclusionData};
 
 export type {MileageRate};
