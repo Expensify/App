@@ -99,18 +99,12 @@ const defaultListOptions = {
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 
-// The empty-query "Recent chats" section rarely gets scrolled past the first screenful, so building
-// options (icons, subtitles, translated text) for the full 500-report default on every open is mostly
-// wasted work. Start smaller and grow via onEndReached; typing a query bypasses this cap entirely
-// (isSearching drops the limit in createFilteredOptionList), so search results are never truncated by it.
-// Note: createFilteredOptionList slices to this count by raw recency *before* shouldReportBeInOptionList
-// excludes hidden/muted chats, so the visible list can come out shorter than this number. 100 leaves
-// enough buffer that a few hidden chats near the top of a user's recency ordering won't visibly thin
-// the initial list, while still cutting the default 500 by 5x.
-// createFilteredOptionList rebuilds the whole top-N slice from scratch on every call rather than
-// appending incrementally, so a small batch size means repeated full rebuilds of already-processed
-// reports as the user keeps scrolling. Using the original 500-report batch size keeps pagination to a
-// single extra rebuild for the (rare) user who scrolls past the initial screenful.
+// Most opens never scroll past the initial rows, so building full option data for the default
+// 500-report list every time is unnecessary. Start smaller and grow via onEndReached; typing a
+// query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
+// 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
+// The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
+// top-N slice from scratch each call, so a small batch would mean repeated rebuilds on scroll.
 const INITIAL_MAX_RECENT_REPORTS = 100;
 const RECENT_REPORTS_BATCH_SIZE = 500;
 
@@ -627,17 +621,20 @@ function SearchAutocompleteList({
 
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
 
-    // Guard for the INITIAL_MAX_RECENT_REPORTS cap above: if every report within that raw cap gets excluded by
-    // getSearchOptions (e.g. all hidden/muted chats) and no other section has rows, "sections" is empty and
-    // SelectionListWithSections renders its empty state instead of a FlashList — onEndReached never mounts there,
-    // so loadMoreRecentReports would otherwise never run and the user would be stuck looking at an empty
-    // "Recent chats" list. Escalate the cap ourselves until either a row surfaces or we've truly run out of reports.
+    // If every report within the raw cap gets excluded (e.g. all hidden/muted), sections is empty and
+    // SelectionListWithSections shows its empty state instead of a FlashList, so onEndReached never
+    // mounts and loadMoreRecentReports would never run. Escalate the cap ourselves until a row surfaces.
     useEffect(() => {
         if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || suggestionsCount > 0 || !hasMoreRecentReports) {
             return;
         }
         loadMoreRecentReports();
     }, [trimmedAutocompleteQueryValue, isLoadingOptions, suggestionsCount, hasMoreRecentReports, loadMoreRecentReports]);
+
+    // hasMoreRecentReports only tracks raw reports, not the visible MAX_AMOUNT_OF_SUGGESTIONS cap. Once the
+    // visible cap is full, remaining raw reports are all less recent and can never surface, so loading more
+    // would just rebuild larger batches for no UI change. Stop wiring onEndReached in that case.
+    const canLoadMoreRecentReports = hasMoreRecentReports && recentReportsOptions.length < CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS;
 
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
@@ -726,7 +723,7 @@ function SearchAutocompleteList({
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
-            onEndReached={hasMoreRecentReports ? loadMoreRecentReports : undefined}
+            onEndReached={canLoadMoreRecentReports ? loadMoreRecentReports : undefined}
             onEndReachedThreshold={0.75}
             ref={setListRef}
             initialScrollIndex={0}
