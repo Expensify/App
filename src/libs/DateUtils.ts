@@ -142,10 +142,11 @@ function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: strin
         return toZonedSafe(datetime, currentSelectedTimezone);
     }
     let parsedDatetime: Date;
+    // Skip the `Z` on already-zoned strings — appending produces `...ZZ` / `...+05:00Z` (Invalid Date). Runs every minute in useNow consumers.
+    const isAlreadyZoned = datetime.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(datetime);
     try {
-        // in some cases we cannot add 'Z' to the date string
-        parsedDatetime = new Date(`${datetime}Z`);
-        parsedDatetime.toISOString(); // we need to call toISOString because it throws RangeError in case of an invalid date
+        parsedDatetime = new Date(isAlreadyZoned ? datetime : `${datetime}Z`);
+        parsedDatetime.toISOString();
     } catch (e) {
         parsedDatetime = new Date(datetime);
     }
@@ -409,21 +410,27 @@ function getDaysOfWeekShort(locale: Locale): string[] {
  */
 function getLocalizedDatePlaceholder(locale: Locale): string {
     const sample = new Date(2024, 11, 31);
-    return getIntlDateTimeFormat(locale, 'SHORT_DATE')
-        .formatToParts(sample)
-        .map((part) => {
-            switch (part.type) {
-                case 'year':
-                    return 'YYYY';
-                case 'month':
-                    return 'MM';
-                case 'day':
-                    return 'DD';
-                default:
-                    return part.value;
-            }
-        })
-        .join('');
+    try {
+        return getIntlDateTimeFormat(locale, 'SHORT_DATE')
+            .formatToParts(sample)
+            .map((part) => {
+                switch (part.type) {
+                    case 'year':
+                        return 'YYYY';
+                    case 'month':
+                        return 'MM';
+                    case 'day':
+                        return 'DD';
+                    default:
+                        return part.value;
+                }
+            })
+            .join('');
+    } catch (error) {
+        // Render-path caller (DatePicker) has no error boundary — degrade instead of throwing.
+        Log.warn('[DateUtils] getLocalizedDatePlaceholder failed; degrading to en-US default', {locale, error});
+        return 'MM/DD/YYYY';
+    }
 }
 
 function weekdayNamesIn(locale: Locale, formatKey: 'LONG_WEEKDAY' | 'SHORT_WEEKDAY' | 'NARROW_WEEKDAY'): string[] {
@@ -945,7 +952,8 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale): st
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(CANCELLATION_OFFSET_PATTERN);
+    // Gate on a `:` from a time component — otherwise `'2026-04-19'` matches trailing `-19` as a spurious GMT-19 offset.
+    const offsetMatch = isoDateString.includes(':') ? isoDateString.match(CANCELLATION_OFFSET_PATTERN) : null;
     const [, sign = '+', hours = '00', minutes = '00'] = offsetMatch ?? [];
     const offsetMinutes = offsetMatch ? (sign === '-' ? -1 : 1) * (Number(hours) * 60 + Number(minutes)) : 0;
     const venueTimezoneLabel = offsetMatch ? getCancellationDateTimezoneLabel(`${sign}${hours}:${minutes}`) : 'UTC';

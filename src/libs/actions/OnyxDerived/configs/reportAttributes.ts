@@ -11,6 +11,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
@@ -121,7 +122,7 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
-        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale ?? IntlStore.getCurrentLocale(), path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {

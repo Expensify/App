@@ -797,6 +797,32 @@ describe('DateUtils', () => {
             const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00', CONST.LOCALES.EN);
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
+
+        it('date-only input is treated as UTC — trailing `-DD` must not match as a spurious GMT-DD offset', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19', CONST.LOCALES.EN);
+            expect(result).toBe('Sunday, Apr 19, 2026 12:00 AM, UTC');
+        });
+    });
+
+    // Structural check: CI runs `TZ=UTC`, so a formatter that forgot the `timeZone` arg would still pass output-based tests — spy on the constructor to catch the drop.
+    describe('formatInUTCTo* passes timeZone: UTC to Intl.DateTimeFormat', () => {
+        it.each(['formatInUTCToMedium' as const, 'formatInUTCToShort' as const, 'formatInUTCToLong' as const])('%s uses timeZone: "UTC"', (fnName) => {
+            const spy = jest.spyOn(Intl, 'DateTimeFormat');
+            DateUtils[fnName]('2026-01-15', CONST.LOCALES.EN);
+            const passedUTC = spy.mock.calls.some(([, options]) => options?.timeZone === 'UTC');
+            expect(passedUTC).toBe(true);
+            spy.mockRestore();
+        });
+
+        it.each(['formatToLocalizedShortDate' as const])('%s uses timeZone: "UTC"', (fnName) => {
+            const spy = jest.spyOn(Intl, 'DateTimeFormat');
+            DateUtils[fnName]('2026-01-15', CONST.LOCALES.EN);
+            const passedUTC = spy.mock.calls.some(([, options]) => options?.timeZone === 'UTC');
+            expect(passedUTC).toBe(true);
+            spy.mockRestore();
+        });
     });
 
     describe('getRemainingSecondsInWindow', () => {
