@@ -3956,6 +3956,23 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: 68,
         },
 
+        gettingStartedRowIconContainer: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        gettingStartedRowTextContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            gap: 2,
+        },
+
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
         widgetHeaderMenuButton: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
