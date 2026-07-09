@@ -28,7 +28,13 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts", "src/setup/telemetry/noopExpoUpdates.ts"],
+            "ignore": [
+                ".github/actions/**/index.js",
+                "tests/perf-test/**",
+                "web/snippets/gib.js",
+                "src/libs/actions/connections/FinancialForce.ts",
+                "src/setup/telemetry/noopExpoUpdates.ts"
+            ],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
