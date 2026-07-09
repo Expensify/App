@@ -47,11 +47,18 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-            value: {
-                [emoji.name]: {
-                    pendingAction: null,
-                },
-            },
+            // Auth resolves the name-keyed emojiCode to a canonical hexcode and NIL-merges the
+            // legacy name key in its Onyx response. NIL the optimistic name key here too instead of
+            // just clearing its pendingAction, otherwise this finallyData recreates a name-key stub
+            // (with no `users`) after the server has already cleared it.
+            value: emoji.hexcode
+                ? {
+                      [emoji.name]: null,
+                      [emoji.hexcode]: {pendingAction: null},
+                  }
+                : {
+                      [emoji.name]: {pendingAction: null},
+                  },
         },
     ];
 
