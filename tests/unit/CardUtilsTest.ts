@@ -14,6 +14,7 @@ import {
     filterAllInactiveCards,
     filterInactiveCards,
     filterInactiveCardsForWorkspace,
+    forEachAssignedCard,
     formatCardExpiration,
     formatMaskedCardName,
     getAllCardsForWorkspace,
@@ -50,6 +51,7 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getYearFromExpirationDateString,
+    hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isCardAlreadyAssigned,
@@ -58,6 +60,7 @@ import {
     isCSVUploadFeed,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
+    isActiveCard,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     isExpiredCard,
@@ -2144,6 +2147,103 @@ describe('CardUtils', () => {
         it('should return an empty object if undefined card list is passed', () => {
             const cards = filterInactiveCards(undefined);
             expect(cards).toEqual({});
+        });
+    });
+
+    describe('isActiveCard', () => {
+        it('keeps an open card', () => {
+            const card = createMock<Card>({state: CONST.EXPENSIFY_CARD.STATE.OPEN});
+            expect(isActiveCard(card)).toBe(true);
+        });
+
+        it('drops closed and deactivated cards regardless of includeDeactivated flag', () => {
+            const closedCard = createMock<Card>({state: CONST.EXPENSIFY_CARD.STATE.CLOSED});
+            const deactivatedCard = createMock<Card>({state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED});
+
+            expect(isActiveCard(closedCard)).toBe(false);
+            expect(isActiveCard(closedCard, true)).toBe(false);
+            expect(isActiveCard(deactivatedCard)).toBe(false);
+            expect(isActiveCard(deactivatedCard, true)).toBe(false);
+        });
+
+        it('keeps a suspended card only when it is frozen', () => {
+            const frozenCard = createMock<Card>({
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                nameValuePairs: createMock<Card['nameValuePairs']>({frozen: {byAccountID: 1, date: '2024-01-01'}}),
+            });
+            const suspendedCard = createMock<Card>({state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED});
+
+            expect(isActiveCard(frozenCard)).toBe(true);
+            expect(isActiveCard(suspendedCard)).toBe(false);
+        });
+
+        it('keeps a non-frozen suspended card when includeDeactivated is true', () => {
+            const suspendedCard = createMock<Card>({state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED});
+            expect(isActiveCard(suspendedCard, true)).toBe(true);
+        });
+    });
+
+    describe('hasAssignedCardMatching', () => {
+        const cardsList = createMock<WorkspaceCardsList>({
+            '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: CONST.EXPENSIFY_CARD.BANK},
+            '2': {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: CONST.EXPENSIFY_CARD.BANK},
+            cardList: {'CREDIT CARD...1234': 'encrypted-value'} as Record<string, string>,
+        });
+
+        it('returns false for an undefined card list', () => {
+            expect(hasAssignedCardMatching(undefined, () => true)).toBe(false);
+        });
+
+        it('returns true when an assigned card matches the predicate', () => {
+            expect(hasAssignedCardMatching(cardsList, (card) => card.state === CONST.EXPENSIFY_CARD.STATE.OPEN)).toBe(true);
+        });
+
+        it('returns false when no assigned card matches the predicate', () => {
+            expect(hasAssignedCardMatching(cardsList, (card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED)).toBe(false);
+        });
+
+        it('skips the cardList bucket of cards still available to assign', () => {
+            const seenCardIDs: Array<number | undefined> = [];
+            hasAssignedCardMatching(cardsList, (card) => {
+                seenCardIDs.push(card.cardID);
+                return false;
+            });
+            expect(seenCardIDs).toEqual([1, 2]);
+        });
+
+        it('short-circuits on the first match', () => {
+            let callCount = 0;
+            hasAssignedCardMatching(cardsList, () => {
+                callCount += 1;
+                return true;
+            });
+            expect(callCount).toBe(1);
+        });
+    });
+
+    describe('forEachAssignedCard', () => {
+        const cardsList = createMock<WorkspaceCardsList>({
+            '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN},
+            '2': {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED},
+            cardList: {'CREDIT CARD...1234': 'encrypted-value'} as Record<string, string>,
+        });
+
+        it('does nothing for an undefined card list', () => {
+            const callback = jest.fn();
+            forEachAssignedCard(undefined, callback);
+            expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('runs the callback once for every assigned card', () => {
+            const seenCardIDs: Array<number | undefined> = [];
+            forEachAssignedCard(cardsList, (card) => seenCardIDs.push(card.cardID));
+            expect(seenCardIDs).toEqual([1, 2]);
+        });
+
+        it('skips the cardList bucket of cards still available to assign', () => {
+            forEachAssignedCard(cardsList, (card) => {
+                expect(typeof card.cardID).toBe('number');
+            });
         });
     });
 

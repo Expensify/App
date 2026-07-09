@@ -1641,6 +1641,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.POLICY_COPY_SETTINGS.ROOT]: ROUTES.POLICY_COPY_SETTINGS.route,
                         [SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES]: ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.route,
+                        [SCREENS.POLICY_COPY_SETTINGS.UPGRADE]: ROUTES.POLICY_COPY_SETTINGS_UPGRADE.route,
                         [SCREENS.POLICY_COPY_SETTINGS.CONFIRM]: ROUTES.POLICY_COPY_SETTINGS_CONFIRM.route,
                     },
                 },
@@ -2080,6 +2081,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.AVATAR_CROP]: {
+                    screens: {
+                        [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AVATAR_CROP.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {

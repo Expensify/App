@@ -14,7 +14,6 @@ import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyState
 import variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -40,6 +39,7 @@ type WorkspaceRowData = TableData & {
     ownerAvatar?: AvatarSource;
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+    isEligibleToCopy: boolean;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
@@ -56,12 +56,9 @@ type WorkspaceListTableProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets, passed down to the row menus */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -122,7 +119,6 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 onDeleteWorkspace={onDeleteWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
-                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         );
     };
