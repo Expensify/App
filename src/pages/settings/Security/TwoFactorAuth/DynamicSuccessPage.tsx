@@ -55,7 +55,24 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
     const isForced2FAOnboardingSetup = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
 
+    const completeForced2FAOnboardingHandoff = () => {
+        clearTwoFactorAuthData(true);
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+            afterTransition: () => {
+                const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+                startOnboardingFlow({
+                    ...onboardingFlowParams,
+                    onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
+                });
+            },
+        });
+    };
+
     const goBack = () => {
+        if (isForced2FAOnboardingSetup) {
+            completeForced2FAOnboardingHandoff();
+            return;
+        }
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
@@ -78,16 +95,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             return;
         }
         if (isForced2FAOnboardingSetup) {
-            clearTwoFactorAuthData(true);
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
-                afterTransition: () => {
-                    const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
-                    startOnboardingFlow({
-                        ...onboardingFlowParams,
-                        onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
-                    });
-                },
-            });
+            completeForced2FAOnboardingHandoff();
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it
