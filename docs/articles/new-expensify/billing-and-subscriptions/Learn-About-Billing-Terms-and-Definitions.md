@@ -1,9 +1,9 @@
 ---
 title: Learn About Billing Terms and Definitions
-description: Learn what common subscription billing terms mean in Expensify, including plans, subscriptions, members, seats, payment methods, and billing settings.
-keywords: [billing terms, billing glossary, subscription, plan, active member, unique member, seats, payment card, Expensify Card]
-internalScope: Audience is Workspace owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
-retrievalIntent: Define common Expensify billing terminology, including subscriptions, plans, subscription types, members, seats, payment methods, and billing settings.
+description: Learn what common subscription billing terms mean in Expensify, including subscriptions, plans, members, billing receipts, payment methods, and annual subscription settings.
+keywords: [billing terms, billing glossary, subscription, billing receipt, active member, unique member, annual subscription, payment method]
+internalScope: Audience is Workspace owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows, pricing calculations, or troubleshooting.
+retrievalIntent: What do the billing terms in Expensify mean
 contentType: topic
 platform: new
 order: 3
@@ -11,7 +11,7 @@ order: 3
 
 # Learn About Billing Terms and Definitions
 
-Expensify billing uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret billing information, compare subscription options, and understand how your subscription is calculated.
+Expensify uses several terms to describe your Workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret your billing receipt, compare subscription options, and understand your subscription.
 
 Most billing terminology is intended for Workspace owners, since only Workspace owners manage subscriptions.
 
@@ -19,23 +19,21 @@ Most billing terminology is intended for Workspace owners, since only Workspace 
 
 ## What subscription terms mean
 
-A **subscription** is the billing arrangement for a Workspace. It determines how Expensify charges for your Workspace and is managed from **Account > Subscription**.
+A **subscription** is the billing arrangement for a Workspace. It determines how Expensify charges for your Workspace and is managed by the Workspace owner under **Settings > Workspaces > Workspace name > Subscription**.
 
 Every subscription includes both a **plan** and a **subscription type**.
 
-A **plan** determines which features are available for your Workspace. Expensify currently offers two plans:
+A **plan** determines which features are available for your Workspace. Expensify currently offers:
 
- - **Collect**
- - **Control**
+- **Collect**
+- **Control**
 
-A **subscription type** determines how you pay for your plan.
+A **subscription type** determines how you pay for your plan. Subscription types include:
 
-Subscription types include:
+- **Annual**, which includes a 12-month commitment with discounted pricing.
+- **Pay-per-use**, which has no annual commitment.
 
- - **Annual**, which includes a 12-month commitment with discounted pricing.
- - **Pay-per-use**, which has no annual commitment.
-
-Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
+The **billing period** is the period of time covered by your billing receipt. Expensify bills monthly in arrears, so each receipt reflects subscription activity from the previous month.
 
 To learn more, see [Learn How Billing and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work).
 
@@ -45,44 +43,42 @@ To learn more, see [Learn How Billing and Subscriptions Work](/articles/new-expe
 
 A **member** is anyone who belongs to a workspace.
 
-Collect subscriptions bill based on **unique members**, which includes every member in the Workspace, regardless of whether they used Expensify during the billing period.
+A **unique member** is every member in the Workspace, regardless of whether they used Expensify during the billing period.
 
-Control subscriptions bill based on **active members**, which are members who performed billable activity during the billing period. Billable activity includes creating, editing, submitting, approving, or exporting expense data, or chatting with Concierge. 
+An **active member** is a member who performed billable activity during the billing period.
 
-You may also see the term **Workspace Admin**, which refers to a member who manages workspace settings. 
+**Billable activity** includes creating, editing, submitting, approving, or exporting expense data, or chatting with Concierge.
 
-The **Workspace owner** is responsible for managing a workspace's subscription and payment method. 
+An **inactive member** is a member who belongs to a Workspace but did not perform billable activity during the billing period.
+
+A **Workspace Admin** is a member who has permissions to manage the Workspace settings.
+
+The **Workspace owner** is the Workspace Admin who is responsible for managing the Workspace's subscription and payment card.
 
 <!-- LINK: Workspace member roles article when created -->
 
 ---
 
-## What subscription settings affect your bill
+## What Annual subscription terms mean 
 
-Some subscription settings affect how your workspace is billed over time.
+Some Annual subscription settings affect how your Workspace is billed over time.
 
-For annual subscriptions, **subscription size** (sometimes called **seats**) is the number of members included in your annual commitment. You can increase your subscription size at any time, but you cannot reduce it until your annual term ends.
+**Subscription size** (sometimes called **seats**) is the number of members included in your annual commitment. You can increase your subscription size at any time, but you can't reduce it until your annual term ends.
 
-**Auto-renew** determines whether your annual subscription automatically renews when the current commitment expires.
+**Auto-renew** determines whether your Annual subscription automatically renews when the current subscription term expires.
 
-**Auto-increase annual seats** automatically increases your subscription size if your active member count exceeds your committed seats.
+**Auto-increase annual seats** automatically increases your subscription size if your member count exceeds your committed subscription size.
 
-To learn more, see Manage Annual Subscription Settings.
+To learn more, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Setting).
 
 ---
 
 ## What payment terms mean
 
-The **payment card** is the credit card Expensify charges for your subscription.
+The **payment card** is the credit card Expensify charges for your subscription. The Workspace owner can add and manage the payment card. 
 
-The **Expensify Card** is your company's corporate card for business spending. Although the names are similar, these are different products. The payment card is used to pay your subscription, while the Expensify Card is used to make business purchases.
+An **Expensify Card discount** reduces your subscription cost based on eligible Expensify Card usage.
 
-You may also encounter the following billing terms:
+**Expensify Card cashback credit** is cashback earned on eligible Expensify Card spend that has been applied to your subscription charges.
 
- - **Credit balance** — prepaid Expensify credits that can be applied toward future subscription charges.
- - **Discount code** — a promotional code that applies an eligible discount to your subscription.
- - **Billing currency** — the currency used to charge your subscription.
- - **Tax exempt status** — an approved tax exemption that removes eligible taxes from subscription charges.
-
-To learn more, see Review Your Expensify Billing Receipt.
-
+To learn more about how these appear on your bill, see [Review Your Expensify Billing Receipt](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Review-Your-Expensify-Billing-Receipt).
