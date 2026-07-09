@@ -9259,9 +9259,6 @@ ${reportName}`,
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
         goBackJustOnce: '仅此一次返回',
     },
-    listBoundary: {
-        errorMessage: '加载更多消息时出错',
-    },
     systemMessage: {
         mergedWithCashTransaction: '已将一张收据匹配到此交易',
     },

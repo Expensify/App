@@ -9701,9 +9701,6 @@ const translations = {
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
         goBackJustOnce: 'Go back just once',
     },
-    listBoundary: {
-        errorMessage: 'An error occurred while loading more messages',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction',
     },

@@ -9543,9 +9543,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         takeMeToExpensifyClassic: 'Leve-me para o Expensify Classic',
         goBackJustOnce: 'Voltar apenas desta vez',
     },
-    listBoundary: {
-        errorMessage: 'Ocorreu um erro ao carregar mais mensagens',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'correspondeu um recibo a esta transação',
     },

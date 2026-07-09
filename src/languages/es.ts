@@ -9751,9 +9751,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
         goBackJustOnce: 'Volver solo esta vez',
     },
-    listBoundary: {
-        errorMessage: 'Se ha producido un error al cargar más mensajes',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
     },

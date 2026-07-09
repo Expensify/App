@@ -9588,9 +9588,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         takeMeToExpensifyClassic: 'Portami a Expensify Classic',
         goBackJustOnce: 'Torna solo per questa volta',
     },
-    listBoundary: {
-        errorMessage: 'Si è verificato un errore durante il caricamento di altri messaggi',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'ha associato una ricevuta a questa transazione',
     },
