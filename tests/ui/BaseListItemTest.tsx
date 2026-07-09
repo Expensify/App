@@ -16,6 +16,7 @@ describe('BaseListItem', () => {
         const mouseLeaveMock = jest.fn();
         mockedUseHover.mockReturnValue({
             hovered: false,
+            deviceHasHoverSupport: true,
             bind: {
                 onMouseEnter: mouseEnterMock,
                 onMouseLeave: mouseLeaveMock,
