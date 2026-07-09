@@ -14,6 +14,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {OptionList, Options, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    clearFilteredOptionListCache,
     createFilteredOptionList,
     createOption,
     createOptionFromReport,
@@ -855,6 +856,11 @@ describe('OptionsListUtils', () => {
             undefined,
             {isSearching: true},
         );
+    });
+
+    // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
+    beforeEach(() => {
+        clearFilteredOptionListCache();
     });
 
     describe('getSearchOptions()', () => {
@@ -8327,6 +8333,21 @@ describe('OptionsListUtils', () => {
             expect(result).toBeDefined();
             expect(result).toHaveProperty('reports');
             expect(result).toHaveProperty('personalDetails');
+        });
+
+        // The SearchRouter relies on this: its empty-query state renders recent reports only,
+        // so contacts must not be built until the user starts searching.
+        it('should not build personal details when deferContactsUntilSearch is true and not searching', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {deferContactsUntilSearch: true});
+
+            expect(result.reports.length).toBeGreaterThan(0);
+            expect(result.personalDetails.length).toBe(0);
+        });
+
+        it('should build personal details when deferContactsUntilSearch is true and searching', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {deferContactsUntilSearch: true, isSearching: true});
+
+            expect(result.personalDetails.length).toBeGreaterThan(0);
         });
     });
     describe('getFilteredRecentAttendees', () => {

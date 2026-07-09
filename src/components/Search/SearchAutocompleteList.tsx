@@ -200,7 +200,13 @@ function SearchAutocompleteList({
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
+    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({
+        enabled: true,
+        isSearching: !!autocompleteQueryValue.trim(),
+        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
+        // so contacts can be deferred until the user types a query.
+        deferContactsUntilSearch: true,
+    });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
