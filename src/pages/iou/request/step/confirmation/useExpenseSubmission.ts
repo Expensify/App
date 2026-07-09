@@ -732,9 +732,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
+        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
+        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
+        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
+        const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
+        const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
             report,
             participants: selectedParticipantsForRequest,
+            optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             iouType,
