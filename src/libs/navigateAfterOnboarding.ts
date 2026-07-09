@@ -27,8 +27,9 @@ Onyx.connectWithoutView({
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
- * On large screens, navigates to the admins chat if available. On small screens, finds the last
- * accessed report while avoiding self DM, Concierge chat, and reports from the onboarding policy.
+ * When a workspace was created during onboarding, navigates to its admins chat regardless of screen size.
+ * Otherwise, on large screens returns nothing, and on small screens finds the last accessed report
+ * while avoiding self DM, Concierge chat, and reports from the onboarding policy.
  */
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
@@ -39,13 +40,17 @@ function getReportIDAfterOnboarding(
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ): string | undefined {
+    // When a workspace was created during onboarding, take the user to its #admins room. This applies to both
+    // screen sizes: on small screens the #admins room belongs to the onboarding policy, so the findLastAccessedReport
+    // fallback below would filter it out and leave the user on HOME instead.
+    if (onboardingAdminsChatReportID && !shouldPreventOpenAdminRoom) {
+        return onboardingAdminsChatReportID;
+    }
+
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
     // so we need to specifically navigate to the last accessed report.
     if (!isSmallScreenWidth) {
-        if (onboardingAdminsChatReportID && !shouldPreventOpenAdminRoom) {
-            return onboardingAdminsChatReportID;
-        }
         return undefined;
     }
 
