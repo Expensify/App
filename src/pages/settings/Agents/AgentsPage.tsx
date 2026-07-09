@@ -1,10 +1,8 @@
 import Button from '@components/Button';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 
@@ -144,28 +142,12 @@ function AgentsPage() {
                 {!shouldUseNarrowLayout && newAgentButton}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
-            {hasAgents ? (
-                <>
-                    <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                        <RenderHTML html={translate('agentsPage.subtitle')} />
-                    </View>
-                    <AgentsTable agents={agents} />
-                </>
-            ) : (
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <GenericEmptyStateComponent
-                        headerMedia={illustrations.TvScreenRobot}
-                        title={translate('agentsPage.emptyAgents.title')}
-                        subtitleText={
-                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
-                                <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
-                            </View>
-                        }
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                        headerContentStyles={styles.agentsPageEmptyStateIllustration}
-                    />
-                </ScrollView>
-            )}
+
+            <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                <RenderHTML html={translate('agentsPage.subtitle')} />
+            </View>
+
+            <AgentsTable agents={agents} />
         </ScreenWrapper>
     );
 }
