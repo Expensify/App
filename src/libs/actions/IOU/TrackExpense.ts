@@ -1701,6 +1701,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             ...requestMoneyInformation.participantParams,
             participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
         },
+        // Strip the large policy collections from retryParams to keep the serialized error JSON small.
+        // These scale with workspace size and are stringified into every failed transaction's error, causing OOM on high-traffic accounts.
+        policyParams: {
+            ...requestMoneyInformation.policyParams,
+            policyCategories: undefined,
+            policyTagList: undefined,
+            policyRecentlyUsedTags: undefined,
+            policyRecentlyUsedCategories: undefined,
+        },
         transactionParams: {
             ...requestMoneyInformation.transactionParams,
             receipt: undefined,
