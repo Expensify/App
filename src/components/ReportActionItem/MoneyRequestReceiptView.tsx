@@ -1,12 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import mapValues from 'lodash/mapValues';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -17,6 +8,7 @@ import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
 import Tooltip from '@components/Tooltip';
+
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -39,6 +31,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
@@ -66,13 +59,17 @@ import {
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -80,6 +77,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import mapValues from 'lodash/mapValues';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
@@ -180,9 +189,13 @@ function MoneyRequestReceiptView({
     // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
     // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
     const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
+    const isPendingReceiptRegeneration = hasPendingDistanceReceiptRegeneration(displayedTransaction);
     // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
     // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
-    const canShowDistanceEReceipt = isMapDistanceRequest && !hasPendingDistanceReceiptRegeneration(displayedTransaction);
+    const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
+    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
+    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -264,12 +277,12 @@ function MoneyRequestReceiptView({
         return CONST.IOU.TYPE.SUBMIT;
     }, [isTrackExpense, isInvoice]);
 
-    let receiptURIs;
-    if (hasReceipt) {
-        receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
-    }
+    const receiptURIs = hasReceipt ? getThumbnailAndImageURIs(displayedTransaction) : undefined;
     const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
     const canZoomReceipt = hasReceipt && !isLoading && !isEReceiptTransaction && !!receiptURIs?.image;
+    // Disable the hover-zoom wrapper while the distance map is regenerating. This also resets the shared hover state,
+    // so the e-receipt overlay waits for a fresh pointer move instead of flashing during the regeneration → new-source gap.
+    const canHoverZoomReceipt = canZoomReceipt && !isPendingReceiptRegeneration;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -514,7 +527,8 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
+    // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -624,7 +638,12 @@ function MoneyRequestReceiptView({
                         <View
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
-                            onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
+                            onMouseEnter={() => {
+                                if (isLoading) {
+                                    return;
+                                }
+                                hoverBind.onMouseEnter();
+                            }}
                             // `onMouseEnter` alone isn't enough to keep `hovered` in sync: when `hovered` resets while
                             // the cursor is already over the receipt (e.g. after closing the RHP) or `onMouseEnter` fires
                             // while the receipt is still loading, no new `mouseenter` event occurs, so we re-sync on mouse move.
@@ -638,30 +657,32 @@ function MoneyRequestReceiptView({
                         >
                             <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
                                 <ReceiptHoverZoom
-                                    isEnabled={canZoomReceipt}
+                                    isEnabled={canHoverZoomReceipt}
                                     hoverContainerRef={receiptContainerRef}
                                 >
-                                    <>
-                                        <ReportActionItemImage
-                                            shouldUseThumbnailImage={!fillSpace}
-                                            shouldUseFullHeight={fillSpace}
-                                            canZoomReceipt={canZoomReceipt}
-                                            thumbnail={receiptURIs?.thumbnail}
-                                            fileExtension={receiptURIs?.fileExtension}
-                                            isThumbnail={receiptURIs?.isThumbnail}
-                                            image={receiptURIs?.image}
-                                            isLocalFile={receiptURIs?.isLocalFile}
-                                            filename={receiptURIs?.filename}
-                                            transaction={updatedTransaction ?? transaction}
-                                            enablePreviewModal
-                                            readonly={readonly || !canEditReceipt}
-                                            mergeTransactionID={mergeTransactionID}
-                                            report={report}
-                                            onLoad={() => setIsLoading(false)}
-                                            onLoadFailure={() => setIsLoading(false)}
-                                        />
-                                        {canShowDistanceEReceipt && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
-                                    </>
+                                    {({isHovering}) => (
+                                        <>
+                                            <ReportActionItemImage
+                                                shouldUseThumbnailImage={!fillSpace}
+                                                shouldUseFullHeight={fillSpace}
+                                                canZoomReceipt={canZoomReceipt}
+                                                thumbnail={receiptURIs?.thumbnail}
+                                                fileExtension={receiptURIs?.fileExtension}
+                                                isThumbnail={receiptURIs?.isThumbnail}
+                                                image={receiptURIs?.image}
+                                                isLocalFile={receiptURIs?.isLocalFile}
+                                                filename={receiptURIs?.filename}
+                                                transaction={updatedTransaction ?? transaction}
+                                                enablePreviewModal
+                                                readonly={readonly || !canEditReceipt}
+                                                mergeTransactionID={mergeTransactionID}
+                                                report={report}
+                                                onLoad={() => setIsLoading(false)}
+                                                onLoadFailure={() => setIsLoading(false)}
+                                            />
+                                            {canShowDistanceEReceipt && isHovering && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                        </>
+                                    )}
                                 </ReceiptHoverZoom>
                             </View>
                             {canShowReceiptActions && (
@@ -711,7 +732,9 @@ function MoneyRequestReceiptView({
                                                     ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                                 )
                                             }
+                                            disabled={shouldDisableExpandReceipt}
                                             style={styles.receiptActionButton}
+                                            disabledStyle={styles.buttonOpacityDisabled}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}

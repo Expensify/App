@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ValueOf} from 'type-fest';
 
 const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
     CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;

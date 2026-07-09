@@ -1,5 +1,7 @@
-import {useContext} from 'react';
 import {ActiveElementRoleContext} from '@components/ActiveElementRoleProvider';
+
+import {useContext} from 'react';
+
 import type UseActiveElementRole from './types';
 
 /**
