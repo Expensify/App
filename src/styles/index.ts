@@ -261,6 +261,7 @@ const webViewStyles = (theme: ThemeColors) =>
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
+            overflow: 'visible',
         },
     }) satisfies WebViewStyle;
 
@@ -710,6 +711,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderRadiusComponentNormal: {
             borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        borderRadiusCircle: {
+            borderRadius: 999,
         },
 
         bottomTabBarSpacer: {
@@ -1212,8 +1217,32 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
+        editableCellEditButtonContainer: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        editableCellEditButtonContainerLeft: {
+            left: 4,
+        },
+
+        editableCellEditButtonContainerRight: {
+            right: 4,
+        },
+
+        editableCellEditButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.componentBorderRadiusCircle,
+            backgroundColor: theme.buttonDefaultBG,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellEditButtonActive: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         editableCellFocus: {
@@ -1373,6 +1402,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         componentHeightLarge: {
             height: variables.inputHeight,
+        },
+
+        componentSizeNormal: {
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
         },
 
         calendarHeader: {
@@ -3352,7 +3386,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
             position: 'absolute',
             width: '100%',
-            top: 20,
+            top: variables.growlNotificationInset,
             ...spacing.pl5,
             ...spacing.pr5,
         },
@@ -3363,6 +3397,17 @@ const staticStyles = (theme: ThemeColors) =>
             ...positioning.pFixed,
         },
 
+        growlNotificationContainerBottomRight: {
+            maxWidth: variables.sideBarWidth,
+            width: '100%',
+            right: 0,
+            // Same inset as the top-anchored growlNotificationContainer, flipped to the bottom edge.
+            bottom: variables.growlNotificationInset,
+            ...spacing.pl5,
+            ...spacing.pr5,
+            ...positioning.pFixed,
+        },
+
         growlNotificationBox: {
             backgroundColor: theme.inverse,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -3370,16 +3415,39 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             boxShadow: `${theme.shadow}`,
+            ...spacing.gap3,
+        },
+
+        // Compact padding sized around the 40px-tall action button: padding-left 16px,
+        // top/right/bottom 8px (8 + 40 + 8 = 56px growl height from the design).
+        growlNotificationBoxWithAction: {
+            ...spacing.pl4,
+            ...spacing.pt2,
+            ...spacing.pr2,
+            ...spacing.pb2,
+        },
+
+        // Roomier padding preserved for action-less growls (e.g. Onfido errors), matching the original p5.
+        growlNotificationBoxWithoutAction: {
             ...spacing.p5,
         },
 
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
-            width: '90%',
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
-            ...spacing.ml4,
+            flex: 1,
+            minWidth: 0,
+        },
+
+        // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
+        growlNotificationActionText: {
+            color: theme.linkReversed,
+        },
+
+        growlNotificationActionHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
         },
 
         noSelect: {
@@ -3886,6 +3954,44 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetItemButton: {
             minWidth: 68,
+        },
+
+        gettingStartedRowIconContainer: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        gettingStartedRowTextContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            gap: 2,
+        },
+
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
+        widgetHeaderMenuButton: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        widgetHeaderMenuButtonHovered: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        widgetHeaderMenuButtonWrapper: {
+            // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
+            // vertical footprint to the title line-height so every card header keeps the same height. The matching
+            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
+            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -5921,9 +6027,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptPreview: {
             position: 'absolute',
+            // Fallback corner; ReceiptPreview overrides left/top to sit beside the hovered thumbnail.
             left: 60,
             top: 60,
-            width: 380,
+            width: variables.receiptPreviewWidth,
             maxHeight: 'calc(100vh - 120px)',
             borderRadius: variables.componentBorderRadiusLarge,
             borderWidth: 1,
@@ -6449,14 +6556,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
-        growlNotificationTranslateY: (translateY: SharedValue<number>) => {
-            'worklet';
-
-            return {
-                transform: [{translateY: translateY.get()}],
-            };
-        },
-
         activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
             const browser = getBrowser();
             const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
@@ -6840,7 +6939,7 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 fontSize: 17,
-                lineHeight: 20,
+                lineHeight: variables.widgetHeaderTitleLineHeight,
                 color,
             }) satisfies TextStyle,
 

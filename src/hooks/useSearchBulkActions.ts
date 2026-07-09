@@ -68,6 +68,8 @@ import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMor
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
+    getDeleteConfirmationPrompt,
+    getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation,
     hasOnlyPendingCardTransactions,
@@ -75,6 +77,7 @@ import {
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
+    isPending,
     isPerDiemRequest,
     isScanning,
     showPendingCardTransactionsBlockModal,
@@ -937,6 +940,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
@@ -978,6 +982,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         betas,
         delegateEmail,
         currentSearchKey,
+        personalDetails,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1002,8 +1007,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
-    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: deleteCount});
-    const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: deleteCount});
+    const hasSomePendingExpenses =
+        expenseCount > 1 &&
+        selectedTransactionsKeys.some((id) => {
+            const tx = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+            return isPending(tx);
+        });
+    const deleteModalTitle = isDeletingOnlyExpenses
+        ? getDeleteExpenseTitle(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
+        : translate('iou.deleteReport', {count: deleteCount});
+    const deleteModalPrompt = isDeletingOnlyExpenses
+        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses)
+        : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {
@@ -1191,18 +1206,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
+                    const reportPreviewAction = itemReport?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemReport?.chatReportID}`]?.[itemReport?.parentReportActionID]
+                        : undefined;
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(
                         itemReport,
                         adminPolicy,
                         formatPhoneNumber,
                         policyExpenseChatReportActions,
+                        reportPreviewAction,
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                         doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, false, reportTransactions);
                     }
                 }
             }
