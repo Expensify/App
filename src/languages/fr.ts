@@ -4530,7 +4530,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrateur d’espace de travail';
+                        return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
                     case CONST.POLICY.ROLE.EDITOR:
