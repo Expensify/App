@@ -5,7 +5,6 @@ import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import SelectionList from '@components/SelectionList';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
@@ -13,7 +12,6 @@ import type {PropsWithChildren} from 'react';
 import React from 'react';
 
 const mockUseState = React.useState;
-const mockPolicy = {id: 'policyID', owner: 'owner@example.com'} as Policy;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -64,7 +62,6 @@ jest.mock('@libs/PolicyUtils', () => ({
 type MockSelectionListProps = {
     data: SelectionListApprover[];
     initiallyFocusedItemKey?: string;
-    shouldScrollToTopOnSelect?: boolean;
     textInputOptions?: {
         onChangeText?: (value: string) => void;
     };
@@ -94,7 +91,6 @@ function renderApproverSelectionList(allApprovers = buildApprovers()) {
         <ApproverSelectionList
             testID="ApproverSelectionList"
             headerTitle="Approver"
-            policy={mockPolicy}
             allApprovers={allApprovers}
             initiallyFocusedOptionKey={selectedApprover}
             onBackButtonPress={jest.fn()}
@@ -122,7 +118,6 @@ describe('ApproverSelectionList', () => {
             }),
         );
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(selectedApprover);
-        expect(selectionListProps?.shouldScrollToTopOnSelect).toBe(false);
     });
 
     it('keeps the initial approver pinned while the live selection changes during the same mount', () => {
@@ -132,7 +127,6 @@ describe('ApproverSelectionList', () => {
             <ApproverSelectionList
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
-                policy={mockPolicy}
                 allApprovers={buildApprovers(updatedApprover)}
                 initiallyFocusedOptionKey={updatedApprover}
                 onBackButtonPress={jest.fn()}

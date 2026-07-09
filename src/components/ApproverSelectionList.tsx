@@ -199,7 +199,6 @@ function ApproverSelectionList({
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     showScrollIndicator
                     isRowMultilineSupported
-                    shouldScrollToTopOnSelect={false}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
