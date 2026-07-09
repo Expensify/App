@@ -22,6 +22,10 @@ const savedSelfPromise = new Promise<void>((resolve) => {
     resolveSavedSelfPromise = resolve;
 });
 let beforeunloadListenerAdded = false;
+// Whether init() has run. Guards the connect callback from re-adding us before we've registered.
+let hasInitialized = false;
+// Set while this tab is unloading, so the connect callback doesn't fight our own cleanup by re-adding us.
+let isLeavingTab = false;
 
 /**
  * Determines when the client is ready. We need to wait both till we saved our ID in onyx AND the init method was called
@@ -36,17 +40,28 @@ Onyx.connectWithoutView({
             return;
         }
 
+        // Whether this client was present in the incoming list, captured before the cap trim below mutates it.
+        const wasClientInList = val.includes(clientID);
+
         activeClients = val;
 
-        // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
-        let removed = false;
+        // Trim clients past the limit from the front so the list can't grow unbounded
+        let changed = false;
         while (activeClients.length >= maxClients) {
             activeClients.shift();
-            removed = true;
+            changed = true;
+        }
+
+        // If another tab's write dropped us from the list while we're still alive, re-add ourselves so
+        // leadership doesn't get stuck on a dead tab. Skip this when the cap trim above evicted us on
+        // purpose — otherwise leadership thrashes with many open tabs.
+        if (hasInitialized && !isLeavingTab && !wasClientInList) {
+            activeClients.push(clientID);
+            changed = true;
         }
 
         // Save the clients back to onyx, if they changed
-        if (removed) {
+        if (changed) {
             setActiveClients(activeClients);
         }
     },
@@ -75,6 +90,7 @@ const isClientTheLeader: IsClientTheLeader = () => {
 };
 
 const cleanUpClientId = () => {
+    isLeavingTab = true;
     isPromotingNewLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
     setActiveClients(activeClients);
@@ -93,6 +109,8 @@ const removeBeforeUnloadListener = () => {
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
  */
 const init: Init = () => {
+    hasInitialized = true;
+    isLeavingTab = false;
     removeBeforeUnloadListener();
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
