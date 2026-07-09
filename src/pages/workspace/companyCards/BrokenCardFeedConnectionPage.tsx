@@ -1,15 +1,23 @@
-import React, {useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import LoadingPage from '@pages/LoadingPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
 import PlaidConnectionStep from './addNew/PlaidConnectionStep';
 import BankConnection from './BankConnection';
 
@@ -31,24 +39,38 @@ function BrokenCardFeedConnectionPage({route, policy}: BrokenCardFeedConnectionP
         };
     }, []);
 
+    let content: React.ReactNode;
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-            return (
+            content = (
                 <BankConnection
                     policyID={policyID}
                     feed={feed}
                 />
             );
+            break;
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
-            return (
+            content = (
                 <PlaidConnectionStep
                     feed={feed}
                     policyID={policyID}
                 />
             );
+            break;
         default:
-            return <LoadingPage title={translate('workspace.companyCards.assignCard')} />;
+            content = <LoadingPage title={translate('workspace.companyCards.assignCard')} />;
     }
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            {content}
+        </AccessOrNotFoundWrapper>
+    );
 }
 
 export default withPolicyAndFullscreenLoading(BrokenCardFeedConnectionPage);

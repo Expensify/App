@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {deleteReport, notifyNewAction} from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report';
+import deleteReport from '@libs/actions/Report/DeleteReport';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -14,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -30,11 +29,19 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {format} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../../utils/TestHelper';
+
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createRandomReport} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
@@ -292,8 +299,8 @@ describe('actions/IOU', () => {
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                    // The IOUReportID should be correct
-                                    expect(originalMessage?.IOUReportID).toBe(iouReportID);
+                                    // The action's reportID should be the IOU report
+                                    expect(iouAction?.reportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
@@ -524,8 +531,8 @@ describe('actions/IOU', () => {
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(iouCreatedAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                    // The IOUReportID should be correct
-                                    expect(originalMessage?.IOUReportID).toBe(iouReportID);
+                                    // The action's reportID should be the IOU report
+                                    expect(iouAction?.reportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
@@ -652,13 +659,13 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 total: existingTransaction.amount,
             };
-            const iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+            const iouAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: rand64(),
+                reportID: iouReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: iouReportID,
                     IOUTransactionID: existingTransaction.transactionID,
                     amount: existingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
@@ -753,8 +760,8 @@ describe('actions/IOU', () => {
 
                                     const newOriginalMessage = newIOUAction ? getOriginalMessage(newIOUAction) : null;
 
-                                    // The IOUReportID should be correct
-                                    expect(getOriginalMessage(iouAction)?.IOUReportID).toBe(iouReportID);
+                                    // The action's reportID should be the IOU report
+                                    expect(iouAction.reportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(newOriginalMessage?.comment).toBe(comment);
@@ -937,8 +944,8 @@ describe('actions/IOU', () => {
                                         // The CREATED action should not be created after the IOU action
                                         expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                        // The IOUReportID should be correct
-                                        expect(originalMessage?.IOUReportID).toBe(iouReportID);
+                                        // The action's reportID should be the IOU report
+                                        expect(iouAction?.reportID).toBe(iouReportID);
 
                                         // The comment should be included in the IOU action
                                         expect(originalMessage?.comment).toBe(comment);
@@ -1282,6 +1289,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1350,6 +1358,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1595,6 +1604,7 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+            const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)) ?? {};
 
             // When requesting money
             requestMoney({
@@ -1605,7 +1615,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {reportID: '1', isPolicyExpenseChat: true},
                 },
-                policyParams: {policyRecentlyUsedTags},
+                policyParams: {policyRecentlyUsedTags, policyTagList},
                 transactionParams: {
                     amount: 100,
                     attendees: [],
@@ -1840,7 +1850,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -1874,6 +1884,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2597,6 +2608,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
 
             await waitForBatchedUpdates();

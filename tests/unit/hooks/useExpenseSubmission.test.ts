@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockRequestMoneyAction = jest.fn();
@@ -233,7 +237,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 reportActionID: 'linked-action-1',
                 originalMessage: {
                     IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
-                    IOUReportID: 'tracked-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             });
@@ -289,7 +292,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 childReportID: 'tracked-per-diem-thread-1',
                 originalMessage: {
                     IOUTransactionID: existingTrackedTransactionID,
-                    IOUReportID: 'tracked-per-diem-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             });

@@ -1,16 +1,23 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {FilterPopupButtonProps} from './FilterPopupButton';
+
 import FilterPopupButton from './FilterPopupButton';
 
 type DropdownButtonProps = WithSentryLabel &
@@ -59,10 +66,11 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
         <FilterPopupButton
             {...props}
             renderButton={({onPress, ref, isExpanded}) => (
-                <View style={[styles.flexRow]}>
+                <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                     <Button
                         ref={ref}
-                        innerStyles={[isExpanded && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles, shouldShowCloseButton && styles.pr2]}
+                        style={styles.flexShrink1}
+                        innerStyles={[isExpanded && styles.buttonHoveredBG, {maxWidth: 256}, styles.mw100, styles.flexShrink1, innerStyles, shouldShowCloseButton && styles.pr2]}
                         onPress={onPress}
                         sentryLabel={sentryLabel}
                         shouldRemoveRightBorderRadius={shouldShowCloseButton}

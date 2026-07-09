@@ -2,7 +2,7 @@
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
 keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
-internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
+internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views, and where to enter operator queries. Does not cover saved search management.
 ---
 
 # Use Search Operators to Filter and Analyze
@@ -16,6 +16,18 @@ This guide walks you through the supported syntax, available filters, and usage 
 ## Who can use search operators in Expensify
 
 Anyone can use search operators when filtering data in features like expenses, reports, chats, and tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
+
+---
+
+## Where to enter search operators in Expensify
+
+Enter search operators in the search bar that opens from the **Search** icon.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select the **Search** icon in the top-right corner.
+3. Type your query using search operators. Start typing after `:` to see autocomplete suggestions.
+
+The search bar on the **Spend** page filters your current results by keyword only. Anything you type there is matched as a keyword, even if it looks like an operator. To filter with operators, open the search bar from the **Search** icon.
 
 ---
 
@@ -195,7 +207,7 @@ Here are some common examples:
 - **Custom date range (table)**  
   `type:expense date>=2026-01-01 date<=2026-01-31 group-by:category view:table`
 
-These searches update in real time and can be refined further using additional filters. You can save frequently used searches to reuse them later by clicking **Save search** in the search bar.
+These searches update in real time and can be refined further using additional filters. You can save frequently used searches to reuse them later by clicking **Save** in the search bar.
 
 For more advanced dashboards and exports, learn how to use [Insights in Expensify](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
@@ -213,4 +225,3 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
-

@@ -1,9 +1,7 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
@@ -28,9 +27,12 @@ import {
     isControlPolicy,
     isPaidGroupPolicy,
 } from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
-import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
+
+import CONST from '@src/CONST';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
@@ -54,8 +56,14 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
+import useWorkspaceUpgradeConfirmation from './useWorkspaceUpgradeConfirmation';
 
 type WorkspaceUpgradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
@@ -75,25 +83,31 @@ function getFeatureNameAlias(featureName: string) {
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
+    const reportID = route.params?.reportID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
+    const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
+    // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
+    const rawUpgradePlanType = route.params?.upgradePlanType;
+    const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- snapshot is workspace-scoped; clear when route policyID changes
-        setUpgradingFromSubmit(undefined);
-    }, [policyID]);
+        if (upgradingFromSubmitLatchPolicyIDRef.current !== policyID) {
+            upgradingFromSubmitLatchPolicyIDRef.current = policyID;
+            setUpgradingFromSubmit(undefined);
+        }
 
-    useEffect(() => {
         if (!policy?.type) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch once when policy loads; functional update preserves sticky value across upgrades
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch submit-plan snapshot once when policy loads; sticky across upgrade
         setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : canAccessSubmitWorkspaceFeatures));
-    }, [policy?.type, policyID, canAccessSubmitWorkspaceFeatures]);
+    }, [policyID, policy?.type, canAccessSubmitWorkspaceFeatures]);
 
     const feature = featureNameAlias
         ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
@@ -173,8 +187,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (canAccessSubmitWorkspaceFeatures) {
-            const targetType = (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
+            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
 
@@ -249,12 +263,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
                 enableExpensifyCard(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id: {
                 let newReimbursementChoice;
-                if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                const hasConnectedBank =
+                    policy?.achAccount?.bankAccountID && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+                if (!hasConnectedBank || !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                 } else {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -303,35 +321,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
     ]);
 
-    const confirmUpgradeOnBlurRef = useRef({isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade});
-
-    useEffect(() => {
-        confirmUpgradeOnBlurRef.current = {isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade};
+    useWorkspaceUpgradeConfirmation({
+        policyID,
+        isUpgraded,
+        canPerformUpgrade,
+        upgradingFromSubmit,
+        featureID: feature?.id,
+        isPendingUpgrade: policy?.isPendingUpgrade,
+        confirmUpgrade,
     });
-
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                const {
-                    isUpgraded: wasUpgraded,
-                    canPerformUpgrade: couldPerformUpgrade,
-                    upgradingFromSubmit: wasUpgradingFromSubmit,
-                    featureID,
-                    confirmUpgrade: confirmUpgradeOnBlur,
-                } = confirmUpgradeOnBlurRef.current;
-                if (!wasUpgraded || !couldPerformUpgrade) {
-                    return;
-                }
-
-                // UpgradeSubmit enables Collect-tier features on the backend; skip the redundant client-side enable.
-                if (wasUpgradingFromSubmit && featureID && SUBMIT_FEATURE_IDS.has(featureID)) {
-                    return;
-                }
-
-                confirmUpgradeOnBlur();
-            };
-        }, []),
-    );
 
     // Editors can view the intro but only admins can upgrade, so we separate
     // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
@@ -372,6 +370,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
+                        upgradePlanType={upgradePlanType}
                     />
                 )}
             </ScrollView>

@@ -1,21 +1,29 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
+
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
+
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import Camera from './Camera';
 
 type ScanEditReceiptProps = {
@@ -34,6 +42,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const navigateBack = () => {
@@ -53,7 +62,15 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     const handleCapture = (file: FileObject, source: string) => {
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
-            replaceReceipt({transactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories, transactionPolicyTagList: policyTagList});
+            replaceReceipt({
+                transactionID,
+                file: file as File,
+                source,
+                transactionPolicy: policy,
+                transactionPolicyCategories: policyCategories,
+                transactionPolicyTagList: policyTagList,
+                transactionViolations,
+            });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         }

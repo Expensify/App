@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type {ThemeStyles} from '@src/styles';
 import type {ThemeColors} from '@src/styles/theme/types';
 import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
 
 const mockTheme = {} as ThemeColors;
 
@@ -22,7 +23,7 @@ const mockStyles = {
     buttonOpacityDisabled: {opacity: 0.5},
 } as unknown as ThemeStyles;
 
-const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles} = createStyleUtils(mockTheme, mockStyles);
+const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles, getReportTableColumnStyles} = createStyleUtils(mockTheme, mockStyles);
 
 describe('getButtonSizeStyle', () => {
     it.each([
@@ -86,5 +87,11 @@ describe('getButtonVariantStyles', () => {
             success: [mockStyles.buttonOpacityDisabled],
             danger: [mockStyles.buttonOpacityDisabled],
         });
+    });
+});
+
+describe('getReportTableColumnStyles - First approved column width', () => {
+    it('uses a fixed wide width (fits the long header and a past-year date, so no year-based widening)', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w102});
     });
 });

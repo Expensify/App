@@ -1,11 +1,15 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import {isAuthenticationError} from './actions/connections';
+
 import type {Part} from './actions/Policy/CopyPolicySettings';
-import {isTimeTrackingEnabled} from './PolicyUtils';
+
+import {isAuthenticationError} from './actions/connections';
+import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
+import {canPolicyAccessFeature, isCollectPolicy, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -28,6 +32,7 @@ const FEATURE_ROWS = [
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
     {part: 'travel', labelKey: 'workspace.common.travel'},
     {part: 'timeTracking', labelKey: 'workspace.moreFeatures.timeTracking.title'},
+    {part: 'receiptPartners', labelKey: 'workspace.moreFeatures.receiptPartners.title'},
 ] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
@@ -230,9 +235,56 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return !!policy?.isTravelEnabled;
         case 'timeTracking':
             return isTimeTrackingEnabled(policy);
+        case 'receiptPartners':
+            return !!policy?.receiptPartners?.enabled || !!policy?.receiptPartners?.uber?.organizationID;
         default:
             return false;
     }
+}
+
+/**
+ * The selected parts that the Collect (Team) targets can't access on their current plan, as
+ * determined by `canPolicyAccessFeature` (the single source of truth for which features require a
+ * Control plan). Returns empty when there are no Collect targets.
+ */
+function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): Part[] {
+    const collectTargets = targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
+    if (collectTargets.length === 0) {
+        return [];
+    }
+    return selectedParts.filter((part) => {
+        const featureName = PART_TO_POLICY_FEATURE[part];
+        if (!featureName) {
+            return false;
+        }
+        return collectTargets.some((policy) => !canPolicyAccessFeature(policy, featureName));
+    });
+}
+
+/**
+ * Returns the Collect (Team) targets that must be upgraded to Control before the copy can run.
+ * Upgrade is required when at least one selected part is unavailable on the Collect targets; in that
+ * case every selected Collect target is returned so the upgrade step can upgrade them all.
+ */
+function getCollectTargetsToUpgrade(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): Policy[] {
+    if (getControlOnlySelectedParts(targetPolicies, selectedParts).length === 0) {
+        return [];
+    }
+    return targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
+}
+
+/** Whether the Upgrade step should be shown between Select Features and Confirm. */
+function shouldShowCopyPolicySettingsUpgradeStep(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): boolean {
+    return getCollectTargetsToUpgrade(targetPolicies, selectedParts).length > 0;
+}
+
+/** Subtitle for the receipt partners row when Uber is connected on the source. */
+function getReceiptPartnersCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const organizationName = policy?.receiptPartners?.uber?.organizationName;
+    if (organizationName) {
+        return organizationName;
+    }
+    return translate('common.enabled');
 }
 
 /** Subtitle for the time tracking row; rate is shown without currency because targets may use a different output currency. */
@@ -244,6 +296,16 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
+/**
+ * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
+ * source re-provisions each target (the backend creates a fresh entity), which requires accepting
+ * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
+ * provisioning check in BookTravelButton.
+ */
+function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
+    return isWorkspaceProvisionedForTravel(policy?.travelSettings);
+}
+
 export {
     getConnectionCompanyID,
     getAccountingConnectionIdentity,
@@ -253,6 +315,11 @@ export {
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
+    isSourceProvisionedForTravel,
+    getReceiptPartnersCopySettingsDescription,
+    getCollectTargetsToUpgrade,
+    shouldShowCopyPolicySettingsUpgradeStep,
+    getControlOnlySelectedParts,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};
