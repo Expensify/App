@@ -323,7 +323,8 @@ function ParticipantSearchResults({
             });
         }
 
-        if (availableOptions.selfDMChat) {
+        // The self-DM is never a valid destination for the workspaces-only picker (e.g. "Submit to my employer"), so keep it out.
+        if (!isWorkspacesOnly && availableOptions.selfDMChat) {
             sections.push({
                 title: translate('workspace.invoices.paymentMethods.personal'),
                 data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],

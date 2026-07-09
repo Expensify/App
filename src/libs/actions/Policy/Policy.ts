@@ -136,6 +136,7 @@ import type {
     Attributes,
     AutoReportingOffset,
     CompanyAddress,
+    CreatableWorkspaceType,
     CustomUnit,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
@@ -263,7 +264,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    type?: CreatableWorkspaceType;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     hasActiveAdminPolicies: boolean | undefined;
@@ -2437,7 +2438,7 @@ type CreateDraftInitialWorkspaceParams = {
     policyID?: string;
     makeMeAdmin?: boolean;
     file?: File;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    type?: CreatableWorkspaceType;
     isAnnualSubscription?: boolean;
 };
 
@@ -3181,7 +3182,7 @@ type CreateDraftWorkspaceParams = {
     makeMeAdmin?: boolean;
     policyID?: string;
     file?: File;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    type?: CreatableWorkspaceType;
 };
 
 function createDraftWorkspace({

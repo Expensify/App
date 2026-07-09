@@ -4424,8 +4424,8 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
     return `${url}${sourceParam}${typeParam}${reportIDParam}${reportActionIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getRoute: (...args: any[]) => infer TRouteName;
 }
     ? TRouteName
