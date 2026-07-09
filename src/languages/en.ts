@@ -5660,8 +5660,8 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
                 },
                 alternateText: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Reimbursable expenses will export when final approved',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Reimbursable expenses will export when paid',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
