@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -76,6 +77,7 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
+    const yourSpendPatchData = useYourSpendPatchData();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -114,6 +116,7 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                yourSpendPatchData,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,

@@ -36,6 +36,7 @@ import {
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
@@ -389,6 +390,7 @@ function updateMoneyRequestReimbursable({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    yourSpendPatchData,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -403,6 +405,7 @@ function updateMoneyRequestReimbursable({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -426,6 +429,7 @@ function updateMoneyRequestReimbursable({
         iouReportNextStep: parentReportNextStep,
         isOffline,
         delegateAccountID,
+        yourSpendPatchData,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -1295,6 +1299,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
     delegateAccountID: number | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -1320,6 +1325,7 @@ function updateMoneyRequestAmountAndCurrency({
     parentReportNextStep,
     hash,
     delegateAccountID,
+    yourSpendPatchData,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -1352,6 +1358,7 @@ function updateMoneyRequestAmountAndCurrency({
             iouReportNextStep: parentReportNextStep,
             hash,
             delegateAccountID,
+            yourSpendPatchData,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -1386,6 +1393,7 @@ type GetUpdateMoneyRequestParamsType = {
     isOffline?: boolean;
     delegateAccountID: number | undefined;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1428,6 +1436,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         isOffline,
         delegateAccountID,
         distanceOriginalPolicy,
+        yourSpendPatchData,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2065,6 +2074,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             updatedTransaction,
             iouReport,
             currentUserAccountID: currentUserAccountIDParam,
+            context: yourSpendPatchData,
         });
         optimisticData.push(...yourSpendSnapshotTotalUpdates.optimisticData);
         successData.push(...yourSpendSnapshotTotalUpdates.successData);
@@ -2078,6 +2088,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             updatedTransaction,
             iouReport,
             currentUserAccountID: currentUserAccountIDParam,
+            context: yourSpendPatchData,
         });
         optimisticData.push(...yourSpendSnapshotReimbursableUpdates.optimisticData);
         successData.push(...yourSpendSnapshotReimbursableUpdates.successData);

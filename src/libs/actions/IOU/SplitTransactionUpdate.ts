@@ -44,6 +44,7 @@ import {
 } from '@libs/ReportUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
@@ -108,6 +109,7 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 type GetReimbursableSplitDiffParams = {
@@ -158,6 +160,7 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
+    yourSpendPatchData,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -1854,6 +1857,7 @@ function updateSplitTransactions({
         reimbursableDiff,
         reimbursableCountDiff,
         currentUserAccountID: currentUserPersonalDetails.accountID,
+        context: yourSpendPatchData,
     });
     onyxData.optimisticData?.push(...yourSpendSplitUpdates.optimisticData);
     onyxData.successData?.push(...yourSpendSplitUpdates.successData);

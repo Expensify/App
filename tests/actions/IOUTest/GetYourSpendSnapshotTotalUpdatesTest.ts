@@ -7,6 +7,7 @@ import {
 } from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 import {buildAwaitingApprovalQuery} from '@libs/YourSpendQueryUtils';
 
 import CONST from '@src/CONST';
@@ -53,6 +54,17 @@ function buildSnapshotSearchResults(total: number, currency: string): SearchResu
             currency,
         },
         data: {},
+    };
+}
+
+/**
+ * Builds the snapshot context the builders now receive as a parameter (previously read via a module-level Onyx
+ * subscription), mirroring what `useYourSpendPatchData` supplies from the triggering component.
+ */
+function buildYourSpendPatchData(snapshotKey: `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${number}`, total: number, currency: string): YourSpendPatchData {
+    return {
+        paidPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: paidPolicy},
+        snapshotSearches: {[snapshotKey]: buildSnapshotSearchResults(total, currency).search},
     };
 }
 
@@ -124,6 +136,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
             updatedTransaction,
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 
         expect(optimisticData).toEqual([
@@ -170,6 +183,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
             updatedTransaction,
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, 10000, CONST.CURRENCY.USD),
         });
 
         expect(optimisticData).toHaveLength(0);
@@ -190,6 +204,7 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
             transaction,
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, -30000, CONST.CURRENCY.USD),
         });
 
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
@@ -228,6 +243,7 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
             transaction: {...transaction, reimbursable: false},
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, 30000, CONST.CURRENCY.USD),
         });
 
         expect(optimisticData).toHaveLength(0);
@@ -249,6 +265,7 @@ describe('getYourSpendSnapshotReimbursableUpdates', () => {
             updatedTransaction: {...transaction, reimbursable: false},
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, -30000, CONST.CURRENCY.USD),
         });
 
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
@@ -278,6 +295,7 @@ describe('getYourSpendSnapshotReimbursableUpdates', () => {
             updatedTransaction,
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
@@ -304,6 +322,7 @@ describe('getYourSpendSnapshotReimbursableUpdates', () => {
             updatedTransaction: {...transaction, merchant: 'Renamed'},
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 
         expect(optimisticData).toHaveLength(0);
@@ -334,6 +353,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 
         const snapshotOptimisticUpdate = onyxData.optimisticData?.find((update) => update.key === snapshotKey);
@@ -373,6 +393,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -30000, CONST.CURRENCY.USD),
         });
 
         const snapshotTotalUpdate = onyxData.optimisticData?.find((update) => update.key === snapshotKey && !!update.value && typeof update.value === 'object' && 'search' in update.value);
@@ -406,6 +427,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 
         const snapshotOptimisticUpdate = onyxData.optimisticData?.find((update) => update.key === snapshotKey);

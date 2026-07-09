@@ -76,6 +76,7 @@ import {
     isScanningTransaction,
 } from '@libs/TransactionUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -114,6 +115,7 @@ type ApproveMoneyRequestFunctionParams = {
     delegateEmail: string | undefined;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 type SubmitReportFunctionParams = {
@@ -133,6 +135,7 @@ type SubmitReportFunctionParams = {
     managerEmail?: string;
     /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
     managerAccountID?: number;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function canApproveIOU(
@@ -444,6 +447,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         expenseReportPolicy,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
+        yourSpendPatchData,
     } = params;
     if (!expenseReport) {
         return;
@@ -817,6 +821,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
               toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
               currentUserAccountID: currentUserAccountIDParam,
+              context: yourSpendPatchData,
           });
 
     onApproved?.();
@@ -1044,6 +1049,7 @@ function retractReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     if (!expenseReport) {
         return;
@@ -1211,6 +1217,7 @@ function retractReport(
         fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
         toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
         currentUserAccountID: currentUserAccountIDParam,
+        context: yourSpendPatchData,
     });
 
     API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {
@@ -1229,6 +1236,7 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -1386,6 +1394,7 @@ function unapproveExpenseReport(
         fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
         toStatus: {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
         currentUserAccountID: currentUserAccountIDParam,
+        context: yourSpendPatchData,
     });
 
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {
@@ -1411,6 +1420,7 @@ function submitReport({
     submitterLogin,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
+    yourSpendPatchData,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1699,6 +1709,7 @@ function submitReport({
                   ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED}
                   : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
               currentUserAccountID: currentUserAccountIDParam,
+              context: yourSpendPatchData,
           });
 
     onSubmitted?.();

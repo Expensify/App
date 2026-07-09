@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
@@ -358,6 +359,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],
         policy,
     });
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
     const ancestorsRef = useRef<typeof ancestors>([]);
@@ -391,6 +393,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
                     currentUserEmail: email ?? '',
+                    yourSpendPatchData,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
@@ -454,6 +457,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,
+        yourSpendPatchData,
     ]);
 
     const hideDeleteModal = () => {

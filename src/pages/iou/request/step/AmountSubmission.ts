@@ -18,6 +18,7 @@ import Permissions from '@libs/Permissions';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {
     getMoneyRequestParticipantsFromReport,
@@ -171,6 +172,7 @@ type SubmitAmountArgs = {
     allReportNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 /**
@@ -248,6 +250,7 @@ function submitAmount({
     allReportNVPs,
     duplicateTransactions,
     duplicateTransactionViolations,
+    yourSpendPatchData,
 }: SubmitAmountArgs): void {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -567,6 +570,7 @@ function submitAmount({
         isASAPSubmitBetaEnabled,
         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         delegateAccountID,
+        yourSpendPatchData,
     });
     navigateBack();
 }

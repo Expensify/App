@@ -23,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -108,6 +109,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID, localCurrencyCode} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowCollapse',
@@ -473,6 +475,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             allTransactionViolationsParam: allTransactionViolations,
                             currentUserAccountID: accountID,
                             currentUserEmail: currentUserLogin ?? '',
+                            yourSpendPatchData,
                         });
                     } else {
                         if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {

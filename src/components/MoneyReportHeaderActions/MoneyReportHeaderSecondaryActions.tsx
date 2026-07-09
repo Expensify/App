@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -36,6 +36,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
@@ -150,6 +151,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
@@ -220,6 +222,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                yourSpendPatchData,
                 onPaid: () => {
                     startAnimation();
                 },
@@ -417,6 +420,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            yourSpendPatchData,
         });
     };
 
@@ -455,13 +459,13 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     return (
         <View style={wrapperStyle}>
             <Button
-                text={translate('common.more')}
-                iconRight={icons.DownArrow}
-                shouldShowRightIcon
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}
                 onPress={() => {}}
-            />
+            >
+                <Button.Text>{translate('common.more')}</Button.Text>
+                <Button.Icon src={icons.DownArrow} />
+            </Button>
         </View>
     );
 }

@@ -22,6 +22,7 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -58,6 +59,7 @@ type DeleteMoneyRequestFunctionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 /**
@@ -693,6 +695,7 @@ function deleteMoneyRequest({
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
+    yourSpendPatchData,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -986,6 +989,7 @@ function deleteMoneyRequest({
         transaction,
         iouReport,
         currentUserAccountID,
+        context: yourSpendPatchData,
     });
 
     // STEP 3: Make the API request

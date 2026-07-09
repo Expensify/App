@@ -26,6 +26,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
@@ -122,6 +123,7 @@ type PayMoneyRequestFunctionParams = {
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -166,6 +168,7 @@ function getPayMoneyRequestParams({
     currentUserLocalCurrency,
     delegateAccountID,
     chatReportActions,
+    yourSpendPatchData,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -190,6 +193,7 @@ function getPayMoneyRequestParams({
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    yourSpendPatchData?: YourSpendPatchData;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -519,6 +523,7 @@ function getPayMoneyRequestParams({
         fromStatus: {stateNum: iouReport?.stateNum, statusNum: iouReport?.statusNum},
         toStatus: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
         currentUserAccountID: currentUserAccountIDParam,
+        context: yourSpendPatchData,
     });
     onyxData.optimisticData?.push(...yourSpendSnapshotUpdates.optimisticData);
     onyxData.successData?.push(...yourSpendSnapshotUpdates.successData);
@@ -550,6 +555,7 @@ function cancelPayment(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     hasViolations: boolean,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -748,6 +754,7 @@ function cancelPayment(
         fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
         toStatus: {stateNum, statusNum},
         currentUserAccountID: currentUserAccountIDParam,
+        context: yourSpendPatchData,
     });
 
     API.write(
@@ -841,6 +848,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         delegateAccountID,
         chatReportActions,
+        yourSpendPatchData,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -875,6 +883,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         delegateAccountID,
         chatReportActions,
+        yourSpendPatchData,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with

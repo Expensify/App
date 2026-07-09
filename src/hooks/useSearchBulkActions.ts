@@ -124,6 +124,7 @@ import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
+import useYourSpendPatchData from './useYourSpendPatchData';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -363,6 +364,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
         usePaymentContext();
     const allTransactions = useAllTransactions();
+    const yourSpendPatchData = useYourSpendPatchData();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -852,6 +854,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
+                yourSpendPatchData,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
@@ -889,6 +892,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         betas,
         delegateEmail,
         currentSearchKey,
+        yourSpendPatchData,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1240,6 +1244,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
+                    yourSpendPatchData,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                 });
                 paidReportCount += 1;
@@ -1284,6 +1289,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allReportNameValuePairs,
             currentSearchKey,
             searchResults?.data,
+            yourSpendPatchData,
         ],
     );
 

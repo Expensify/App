@@ -25,6 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
@@ -214,6 +215,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const yourSpendPatchData = useYourSpendPatchData();
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
@@ -292,6 +294,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             searchData,
             chatReportActions,
             delegateEmail,
+            yourSpendPatchData,
         });
     }, [
         currentSearchHash,
@@ -330,6 +333,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         nextStep,
         chatReportActions,
         delegateEmail,
+        yourSpendPatchData,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

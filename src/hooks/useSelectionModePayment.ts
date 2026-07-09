@@ -43,6 +43,7 @@ import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useYourSpendPatchData from './useYourSpendPatchData';
 
 type HoldMenuOpenParams = {
     requestType: ActionHandledType;
@@ -87,6 +88,7 @@ function useSelectionModePayment({
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -207,6 +209,7 @@ function useSelectionModePayment({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                yourSpendPatchData,
                 onPaid,
                 chatReportActions: getChatReportActions(false),
             });
@@ -303,6 +306,7 @@ function useSelectionModePayment({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             expenseReportPolicy: policy,
+            yourSpendPatchData,
         });
     };
 

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
@@ -48,6 +49,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const allTransactionValues = Object.values(reportTransactions);
     const transactions = allTransactionValues;
@@ -71,6 +73,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: true,
+                yourSpendPatchData,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
             });

@@ -29,6 +29,7 @@ import {
 } from '@libs/ReportUtils';
 import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {notifyNewAction} from '@userActions/Report';
 
@@ -84,6 +85,7 @@ type RejectMoneyRequestOptions = {
     sharedRejectedToReportID?: string;
     existingRejectedReport?: OnyxEntry<OnyxTypes.Report>;
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function dismissRejectUseExplanation() {
@@ -918,6 +920,7 @@ function prepareRejectMoneyRequestData(
         transaction,
         iouReport: report,
         currentUserAccountID: currentUserAccountIDParam,
+        context: options?.yourSpendPatchData,
     });
     optimisticData.push(...yourSpendSnapshotUpdates.optimisticData);
     failureData.push(...yourSpendSnapshotUpdates.failureData);
@@ -935,7 +938,7 @@ function rejectMoneyRequest(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options, undefined, undefined);
     if (!data) {
         return;
     }
@@ -1025,6 +1028,7 @@ function rejectExpenseReport(
     currentUserAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -1208,6 +1212,7 @@ function rejectExpenseReport(
         fromStatus: {stateNum: report.stateNum, statusNum: report.statusNum},
         toStatus: {stateNum: optimisticStateNum, statusNum: optimisticStatusNum},
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        context: yourSpendPatchData,
     });
 
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {

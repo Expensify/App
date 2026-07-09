@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -111,6 +112,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const handleSubmit = () => {
         if (!moneyRequestReport || shouldBlockSubmit) {
@@ -138,6 +140,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                yourSpendPatchData,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,

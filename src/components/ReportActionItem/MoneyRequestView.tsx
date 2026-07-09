@@ -43,6 +43,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {openExternalLink} from '@libs/actions/Link';
@@ -278,6 +279,7 @@ function MoneyRequestView({
     const personalDetailsList = usePersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const yourSpendPatchData = useYourSpendPatchData();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
@@ -664,6 +666,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            yourSpendPatchData,
         });
     };
 

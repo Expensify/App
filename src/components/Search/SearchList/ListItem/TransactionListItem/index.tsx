@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -195,6 +196,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
@@ -230,6 +232,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             searchData: currentSearchResults?.data,
             chatReportActions,
             delegateEmail,
+            yourSpendPatchData,
         });
     };
 

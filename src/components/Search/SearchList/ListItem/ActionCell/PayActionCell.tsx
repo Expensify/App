@@ -11,6 +11,7 @@ import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
@@ -45,6 +46,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
+    const yourSpendPatchData = useYourSpendPatchData();
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -148,6 +150,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
             ownerBillingGracePeriodEnd,
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
+            yourSpendPatchData,
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
         });
     };

@@ -38,6 +38,7 @@ import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
 import useSelfDMReport from './useSelfDMReport';
+import useYourSpendPatchData from './useYourSpendPatchData';
 
 type UseTransactionInlineEditParams = {
     transactionID: string;
@@ -146,6 +147,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     const {isOffline} = useNetwork();
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -182,6 +184,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
             distanceOriginalPolicy,
+            yourSpendPatchData,
         };
     };
 

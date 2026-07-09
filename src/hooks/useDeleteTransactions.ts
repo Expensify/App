@@ -37,6 +37,7 @@ import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from './useSplitEffectivePolicy';
+import useYourSpendPatchData from './useYourSpendPatchData';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -95,6 +96,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const getSplitExpenseEditTransactionOnDelete = useCallback(
         (transactionIDs: string[]): Transaction | undefined => {
@@ -320,6 +322,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionReport: report,
                     expenseReport,
                     isOffline,
+                    yourSpendPatchData,
                 });
             }
 
@@ -350,6 +353,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
+                    yourSpendPatchData,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
@@ -392,6 +396,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isOffline,
             isProduction,
             personalPolicy?.outputCurrency,
+            yourSpendPatchData,
         ],
     );
 

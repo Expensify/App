@@ -23,6 +23,8 @@ import type {Merge, ValueOf} from 'type-fest';
 
 import isEmpty from 'lodash/isEmpty';
 
+import type {YourSpendPatchData} from './YourSpendPatchData';
+
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
@@ -55,6 +57,7 @@ type SelectPaymentTypeParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 type BusinessBankAccountOption = {
@@ -252,6 +255,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        yourSpendPatchData,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -289,6 +293,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerBillingGracePeriodEnd,
                 full: true,
                 delegateEmail,
+                yourSpendPatchData,
             });
         }
         return;

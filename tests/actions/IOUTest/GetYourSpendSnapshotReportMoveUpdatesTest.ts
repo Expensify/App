@@ -1,12 +1,15 @@
 import {getYourSpendSnapshotReportMoveUpdates} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 import {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery} from '@libs/YourSpendQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -107,27 +110,35 @@ beforeEach(() => {
     return Onyx.clear().then(waitForBatchedUpdates);
 });
 
-async function seedAwaitingApprovalSnapshot(total: number, currency: string = CONST.CURRENCY.USD) {
-    const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
-    const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
-    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-    await Onyx.set(snapshotKey, buildSnapshotSearchResults(total, currency));
-    await waitForBatchedUpdates();
-    return snapshotKey;
+/**
+ * Builds the snapshot context the builder now receives as a parameter (previously read via a module-level Onyx
+ * subscription), mirroring what `useYourSpendPatchData` supplies from the triggering component.
+ */
+function buildContext(
+    snapshotKey: `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${number}`,
+    search: SearchResults['search'],
+    paidPolicies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: paidPolicy},
+): YourSpendPatchData {
+    return {paidPolicies, snapshotSearches: {[snapshotKey]: search}};
 }
 
-async function seedRepaidSnapshot(total: number, currency: string = CONST.CURRENCY.USD) {
+function seedAwaitingApprovalSnapshot(total: number, currency: string = CONST.CURRENCY.USD, count = 1) {
+    const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+    const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+    const context = buildContext(snapshotKey, buildSnapshotSearchResults(total, currency, count).search);
+    return {snapshotKey, context};
+}
+
+function seedRepaidSnapshot(total: number, currency: string = CONST.CURRENCY.USD) {
     const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(ACCOUNT_ID));
     const snapshotKey = getSnapshotKey(paymentQueryJSON?.hash ?? 0);
-    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-    await Onyx.set(snapshotKey, buildSnapshotSearchResults(total, currency));
-    await waitForBatchedUpdates();
-    return snapshotKey;
+    const context = buildContext(snapshotKey, buildSnapshotSearchResults(total, currency).search);
+    return {snapshotKey, context};
 }
 
 describe('getYourSpendSnapshotReportMoveUpdates', () => {
     it('adds the report total to awaiting approval when a report is submitted (OPEN -> SUBMITTED)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(-10000);
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(-10000);
 
         const {optimisticData, failureData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -135,6 +146,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         // Submitting adds the report's (negative) spend to the section total and injects the transaction into
@@ -162,7 +174,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
     });
 
     it('subtracts the report total from awaiting approval when a report is retracted (SUBMITTED -> OPEN)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(-30000);
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(-30000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(OPEN_STATUS),
@@ -170,6 +182,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: SUBMITTED_STATUS,
             toStatus: OPEN_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         // Leaving the section removes the (negative) spend from the total and removes the transaction from `data`.
@@ -186,7 +199,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
     });
 
     it('subtracts the report total from awaiting approval when a report is rejected (SUBMITTED -> OPEN)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(-30000);
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(-30000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(OPEN_STATUS),
@@ -194,6 +207,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: SUBMITTED_STATUS,
             toStatus: OPEN_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toEqual([
@@ -209,7 +223,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
     });
 
     it('adds the report total back to awaiting approval when a report is unapproved (APPROVED -> SUBMITTED)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(-10000);
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(-10000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -217,6 +231,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: APPROVED_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toEqual([
@@ -232,7 +247,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
     });
 
     it('subtracts the report total from repaid when a payment is cancelled (REIMBURSED -> APPROVED)', async () => {
-        const snapshotKey = await seedRepaidSnapshot(-30000);
+        const {snapshotKey, context} = seedRepaidSnapshot(-30000);
         const recentTransaction = buildTransaction({created: getRecentCreatedDate()});
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
@@ -241,6 +256,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: REIMBURSED_STATUS,
             toStatus: APPROVED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toEqual([
@@ -256,7 +272,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
     });
 
     it('does not patch when the report is not owned by the current user', async () => {
-        await seedAwaitingApprovalSnapshot(10000);
+        const {context} = seedAwaitingApprovalSnapshot(10000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport({...SUBMITTED_STATUS, ownerAccountID: OTHER_ACCOUNT_ID}),
@@ -264,13 +280,14 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toHaveLength(0);
     });
 
     it('does not patch when the report transactions are non-reimbursable', async () => {
-        await seedAwaitingApprovalSnapshot(10000);
+        const {context} = seedAwaitingApprovalSnapshot(10000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -278,16 +295,17 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toHaveLength(0);
     });
 
-    it('does not patch when the workspace is not a paid group policy', async () => {
+    it('does not patch when the workspace is not a paid group policy', () => {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
         const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
-        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
-        await waitForBatchedUpdates();
+        // No paid-group policies in context, so the report is out of the awaiting-approval scope.
+        const context = buildContext(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD).search, {});
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -295,13 +313,14 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toHaveLength(0);
     });
 
     it('does not patch when the transaction cannot be converted into the snapshot currency', async () => {
-        await seedAwaitingApprovalSnapshot(10000, CONST.CURRENCY.EUR);
+        const {context} = seedAwaitingApprovalSnapshot(10000, CONST.CURRENCY.EUR);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -309,13 +328,14 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toHaveLength(0);
     });
 
-    it('patches using convertedAmount when the snapshot currency differs from the transaction currency', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(-10000);
+    it('patches using convertedAmount when the snapshot currency differs from the transaction currency', () => {
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(-10000);
         const convertedTransaction = buildTransaction({currency: CONST.CURRENCY.EUR, amount: 10000, convertedAmount: 5000});
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
@@ -324,6 +344,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toEqual([
@@ -338,12 +359,14 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         ]);
     });
 
-    it('does not patch with convertedAmount when the policy output currency differs from the snapshot currency', async () => {
+    it('does not patch with convertedAmount when the policy output currency differs from the snapshot currency', () => {
         // Snapshot is in USD, but the report's policy outputs EUR, so the EUR-denominated convertedAmount
         // cannot be safely added to the USD total. The patch is skipped and reconciled on the next online refresh.
-        await seedAwaitingApprovalSnapshot(10000, CONST.CURRENCY.USD);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...paidPolicy, outputCurrency: CONST.CURRENCY.EUR});
-        await waitForBatchedUpdates();
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+        const context = buildContext(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD).search, {
+            [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: {...paidPolicy, outputCurrency: CONST.CURRENCY.EUR},
+        });
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport({...SUBMITTED_STATUS, currency: CONST.CURRENCY.GBP}),
@@ -351,17 +374,14 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toHaveLength(0);
     });
 
-    it('adds the report total to a previously empty awaiting approval bucket (count 0 -> visible)', async () => {
-        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
-        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-        await Onyx.set(snapshotKey, buildSnapshotSearchResults(0, CONST.CURRENCY.USD, 0));
-        await waitForBatchedUpdates();
+    it('adds the report total to a previously empty awaiting approval bucket (count 0 -> visible)', () => {
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(0, CONST.CURRENCY.USD, 0);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -369,6 +389,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
+            context,
         });
 
         expect(optimisticData).toEqual([

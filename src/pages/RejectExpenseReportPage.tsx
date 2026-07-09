@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -79,6 +80,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
@@ -160,6 +162,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.accountID,
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
+            yourSpendPatchData,
         );
         Navigation.goBack();
     };

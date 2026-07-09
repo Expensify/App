@@ -22,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -293,6 +294,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
@@ -327,6 +329,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             searchData: snapshot?.data,
             chatReportActions,
             delegateEmail,
+            yourSpendPatchData,
         });
     };
     return !isLargeScreenWidth ? (

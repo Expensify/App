@@ -16,6 +16,7 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePolicy from '@hooks/usePolicy';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
@@ -118,6 +119,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
@@ -176,6 +178,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                yourSpendPatchData,
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
             });

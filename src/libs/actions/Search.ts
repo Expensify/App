@@ -56,6 +56,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -225,6 +226,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function handleActionButtonPress({
@@ -261,6 +263,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    yourSpendPatchData,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -311,6 +314,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                yourSpendPatchData,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -341,6 +345,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                yourSpendPatchData,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -514,6 +519,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function getPayActionCallback({
@@ -540,6 +546,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    yourSpendPatchData,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -587,6 +594,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        yourSpendPatchData,
     });
 }
 
@@ -605,6 +613,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function getApproveActionCallback({
@@ -622,6 +631,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    yourSpendPatchData,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -647,6 +657,7 @@ function getApproveActionCallback({
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
+        yourSpendPatchData,
     });
 }
 
@@ -1178,6 +1189,7 @@ function rejectMoneyRequestInBulk(
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     hash?: number,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1196,7 +1208,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {yourSpendPatchData}, true, undefined);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1233,6 +1245,7 @@ function rejectMoneyRequestsOnSearch(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1265,7 +1278,7 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash, yourSpendPatchData);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1278,6 +1291,7 @@ function rejectMoneyRequestsOnSearch(
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
+                    yourSpendPatchData,
                 });
             }
         }

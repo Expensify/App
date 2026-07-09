@@ -13,6 +13,7 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -101,6 +102,7 @@ function PayActionButton({
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
+    const yourSpendPatchData = useYourSpendPatchData();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -165,6 +167,7 @@ function PayActionButton({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: true,
+                yourSpendPatchData,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
             });
@@ -220,6 +223,7 @@ function PayActionButton({
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    yourSpendPatchData,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                 });

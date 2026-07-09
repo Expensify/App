@@ -16,6 +16,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -69,6 +70,7 @@ function IOURequestStepAmount({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const yourSpendPatchData = useYourSpendPatchData();
     const delegateAccountID = useDelegateAccountID();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -216,6 +218,7 @@ function IOURequestStepAmount({
             allReportNVPs,
             duplicateTransactions,
             duplicateTransactionViolations,
+            yourSpendPatchData,
         });
     };
 

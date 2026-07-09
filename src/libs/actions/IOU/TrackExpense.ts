@@ -82,6 +82,7 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
@@ -216,6 +217,7 @@ type DeleteTrackExpenseParams = {
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -2805,6 +2807,7 @@ function deleteTrackExpense({
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
+    yourSpendPatchData,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2839,6 +2842,7 @@ function deleteTrackExpense({
             allTransactionViolationsParam,
             currentUserAccountID,
             currentUserEmail,
+            yourSpendPatchData,
         });
         return urlToNavigateBack;
     }

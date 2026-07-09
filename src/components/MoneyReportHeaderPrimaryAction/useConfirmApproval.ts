@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
@@ -34,6 +35,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const yourSpendPatchData = useYourSpendPatchData();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
@@ -64,6 +66,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: true,
+                yourSpendPatchData,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
             });

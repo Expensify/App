@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -40,6 +41,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const policy = usePolicy(reportPolicyID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const yourSpendPatchData = useYourSpendPatchData();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -49,7 +51,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, currentUserLogin ?? '', betas);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, currentUserLogin ?? '', betas, {yourSpendPatchData});
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

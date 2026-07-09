@@ -21,6 +21,7 @@ import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
+import useYourSpendPatchData from './useYourSpendPatchData';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -52,6 +53,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const yourSpendPatchData = useYourSpendPatchData();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -90,6 +92,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                yourSpendPatchData,
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
@@ -112,6 +115,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 methodID,
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
+                yourSpendPatchData,
             });
         }
         onClose();

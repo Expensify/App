@@ -36,6 +36,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -346,6 +347,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
+    const yourSpendPatchData = useYourSpendPatchData();
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
@@ -968,6 +970,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                yourSpendPatchData,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -1003,6 +1006,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
+        yourSpendPatchData,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
