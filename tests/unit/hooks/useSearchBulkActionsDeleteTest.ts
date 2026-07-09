@@ -217,7 +217,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
-        currentSearchKey: undefined,
+        currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
         currentSearchHash: 12345,
         currentSearchQueryJSON: undefined,
         suggestedSearches: undefined,

@@ -77,7 +77,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
                     query: lastQueryFromOnyx ?? defaultSearchQuery,
-                    searchKey: lastSearchParams?.searchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                    searchKey: lastQueryJSON?.searchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 }),
             );
         });

@@ -41,7 +41,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const searchResultsSearch = currentSearchResults?.search;
     const currentAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
-    const searchKey = lastSearchQuery?.searchKey;
+    const searchKey = lastSearchQuery?.queryJSON?.searchKey;
 
     let results: Array<string | undefined> = [];
     if (!!type && !!searchResultsData && !!searchResultsSearch) {

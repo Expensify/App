@@ -106,8 +106,7 @@ function GroupChildrenContent({
             return;
         }
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: currentSearchKey,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -120,8 +119,7 @@ function GroupChildrenContent({
             return;
         }
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: currentSearchKey,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,

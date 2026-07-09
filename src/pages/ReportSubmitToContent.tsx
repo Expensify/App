@@ -275,7 +275,6 @@ function ReportSubmitToContent({
             onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
             if (currentSearchQueryJSON && !isOffline) {
                 search({
-                    searchKey: currentSearchKey,
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
@@ -309,7 +308,6 @@ function ReportSubmitToContent({
             onSubmitted: () => {
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
-                        searchKey: currentSearchKey,
                         shouldCalculateTotals,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,

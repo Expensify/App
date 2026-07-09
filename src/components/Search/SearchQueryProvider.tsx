@@ -46,23 +46,25 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
     const searchKeyParam = useRootNavigationState((state) => selectSearchKeyParam(state ?? navigation.getState()));
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
-    const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    const baseSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
     const defaultCardFeedID = defaultCardFeed?.id;
     const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID);
 
-    const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
-    const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
-    const currentSearchKey = searchKeyParam ?? getDefaultSearchKeyForSearchType(currentSearchQueryJSON?.type);
+    const currentSearchHash = baseSearchQueryJSON?.hash ?? -1;
+    const currentSimilarSearchHash = baseSearchQueryJSON?.similarSearchHash ?? -1;
+    const currentSearchKey = searchKeyParam ?? getDefaultSearchKeyForSearchType(baseSearchQueryJSON?.type);
+    const validatedSearchKey = isSuggestedSearchKey(currentSearchKey) || isSavedSearchKey(currentSearchKey) ? currentSearchKey : getDefaultSearchKeyForSearchType(baseSearchQueryJSON?.type);
+    const currentSearchQueryJSON = baseSearchQueryJSON ? {...baseSearchQueryJSON, searchKey: validatedSearchKey} : undefined;
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
         currentSimilarSearchHash,
-        currentSearchKey: isSuggestedSearchKey(currentSearchKey) || isSavedSearchKey(currentSearchKey) ? currentSearchKey : getDefaultSearchKeyForSearchType(currentSearchQueryJSON?.type),
+        currentSearchKey: validatedSearchKey,
         currentSearchQueryJSON,
         suggestedSearches,
         shouldResetSearchQuery,

@@ -197,8 +197,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: currentSearchKey,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -213,8 +212,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: currentSearchKey,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -254,8 +252,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: currentSearchKey,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -278,8 +275,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: currentSearchKey,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,

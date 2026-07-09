@@ -359,6 +359,7 @@ type SearchQueryAST = {
 
 type SearchQueryJSON = {
     inputQuery: SearchQueryString;
+    searchKey?: SearchKey;
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
     recentSearchHash: number;
@@ -382,7 +383,6 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: Readonly<SearchQueryJSON>;
-    searchKey: SearchKey;
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
