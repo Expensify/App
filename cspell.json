@@ -7,6 +7,7 @@
     },
     "words": [
         "--longpress",
+        "ACCOUNTCODE",
         "ADDCOMMENT",
         "ADFS",
         "AMRO",
@@ -401,9 +402,12 @@
         "Unsharing",
         "Unvalidated",
         "VBBA",
+        "VENDORID",
         "VMPD",
+        "VPAT",
         "Valuska",
         "Venmo",
+        "WCAG",
         "WDYR",
         "Wallester",
         "Warchoł",
@@ -1045,7 +1049,9 @@
         "Prefetch",
         "Prefetcher",
         "knip",
-        "lottiefiles"
+        "lottiefiles",
+        "macrotask",
+        "Macrotask"
     ],
     "ignorePaths": [
         ".gitignore",
