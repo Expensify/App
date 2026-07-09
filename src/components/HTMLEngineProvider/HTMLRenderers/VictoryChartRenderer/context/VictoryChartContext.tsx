@@ -1,4 +1,5 @@
-import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {ChartType, LabelItem, LegendItem, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import computeAdjustedOverlayY from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeAdjustedOverlayY';
 import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
@@ -46,8 +47,12 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         itemCount,
         padding,
     });
-    const effectiveChartContentStyles =
-        effectiveChartHeight !== undefined && effectiveChartHeight !== parsedDesignHeight ? {...chartContentStyles, height: effectiveChartHeight} : chartContentStyles;
+    const heightDelta = parsedDesignHeight !== undefined && effectiveChartHeight !== undefined ? parsedDesignHeight - effectiveChartHeight : 0;
+    const effectiveChartContentStyles = heightDelta > 0 ? {...chartContentStyles, height: effectiveChartHeight} : chartContentStyles;
+    const effectiveLabelItems: LabelItem[] =
+        heightDelta > 0 ? labelItems.map((labelItem) => ({...labelItem, y: computeAdjustedOverlayY(labelItem.y, effectiveChartHeight, heightDelta)})) : labelItems;
+    const effectiveLegendItems: LegendItem[] =
+        heightDelta > 0 ? legendItems.map((legendItem) => ({...legendItem, y: computeAdjustedOverlayY(legendItem.y, effectiveChartHeight, heightDelta)})) : legendItems;
 
     const contextValue: VictoryChartContextValue = {
         tnode,
@@ -61,8 +66,8 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         padding,
         isHorizontal,
         categories,
-        labelItems,
-        legendItems,
+        labelItems: effectiveLabelItems,
+        legendItems: effectiveLegendItems,
         chartContentStyles: effectiveChartContentStyles,
         chartContainerStyles,
         type,
