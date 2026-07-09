@@ -50,6 +50,7 @@ import {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getSelectedFeed,
+    getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
@@ -2078,6 +2079,33 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getTranslationKeyForCardStatus', () => {
+        it('maps STATE_NOT_ISSUED to pending order for physical cards', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED, false)).toBe('workspace.expensifyCard.statusPendingOrder');
+        });
+
+        it('maps NOT_ACTIVATED to shipped for physical cards', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, false)).toBe('workspace.expensifyCard.statusShipped');
+        });
+
+        it('maps OPEN to active', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.OPEN, false)).toBe('workspace.expensifyCard.statusActive');
+        });
+
+        it('maps STATE_SUSPENDED to inactive', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED, false)).toBe('workspace.expensifyCard.statusInactive');
+        });
+
+        it('reports a virtual card in a physical-only state as active', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED, true)).toBe('workspace.expensifyCard.statusActive');
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, true)).toBe('workspace.expensifyCard.statusActive');
+        });
+
+        it('falls back to active for an undefined state', () => {
+            expect(getTranslationKeyForCardStatus(undefined, false)).toBe('workspace.expensifyCard.statusActive');
         });
     });
 

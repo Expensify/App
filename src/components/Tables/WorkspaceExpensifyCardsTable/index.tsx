@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {filterCardsByPersonalDetails, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
@@ -28,7 +28,7 @@ import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'limit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -126,6 +126,11 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
         },
         {
+            key: 'status',
+            label: translate('common.status'),
+            sortable: true,
+        },
+        {
             key: 'limit',
             label: translate('workspace.expensifyCard.limit'),
             sortable: true,
@@ -158,6 +163,12 @@ export default function WorkspaceExpensifyCardsTable({
 
         if (activeSorting.columnKey === 'lastFour') {
             return localeCompare(item1.lastFourPAN, item2.lastFourPAN) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'status') {
+            const status1 = translate(getTranslationKeyForCardStatus(item1.card.state, item1.isVirtual));
+            const status2 = translate(getTranslationKeyForCardStatus(item2.card.state, item2.isVirtual));
+            return localeCompare(status1, status2) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'limit') {
