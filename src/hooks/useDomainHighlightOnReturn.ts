@@ -35,6 +35,7 @@ function useDomainHighlightOnReturn<DataType extends TableData, ColumnKey extend
         const index = processedData.findIndex((item) => item.keyForList === highlightKey);
 
         if (index === -1) {
+            clearDomainHighlightItems(domainAccountID);
             return;
         }
 
