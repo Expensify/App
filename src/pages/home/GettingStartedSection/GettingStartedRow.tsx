@@ -32,9 +32,6 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
 
     const navigateToItem = () => {
-        if (!item.isFeatureEnabled) {
-            item.enableFeature?.();
-        }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(item.route));
     };
 
@@ -67,7 +64,10 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                             accessibilityLabel={item.label}
                         />
                     )}
-                    <Text style={[styles.flex1, styles.textBold, item.isComplete && {color: theme.textSupporting}]}>{item.label}</Text>
+                    <View style={styles.flex1}>
+                        <Text style={[styles.textBold, item.isComplete && {color: theme.textSupporting}]}>{item.label}</Text>
+                        {!!item.subtitle && <Text style={styles.textLabelSupporting}>{item.subtitle}</Text>}
+                    </View>
                     {!item.isComplete && (
                         <Icon
                             src={icons.ArrowRight}
