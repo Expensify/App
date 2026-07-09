@@ -9,6 +9,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -56,6 +57,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     isDistanceRequest,
+    isPending,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 
@@ -215,6 +217,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const targetPolicyTags = defaultPolicyTags ?? {};
 
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
+
     // Duplicate action throttle
     const handleDuplicateReset = () => {
         if (shouldDuplicateCloseModalOnSelect) {
@@ -257,6 +261,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
                 currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                policyTagList,
             });
         }
     };
@@ -442,7 +447,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
-                    prompt: translate('iou.deleteConfirmation', {count: 1}),
+                    prompt: isPending(transaction) ? translate('iou.deleteConfirmationPendingBYOC') : translate('iou.deleteConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,

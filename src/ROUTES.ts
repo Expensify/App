@@ -205,6 +205,22 @@ const DYNAMIC_ROUTES = {
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
     },
+    AVATAR_CROP: {
+        path: 'avatar-crop',
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.AVATAR,
+            SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
+            SCREENS.SETTINGS.AGENTS.ADD_AVATAR,
+            SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
+            SCREENS.WORKSPACE.PROFILE,
+            SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
+            SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR,
+            SCREENS.WORKSPACE_DUPLICATE.ROOT,
+            SCREENS.TRAVEL.WORKSPACE_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.STEP_UPGRADE,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
     NEW_REPORT_WORKSPACE_SELECTION: {
         path: 'new-report-workspace-selection',
         entryScreens: ['*'],
@@ -3024,6 +3040,10 @@ const ROUTES = {
         route: 'policy/:policyID/copy-settings/select-features',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/select-features` as const,
     },
+    POLICY_COPY_SETTINGS_UPGRADE: {
+        route: 'policy/:policyID/copy-settings/upgrade',
+        getRoute: (policyID: string) => `policy/${policyID}/copy-settings/upgrade` as const,
+    },
     POLICY_COPY_SETTINGS_CONFIRM: {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
@@ -4048,6 +4068,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_IMPORT: {
         route: 'workspaces/:policyID/accounting/rillet/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/import` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXPORT: {
+        route: 'workspaces/:policyID/accounting/rillet/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/rillet/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/rillet/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/default-company-card-vendor` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

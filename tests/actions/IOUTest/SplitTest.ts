@@ -4434,6 +4434,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4496,6 +4497,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4541,6 +4543,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4659,6 +4662,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4740,6 +4744,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4812,6 +4817,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4879,6 +4885,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7973,7 +7980,7 @@ describe('createDistanceRequest', () => {
         const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
         expect(Object.keys(allReports ?? {}).length).toBeGreaterThan(initialReportsCount);
         expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
-        const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
+        const createdTransaction = Object.values(allTransactions ?? {}).at(0);
         expect(createdTransaction).toBeTruthy();
     });
 });

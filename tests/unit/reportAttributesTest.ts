@@ -3,6 +3,7 @@ import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/re
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -186,6 +187,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         expect(result?.reports).toHaveProperty('r1');
@@ -197,6 +199,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
@@ -219,6 +222,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed} as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         // r1 (policy1 changed) should be recomputed with new name
@@ -232,6 +236,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         const policy1WithNameChange = {...policy1, name: 'New Policy Name'} as unknown as Policy;
@@ -251,6 +256,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithNameChange} as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         // No tracked fields changed → return currentValue unchanged
