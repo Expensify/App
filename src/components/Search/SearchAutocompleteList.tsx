@@ -99,6 +99,17 @@ const defaultListOptions = {
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 
+// The empty-query "Recent chats" section rarely gets scrolled past the first screenful, so building
+// options (icons, subtitles, translated text) for the full 500-report default on every open is mostly
+// wasted work. Start smaller and grow via onEndReached; typing a query bypasses this cap entirely
+// (isSearching drops the limit in createFilteredOptionList), so search results are never truncated by it.
+// Note: createFilteredOptionList slices to this count by raw recency *before* shouldReportBeInOptionList
+// excludes hidden/muted chats, so the visible list can come out shorter than this number. 100 leaves
+// enough buffer that a few hidden chats near the top of a user's recency ordering won't visibly thin
+// the initial list, while still cutting the default 500 by 5x.
+const INITIAL_MAX_RECENT_REPORTS = 100;
+const RECENT_REPORTS_BATCH_SIZE = 100;
+
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
 // account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
@@ -200,7 +211,18 @@ function SearchAutocompleteList({
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
+    const {
+        options: listOptions,
+        isLoading: isLoadingOptions,
+        loadMore: loadMoreRecentReports,
+        hasMore: hasMoreRecentReports,
+    } = useFilteredOptions({
+        enabled: true,
+        isSearching: !!autocompleteQueryValue.trim(),
+        betas: betas ?? [],
+        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
+        batchSize: RECENT_REPORTS_BATCH_SIZE,
+    });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -687,6 +709,8 @@ function SearchAutocompleteList({
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
+            onEndReached={hasMoreRecentReports ? loadMoreRecentReports : undefined}
+            onEndReachedThreshold={0.75}
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
