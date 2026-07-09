@@ -73,7 +73,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
 
-        if (bankAccountList && methodID && !bankAccountList[methodID]?.accountData?.policyIDs?.includes(policyID)) {
+        if (bankAccountList && methodID && methodID !== connectedAccountBankAccountID && methodID !== policy?.achAccount?.bankAccountID) {
             setWorkspaceReimbursement({
                 policyID,
                 currentAchAccount: policy?.achAccount,
