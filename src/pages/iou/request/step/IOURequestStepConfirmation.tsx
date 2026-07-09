@@ -86,7 +86,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -774,14 +774,16 @@ function IOURequestStepConfirmation({
     const showNextTransaction = () => {
         const nextTransaction = transactions.at(currentTransactionIndex + 1);
         if (nextTransaction) {
-            setCurrentTransactionID(nextTransaction.transactionID);
+            // Swap the displayed transaction as a non-urgent transition so the press frame paints
+            // before the whole confirmation list re-renders for the next transaction.
+            startTransition(() => setCurrentTransactionID(nextTransaction.transactionID));
         }
     };
 
     const showPreviousTransaction = () => {
         const previousTransaction = transactions.at(currentTransactionIndex - 1);
         if (previousTransaction) {
-            setCurrentTransactionID(previousTransaction.transactionID);
+            startTransition(() => setCurrentTransactionID(previousTransaction.transactionID));
         }
     };
 
