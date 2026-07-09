@@ -3312,7 +3312,7 @@ describe('ReportUtils', () => {
             expect(actual).toHaveProperty('reportName');
         });
 
-        it('resolves the report owner name through the provided translate function for a parentless expense report', async () => {
+        it('resolves the report owner name through the provided translate function for an expense report without a parent', async () => {
             const hiddenOwnerAccountID = 780050;
             // The owner has no displayName/login, so the name resolves to the hidden label provided by translate.
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''}});

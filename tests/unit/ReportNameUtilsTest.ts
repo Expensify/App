@@ -290,7 +290,7 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-            const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'YOUMARKER' : translateLocal(path, ...parameters));
+            const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
                 report,
                 reports: emptyCollections.reports,
@@ -304,7 +304,7 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
-            expect(name).toBe('Lagertha Lothbrok (youmarker)');
+            expect(name).toBe('Lagertha Lothbrok (you marker)');
         });
     });
 
