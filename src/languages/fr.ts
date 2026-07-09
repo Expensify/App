@@ -400,6 +400,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'ID de retrait',
         internationalReimbursementIDs: 'ID de remboursement international',
         withdrawalStatus: 'Statut de retrait',
+        paidStatus: 'Statut payé',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
         chooseFiles: 'Choisir des fichiers',
@@ -2379,6 +2380,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
         verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
         verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
+        verifyOldDeviceDescriptionWithRecovery: 'Saisissez un code de récupération valide pour confirmer que vous avez accès à votre compte.',
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
@@ -2904,6 +2906,7 @@ ${amount} pour ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
         defaultPrompt:
             'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
+        copilotNote: 'Cet agent sera ajouté comme copilote avec un accès complet à votre compte, afin de pouvoir agir en votre nom.',
     },
     editAgentPage: {
         title: 'Modifier l’agent',
@@ -4409,6 +4412,12 @@ ${amount} pour ${merchant} - ${date}`,
         carRental: 'location de voiture',
         nightIn: 'nuit dans',
         nightsIn: 'nuits à',
+        taxID: {
+            title: 'Identifiant fiscal',
+            subtitle: 'Saisissez l’identifiant fiscal de votre entité légale afin que nous puissions configurer la facturation des déplacements dans votre devise locale.',
+            inputLabel: 'Identifiant fiscal de l’entité juridique',
+            error: {required: 'Veuillez saisir l’identifiant fiscal de votre entité légale.'},
+        },
     },
     workspace: {
         common: {
@@ -5082,11 +5091,10 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Avant de vous connecter',
                 installBundle: 'Installer le module Expensify',
                 installBundlePSAHeader: 'Pour les connexions PSA/SRP :',
-                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify PSA/SRP (version ${version})</a>`,
+                installBundleDescription: 'Installez le bundle Expensify dans Salesforce en cliquant sur ce lien :',
+                installBundlePSALink: ({version}: {version: string}) => `Installer le bundle Expensify PSA/SRP (version ${version})`,
                 installBundleFFAHeader: 'Pour les connexions FFA :',
-                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify pour FFA (version ${version})</a>`,
+                installBundleFFALink: ({version}: {version: string}) => `Installer le bundle Expensify pour FFA (version ${version})`,
                 installBundleConfirm: 'J’ai installé le paquet',
                 setupContacts: 'Configurer l’utilisateur et les contacts',
                 setupContactsBullet1:
@@ -6424,6 +6432,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur des personnes',
                 other: 'Nommer des administrateurs des personnes',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Nommer administrateur des paiements',
+                other: 'Nommer des administrateurs des paiements',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre de l’espace de travail',
@@ -6457,6 +6469,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
             peopleAdmins: 'Administrateurs des personnes',
+            paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
         },
         card: {
@@ -8885,10 +8898,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pending: 'En attente',
             cleared: 'Compensé',
             failed: 'Échec',
+            never: 'Jamais',
         },
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
     },
+    paidStatus: {markedAsPaid: 'Marqué comme payé', withdrawing: 'Retrait en cours', confirmed: 'Confirmé'},
     reportLayout: {
         reportLayout: 'Mise en page de la note de frais',
         groupByLabel: 'Regrouper par :',
@@ -9791,6 +9806,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
             collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
             pricing: 'Tarification',
+            editSubscription: 'Modifier l’abonnement',
         },
         cancelSubscription: {
             title: "Annuler l'abonnement",
@@ -9979,7 +9995,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
-        accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
+        accountSwitcher: '<tooltip>Vous pouvez désormais copiloter un autre compte&nbsp;!</tooltip>',
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',

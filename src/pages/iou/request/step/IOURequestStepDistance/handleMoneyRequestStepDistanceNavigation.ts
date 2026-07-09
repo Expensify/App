@@ -229,6 +229,7 @@ function handleMoneyRequestStepDistanceNavigation({
             isArchivedExpenseReport,
             reportAttributesDerived,
             reportDraft,
+            translate,
         );
 
         setDistanceRequestData?.(participants);
@@ -330,6 +331,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                             currentUserLocalCurrency,
+                            reportActionsList: undefined,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -358,7 +360,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
-                    createDistanceRequest({
+                    const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
                         report,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
@@ -391,9 +393,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },
-                        shouldHandleNavigation: overrides.shouldHandleNavigation,
-                        shouldDeferForSearch: false,
-                        backToReport,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
@@ -410,8 +409,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         report,
                         action,
                         draftTransactionIDs,
-                        // createDistanceRequest writes under the existing draft transaction, so the cleanup target must mirror that id, not a fresh optimistic one.
-                        transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? transaction?.transactionID,
+                        transactionID: writtenDistanceTransactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
                         backToReport,
                         optimisticChatReportID,

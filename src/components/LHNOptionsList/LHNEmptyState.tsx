@@ -66,7 +66,7 @@ function LHNEmptyState() {
                 width={variables.emptyLHNIconWidth}
                 height={variables.emptyLHNIconHeight}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
                 additionalStyles={styles.mh1}
             />
             <TextBlock
@@ -79,7 +79,7 @@ function LHNEmptyState() {
                 width={variables.emptyLHNIconWidth}
                 height={variables.emptyLHNIconHeight}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
                 additionalStyles={styles.mh1}
             />
             <TextBlock
