@@ -10,23 +10,23 @@ type IconSize = ValueOf<typeof CONST.ICON_SIZE>;
 
 /** Shared render props for icon primitive components. */
 type BaseIconProps = {
+    /** Test identifier for end-to-end tests. */
+    testID: string;
+
     /** Additional styles applied to the icon wrapper. */
     additionalStyles: StyleProp<ViewStyle>;
 
     /** Icon asset to render. */
     src: IconAsset;
 
-    /** Fill color passed to the SVG. */
-    fill?: string;
-
-    /** Test identifier for end-to-end tests. */
-    testID?: string;
-
     /** Rendered width of the SVG content. */
     iconWidth?: number | `${number}%` | 'auto';
 
     /** Rendered height of the SVG content. */
     iconHeight?: number | `${number}%` | 'auto';
+
+    /** Fill color passed to the SVG. */
+    fill?: string;
 
     /** Whether the icon is in a hovered state. */
     isHovered: boolean;
