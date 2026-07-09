@@ -6014,6 +6014,9 @@ const CONST = {
         PUSHER: 'pusher',
         AIRSHIP: 'airship',
     },
+    // After this many consecutive GetMissingOnyxMessages fetches resolve without advancing the
+    // client's applied update ID, stop re-firing until the client makes progress (avoids a request loop).
+    MAX_CONSECUTIVE_STALLED_GAP_FETCHES: 3,
     EVENTS: {
         SCROLLING: 'scrolling',
         TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
