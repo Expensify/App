@@ -60,7 +60,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, imageData, setI
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const avatarStyle = [styles.avatarXxxxLarge, styles.alignSelfStart, styles.alignSelfCenter];
+    const avatarStyle = [styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.XXXX_LARGE);

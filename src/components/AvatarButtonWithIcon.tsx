@@ -28,7 +28,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     text: string;
 
     /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
+    avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Executed on click */
     onPress: () => void;

@@ -235,7 +235,6 @@ function ReportActionAvatarSubscript({
                 <View>
                     <ProfileAvatar
                         useProfileNavigationWrapper={useProfileNavigationWrapper}
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={primaryAvatar.source}
                         size={size}
                         name={primaryAvatar.name}

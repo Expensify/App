@@ -2580,11 +2580,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarXxxxLarge: {
-            width: variables.avatarSizeXxxxLarge,
-            height: variables.avatarSizeXxxxLarge,
-        },
-
         avatarInnerText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,

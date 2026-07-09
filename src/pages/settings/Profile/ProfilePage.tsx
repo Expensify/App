@@ -80,7 +80,6 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const avatarStyle = [styles.avatarXxxxLarge, styles.alignSelfStart];
     const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
@@ -247,7 +246,7 @@ function ProfilePage() {
                                                 avatarID={accountID}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
                                                 size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                                avatarStyle={avatarStyle}
+                                                avatarStyle={styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}

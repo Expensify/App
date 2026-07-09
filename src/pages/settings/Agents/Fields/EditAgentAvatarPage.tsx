@@ -159,8 +159,8 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
                     <Avatar
-                        containerStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
-                        imageStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
+                        containerStyles={styles.alignSelfCenter}
+                        imageStyles={styles.alignSelfCenter}
                         source={previewSource}
                         avatarID={accountID}
                         size={CONST.AVATAR_SIZE.XXXX_LARGE}

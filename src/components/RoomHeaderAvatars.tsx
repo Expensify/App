@@ -66,7 +66,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     avatarID={icon.id}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    avatarStyle={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
+                    avatarStyle={styles.alignSelfCenter}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}
@@ -94,7 +94,6 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
             >
                 <Avatar
                     source={icon.source}
-                    imageStyles={styles.avatarXxxxLarge}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     name={icon.name}
                     avatarID={icon.id}

@@ -217,8 +217,6 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar
-                                        containerStyles={styles.avatarXxxxLarge}
-                                        imageStyles={styles.avatarXxxxLarge}
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}

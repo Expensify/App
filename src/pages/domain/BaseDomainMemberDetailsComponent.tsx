@@ -73,8 +73,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
                                 <Avatar
-                                    containerStyles={[styles.avatarXxxxLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={styles.avatarXxxxLarge}
+                                    containerStyles={[styles.mb4, styles.noOutline]}
                                     source={personalDetails?.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
