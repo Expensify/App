@@ -66,6 +66,7 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -3357,6 +3358,34 @@ describe('CardUtils', () => {
             });
             const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
             expect(description).toBe('Travel invoicing');
+        });
+
+        it("should return 'Travel invoicing' for another member's travel card that isn't in the viewer's card list", () => {
+            const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, undefined, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+            expect(description).toBe('Travel invoicing');
+        });
+    });
+
+    describe('isTravelCardTransaction', () => {
+        it("returns true from the transaction's feedCountry even when the card isn't in the viewer's list", () => {
+            expect(isTravelCardTransaction(CONST.TRAVEL.PROGRAM_TRAVEL_US, undefined)).toBe(true);
+        });
+
+        it('falls back to the card when the transaction has no feedCountry', () => {
+            const travelCardList = createMock<CardList>({
+                '99999': {
+                    cardID: 99999,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    nameValuePairs: {
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                    },
+                },
+            });
+            expect(isTravelCardTransaction(undefined, travelCardList['99999'])).toBe(true);
+        });
+
+        it('returns false for a non-travel transaction with no card', () => {
+            expect(isTravelCardTransaction(CONST.COUNTRY.US, undefined)).toBe(false);
         });
     });
 

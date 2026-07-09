@@ -496,6 +496,7 @@ const SCREENS = {
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
         SELECT_FEATURES: 'Policy_Copy_Settings_Select_Features',
+        UPGRADE: 'Policy_Copy_Settings_Upgrade',
         CONFIRM: 'Policy_Copy_Settings_Confirm',
     },
 
@@ -511,6 +512,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
             QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
             QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
+            QUICKBOOKS_ONLINE_ITEMS: 'Policy_Accounting_Quickbooks_Online_Import_Items',
             QUICKBOOKS_ONLINE_TAXES: 'Policy_Accounting_Quickbooks_Online_Import_Taxes',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Date_Select',
@@ -666,6 +668,11 @@ const SCREENS = {
             RILLET_EXISTING_CONNECTIONS: 'Policy_Accounting_Rillet_Existing_Connections',
             RILLET_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Rillet_Subsidiary_Selector',
             RILLET_IMPORT: 'Policy_Accounting_Rillet_Import',
+            RILLET_EXPORT: 'Policy_Accounting_Rillet_Export',
+            RILLET_PREFERRED_EXPORTER: 'Policy_Accounting_Rillet_Preferred_Exporter',
+            RILLET_VENDOR_BILL_DATE: 'Policy_Accounting_Rillet_Vendor_Bill_Date',
+            RILLET_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Company_Card_Account',
+            RILLET_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_Rillet_Default_Company_Card_Vendor',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',

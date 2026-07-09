@@ -274,6 +274,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -518,6 +519,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // Then we should expect that there is on persisted request
@@ -649,6 +651,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_1_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -669,6 +672,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_1_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -688,6 +692,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_1_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -960,11 +965,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
+        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (snapshot) => {
-                reportActionsReactions = snapshot ?? {};
+            callback: (val, key) => {
+                reportActionsReactions[key] = val ?? {};
             },
         });
         let reportAction: OnyxTypes.ReportAction | undefined;
@@ -988,6 +993,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -1098,11 +1104,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
+        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (snapshot) => {
-                reportActionsReactions = snapshot ?? {};
+            callback: (val, key) => {
+                reportActionsReactions[key] = val ?? {};
             },
         });
 
@@ -1126,6 +1132,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -1374,6 +1381,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments
@@ -1459,6 +1467,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         const reportActionID = PersistedRequests.getAll().at(0)?.data?.reportActionID as string | undefined;
@@ -1506,6 +1515,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1579,6 +1589,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForNetworkPromises();
 
@@ -1634,7 +1645,15 @@ describe('actions/Report', () => {
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, delegateAccountID: undefined});
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: file,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1717,6 +1736,7 @@ describe('actions/Report', () => {
             currentUserAccountID: 1,
             text: 'Attachment with comment',
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments
@@ -1816,6 +1836,7 @@ describe('actions/Report', () => {
             timezone: CONST.DEFAULT_TIME_ZONE,
             shouldPlaySound,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
@@ -1864,6 +1885,7 @@ describe('actions/Report', () => {
             timezone: CONST.DEFAULT_TIME_ZONE,
             shouldPlaySound,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
@@ -1902,7 +1924,15 @@ describe('actions/Report', () => {
         const file = new File(['a'], 'a.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, delegateAccountID: undefined});
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: file,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(0);
@@ -2079,6 +2109,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments
@@ -2187,6 +2218,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments — read before the queue processes the request
@@ -2276,6 +2308,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         const newComment = PersistedRequests.getAll().at(0);
@@ -2338,6 +2371,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -2434,6 +2468,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Get the reportActionID to edit and delete the comment
@@ -2646,6 +2681,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -2670,6 +2706,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
@@ -2740,6 +2777,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
                 callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
@@ -6199,7 +6237,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, undefined);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, undefined, undefined);
             await waitForBatchedUpdates();
 
             // The report action should remain unchanged (no followup-list to resolve)
@@ -6227,7 +6265,17 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, undefined);
+            resolveSuggestedFollowup(
+                report,
+                undefined,
+                reportAction,
+                {text: 'How do I set up QuickBooks?'},
+                CONST.DEFAULT_TIME_ZONE,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                undefined,
+                undefined,
+            );
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
@@ -6267,6 +6315,7 @@ describe('actions/Report', () => {
                 CONST.DEFAULT_TIME_ZONE,
                 TEST_USER_ACCOUNT_ID,
                 TEST_USER_EMAIL,
+                undefined,
                 undefined,
             );
             await waitForBatchedUpdates();
@@ -6321,6 +6370,7 @@ describe('actions/Report', () => {
                 TEST_USER_ACCOUNT_ID,
                 TEST_USER_EMAIL,
                 undefined,
+                undefined,
             );
             await waitForBatchedUpdates();
 
@@ -6361,7 +6411,17 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, undefined);
+            resolveSuggestedFollowup(
+                report,
+                undefined,
+                reportAction,
+                {text: 'How do I set up QuickBooks?'},
+                CONST.DEFAULT_TIME_ZONE,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                undefined,
+                undefined,
+            );
             await waitForBatchedUpdates();
 
             const telemetryCall = logInfoSpy.mock.calls.find((args) => {
@@ -6371,6 +6431,23 @@ describe('actions/Report', () => {
             expect(telemetryCall).toBeDefined();
 
             logInfoSpy.mockRestore();
+        });
+    });
+
+    describe('resolveConciergeCategoryOptions', () => {
+        it('posts the selected category back to Concierge as a comment (routes through resolveConciergeOptions → addComment)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const REPORT_ID = 'concierge-opts-1';
+            const report = createMock<OnyxTypes.Report>({reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await waitForBatchedUpdates();
+
+            // When the user picks one of the Concierge-suggested category options
+            Report.resolveConciergeCategoryOptions(report, REPORT_ID, '5150', 'Food', CONST.DEFAULT_TIME_ZONE, 1, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the selection is posted back to Concierge as a comment
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
         });
     });
 
@@ -7873,6 +7950,7 @@ describe('actions/Report', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
