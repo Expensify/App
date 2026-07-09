@@ -120,18 +120,40 @@ compute: ([reports, personalDetails]) => {
 
 Users can export their Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.
 
-### - Every Onyx key MUST be deliberately categorized for export
-There is no safe implicit default: a key that leaks credentials and a key holding a harmless boolean flag both need an explicit decision. To make that decision impossible to skip, every top-level and `COLLECTION.*` key in `ONYXKEYS` is placed into exactly one of four mutually-exclusive buckets in `src/libs/ExportOnyxState/common.ts`:
+### - There are two ways the export masks data
+The buckets below make more sense once you know how the two masking treatments differ.
 
-1. **`onyxKeysToRemove`** — keys that must never leave the device (push notification ID, Stripe customer ID, Plaid/merge-HR link tokens, Onfido token/applicant ID, billing dispute/status, and all `DERIVED` keys). Dropped entirely from the export.
-2. **`ONYX_KEY_EXPORT_RULES`** — keys with a per-field `allowList`/`maskList` for PII-aware export (e.g. `SESSION`, `ACCOUNT`, `COLLECTION.REPORT`, `COLLECTION.TRANSACTION`, `USER_WALLET`, `CARD_LIST`).
-3. **`safeOnyxKeys`** — keys confirmed PII-free that are exported as-is (boolean flags, loading states, feature flags, simple IDs, config values, timestamps). At runtime these skip `maskFragileData`.
-4. **`onyxKeysToMaskFragileData`** — keys with no explicit rule that fall through to the default `maskFragileData` treatment.
+**`maskFragileData` masks only what it recognizes.** It walks through a value and:
+- Replaces fields whose *name* it knows (`firstName`, `lastName`, `phoneNumber`, `addressStreet`, `accountNumber`, `routingNumber`, `cardNumber`, `validateCode`, `source`, `name`, and others in `keysToMask`) with a random string of the same length.
+- Swaps email addresses for fake ones, whether they appear as a value, as an object key, or inside a longer string.
+- Randomizes amount fields like `amount` and `total`, and replaces report action `text` and `html` with `***`.
+- Leaves everything else exactly as it was.
+
+That last point matters. If a secret is stored under a field name it doesn't know about, it gets exported in cleartext. `MAPBOX_ACCESS_TOKEN` is the example: its secret lives in a field called `token`, which isn't in `keysToMask`, so it has to be removed instead.
+
+**An export rule masks everything you don't ask to keep.** A rule lists an `allowList` of fields to keep and a `maskList` of fields to replace with a random string of the same length. Fields in neither list still get handled: objects are walked, numbers are randomized, dates become today's date, strings are masked, and anything else becomes `***`. Forgetting about a field means it gets masked rather than exported.
+
+In short, write a rule when you can't be sure what every field holds, and use `maskFragileData` when you can.
+
+### - Every Onyx key MUST be deliberately categorized for export
+A key holding credentials and a key holding a boolean flag both need a decision made about them, and there's no default that's safe for both. So every top-level and `COLLECTION.*` key in `ONYXKEYS` goes into exactly one of four buckets in `src/libs/ExportOnyxState/common.ts`.
+
+**1. `onyxKeysToRemove` — dropped from the export.**
+This is the most sensitive data that belongs to a user, so use this bucket for anything that might cause a security concern if it was leaked: credentials, access tokens and third-party secrets like the push notification ID, Stripe customer ID, Plaid and merge-HR link tokens, Onfido token and applicant ID, and the Mapbox access token. It's also the right choice when a value is a secret that neither masking treatment would catch. All `DERIVED` keys live here too, since they're recomputed from other keys and add nothing to a bug report.
+
+**2. `ONYX_KEY_EXPORT_RULES` — keep some fields, mask the rest.**
+Use this when a key holds a mix of PII and fields that are genuinely useful for debugging, like `SESSION` (where `accountID` is kept and the auth token is masked), `ACCOUNT`, `COLLECTION.REPORT`, `COLLECTION.TRANSACTION`, `USER_WALLET` and `CARD_LIST`. It's also the safer choice for a large or growing object, because a field added later gets masked on its own instead of quietly ending up in the export.
+
+**3. `safeOnyxKeys` — exported as-is.**
+Only use this when you're sure the value holds nothing personal: booleans, loading states, feature flags, enums, numeric IDs, timestamps and config values. Nothing is masked here, so one sensitive field anywhere in the value ends up in the export. If the value is a free-form string, or an object that's likely to grow, pick a different bucket.
+
+**4. `onyxKeysToMaskFragileData` — handled by `maskFragileData`.**
+Use this for everyday user data whose sensitive fields are ones `maskFragileData` already knows by name, such as personal details, drafts, report actions and policy data. Don't use it for a key holding a secret under a field name it won't recognize, as that belongs in `onyxKeysToRemove` or needs its own rule. When you're not sure every sensitive field is covered, write a rule.
 
 ### - When adding a new Onyx key you MUST place it in one of the four buckets
-The coverage test in `tests/unit/ExportOnyxStateTest.ts` fails whenever a key exists in `ONYXKEYS` but in none of the four buckets, so a newly-added key cannot silently inherit a default. That failure is the forcing function: it requires whoever adds the key to make an explicit masked-vs-unmasked decision.
+The coverage test in `tests/unit/ExportOnyxStateTest.ts` fails when a key exists in `ONYXKEYS` but isn't in any bucket, so a new key can't quietly pick up a default. Whoever adds it has to decide whether it should be masked.
 
-Note that `onyxKeysToMaskFragileData` is a hand-maintained mirror of the runtime `maskFragileData` fallback — it is **not** read at runtime, and listing a key there does not by itself mask anything. It exists only so the coverage test can tell "deliberately falls through to `maskFragileData`" apart from "the author forgot to categorize this key".
+Keep in mind that nothing reads `onyxKeysToMaskFragileData` at runtime, and adding a key to it doesn't mask anything by itself. It's written out by hand so the coverage test can tell the difference between a key that's meant to fall through to `maskFragileData` and one nobody has categorized yet.
 
-### - Marking a key as safe is a security judgment, not a structural one
-Membership in `safeOnyxKeys` means the key is exported with no masking at all, so it MUST only contain data that carries no credentials, tokens, banking data, or personal details. No structural test can validate this (nothing in the suite knows which fields a key actually holds), so the decision is a manual review. A `knownSensitiveKeys` denylist test re-encodes that judgment for known-sensitive keys and fails loudly if any of them is ever moved into `safeOnyxKeys`.
+### - Deciding a key is safe is a judgment call
+A key in `safeOnyxKeys` is exported with no masking, so it MUST NOT hold credentials, tokens, banking data or personal details. No test can check this for you, because nothing in the test suite knows what fields a key actually holds, which makes it a decision someone has to make by reading the type. The `knownSensitiveKeys` denylist test covers the keys we already know are sensitive, and fails if one of them is ever moved into `safeOnyxKeys`.

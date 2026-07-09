@@ -10,14 +10,14 @@ import type {MaskOnyxState} from './types';
 const MASKING_PATTERN = '***';
 
 type ExportRule = {
-    /** Fields to keep as-is. */
+    /** Fields to keep as-is */
     allowList: string[];
-    /** Fields to length-mask (random string of same length). */
+    /** Fields to replace with a random string of the same length */
     maskList: string[];
 };
 
 // ============================================================
-// 1. KEYS TO REMOVE — never leave the device
+// 1. KEYS TO REMOVE - dropped from the export entirely
 // ============================================================
 const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXKEYS.DERIVED>>([
     ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
@@ -28,14 +28,17 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
     ONYXKEYS.ONFIDO_TOKEN,
     ONYXKEYS.ONFIDO_APPLICANT_ID,
-    // Secret with no debugging value; the `maskFragileData` fallback would NOT mask it because its
-    // `token` field name is not in `keysToMask`, so it must be dropped rather than routed there.
+    // maskFragileData won't catch this one, since the secret sits in a field named "token"
     ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+    // Both hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
+    // trade a copy of the user's photo for an equally large blob of random characters.
+    ONYXKEYS.AVATAR_CROP_DRAFT,
+    ONYXKEYS.AVATAR_CROP_RESULT,
     ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
 // ============================================================
-// 2. KEYS WITH SPECIFIC EXPORT RULES — allow/mask per field
+// 2. KEYS WITH EXPORT RULES - keep some fields, mask the rest
 // ============================================================
 const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     [ONYXKEYS.SESSION]: {
@@ -120,8 +123,8 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 };
 
 // ============================================================
-// 3. SAFE ONYX KEYS — export as-is, no masking needed
-//    Add keys here to opt them out of maskFragileData once they are confirmed PII-free.
+// 3. SAFE KEYS - exported as-is, no masking
+//    Only add a key here once you're sure it holds no personal data.
 // ============================================================
 const safeOnyxKeys = new Set<string>([
     ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
@@ -214,6 +217,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
     ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED,
+    ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO,
     ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
     ONYXKEYS.NVP_LAST_ANDROID_LOGIN,
     ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
@@ -287,12 +291,9 @@ const safeOnyxKeys = new Set<string>([
 ]);
 
 // ============================================================
-// 4. KEYS TO MASK FRAGILE DATA — fallback bucket
-//    Every key listed here is processed by maskFragileData, the default
-//    treatment for keys without an explicit rule. This list is
-//    intentionally hardcoded (not derived from ONYXKEYS) so that whenever a new
-//    Onyx key is added it lands in none of the four buckets and the coverage
-//    test in ExportOnyxStateTest fails — forcing it to be categorized on purpose.
+// 4. KEYS HANDLED BY maskFragileData - the default treatment
+//    Nothing reads this list at runtime. It exists so the coverage test can tell a key that
+//    belongs here apart from one that nobody has categorized yet.
 // ============================================================
 const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.ADD_NEW_COMPANY_CARD,
@@ -367,8 +368,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     ONYXKEYS.NVP_BILLING_FUND_ID,
     ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS,
-    // Populated from raw route strings (e.g. `SEARCH_ROOT.getRoute` appends `name` unencoded), so the URL
-    // can embed a raw email/PII; keep it here so `maskFragileData` redacts emails-in-strings on export.
+    // Holds a raw route, and a search route can carry an unencoded email in its "name" param
     ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
     ONYXKEYS.NVP_EXPENSE_RULES,
     ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
@@ -740,7 +740,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
         }
 
         if (isMaskingFragileDataEnabled) {
-            // Only apply maskFragileData to keys that don't have export rules or safe designation
+            // Mask whatever wasn't already handled by a rule or marked safe
             const maskedState: OnyxState = {};
             for (const key of Object.keys(onyxState)) {
                 if (keysWithRules.has(key)) {

@@ -295,46 +295,39 @@ describe('maskOnyxState', () => {
     });
 });
 
-// These tests enforce that every Onyx key is *categorized* into an export bucket and that
-// the buckets stay disjoint. That is a structural guarantee, NOT a data-safety guarantee:
-// nothing here knows which fields a key actually holds, so whether a key truly belongs in
-// safeOnyxKeys remains a manual security judgment. The denylist test below is the one place
-// that judgment is asserted, by failing if a known-sensitive key is ever marked safe.
+// These tests check that every Onyx key is sorted into a bucket and that no key lands in two of them.
+// They can't tell you whether a key belongs in the bucket it's in, since nothing here knows what fields
+// a key actually holds. Deciding a key is safe is still a judgment call, and the denylist test below is
+// the only place we check it.
 describe('Onyx key export coverage', () => {
     it('every ONYXKEYS value (top-level + collection) must be in one of the four buckets', () => {
-        // Collect all top-level Onyx key string values (excluding sub-objects)
+        // Top-level keys are the string values, so skip the nested objects like COLLECTION and FORMS
         const allTopLevelKeys: string[] = (Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string');
 
-        // Collect all collection prefix values
         const allCollectionKeys: string[] = Object.values(ONYXKEYS.COLLECTION);
 
-        // Build the set of all covered keys across the four buckets. onyxKeysToMaskFragileData is a
-        // hand-maintained mirror of the runtime maskFragileData fallback (NOT derived from ONYXKEYS), so a
-        // newly-added key that isn't placed in one of the other three buckets — and isn't listed here on
-        // purpose — is absent from every bucket and fails this test, forcing an explicit categorization.
+        // onyxKeysToMaskFragileData is written out by hand rather than derived from ONYXKEYS. That's what
+        // makes this test useful: a brand new key won't be in any bucket until someone puts it in one.
         const removeKeys = Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string');
         const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
 
         const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
         const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
 
-        // These should be empty — every key is categorized, falling back to onyxKeysToMaskFragileData
-        // when not explicitly placed in one of the other three buckets.
         expect(uncoveredTopLevel).toEqual([]);
         expect(uncoveredCollection).toEqual([]);
     });
 
     it('FORMS keys should not need individual export rules (handled by maskFragileData fallback)', () => {
-        // Some top-level ONYXKEYS share string values with FORMS (e.g. personalBankAccount,
-        // reimbursementAccount, walletAdditionalDetails, assignCard). Those are legitimately
-        // in ONYX_KEY_EXPORT_RULES for the top-level key, not the form.
+        // A few forms reuse a top-level key's string value (personalBankAccount, reimbursementAccount,
+        // walletAdditionalDetails, assignCard). Those rules belong to the top-level key, not the form,
+        // so leave them out before checking.
         const topLevelValues = new Set<string>((Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string'));
 
         const formOnlyValues = Object.values(ONYXKEYS.FORMS).filter((v) => !topLevelValues.has(v));
         const rulesKeys = new Set(Object.keys(ONYX_KEY_EXPORT_RULES));
 
         for (const formKey of formOnlyValues) {
-            // Form-only keys should NOT be in export rules — they use the maskFragileData fallback
             expect(rulesKeys.has(formKey)).toBe(false);
         }
     });
@@ -347,13 +340,9 @@ describe('Onyx key export coverage', () => {
     });
 
     it('known-sensitive keys must never be classified as safe', () => {
-        // Membership in safeOnyxKeys is a manual security judgment: a key listed there is
-        // exported as-is, bypassing all masking. No structural test can validate that judgment,
-        // because nothing in the suite knows which fields each key actually holds. This guard
-        // re-encodes the judgment explicitly: every key below is known to carry credentials,
-        // tokens, banking data, or personal details, so if any of them is ever moved into
-        // safeOnyxKeys this test fails loudly. Keep this denylist in sync as sensitive keys
-        // are added.
+        // Anything in safeOnyxKeys is exported with no masking at all. Every key below carries
+        // credentials, tokens, banking data or personal details, so none of them may ever end up
+        // there. Add to this list when a new sensitive key shows up.
         const knownSensitiveKeys: string[] = [
             ONYXKEYS.SESSION,
             ONYXKEYS.STASHED_SESSION,
