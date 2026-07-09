@@ -137,6 +137,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
                             key={rule.ruleID}
                             pendingAction={rule.pendingAction}
                             errors={rule.errors}
+                            errorRowStyles={styles.agentRulesErrorRow}
                             onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
                         >
                             <MenuItemWithTopDescription

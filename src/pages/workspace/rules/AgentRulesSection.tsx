@@ -96,6 +96,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                                 <OfflineWithFeedback
                                     pendingAction={rule.pendingAction}
                                     errors={rule.errors}
+                                    errorRowStyles={styles.agentRulesErrorRow}
                                     onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription

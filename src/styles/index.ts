@@ -5547,6 +5547,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.agentsRulesEmptyStateIllustrationHeight,
         },
 
+        agentRulesErrorRow: {
+            ...spacing.pt2,
+            ...spacing.pb3,
+        },
+
         agentRulePromptInput: {
             maxHeight: variables.agentRulePromptInputHeight,
         },
