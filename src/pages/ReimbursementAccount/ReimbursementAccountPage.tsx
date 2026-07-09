@@ -262,18 +262,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-            // Defer the redirect by a tick with setTimeout(0). Navigating synchronously here — in the same frame this
-            // page mounts from the Workflows navigation — collapses the two navigations into a single commit. On small
-            // screens that detaches and unmounts this page, which resets its achData-derived local state to defaults.
-            // Deferring lets the first navigation commit before we push the validation route, so the redirect stays a
-            // clean push and the page remains mounted.
-            const timeoutId = setTimeout(() => {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo}));
-            }, 0);
-            // Clear the timer on unmount/re-run so a stale deferred navigation can't fire against a torn-down page.
-            return () => clearTimeout(timeoutId);
+            return;
         }
 
         // Sync USDBankAccountStep state with achData.currentStep when backend data changes.
