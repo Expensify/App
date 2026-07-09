@@ -250,7 +250,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should forward the caller-supplied policyTagList through to trackExpense', () => {
+        it('should forward the caller-supplied policyTagList through policyParams to trackExpense', () => {
             const policyTagList = {Tag: {name: 'Tag', tags: {}, orderWeight: 0, required: false}} as PolicyTagLists;
 
             createTransaction({
@@ -260,7 +260,11 @@ describe('MoneyRequest', () => {
                 policyParams: {policy: undefined, policyTagList},
             });
 
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({policyTagList}));
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    policyParams: expect.objectContaining({policyTagList}),
+                }),
+            );
         });
 
         it('should not pass shouldDeferAPIWrite to the action (V2: deferral is channel-driven)', () => {
