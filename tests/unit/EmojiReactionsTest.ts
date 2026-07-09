@@ -128,41 +128,50 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
 
     it('does not throw when a name-keyed stub (no users) coexists with a hex-keyed reaction', () => {
         const THUMBSUP_HEX = '1F44D';
+        const THUMBSUP_NAME = '+1';
         const existingReactions: ReportActionReactions = {
             [THUMBSUP_HEX]: {
                 createdAt: TIMESTAMP,
                 oldestTimestamp: TIMESTAMP,
                 users: {[USER_A]: makeUserReaction(USER_A)},
             },
-            // Reproduces the post-Auth-hex-migration Onyx state left behind by addEmojiReaction's
-            // finallyData: a name-keyed stub with no `users` after the server NILs the optimistic entry.
-            '+1': {pendingAction: null},
+            [THUMBSUP_NAME]: {
+                createdAt: TIMESTAMP,
+                oldestTimestamp: TIMESTAMP,
+                users: {},
+            },
         };
+        // Reproduces the post-Auth-hex-migration Onyx state left behind by addEmojiReaction's
+        // finallyData: a name-keyed stub whose `users` field is missing entirely (not just empty)
+        // after the server NILs the optimistic entry.
+        Reflect.deleteProperty(existingReactions[THUMBSUP_NAME], 'users');
 
         expect(() => {
             toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, true);
         }).not.toThrow();
 
         expect(writeMock).toHaveBeenCalledTimes(1);
-        const [command, params] = writeMock.mock.calls.at(0) as [string, {emojiCode: string}];
-        expect(command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
-        expect(params.emojiCode).toBe(THUMBSUP_HEX);
+        expect(writeMock).toHaveBeenCalledWith(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, expect.objectContaining({emojiCode: THUMBSUP_HEX}), expect.anything());
     });
 });
 
 describe('addEmojiReaction — finallyData', () => {
     it('NILs the optimistic name key and clears pending on the hex key instead of recreating a name-key stub', () => {
+        const THUMBSUP_HEX = '1F44D';
+        const THUMBSUP_NAME = '+1';
+
         toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, {}, SKIN_TONE, USER_A);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
-        const [command, , onyxData] = writeMock.mock.calls.at(0) as [string, unknown, {finallyData: Array<{value: Record<string, unknown>}>}];
-        expect(command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
-
-        const finallyValue = onyxData.finallyData.at(0)?.value;
-        // The name key must be NILed so it doesn't linger as a stub without `users` once the
-        // server's hex-keyed onyxData response has already landed.
-        expect(finallyValue?.['+1']).toBeNull();
-        // Pending state must be cleared on the canonical hex key instead.
-        expect(finallyValue?.['1F44D']).toEqual({pendingAction: null});
+        expect(writeMock).toHaveBeenCalledWith(
+            WRITE_COMMANDS.ADD_EMOJI_REACTION,
+            expect.anything(),
+            // The name key must be NILed so it doesn't linger as a stub without `users` once the
+            // server's hex-keyed onyxData response has already landed. Pending state must be
+            // cleared on the canonical hex key instead.
+            expect.objectContaining({
+                finallyData: [expect.objectContaining({value: {[THUMBSUP_NAME]: null, [THUMBSUP_HEX]: {pendingAction: null}}})],
+            }),
+        );
     });
 });
