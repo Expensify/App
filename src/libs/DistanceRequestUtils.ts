@@ -30,6 +30,18 @@ type MileageRate = {
     endDate?: string | null;
 };
 
+<<<<<<< migrate-getRate-6
+=======
+/** @private Only for getRate function */
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
+>>>>>>> main
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
