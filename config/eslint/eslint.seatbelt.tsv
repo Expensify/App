@@ -2045,7 +2045,7 @@
 "../../tests/unit/ReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportWelcomeTextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/RequestConflictUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../tests/unit/RequestConflictUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../tests/unit/RequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/RequireA11yDisableJustificationRuleTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/RequireLiveRegionForStatusUpdatesRuleTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
