@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -58,7 +58,7 @@ function CategoryField({
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
-    const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
+    const decodedCategoryName = getDecodedFullCategoryName(iouCategory);
 
     const getCategoryRightLabelIcon = () => (willAutoFill ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {

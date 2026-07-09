@@ -15,7 +15,7 @@ import {deepEqual} from 'fast-equals';
 
 import type {TransactionDetails} from './ReportUtils';
 
-import {getDecodedLeafCategoryName} from './CategoryUtils';
+import {getDecodedFullCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
@@ -553,7 +553,7 @@ function getDisplayValue(
     }
 
     if (field === 'category') {
-        return getDecodedLeafCategoryName(SafeString(fieldValue));
+        return getDecodedFullCategoryName(SafeString(fieldValue));
     }
 
     return SafeString(fieldValue);
