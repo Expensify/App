@@ -672,7 +672,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                       }
                                                   }
 
-                                                  navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
+                                                  navigateToBankAccountRoute({
+                                                      policyID: route.params.policyID,
+                                                      backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                      policyCurrency: policy?.outputCurrency,
+                                                      bankAccountState: state,
+                                                  });
                                               }
                                             : undefined
                                     }
