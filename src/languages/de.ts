@@ -520,6 +520,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Beschränkungen',
         tagGLCode: 'GL-Code taggen',
         off: 'Aus',
+        noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
         apiKey: 'API-Schlüssel',
@@ -1063,6 +1064,18 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            begin: 'Beginnen',
+            done: 'Fertig',
+            createWorkspaceSubText: 'Workspace bereit für die Einrichtung',
+            connectAccountingSubText: 'Kontenplan und mehr synchronisieren',
+            customizeCategoriesSubText: 'Fügen Sie Ihren Kontenplan hinzu',
+            inviteAccountantSubText: 'Beschleunigen Sie den Monatsabschluss',
+            linkCompanyCardsSubText: 'Auslagen automatisch importieren',
+            setupRulesSubText: 'Belege anfordern, hohe Ausgaben markieren und mehr',
+            needHelp: 'Brauchen Sie Hilfe?',
+            talkToConcierge: 'Mit Concierge chatten',
+            talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
+            forGuidedSetup: 'für die geführte Einrichtung.',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -2207,6 +2220,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Abmelden',
         restoreStashed: 'Gespeicherten Login wiederherstellen',
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
+        saveReceiptsConfirmation: {
+            title: 'Belege speichern?',
+            prompt: ({count}: {count: number}) =>
+                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst.`,
+            confirm: 'Speichern und abmelden',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Belege speichern?',
+            prompt: ({count}: {count: number}) =>
+                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
+            confirm: 'Speichern und abmelden',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.`,
         help: 'Hilfe',
@@ -4528,7 +4553,7 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personen-Admin';
+                        return 'Personalverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -4749,12 +4774,14 @@ ${amount} für ${merchant} – ${date}`,
             classes: 'Kategorien',
             locations: 'Standorte',
             customers: 'Kunden/Projekte',
+            items: 'Artikel',
             accountsDescription: 'Ihr QuickBooks Online-Kontenplan wird in Expensify als Kategorien importiert.',
             accountsSwitchTitle: 'Wählen Sie, ob neue Konten als aktivierte oder deaktivierte Kategorien importiert werden sollen.',
             accountsSwitchDescription: 'Aktivierte Kategorien stehen Mitgliedern bei der Erstellung ihrer Ausgaben zur Auswahl.',
             classesDescription: 'Wählen Sie, wie QuickBooks Online-Klassen in Expensify behandelt werden sollen.',
             customersDescription: 'Wählen Sie aus, wie QuickBooks Online-Kunden/Projekte in Expensify behandelt werden sollen.',
             locationsDescription: 'Wählen Sie aus, wie QuickBooks Online-Standorte in Expensify behandelt werden sollen.',
+            itemsDescription: 'Wählen Sie aus, wie QuickBooks Online-Artikel in Expensify behandelt werden sollen.',
             taxesDescription: 'Wählen Sie aus, wie QuickBooks Online-Steuern in Expensify behandelt werden sollen.',
             locationsLineItemsRestrictionDescription:
                 'QuickBooks Online unterstützt bei Schecks oder Lieferantenrechnungen keine Standorte auf Positionsebene. Wenn du Standorte auf Positionsebene verwenden möchtest, stelle sicher, dass du Journaleinträge sowie Kreditkarten-/Debitkartenausgaben nutzt.',

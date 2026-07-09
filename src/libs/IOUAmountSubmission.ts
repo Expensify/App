@@ -336,6 +336,7 @@ function submitAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            delegateAccountID,
                             reportActionsList: undefined,
                         });
                     } else {
@@ -372,6 +373,7 @@ function submitAmount({
                             personalDetails: allPersonalDetails,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            delegateAccountID,
                         });
                     }
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

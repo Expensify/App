@@ -515,6 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
         apiKey: 'API 密钥',
@@ -1042,6 +1043,18 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: '自定义控制并简化支出',
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
+            begin: '开始',
+            done: '完成',
+            createWorkspaceSubText: '工作区已准备好进行设置',
+            connectAccountingSubText: '同步您的会计科目表等信息',
+            customizeCategoriesSubText: '添加科目表',
+            inviteAccountantSubText: '加快月末核算',
+            linkCompanyCardsSubText: '自动导入报销费用',
+            setupRulesSubText: '要求收据、标记高额支出等',
+            needHelp: '需要帮助吗？',
+            talkToConcierge: '与 Concierge 对话',
+            talkToAccountExecutive: '联系您的客户经理',
+            forGuidedSetup: '以获取引导式设置。',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
@@ -2129,6 +2142,17 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: '退出登录',
         restoreStashed: '恢复暂存的登录',
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
+        saveReceiptsConfirmation: {
+            title: '保存你的收据？',
+            prompt: ({count}: {count: number}) => `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            confirm: '保存并退出登录',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: '保存你的收据？',
+            prompt: ({count}: {count: number}) =>
+                `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            confirm: '保存并退出登录',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。`,
         help: '帮助',
@@ -4381,11 +4405,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑';
+                        return '编辑者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理';
+                        return '人员管理员';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -4596,12 +4620,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             classes: '类别',
             locations: '位置',
             customers: '客户/项目',
+            items: '项目',
             accountsDescription: '您的 QuickBooks Online 科目表将作为类别导入到 Expensify。',
             accountsSwitchTitle: '选择将新账户导入为启用或禁用的类别。',
             accountsSwitchDescription: '启用的类别将在成员创建报销时供其选择。',
             classesDescription: '选择如何在 Expensify 中处理 QuickBooks Online 类别。',
             customersDescription: '选择如何在 Expensify 中处理 QuickBooks Online 客户/项目。',
             locationsDescription: '选择如何在 Expensify 中处理 QuickBooks Online 位置。',
+            itemsDescription: '选择如何在 Expensify 中处理 QuickBooks Online 项目。',
             taxesDescription: '选择如何在 Expensify 中处理 QuickBooks Online 的税务。',
             locationsLineItemsRestrictionDescription:
                 'QuickBooks Online 不支持在支票或供应商账单的分录级别使用地点。如果你希望在分录级别使用地点，请确保使用的是日记账分录以及信用卡/借记卡报销。',

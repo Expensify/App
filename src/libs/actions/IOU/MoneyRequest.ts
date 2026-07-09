@@ -95,6 +95,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    delegateAccountID: number | undefined;
 };
 
 function createTransaction({
@@ -123,6 +124,7 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    delegateAccountID,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -182,6 +184,7 @@ function createTransaction({
                 optimisticChatReportID,
                 optimisticTransactionID,
                 currentUserLocalCurrency,
+                delegateAccountID,
                 reportActionsList: undefined,
             });
         } else {
@@ -225,6 +228,7 @@ function createTransaction({
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                delegateAccountID,
             });
         }
     }

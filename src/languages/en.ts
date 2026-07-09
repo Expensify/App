@@ -234,6 +234,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
+        noResultsFoundSubtitle: 'No results. Please try adjusting your filters or search query',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
         suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
@@ -1130,15 +1131,27 @@ const translations = {
         },
         gettingStartedSection: {
             title: 'Getting started',
+            begin: 'Begin',
+            done: 'Done',
             createWorkspace: 'Create a workspace',
+            createWorkspaceSubText: 'Workspace ready for setup',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
             connectAccountingDefault: 'Connect to accounting',
+            connectAccountingSubText: 'Sync your chart of accounts and more',
             customizeCategories: 'Customize accounting categories',
+            customizeCategoriesSubText: 'Add your chart of accounts',
             inviteAccountant: 'Invite your accountant',
+            inviteAccountantSubText: 'Speed up month-end accounting',
             linkCompanyCards: 'Link company cards',
+            linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             setupRules: 'Set up spend rules',
+            setupRulesSubText: 'Require receipts, flag high spend, and more',
+            needHelp: 'Need help?',
+            talkToConcierge: 'Talk to Concierge',
+            talkToAccountExecutive: 'Talk to your account executive',
+            forGuidedSetup: 'for guided setup.',
         },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
@@ -2294,6 +2307,18 @@ const translations = {
         signOut: 'Sign out',
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
+        saveReceiptsConfirmation: {
+            title: 'Save your receipts?',
+            prompt: ({count}: {count: number}) =>
+                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later.`,
+            confirm: 'Save and sign out',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Save your receipts?',
+            prompt: ({count}: {count: number}) =>
+                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later. You'll lose any other offline changes.`,
+            confirm: 'Save and sign out',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
@@ -4627,17 +4652,17 @@ const translations = {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Workspace Admin';
+                        return 'Workspace admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Card Admin';
+                        return 'Card admin';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'People Admin';
+                        return 'People admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Payments Admin';
+                        return 'Payments admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -4851,12 +4876,14 @@ const translations = {
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
+            items: 'Items',
             accountsDescription: 'Your QuickBooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
+            itemsDescription: 'Choose how to handle QuickBooks Online items in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
             locationsLineItemsRestrictionDescription:
                 "QuickBooks Online does not support Locations at the line-level for Checks or Vendor Bills. If you'd like to have locations at the line-level, make sure you are using Journal Entries and Credit/Debit Card expenses.",
