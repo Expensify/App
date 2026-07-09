@@ -282,6 +282,30 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe('Lagertha Lothbrok (you)');
         });
+
+        test('resolves the self-DM "(you)" postfix through the provided translate function', async () => {
+            const report: Report = {
+                ...createSelfDM(31, currentUserAccountID),
+                ownerAccountID: currentUserAccountID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'YOUMARKER' : translateLocal(path, ...parameters));
+            const name = computeReportNameOriginal({
+                report,
+                reports: emptyCollections.reports,
+                policies: emptyCollections.policies,
+                transactions: undefined,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: emptyCollections.reportActions,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateWithYouMarker,
+                isTrackIntentUser: false,
+            });
+            // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
+            expect(name).toBe('Lagertha Lothbrok (youmarker)');
+        });
     });
 
     describe('computeReportName - Task report', () => {
@@ -1265,6 +1289,25 @@ describe('ReportNameUtils', () => {
     });
 
     describe('getMoneyRequestReportName', () => {
+        it('resolves the payer name through the provided translate function for an IOU report', async () => {
+            const hiddenManagerAccountID = 780060;
+            // The manager has no displayName/login, so the payer name resolves to the hidden label provided by translate.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
+            await waitForBatchedUpdates();
+            const iouReport: Report = {
+                reportID: '780061',
+                type: CONST.REPORT.TYPE.IOU,
+                managerID: hiddenManagerAccountID,
+                ownerAccountID: currentUserAccountID,
+                total: 0,
+                currency: 'USD',
+            };
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const reportName = getMoneyRequestReportName({report: iouReport, translate: translateWithHiddenMarker});
+            expect(reportName).toContain('HiddenMarker');
+        });
+
         it('should return "New Report" when reportName is empty string, report is expense report, and policy has empty fieldList', () => {
             // Given an expense report with empty reportName
             const expenseReport: Report = {
