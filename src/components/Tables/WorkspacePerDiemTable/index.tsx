@@ -1,14 +1,20 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import WorkspacePerDiemTableRow from './WorkspacePerDiemTableRow';
 
 type PerDiemTableColumnKey = 'destination' | 'subrate' | 'amount' | 'actions';
@@ -106,7 +112,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
     );
 
     const isEmpty = perDiemData.length === 0;
-    const shouldShowSearchBar = perDiemData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <Table
@@ -126,7 +131,7 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.perDiem.findPerDiemRate')} />}
+                    <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />
                     <Table.Header />
                     <Table.Body />
                 </>

@@ -1,16 +1,19 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
-import BrowserNotifications from './BrowserNotifications';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {LocalNotificationClickHandler, LocalNotificationModifiedExpenseParams, LocalNotificationModule} from './types';
+
+import BrowserNotifications from './BrowserNotifications';
 
 let allPolicies: OnyxCollection<Policy>;
 // This is a temporary subscription until the modified-expense notification chain is fully migrated
 // see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicies = value;
     },
@@ -21,7 +24,6 @@ let allPolicyTags: OnyxCollection<PolicyTagLists>;
 // see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicyTags = value;
     },

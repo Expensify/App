@@ -1,7 +1,9 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import Log from './Log';
 
 const accountIDToNameMap: Record<string, string> = {};
@@ -9,7 +11,6 @@ const accountIDToNameMap: Record<string, string> = {};
 let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         // Clear the map so removed reports don’t linger
         reportIDToNameMap = {};

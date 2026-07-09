@@ -1,15 +1,19 @@
-import {fastMerge} from 'expensify-common';
-import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
 import {mergeAndSortContinuousPages, mergePagesByIDOverlap} from '@libs/PaginationUtils';
+
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type Pages from '@src/types/onyx/Pages';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
+
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+
+import {fastMerge} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type Middleware from './types';
 
 type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
@@ -63,14 +67,12 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     } as unknown as PaginationConfigMapValue);
     Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
-        waitForCollectionCallback: true,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
         },
     });
     Onyx.connectWithoutView<OnyxPagesKey>({
         key: config.pageCollectionKey,
-        waitForCollectionCallback: true,
         callback: (data) => {
             pages.set(config.pageCollectionKey, data);
         },
