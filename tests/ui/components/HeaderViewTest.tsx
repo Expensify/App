@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -99,7 +99,9 @@ describe('HeaderView', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);
+        // Report attributes recompute is coalesced onto a macrotask, so the title can settle a tick after
+        // the initial flush; waitFor retries until the derived recompute + re-render lands.
+        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
 
         // When the invoice receiver display name is updated
         displayName = 'test edit';
@@ -112,7 +114,7 @@ describe('HeaderView', () => {
         });
 
         // Then the header title should be updated using the new display name
-        expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);
+        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
     });
 
     it('should display join button', async () => {
