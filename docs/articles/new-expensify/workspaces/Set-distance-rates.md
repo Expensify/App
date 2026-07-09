@@ -24,13 +24,6 @@ Once enabled, **Distance Rates** will appear in the left menu.
 
 ## How to add Distance rates
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
-2. Click **Distance rates**.
-3. Click **Add rate**. 
-4. Enter the rate value. 
-5. Click **Save**.
-
-
 1. Go to **Workspaces > [Workspace Name] > Distance Rates**.
 2. Click **Add Rate** in the top-right corner.
 3. Enter the rate value (e.g., $0.585 per mile or km).
@@ -38,6 +31,10 @@ Once enabled, **Distance Rates** will appear in the left menu.
 5. Click **Save**.
 
 When a rate has a **Start date** or **End date**, Expensify uses it to apply the correct rate based on the expense date. See [How Expensify selects a rate when multiple rates exist](#how-expensify-selects-a-rate-when-multiple-rates-exist) below.
+
+---
+
+## How to edit Distance rate settings
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
 2. Click **Distance rates**.
@@ -49,12 +46,9 @@ When a rate has a **Start date** or **End date**, Expensify uses it to apply the
    - Tax reclaimable amount
 5. Click **Save**.
 
-1. From the **Distance Rates** page, click on the rate you'd like to update.
-2. To **make the rate active or inactive**, toggle the **Enable Rate** switch, then click **Save**.
-3. To **edit** the rate amount, click the value field, enter the new number, and click **Save**.
-4. To **update the effective dates**, click the **Start date** or **End date** field, choose a new date, and click **Save**.
-5. To **permanently delete** the rate, click **Delete**.
+**Note:** If **Taxes** is enabled on the Workspace, each Distance rate can be associated with a tax rate and a tax reclaimable amount. The selected tax rate is automatically applied when the Distance rate is used on an expense. To track **Taxes** on a Workspace, [learn how to track Taxes](/articles/new-expensify/workspaces/Track-Taxes).
 
+---
 
 ## How to remove Distance rates
 
@@ -68,6 +62,8 @@ To prevent members from using a Distance rate, you can either disable it or dele
 3. Select each rate you want to disable or delete.
 4. Click **Selected**
 5. Choose **Disable rates** or **Delete rates**.
+
+---
 
 # FAQ
 
