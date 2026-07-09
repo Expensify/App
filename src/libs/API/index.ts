@@ -70,8 +70,8 @@ addMiddleware(SentryServerTiming);
 // RecordFullReconnectTime - Recomputes the reconnect time in an OpenApp/ReconnectApp request's successData from the cutoff its response delivered, so the app doesn't read itself as stale right after a full download. Must run before SaveResponseInOnyx applies the response.
 addMiddleware(RecordFullReconnectTime);
 
-// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
-// middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
+// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
+// (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 addMiddleware(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.

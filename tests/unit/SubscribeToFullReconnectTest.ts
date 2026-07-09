@@ -1,5 +1,6 @@
 import {openApp} from '@libs/actions/App';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
+import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
 import {writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -83,9 +84,10 @@ async function applyCapturedResponse(callIndex: number, redeliveredCutoff: strin
 }
 
 /**
- * Applies a captured request's response the way the full pipeline does since the
+ * Applies a captured request's response the way the side-effect ReconnectApp path does since the
  * RecordFullReconnectTime middleware: the response's onyxData is first passed through
- * recordFullReconnectTimeFromResponse, then applied, then the (also updated) successData.
+ * recordFullReconnectTimeFromResponse, then applied, then the (also updated) successData as a
+ * second, separate Onyx.update.
  */
 async function applyCapturedResponseThroughMiddleware(callIndex: number, deliveredCutoff: string): Promise<void> {
     const successData = capturedOnyxData.at(callIndex)?.successData ?? [];
@@ -94,6 +96,22 @@ async function applyCapturedResponseThroughMiddleware(callIndex: number, deliver
     await Onyx.update(responseOnyxData);
     await waitForBatchedUpdates();
     await Onyx.update(successData);
+    await waitForBatchedUpdates();
+    await waitForBatchedUpdates();
+}
+
+/**
+ * Same middleware transform, but applied the way WRITE requests (OpenApp, the normal ReconnectApp)
+ * land in production: onyxData and successData go through QueuedOnyxUpdates and flush as one combined
+ * Onyx.update, where per-key batching must keep the seeded reconnect time ahead of the cutoff.
+ */
+async function applyCapturedResponseThroughWriteQueue(callIndex: number, deliveredCutoff: string): Promise<void> {
+    const successData = capturedOnyxData.at(callIndex)?.successData ?? [];
+    const responseOnyxData: AnyOnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, value: deliveredCutoff}];
+    recordFullReconnectTimeFromResponse(responseOnyxData, successData);
+    await queueOnyxUpdates(responseOnyxData);
+    await queueOnyxUpdates(successData);
+    await flushQueue();
     await waitForBatchedUpdates();
     await waitForBatchedUpdates();
 }
@@ -218,6 +236,24 @@ describe('subscribeToFullReconnect', () => {
         openApp();
         await waitForCondition(() => getOpenAppRequestIndex() > -1, 'OpenApp request');
         await applyCapturedResponseThroughMiddleware(getOpenAppRequestIndex(), NEWER_SERVER_CUTOFF);
+
+        expect(getReconnectRequests()).toHaveLength(0);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(NEWER_SERVER_CUTOFF);
+    });
+
+    it('does not fire an extra reconnect when the newer-cutoff OpenApp response lands as one write-queue batch', async () => {
+        // Reach the settled state first: one reconnect for the cutoff, then its response recorded the time.
+        await setServerCutoff(SERVER_CUTOFF);
+        await applyServerResponse(SERVER_CUTOFF);
+        jest.clearAllMocks();
+        capturedOnyxData = [];
+        capturedCommands = [];
+
+        // Same scenario as above, but applied the way OpenApp actually lands in production: onyxData and
+        // successData flush together in one Onyx.update batch.
+        openApp();
+        await waitForCondition(() => getOpenAppRequestIndex() > -1, 'OpenApp request');
+        await applyCapturedResponseThroughWriteQueue(getOpenAppRequestIndex(), NEWER_SERVER_CUTOFF);
 
         expect(getReconnectRequests()).toHaveLength(0);
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(NEWER_SERVER_CUTOFF);

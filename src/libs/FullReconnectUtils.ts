@@ -47,6 +47,11 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
  *   and the reconnect subscription never sees a new cutoff next to an old reconnect time;
  * - into the successData entry (raising it, never lowering), so the later successData write cannot
  *   undo the value seeded above.
+ *
+ * The "saved together" claim assumes Onyx broadcasts a batch's merges in array order — true today
+ * because both keys are cache-resident (see subscribeToFullReconnect.ts) and pinned by the
+ * SubscribeToFullReconnect e2e test. If it ever stopped holding, the worst case is one transient
+ * extra reconnect, never a loop — the recorded time still settles at or above the delivered cutoff.
  */
 function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], successData: AnyOnyxUpdate[] | undefined): void {
     const cutoffIndex = responseOnyxData.findIndex((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE);
