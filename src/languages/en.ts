@@ -2950,6 +2950,7 @@ const translations = {
     agentsPage: {
         title: 'Agents',
         subtitle: `<muted-text>Agents handle your workflows for you, so you get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
+        findAgent: 'Find agent',
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',

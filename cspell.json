@@ -1049,9 +1049,7 @@
         "Prefetch",
         "Prefetcher",
         "knip",
-        "lottiefiles",
-        "macrotask",
-        "Macrotask"
+        "lottiefiles"
     ],
     "ignorePaths": [
         ".gitignore",
