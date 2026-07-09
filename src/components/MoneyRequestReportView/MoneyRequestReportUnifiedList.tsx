@@ -215,7 +215,7 @@ function MoneyRequestReportUnifiedList({
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
             initialScrollIndex={initialScrollIndex}
-            maintainVisibleContentPosition={isHorizontalTable ? {disabled: true} : {autoscrollToBottomThreshold: undefined}}
+            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
             onEndReached={onEndReached}

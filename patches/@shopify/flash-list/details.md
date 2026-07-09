@@ -163,3 +163,15 @@
 - Upstream PR/issue: TBD
 - E/App issue: TBD
 - PR introducing patch: TBD
+
+### [@shopify+flash-list+2.3.0+015+mvcp-header-aware.patch](@shopify+flash-list+2.3.0+015+mvcp-header-aware.patch)
+
+- Reason: Makes `maintainVisibleContentPosition` aware of the `ListHeaderComponent`. Item layouts are header-relative, so MVCP was blind to the header in two symmetric ways:
+  1. **Header resize was never corrected**: when the header changes height after layout (e.g. a nested virtualized table settling from estimated to measured row heights, ~400px on a 207-row table), every data item shifts on screen but no tracked `x`/`y` changes — the anchored item (e.g. a deep-linked report action positioned via `initialScrollIndex`) drifts out of the viewport with no correction. Fixed by capturing `firstItemOffset` alongside the anchor layout (`firstVisibleItemFirstItemOffset`) and including its delta in the correction diff. On the `ScrollAnchor.scrollBy` path (iOS/Android) the full diff is applied; on the `scrollTo` fallback paths (web, Android inverted) only the layout diff is added, because `getAbsoluteLastScrollOffset()` already reflects the current `firstItemOffset` (the tracker's relative offset only resyncs on scroll events), so the header delta is already embedded in it.
+  2. **Wrong anchor while viewing the header**: `computeFirstVisibleIndexForOffsetCorrection` clamps the anchor to `Math.max(0, startIndex)`, so with the viewport over the header it tracked item 0 — possibly far below the fold — and "maintained" that off-screen item's position through data prepends/header growth, yanking the viewport away from the header (report opening at the top visibly jumped down to the chat). Fixed by dropping the anchor (`firstVisibleItemKey = undefined`) whenever the absolute scroll offset is smaller than `firstItemOffset`: the header is the user's visual anchor then, and its top never moves, so the correct correction is none.
+  Additionally, `RecyclerView` now observes the header wrapper's `onLayout` (main-axis size only, skipped for inverted lists where `firstItemOffset` is forced to 0) and triggers `recyclerViewContext.layout()` on change. Without this, a header that resizes from a commit inside its own subtree (the nested table settling) never causes the parent list to re-measure `firstItemOffset`, so items keep stale positions and `applyOffsetCorrection` never sees the delta.
+  Used by `MoneyRequestReportView`'s horizontally-scrollable transaction table, where the whole table is the unified list's `ListHeaderComponent`: deep links into the report actions below the table now stay anchored while the table settles, and MVCP could be re-enabled for that mode (the `{disabled: true}` workaround is removed).
+- Files changed: `src/recyclerview/RecyclerView.tsx`, `src/recyclerview/hooks/useRecyclerViewController.tsx`, `src/recyclerview/hooks/useSecondaryProps.tsx`, and their `dist` counterparts.
+- Upstream PR/issue: TBD
+- E/App issue: TBD
+- PR introducing patch: TBD
