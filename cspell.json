@@ -1056,6 +1056,7 @@
     "ignorePaths": [
         ".gitignore",
         "src/languages/de.ts",
+        "src/languages/el.ts",
         "src/languages/es.ts",
         "src/languages/fr.ts",
         "src/languages/it.ts",
@@ -1065,6 +1066,7 @@
         "src/languages/pt-BR.ts",
         "src/languages/zh-hans.ts",
         "prompts/translation/de.ts",
+        "prompts/translation/el.ts",
         "prompts/translation/es.ts",
         "prompts/translation/fr.ts",
         "prompts/translation/it.ts",
