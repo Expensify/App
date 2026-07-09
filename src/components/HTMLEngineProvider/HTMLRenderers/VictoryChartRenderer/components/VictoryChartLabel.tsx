@@ -107,11 +107,8 @@ function VictoryChartLabel({
 
     const tickX = x;
     const labelY = y;
-    const correction = rotatedLabelCenterCorrection(
-        getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).ascent,
-        getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).descent,
-        angleRad,
-    );
+    const firstLineMetrics = getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null);
+    const correction = rotatedLabelCenterCorrection(firstLineMetrics.ascent, firstLineMetrics.descent, angleRad);
 
     return (
         <Group
