@@ -3394,6 +3394,37 @@ const CONST = {
         TAG: 'TAG',
     },
 
+    RILLET_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    RILLET_EXPORT_COMPANY_CARD: {
+        CREDIT_CARD: 'CREDIT_CARD',
+    },
+
+    RILLET_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    RILLET_ACCOUNT_STATUS: {
+        ACTIVE: 'ACTIVE',
+        INACTIVE: 'INACTIVE',
+    },
+
+    RILLET_ACCOUNT_TYPE: {
+        ASSET: 'ASSET',
+        LIABILITY: 'LIABILITY',
+        EQUITY: 'EQUITY',
+        EXPENSE: 'EXPENSE',
+        INCOME: 'INCOME',
+    },
+
+    RILLET_ACCOUNT_SUBTYPE: {
+        CREDIT_CARD: 'Credit Card',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',

@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -5553,6 +5552,36 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             enableNewAccountsDescription: 'Les nouveaux comptes Rillet seront disponibles en tant que catégories.',
             dimensionsImport: 'Toutes les dimensions Rillet sont importées en tant que tags',
             importDescription: 'Choisissez quelles configurations de codage importer depuis Rillet.',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Rillet et synchroniser de nouveau la connexion',
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Rillet et synchroniser à nouveau la connexion',
+            exportDescription: 'Configurez comment les données Expensify sont exportées vers Rillet.',
+            exportReimbursable: {label: 'Exporter les dépenses remboursables en tant que', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Factures fournisseurs'}}},
+            exportDate: {
+                label: 'Date de la facture fournisseur',
+                description: 'Utiliser cette date lors de l’exportation des notes de frais vers Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date de la dernière dépense',
+                        description: 'Date de la dépense la plus récente figurant dans le rapport.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: "Date d'exportation",
+                        description: "Date d'exportation du rapport vers Rillet.",
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Date de soumission',
+                        description: 'Date de soumission du rapport pour approbation.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Exporter les dépenses de carte d’entreprise en tant que', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Cartes de crédit'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur de carte entreprise par défaut',
+                description: 'Choisissez un fournisseur Rillet par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
         },
         type: {
             free: 'Gratuit',
