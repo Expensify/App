@@ -1,3 +1,4 @@
+import type {AvatarPrimitivesCommonProps} from '@components/Avatar/types';
 import Image from '@components/Image';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -8,9 +9,7 @@ import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AvatarBranchCommonProps} from './types';
-
-type AvatarImageProps = AvatarBranchCommonProps & {
+type AvatarImageProps = AvatarPrimitivesCommonProps & {
     /** URL of the remote avatar image. */
     avatarSource: string;
 

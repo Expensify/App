@@ -1,3 +1,5 @@
+import type {ResolvedIconAvatar, ResolvedImageAvatar} from '@components/Avatar/types';
+
 import useTheme from '@hooks/useTheme';
 
 import type {AvatarSizeName} from '@styles/utils';
@@ -7,8 +9,6 @@ import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
-
-import type {ResolvedIconAvatar, ResolvedImageAvatar} from './types';
 
 import AvatarIcon from './AvatarIcon';
 import AvatarImage from './AvatarImage';

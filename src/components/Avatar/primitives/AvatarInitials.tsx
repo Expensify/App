@@ -1,3 +1,4 @@
+import type {AvatarPrimitivesCommonProps} from '@components/Avatar/types';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,9 +11,7 @@ import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AvatarBranchCommonProps} from './types';
-
-type AvatarInitialsProps = AvatarBranchCommonProps & {
+type AvatarInitialsProps = AvatarPrimitivesCommonProps & {
     /** The initials to render. */
     initials: string;
 

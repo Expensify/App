@@ -7,8 +7,8 @@ import {View} from 'react-native';
 
 import type {AvatarCommonProps} from './types';
 
-import AvatarBody from './AvatarBody';
-import useWorkspaceAvatarSource from './useWorkspaceAvatarSource';
+import useWorkspaceAvatarSource from './hooks/useWorkspaceAvatarSource';
+import AvatarBody from './primitives/AvatarBody';
 
 type WorkspaceAvatarProps = AvatarCommonProps & {
     /** Owner of the avatar. Policy name */

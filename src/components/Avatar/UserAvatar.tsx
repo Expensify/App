@@ -9,9 +9,9 @@ import {View} from 'react-native';
 
 import type {AvatarCommonProps} from './types';
 
-import AvatarBody from './AvatarBody';
-import AvatarInitials from './AvatarInitials';
-import useUserAvatarSource from './useUserAvatarSource';
+import useUserAvatarSource from './hooks/useUserAvatarSource';
+import AvatarBody from './primitives/AvatarBody';
+import AvatarInitials from './primitives/AvatarInitials';
 
 type UserAvatarProps = AvatarCommonProps & {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */

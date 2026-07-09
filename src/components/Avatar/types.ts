@@ -81,7 +81,7 @@ type ResolvedInitialsAvatar = {
 
 type ResolvedAvatar = ResolvedImageAvatar | ResolvedIconAvatar | ResolvedInitialsAvatar;
 
-type AvatarBranchCommonProps = {
+type AvatarPrimitivesCommonProps = {
     /** Size of Avatar */
     size: AvatarSizeName;
 
@@ -89,4 +89,4 @@ type AvatarBranchCommonProps = {
     type: AvatarType;
 };
 
-export type {AvatarCommonProps, ResolvedAvatar, ResolvedImageAvatar, ResolvedIconAvatar, AvatarBranchCommonProps};
+export type {AvatarCommonProps, ResolvedAvatar, ResolvedImageAvatar, ResolvedIconAvatar, AvatarPrimitivesCommonProps};

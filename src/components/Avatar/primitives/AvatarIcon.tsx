@@ -1,3 +1,4 @@
+import type {AvatarPrimitivesCommonProps} from '@components/Avatar/types';
 import Icon from '@components/Icon';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,9 +13,7 @@ import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AvatarBranchCommonProps} from './types';
-
-type AvatarIconProps = AvatarBranchCommonProps & {
+type AvatarIconProps = AvatarPrimitivesCommonProps & {
     /** Icon asset to render as the avatar. */
     avatarSource: IconAsset;
 
