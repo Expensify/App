@@ -393,7 +393,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
             }
             search({
                 queryJSON: cardQueryJSON,
-                searchKey: undefined,
                 offset: 0,
                 isOffline,
                 isLoading: false,
@@ -404,7 +403,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
         if (isApprovalApplicable && approvalQueryJSON) {
             search({
                 queryJSON: approvalQueryJSON,
-                searchKey: undefined,
                 offset: 0,
                 isOffline,
                 isLoading: false,
@@ -415,7 +413,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
         if (isPaymentApplicable && paymentQueryJSON) {
             search({
                 queryJSON: paymentQueryJSON,
-                searchKey: undefined,
                 offset: 0,
                 isOffline,
                 isLoading: false,
@@ -434,7 +431,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
             }
             search({
                 queryJSON,
-                searchKey,
                 offset: 0,
                 isOffline,
                 isLoading: false,

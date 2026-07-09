@@ -15,9 +15,9 @@ import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 
-// Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
+// Gates the save below to real search identity changes so snapshot-loading re-fires don't wipe fields
 // (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
-let lastSavedSearchHash: number | undefined;
+let lastSavedSearchIdentity: string | undefined;
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
@@ -64,16 +64,17 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
         // Must run even on cached snapshots, else SearchTabButton's Onyx fallback restores
         // a stale query after a tab switch (e.g. filter reappears after Reset).
-        if (lastSavedSearchHash !== hash) {
-            saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
-            lastSavedSearchHash = hash;
+        const searchIdentity = `${currentSearchKey}_${hash}`;
+        if (lastSavedSearchIdentity !== searchIdentity) {
+            saveLastSearchParams({queryJSON, offset: 0, hasMoreResults: false, allowPostSearchRecount: false});
+            lastSavedSearchIdentity = searchIdentity;
         }
 
         if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
+        search({queryJSON, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {

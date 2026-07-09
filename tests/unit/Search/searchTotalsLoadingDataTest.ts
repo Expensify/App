@@ -75,8 +75,7 @@ describe('search loading totals handling', () => {
         const queryJSON = getQueryJSON();
 
         await search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            queryJSON: {...queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: false,
@@ -97,8 +96,7 @@ describe('search loading totals handling', () => {
         const queryJSON = getQueryJSON();
 
         await search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            queryJSON: {...queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES},
             offset: 0,
             shouldCalculateTotals: true,
             isLoading: false,
@@ -118,8 +116,7 @@ describe('search loading totals handling', () => {
         const queryJSON = getQueryJSON();
 
         await search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            queryJSON: {...queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES},
             offset: 20,
             shouldCalculateTotals: false,
             isLoading: false,

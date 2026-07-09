@@ -873,7 +873,6 @@ function handlePreventSearchAPI(hash: number | undefined) {
 
 function search({
     queryJSON,
-    searchKey,
     offset,
     shouldCalculateTotals = false,
     prevReportsLength,
@@ -883,7 +882,6 @@ function search({
     skipWaitForWrites = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
-    searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
@@ -923,7 +921,6 @@ function search({
         : queryJSONWithoutFlatFilters;
     const query = {
         ...backendQueryJSON,
-        searchKey,
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,

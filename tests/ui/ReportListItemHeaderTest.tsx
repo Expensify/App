@@ -38,7 +38,7 @@ const mockSearchStateContext = {
     selectedTransactionIDs: [],
     selectedTransactions: {},
     shouldTurnOffSelectionMode: false,
-    currentSearchKey: undefined,
+    currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,

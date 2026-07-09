@@ -5,8 +5,10 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getDefaultSearchKeyForSearchType, getSuggestedSearches, isSavedSearchKey, isSuggestedSearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/routers';
@@ -32,30 +34,38 @@ function selectSearchRawQueryParam(state: NavigationState | undefined) {
     return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
 }
 
+function selectSearchKeyParam(state: NavigationState | undefined) {
+    const focused = getDeepestFocusedScreen(state);
+    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.searchKey as SearchKey | undefined) : undefined;
+}
+
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
     // Extract only the primitive values we need from the focused screen to avoid
     // re-renders from new object references returned by getDeepestFocusedScreen.
     const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
     const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
+    const searchKeyParam = useRootNavigationState((state) => selectSearchKeyParam(state ?? navigation.getState()));
+
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
-    const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    const baseSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
     const defaultCardFeedID = defaultCardFeed?.id;
     const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID);
 
-    const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
-    const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
-    const currentSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
+    const currentSearchHash = baseSearchQueryJSON?.hash ?? -1;
+    const currentSimilarSearchHash = baseSearchQueryJSON?.similarSearchHash ?? -1;
+    const currentSearchKey = searchKeyParam ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+    const currentSearchQueryJSON = baseSearchQueryJSON ? {...baseSearchQueryJSON, searchKey: currentSearchKey} : undefined;
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
-        currentSimilarSearchHash,
         currentSearchKey,
+        currentSimilarSearchHash,
         currentSearchQueryJSON,
         suggestedSearches,
         shouldResetSearchQuery,

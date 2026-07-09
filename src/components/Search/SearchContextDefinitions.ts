@@ -1,4 +1,4 @@
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuItem, SuggestedSearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -21,9 +21,9 @@ import type {
 const defaultSearchQueryContext: SearchQueryContextValue = {
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
-    currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
-    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
+    currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    suggestedSearches: {} as Record<SuggestedSearchKey, SearchTypeMenuItem>,
     shouldResetSearchQuery: false,
 };
 

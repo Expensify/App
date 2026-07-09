@@ -42,6 +42,7 @@ import {
     isReportActionListItemType,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
+    isSuggestedSearchKey,
     isTaskListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
@@ -211,7 +212,6 @@ function Search({
         transactions,
         previousTransactions,
         queryJSON,
-        searchKey: currentSearchKey,
         offset,
         shouldCalculateTotals,
         reportActions,
@@ -400,7 +400,6 @@ function Search({
 
         handleSearch({
             queryJSON,
-            searchKey: currentSearchKey,
             offset,
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
@@ -426,7 +425,6 @@ function Search({
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
         handleSearch({
             queryJSON,
-            searchKey: currentSearchKey,
             offset,
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
@@ -538,11 +536,10 @@ function Search({
 
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
-                    queryJSON: item.transactionsQueryJSON,
-                    searchKey: undefined,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
+                    queryJSON: item.transactionsQueryJSON,
                 });
                 return;
             }
@@ -606,7 +603,6 @@ function Search({
                 saveLastSearchParams({
                     queryJSON,
                     offset,
-                    searchKey: currentSearchKey,
                     hasMoreResults: !!searchResults?.search?.hasMoreResults,
                     allowPostSearchRecount: true,
                 });
@@ -980,7 +976,7 @@ function Search({
             if (savedSearch.name !== savedSearch.query) {
                 chartTitle = savedSearch.name;
             }
-        } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
+        } else if (isSuggestedSearchKey(currentSearchKey) && suggestedSearches[currentSearchKey]) {
             const suggestedSearch = suggestedSearches[currentSearchKey];
             const sortMatches = doesSearchItemMatchSort(currentSearchKey, suggestedSearch.searchQueryJSON?.sortBy, suggestedSearch.searchQueryJSON?.sortOrder, sortBy, sortOrder);
             if (sortMatches) {

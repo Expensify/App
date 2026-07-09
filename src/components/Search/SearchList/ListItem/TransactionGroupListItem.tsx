@@ -2,7 +2,7 @@ import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -103,6 +103,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -196,8 +197,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -212,8 +212,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -253,14 +252,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
         });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, currentSearchKey, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -277,14 +275,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
+            queryJSON: {...groupItem.transactionsQueryJSON, searchKey: currentSearchKey},
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
         });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, currentSearchKey, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {

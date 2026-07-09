@@ -17,10 +17,9 @@ function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKe
         return;
     }
     search({
-        searchKey: currentSearchKey,
+        queryJSON: currentSearchKey ? {...currentSearchQueryJSON, searchKey: currentSearchKey} : currentSearchQueryJSON,
         shouldCalculateTotals,
         offset: 0,
-        queryJSON: currentSearchQueryJSON,
         isOffline,
         isLoading,
     });

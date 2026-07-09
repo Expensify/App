@@ -181,7 +181,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
-                    searchKey: currentSearchKey,
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,

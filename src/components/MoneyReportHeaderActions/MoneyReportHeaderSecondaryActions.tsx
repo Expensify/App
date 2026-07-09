@@ -242,7 +242,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
-                    searchKey: currentSearchKey,
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,

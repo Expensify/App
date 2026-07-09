@@ -17,8 +17,8 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, getSearchKeyForSavedSearch} from '@libs/SearchUIUtils';
+import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -36,7 +36,7 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
 
 type SavedSearchListProps = {
-    hash: number | undefined;
+    activeSearchKey: SearchKey;
     areAllSectionsExpanded: boolean;
 };
 
@@ -44,7 +44,7 @@ type SavedSearchMenuItemBuilderParams = {
     item: SaveSearchItem;
     key: string;
     index: number;
-    hash: number | undefined;
+    activeSearchKey: SearchKey;
     title: string;
     getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     shouldShowSavedSearchTooltip: boolean;
@@ -59,7 +59,7 @@ function buildSavedSearchMenuItem({
     item,
     key,
     index,
-    hash,
+    activeSearchKey,
     title,
     getOverflowMenu,
     shouldShowSavedSearchTooltip,
@@ -69,8 +69,9 @@ function buildSavedSearchMenuItem({
     tooltipWrapperStyle,
     isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    const isItemFocused = Number(key) === hash;
-    const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+    const savedSearchKey = getSearchKeyForSavedSearch(key);
+    const isItemFocused = savedSearchKey === activeSearchKey;
+    const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, savedSearchKey, index, title, isItemFocused);
 
     return {
         ...baseMenuItem,
@@ -78,7 +79,7 @@ function buildSavedSearchMenuItem({
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
             setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name, searchKey: savedSearchKey}));
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
@@ -102,7 +103,7 @@ function buildSavedSearchMenuItem({
     };
 }
 
-function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
+function SavedSearchList({activeSearchKey, areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -165,7 +166,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                       item,
                       key,
                       index,
-                      hash,
+                      activeSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
                       getOverflowMenu,
                       shouldShowSavedSearchTooltip,

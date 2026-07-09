@@ -7,7 +7,6 @@ import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transacti
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +28,6 @@ type UseSearchHighlightAndScroll = {
     reportActions: OnyxCollection<ReportActions>;
     previousReportActions: OnyxCollection<ReportActions>;
     queryJSON: SearchQueryJSON;
-    searchKey: SearchKey | undefined;
     offset: number;
     shouldCalculateTotals: boolean;
     shouldUseLiveData: boolean;
@@ -45,7 +43,6 @@ function useSearchHighlightAndScroll({
     reportActions,
     previousReportActions,
     queryJSON,
-    searchKey,
     offset,
     shouldCalculateTotals,
     shouldUseLiveData,
@@ -144,7 +141,7 @@ function useSearchHighlightAndScroll({
             // Trigger the search
             TransitionTracker.runAfterTransitions({
                 callback: () => {
-                    search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
+                    search({queryJSON, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
                 },
             });
 
@@ -156,7 +153,6 @@ function useSearchHighlightAndScroll({
         transactions,
         previousTransactions,
         queryJSON,
-        searchKey,
         offset,
         shouldCalculateTotals,
         reportActions,

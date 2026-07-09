@@ -1,4 +1,5 @@
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,8 +50,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 });
 
 type UseSearchTypeMenuSectionsParams = {
-    hash?: number;
-    similarSearchHash?: number;
+    searchKey?: SearchKey;
     sortBy?: string;
     sortOrder?: string;
     type?: string;
@@ -58,10 +58,10 @@ type UseSearchTypeMenuSectionsParams = {
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
- * currently focused search, based on the hash
+ * currently focused search, based on the search key.
  */
 const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
+    const {searchKey, sortBy, sortOrder, type} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -131,17 +131,15 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     );
 
     const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
-
-        if (isSavedSearchActive) {
+        if (searchKey?.startsWith('savedSearch_')) {
             return -1;
         }
 
         let index = 0;
         for (const section of typeMenuSections) {
             const found = section.menuItems.findIndex((item) => {
-                if (item.similarSearchHash !== similarSearchHash) {
-                    return false;
+                if (searchKey) {
+                    return item.key === searchKey;
                 }
                 return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
             });
@@ -169,7 +167,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    }, [typeMenuSections, searchKey, sortBy, sortOrder, type]);
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 

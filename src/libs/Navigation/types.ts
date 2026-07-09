@@ -4,6 +4,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
@@ -3224,6 +3225,7 @@ type SearchFullscreenNavigatorParamList = {
         q: SearchQueryString;
         rawQuery?: SearchQueryString;
         name?: string;
+        searchKey?: SearchKey;
         groupBy?: string;
     };
 };

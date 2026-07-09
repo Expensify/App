@@ -162,7 +162,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: undefined,
     }),
     useSearchQueryContext: () => ({
-        currentSearchKey: undefined,
+        currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     }),
     useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,

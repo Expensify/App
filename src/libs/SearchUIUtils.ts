@@ -518,7 +518,9 @@ type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${strin
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
-type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
+type SuggestedSearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
+type SavedSearchKey = `savedSearch_${number}`;
+type SearchKey = SuggestedSearchKey | SavedSearchKey;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -533,7 +535,7 @@ type SearchTypeMenuSection = {
 };
 
 type SearchTypeMenuItem = {
-    key: SearchKey;
+    key: SuggestedSearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: Extract<
@@ -631,7 +633,7 @@ type GetSectionsParams = {
  * changes the sort order.  Every other search key requires the current
  * sortBy/sortOrder to match the menu item's defaults for it to be active.
  */
-const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+const GENERIC_SEARCH_KEYS: ReadonlySet<SuggestedSearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
 const SKIPPED_SEARCH_FILTERS = new Set<SearchAdvancedFiltersKey>([
     FILTER_KEYS.GROUP_BY,
@@ -645,19 +647,42 @@ const SKIPPED_SEARCH_FILTERS = new Set<SearchAdvancedFiltersKey>([
     FILTER_KEYS.KEYWORD,
 ]);
 
-function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
+function doesSearchItemMatchSort(
+    key: SuggestedSearchKey,
+    itemSortBy: string | undefined,
+    itemSortOrder: string | undefined,
+    currentSortBy: string | undefined,
+    currentSortOrder: string | undefined,
+) {
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
 }
 
-const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
-const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
-const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
+const TODO_SEARCH_KEYS: ReadonlySet<SuggestedSearchKey> = new Set([
+    CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+    CONST.SEARCH.SEARCH_KEYS.APPROVE,
+    CONST.SEARCH.SEARCH_KEYS.PAY,
+    CONST.SEARCH.SEARCH_KEYS.EXPORT,
+]);
+const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SuggestedSearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
+const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SuggestedSearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
+
+function getSearchKeyForSavedSearch(hash: number | string): SavedSearchKey {
+    return `savedSearch_${Number(hash)}`;
+}
+
+function isSavedSearchKey(searchKey: SearchKey | string | undefined): searchKey is SavedSearchKey {
+    return typeof searchKey === 'string' && searchKey.startsWith('savedSearch_');
+}
+
+function isSuggestedSearchKey(searchKey: SearchKey | string | undefined): searchKey is SuggestedSearchKey {
+    return typeof searchKey === 'string' && Object.values(CONST.SEARCH.SEARCH_KEYS).includes(searchKey as SuggestedSearchKey);
+}
 
 /**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
  */
 function createTopSearchMenuItem(
-    key: SearchKey,
+    key: SuggestedSearchKey,
     translationPath: TranslationPaths,
     icon: Extract<ExpensifyIconName, 'Receipt' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
@@ -4575,9 +4600,8 @@ function isTransactionSearchType(type: string | undefined): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
 }
 
-function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
-    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
-    return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
+function isTodoSearch(searchKey: SearchKey) {
+    return isSuggestedSearchKey(searchKey) && TODO_SEARCH_KEYS.has(searchKey);
 }
 
 type TypeMenuSectionsParams = {
@@ -6546,6 +6570,10 @@ export {
     getSearchReportAvatarProps,
     hasVisibleViolations,
     isTodoSearch,
+    getSearchKeyForSavedSearch,
+    isSavedSearchKey,
+    isSuggestedSearchKey,
+    getDefaultSearchKeyForSearchType,
     getActiveGroupSearchHashes,
     getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
@@ -6568,4 +6596,15 @@ export {
     splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
+export type {
+    SavedSearchMenuItem,
+    SearchTypeMenuSection,
+    SearchTypeMenuItem,
+    SearchDateModifier,
+    SearchDateModifierLower,
+    SearchKey,
+    SuggestedSearchKey,
+    SavedSearchKey,
+    GroupBySection,
+    SearchFilter,
+};

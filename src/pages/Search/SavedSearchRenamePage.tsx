@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSearchKeyForSavedSearch} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,12 +29,17 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     const {inputCallbackRef} = useAutoFocusInput();
 
     const applyFiltersAndNavigate = () => {
+        const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery());
+        if (!queryJSON) {
+            return;
+        }
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
                     query: q,
                     name: newName?.trim(),
+                    searchKey: getSearchKeyForSavedSearch(queryJSON.hash),
                 }),
             );
         });
