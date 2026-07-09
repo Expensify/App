@@ -351,7 +351,6 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         mockCurrentSearchResults = {
             search: {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 offset: 0,
                 hasMoreResults: false,
                 hasResults: true,

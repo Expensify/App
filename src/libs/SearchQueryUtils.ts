@@ -1956,18 +1956,16 @@ function buildUserReadableQueryString({
  */
 function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status,
     policyID,
     cardID,
     groupBy,
 }: {
     type?: SearchDataTypes;
-    status?: SearchStatus;
     policyID?: string;
     cardID?: string;
     groupBy?: string;
 } = {}): SearchQueryString {
-    let queryString = status ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${type}`;
+    let queryString = `type:${type}`;
 
     if (groupBy) {
         queryString += ` group-by:${groupBy}`;
