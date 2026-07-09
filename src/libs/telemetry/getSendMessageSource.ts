@@ -48,6 +48,8 @@ function getOriginTab(): SendMessageSourceTab {
             return SEND_MESSAGE_SOURCE_TAB.INBOX;
         case NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR:
             return SEND_MESSAGE_SOURCE_TAB.SPEND;
+        case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+            return SEND_MESSAGE_SOURCE_TAB.SETTINGS;
         default:
             return SEND_MESSAGE_SOURCE_TAB.OTHER;
     }

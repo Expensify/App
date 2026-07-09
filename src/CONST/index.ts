@@ -2295,11 +2295,12 @@ const CONST = {
             OTHER_CHAT: 'other_chat',
         },
         // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
-        // (Workspaces/Settings) or an unresolved tab.
+        // (Workspaces) or an unresolved tab.
         SEND_MESSAGE_SOURCE_TAB: {
             HOME: 'home',
             INBOX: 'inbox',
             SPEND: 'spend',
+            SETTINGS: 'settings',
             OTHER: 'other',
         },
         // Surface suffix, added for the RHP report routes (e/:id, search/r/:id, search/view/:id), e.g.
