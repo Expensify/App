@@ -276,6 +276,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         transaction,
         policyTags,
         isDraftChatReport,
+        delegateAccountID,
         selectedCurrency,
         backToReport,
         selfDMReport,
@@ -333,6 +334,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                delegateAccountID,
                 reportActionsList: undefined,
             });
         } else {
@@ -369,6 +371,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                delegateAccountID,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
