@@ -698,18 +698,10 @@ function getRate({
  * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
  * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
-function getUpdatedDistanceUnit({
-    transaction,
-    policy,
-    policyDraft,
-    personalPolicyOutputCurrency,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    policyDraft?: OnyxEntry<Policy>;
-    personalPolicyOutputCurrency?: string;
-}) {
-    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency}).unit;
+function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+    // The distance unit doesn't depend on the currency (the rate is selected by ID/P2P, not currency), so
+    // personalPolicyOutputCurrency isn't accepted here and is passed as undefined to getRate.
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency: undefined}).unit;
 }
 
 /**
