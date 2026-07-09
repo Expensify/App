@@ -3644,12 +3644,12 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual([policy1]);
         });
 
-        test('returns an empty array when the filter is undefined', () => {
-            expect(getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([]);
+        test('returns every policy value when the filter is undefined', () => {
+            expect(getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([policy1, policy2, policy3]);
         });
 
-        test('returns an empty array when the filter has no value', () => {
-            expect(getAllPolicyValues({value: undefined, isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([]);
+        test('returns every policy value when the filter has no value', () => {
+            expect(getAllPolicyValues({value: undefined, isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([policy1, policy2, policy3]);
         });
 
         test('returns an empty array when the policy data is undefined', () => {

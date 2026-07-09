@@ -1035,7 +1035,7 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
 ): Array<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
-        return [];
+        return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
 
     if (policyID.isNegated) {
@@ -1098,8 +1098,7 @@ function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<OnyxTy
     }
 
     const connectedIntegrationNames = new Set<string>();
-    const hasWorkspaceFilter = !!policyID?.value?.length;
-    const policiesToCheck = hasWorkspaceFilter ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies);
+    const policiesToCheck = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
 
     for (const policy of policiesToCheck) {
         const connectedIntegration = getValidConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
@@ -1315,7 +1314,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             const uniqueTags = new Set<string>();
-            const tagLists = policyID.value ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags) : Object.values(policyTags ?? {}).filter((item) => !!item);
+            const tagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags);
             for (const tagList of tagLists) {
                 for (const policyTagList of Object.values(tagList ?? {})) {
                     for (const tag of Object.values(policyTagList.tags ?? {})) {
@@ -1328,7 +1327,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
-            const categoryLists = policyID.value ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories) : Object.values(policyCategories ?? {});
+            const categoryLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories);
             for (const item of categoryLists) {
                 for (const category of Object.values(item ?? {})) {
                     uniqueCategories.add(category.name);

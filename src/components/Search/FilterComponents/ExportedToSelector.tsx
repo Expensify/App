@@ -97,7 +97,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
-        const policiesToLoadTemplatesFrom = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
+        const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
         const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
         const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
         const allExportTemplates = [...exportTemplatesFromAccount, ...exportTemplatesFromPolicies];

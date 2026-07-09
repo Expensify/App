@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,26 +27,9 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
-    const uniqueTagNames = new Set<string>();
-    if (!policyID?.value?.length) {
-        const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
-        for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
-            uniqueTagNames.add(tag);
-        }
-    } else {
-        const selectedTagKeys = new Set(policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${id}`));
-        const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
-            .filter((key) => {
-                const isSelected = selectedTagKeys.has(key);
-                return policyID.isNegated ? !isSelected : isSelected;
-            })
-            .map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
-            .flat();
-
-        for (const tag of selectedPoliciesTagLists) {
-            uniqueTagNames.add(tag);
-        }
-    }
+    const uniqueTagNames = new Set<string>(
+        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists).flatMap((policyTags) => getTagNamesFromTagsLists(policyTags ?? {})),
+    );
     tagItems.push(
         ...Array.from(uniqueTagNames)
             .map((tagName) => ({text: getCleanedTagName(tagName), value: tagName}))
