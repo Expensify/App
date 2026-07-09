@@ -4651,17 +4651,17 @@ const translations = {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Workspace Admin';
+                        return 'Workspace admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Card Admin';
+                        return 'Card admin';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'People Admin';
+                        return 'People admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Payments Admin';
+                        return 'Payments admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:

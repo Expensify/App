@@ -4520,9 +4520,9 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador do cartão';
+                        return 'Admin do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Admin de pessoas';
+                        return 'Administração de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.USER:
