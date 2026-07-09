@@ -30,10 +30,10 @@ type BankAccountValidationFormProps = {
     requiresTwoFactorAuth: boolean;
 
     /** ID of current policy */
-    policyID?: string;
+    policyID: string | undefined;
 
     /** ID of the bank account being validated */
-    bankAccountID?: number;
+    bankAccountID: number | undefined;
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<Policy>;
