@@ -229,7 +229,8 @@ function KYCWall({
                 }
 
                 if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
-                    navigateToBankAccountRoute({policyID: policy.id});
+                    const partiallySetupBankAccount = Object.values(bankAccountList).find((bankAccount) => bankAccount.accountData?.policyIDs?.includes(policy.id));
+                    navigateToBankAccountRoute({policyID: policy.id, policyCurrency: policy.outputCurrency, bankAccountState: partiallySetupBankAccount?.accountData?.state});
                     return;
                 }
 
