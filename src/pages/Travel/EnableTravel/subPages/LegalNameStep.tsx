@@ -1,21 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateLegalName} from '@libs/actions/PersonalDetails';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+
 import {validateLegalName} from '@pages/settings/Profile/PersonalDetails/BaseLegalNamePage';
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function LegalNameStep({onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();

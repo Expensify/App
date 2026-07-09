@@ -1,15 +1,19 @@
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setTravelProvisioningDomain} from '@libs/actions/Travel';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
+
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
+
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type DomainItem = ListItem & {
     value: string;

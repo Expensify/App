@@ -1,17 +1,22 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 function VerifyAccountStep({onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();

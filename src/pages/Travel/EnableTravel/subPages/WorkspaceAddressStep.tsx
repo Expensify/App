@@ -1,12 +1,18 @@
-import React, {useCallback, useState} from 'react';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getCountryCode} from '@libs/CountryUtils';
+
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
+
 import {updateAddress} from '@userActions/Policy/Policy';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
+
+import React, {useCallback, useState} from 'react';
 
 /** Coerces an unknown form field value to a string. */
 function toStringValue(value: unknown): string {

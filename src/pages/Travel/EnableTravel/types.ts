@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type EnableTravelSubPageProps = SubPageProps & {
     policy: OnyxEntry<Policy>;

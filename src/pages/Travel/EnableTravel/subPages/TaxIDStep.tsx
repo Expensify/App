@@ -1,17 +1,22 @@
-import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setTravelProvisioningTaxID} from '@libs/actions/Travel';
+
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/TravelLegalEntityTaxIDForm';
+
+import React from 'react';
 
 function TaxIDStep({onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();

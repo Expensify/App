@@ -1,28 +1,35 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, Policy, PrivatePersonalDetails, TravelProvisioning} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
+import type {EnableTravelSubPageProps} from './types';
+
 import DomainSelectorStep from './subPages/DomainSelectorStep';
 import LegalNameStep from './subPages/LegalNameStep';
 import TaxIDStep from './subPages/TaxIDStep';
 import TermsStep from './subPages/TermsStep';
 import VerifyAccountStep from './subPages/VerifyAccountStep';
 import WorkspaceAddressStep from './subPages/WorkspaceAddressStep';
-import type {EnableTravelSubPageProps} from './types';
 
 type EnableTravelContentProps = {
     policy: OnyxEntry<Policy>;
