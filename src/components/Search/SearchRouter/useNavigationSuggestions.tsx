@@ -83,7 +83,7 @@ function RightSideContext({label, icon}: RightSideContextProps) {
             <Icon
                 src={icon}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
             <Text style={styles.textLabelSupporting}>{label}</Text>
         </View>
