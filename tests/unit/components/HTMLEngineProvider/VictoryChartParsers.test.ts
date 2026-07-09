@@ -71,6 +71,23 @@ describe('victorySeriesParser', () => {
         const result = parseVictorySeriesNode(node, null, null);
         expect(Object.keys(result.data ?? {})).toEqual(['Jan']);
     });
+
+    it('inverts category indices for horizontal charts so the first category renders at the top', () => {
+        const node = createNode('victorybar', {
+            data: "[{x: 'Alpha', y: 10}, {x: 'Beta', y: 20}, {x: 'Gamma', y: 30}]",
+        });
+        const result = parseVictorySeriesNode(node, null, {
+            ...createHorizontalChartContext(),
+            categories: ['Alpha', 'Beta', 'Gamma'],
+        });
+        const yKey = result.yKeys?.at(0);
+        const points = Object.values(result.data ?? {});
+        expect(points).toHaveLength(3);
+        expect(yKey).toBeDefined();
+        expect(points.find((point) => point[yKey as keyof typeof point] === 2)?.x).toBe(10);
+        expect(points.find((point) => point[yKey as keyof typeof point] === 1)?.x).toBe(20);
+        expect(points.find((point) => point[yKey as keyof typeof point] === 0)?.x).toBe(30);
+    });
 });
 
 describe('victoryPieParser', () => {
@@ -115,7 +132,7 @@ describe('victoryAxisParser', () => {
             tickformat: "['Alpha','Beta','Gamma']",
         });
         const result = parseVictoryAxisNode(node, null, createHorizontalChartContext());
-        expect(result.yAxis?.at(0)?.tickValues).toEqual([0, 1, 2]);
+        expect(result.yAxis?.at(0)?.tickValues).toEqual([2, 1, 0]);
         expect(result.yAxis?.at(0)?.tickCount).toBe(3);
         expect(result.yAxis?.at(0)?.formatYLabel?.(1)).toBe('Beta');
     });
@@ -204,6 +221,31 @@ describe('adjustHorizontalChartPadding', () => {
         });
 
         expect(padding).toMatchObject({left: 24, bottom: 25});
+    });
+
+    it('keeps bottom padding when a legend is present', () => {
+        const padding = adjustHorizontalChartPadding({
+            data: {},
+            xKey: 'x',
+            yKeys: ['y'],
+            xAxis: undefined,
+            yAxis: [
+                {
+                    tickValues: [0, 1],
+                    labelOffset: 24,
+                    font: createMockAxisFont(),
+                },
+            ],
+            domain: undefined,
+            domainPadding: undefined,
+            padding: {left: 180, top: 92, bottom: 84, right: 32},
+            isHorizontal: true,
+            categories: undefined,
+            labelItems: [],
+            legendItems: [{x: 250, y: 416, entries: []}],
+        });
+
+        expect(padding).toMatchObject({left: 24, bottom: 84});
     });
 });
 

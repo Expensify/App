@@ -30,7 +30,8 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     if (hasExplicitTickValues) {
         tickValues = rawTickValues;
     } else if (isCategoryAxis) {
-        tickValues = tickFormat?.map((_, index) => index);
+        const categoryCount = tickFormat?.length ?? 0;
+        tickValues = isHorizontal ? tickFormat?.map((_, index) => categoryCount - 1 - index) : tickFormat?.map((_, index) => index);
     }
     const resolvedTickCount = tickCount ?? (isHorizontal && isCategoryAxis && tickValues?.length ? tickValues.length : 0);
 
