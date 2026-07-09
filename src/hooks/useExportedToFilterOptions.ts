@@ -52,7 +52,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
-    const policiesToUse = policyIDs.value !== undefined ? getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
+    const policiesToUse = policyIDs.value?.length ? getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
     const policyLevelExportTemplates = policiesToUse.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
     const accountLevelExportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
     const combinedExportTemplates = [...accountLevelExportTemplates, ...policyLevelExportTemplates];
