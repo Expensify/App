@@ -2996,8 +2996,7 @@ function formatSectionsFromSearchTerm(
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    // TODO: This default falls back to the module-level Onyx.connect() cache. Make `getReportByID` required and remove the fallback once
-    // every caller passes it and the Onyx.connect() for ONYXKEYS.COLLECTION.REPORT is removed (https://github.com/Expensify/App/issues/66378)
+    // The default falls back to the module-level Onyx.connect() cache until every caller passes a resolver (tracked in https://github.com/Expensify/App/issues/66378).
     getReportByID: (reportID: string | undefined) => OnyxEntry<Report> = (reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected

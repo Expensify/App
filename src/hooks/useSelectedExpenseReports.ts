@@ -1,8 +1,10 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 type PolicyExpenseParticipant = {
@@ -19,13 +21,9 @@ type PolicyExpenseParticipant = {
  * reports changes.
  */
 export default function useSelectedExpenseReports(participants: readonly PolicyExpenseParticipant[]) {
-    const expenseReportIDs = useMemo(
-        () =>
-            participants
-                .filter((participant): participant is PolicyExpenseParticipant & {reportID: string} => !!participant.isPolicyExpenseChat && !!participant.reportID)
-                .map((participant) => participant.reportID),
-        [participants],
-    );
+    const expenseReportIDs = participants
+        .filter((participant): participant is PolicyExpenseParticipant & {reportID: string} => !!participant.isPolicyExpenseChat && !!participant.reportID)
+        .map((participant) => participant.reportID);
 
     // Serialized key used to refresh the selector only when the set of relevant report IDs actually changes.
     const expenseReportIDsKey = expenseReportIDs.join(',');
@@ -45,5 +43,5 @@ export default function useSelectedExpenseReports(participants: readonly PolicyE
         [expenseReportIDsKey],
     );
 
-    return useCallback((reportID: string | undefined): OnyxEntry<Report> => expenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`], [expenseReports]);
+    return (reportID: string | undefined): OnyxEntry<Report> => expenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 }
