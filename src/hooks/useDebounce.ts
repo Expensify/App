@@ -50,6 +50,7 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
 
         return () => {
             if (shouldExecuteOnUnmount && isUnmounted.current) {
+                debouncedFn.flush();
                 return;
             }
             debouncedFn.cancel();
