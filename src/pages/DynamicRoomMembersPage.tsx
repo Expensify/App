@@ -161,9 +161,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         if (!report) {
             return;
         }
-        clearTableSearch();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
-    }, [clearTableSearch, report]);
+    }, [report]);
 
     const removeUsers = useCallback(() => {
         if (report) {
