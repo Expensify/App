@@ -2,7 +2,7 @@
 title: Request Tax Exemption
 description: Learn how to request tax exemption for your Expensify subscription by submitting your organization's tax exemption documentation.
 keywords: [request tax-exempt status, tax exemption, sales tax exemption, nonprofit billing, VAT, ST-119, 501(c)]
-internalScope: Audience is Workspace Admins and Workspace owners. Covers requesting tax-exempt status for an Expensify subscription. Does not cover transferring Workspace ownership or troubleshooting. 
+internalScope: Audience is Workspace owners. Covers requesting tax-exempt status for an Expensify subscription. Does not cover transferring Workspace ownership or troubleshooting. 
 retrievalIntent: How to request tax exemption for an Expensify subscription.
 contentType: task
 order: 2
@@ -14,7 +14,7 @@ If your organization is exempt from sales tax, you can request tax exempt status
 
 ## Who can request tax exemption
 
-Workspace Admins or the Workspace owner can request tax exempt status.
+The Workspace owner can request tax exempt status.
 
 To qualify, you'll need documentation proving your organization's tax-exempt status. Accepted documents include:
 
