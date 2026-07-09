@@ -78,6 +78,7 @@ function TabSelectorItem({
             testID={testID}
             sentryLabel={sentryLabel}
             disabled={isDisabled}
+            shouldUseSingleExecution={false}
         >
             <TabIcon
                 icon={icon}

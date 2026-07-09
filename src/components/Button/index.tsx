@@ -196,6 +196,14 @@ type ButtonProps = Partial<ChildrenProps> &
          * Whether the button should stay visually normal even when disabled.
          */
         shouldStayNormalOnDisable?: boolean;
+
+        /**
+         * Whether the single-execution guard (native double-tap/duplicate-navigation debounce) should be applied to this button's press.
+         * Set to false for buttons that intentionally expect rapid repeated presses and never trigger a navigation/modal transition
+         * (e.g. numeric keypad digits), since the guard's fixed debounce would otherwise rate-limit them for no benefit.
+         * @default true
+         */
+        shouldUseSingleExecution?: boolean;
     };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -302,6 +310,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    shouldUseSingleExecution = true,
     accessibilityState,
     sentryLabel,
     ref,
@@ -535,6 +544,7 @@ function Button({
                 onPressOut={onPressOut}
                 onMouseDown={onMouseDown}
                 shouldBlendOpacity={shouldBlendOpacity}
+                shouldUseSingleExecution={shouldUseSingleExecution}
                 disabled={isLoading || isDisabled}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},

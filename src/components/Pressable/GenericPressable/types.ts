@@ -161,6 +161,14 @@ type PressableProps = RNPressableProps &
         isNested?: boolean;
 
         /**
+         * Whether the single-execution guard (native double-tap/duplicate-navigation debounce) should be applied to this press.
+         * Set to false for presses that intentionally expect rapid repeated input and never trigger a navigation/modal transition
+         * (e.g. keypad digits, calendar day cells), since the guard's fixed debounce would otherwise rate-limit them for no benefit.
+         * @default true
+         */
+        shouldUseSingleExecution?: boolean;
+
+        /**
          * Reference to the outer element.
          */
         ref?: PressableRef;
