@@ -106,7 +106,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={cardholderName}
-                                style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
+                                style={[styles.optionDisplayName, styles.pre]}
                             />
                             {shouldUseNarrowTableLayout ? (
                                 <TextWithTooltip
