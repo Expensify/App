@@ -15,7 +15,6 @@ import type {
     SearchFilterKey,
     SearchQueryJSON,
     SearchQueryString,
-    SearchStatus,
     SearchWithdrawalType,
     SyntaxFilterKey,
     UserFriendlyKey,
