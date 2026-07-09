@@ -119,6 +119,11 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'limitType',
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
+            styling: {
+                // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
+                // so the Limit type and Status columns always render at the same width.
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'lastFour',
@@ -129,6 +134,9 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'status',
             label: translate('common.status'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limit',

@@ -138,7 +138,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -158,7 +158,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
