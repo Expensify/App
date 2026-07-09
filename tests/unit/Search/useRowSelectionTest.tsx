@@ -10,6 +10,7 @@ import React from 'react';
 
 const baseSelectionContext = {
     currentSelectedTransactionReportID: undefined,
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
