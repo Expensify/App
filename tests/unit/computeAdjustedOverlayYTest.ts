@@ -22,8 +22,6 @@ describe('computeAdjustedOverlayY', () => {
     });
 
     it('shifts a bottom-anchored overlay up by the height delta', () => {
-        // Reported bug: Top Employees legend at y=416 on a 464 design canvas shrunk to
-        // 291 for 2 rows should land at 243, back inside the preserved bottom padding.
         expect(computeAdjustedOverlayY(416, 291, 173)).toBe(243);
     });
 
