@@ -1,5 +1,4 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,6 +10,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import React from 'react';
 
@@ -29,7 +29,7 @@ type DistanceFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
-    commuterExclusionData?: CommuterExclusionData;
+    customUnit?: TransactionCustomUnit;
 };
 
 function DistanceField({
@@ -47,13 +47,13 @@ function DistanceField({
     iouType,
     reportID,
     reportActionID,
-    commuterExclusionData,
+    customUnit,
 }: DistanceFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // When commuter exclusion applies, the title shows the reimbursable distance and the description shows the original
-    const displayUnit = unit ?? commuterExclusionData?.distanceUnit;
+    const displayUnit = unit ?? customUnit?.distanceUnit;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, displayUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, true, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, displayUnit, translate);
 

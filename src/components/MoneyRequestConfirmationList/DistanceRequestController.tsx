@@ -1,12 +1,17 @@
-import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
-
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 
-import {clearMoneyRequestRateAutoUpdated, setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestRateAutoUpdated,
+    setCustomUnitRateID,
+    setMoneyRequestAmount,
+    setMoneyRequestCommuterExclusionFields,
+    setMoneyRequestMerchant,
+    setMoneyRequestPendingFields,
+} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -49,7 +54,6 @@ type DistanceRequestControllerProps = {
     selectedParticipantsProp: Participant[];
     setFormError: (error: TranslationPaths | '') => void;
     clearFormErrors: (errors: string[]) => void;
-    commuterExclusionData?: CommuterExclusionData;
 };
 
 /**
@@ -83,7 +87,6 @@ function DistanceRequestController({
     selectedParticipantsProp,
     setFormError,
     clearFormErrors,
-    commuterExclusionData,
 }: DistanceRequestControllerProps) {
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -231,7 +234,6 @@ function DistanceRequestController({
         */
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        // When commuter exclusion applies, getDistanceMerchant shows the reimbursable distance in the merchant text
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
             hasRoute,
             distance,
@@ -242,9 +244,21 @@ function DistanceRequestController({
             toLocaleDigit,
             getCurrencySymbol,
             isManualDistanceRequest,
-            commuterExclusionData,
         );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+
+        setMoneyRequestCommuterExclusionFields({
+            transactionID,
+            transaction,
+            policy,
+            customUnitRateID,
+            routeDistanceMeters: distance,
+            distanceUnit: unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            translate,
+            toLocaleDigit,
+            getCurrencySymbol,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+        });
     }, [
         isDistanceRequestWithPendingRoute,
         hasRoute,
@@ -260,7 +274,9 @@ function DistanceRequestController({
         isReadOnly,
         getCurrencySymbol,
         isManualDistanceRequest,
-        commuterExclusionData,
+        policy,
+        customUnitRateID,
+        personalPolicy?.outputCurrency,
     ]);
 
     return null;

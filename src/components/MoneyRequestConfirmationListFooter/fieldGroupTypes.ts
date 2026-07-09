@@ -2,6 +2,7 @@ import type {MileageRate} from '@libs/DistanceRequestUtils';
 
 import type {TranslationPaths} from '@src/languages/types';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 /** Pre-formatted amount values displayed in Amount/Attendee fields */
 type AmountDisplay = {
@@ -29,7 +30,7 @@ type DistanceData = {
     expenseDate: string | undefined;
     customUnitRateID: string | undefined;
     shouldShowRateAutoUpdatedTooltip?: boolean;
-    commuterExclusionData?: CommuterExclusionData;
+    customUnit?: TransactionCustomUnit;
 };
 
 /** Distance-mode discriminators (manual / odometer / GPS) */

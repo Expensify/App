@@ -3,13 +3,10 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -62,7 +59,6 @@ import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
@@ -1955,6 +1951,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxValue,
         merchant,
         modifiedAmount,
+        modifiedMerchant,
         billable,
         reimbursable,
         validWaypoints,
@@ -2093,6 +2090,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
+                modifiedAmount,
+                modifiedMerchant,
                 distance,
                 currency,
                 comment,
@@ -2125,70 +2124,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         onyxData = moneyRequestOnyxData;
         distanceIouReport = iouReport;
-
-        // Compute the commuter exclusion client-side for `fixedDistance` so the transaction
-        // breakdown renders instantly. The COMMUTER_EXCLUSION system message is created by the
-        // server from the authoritative distance calculation, so it is not seeded optimistically.
-        // For any other method (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
-        const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-        const selectedRate = DistanceRequestUtils.getRate({transaction, policy});
-        const distanceRate = selectedRate?.rate ?? 0;
-
-        const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance ?? 0, distanceUnit);
-        if (commuterExclusionData) {
-            const {commuterExclusion, reimbursableDistance} = commuterExclusionData;
-            // Use the canonical distance-amount calc so the optimistic amount rounds the same way the server does.
-            const reimbursableDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reimbursableDistance, distanceUnit);
-            const modifiedRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, distanceUnit, distanceRate);
-            const modifiedRequestMerchant = DistanceRequestUtils.getDistanceMerchant(
-                true,
-                reimbursableDistanceInMeters,
-                distanceUnit,
-                distanceRate,
-                currency,
-                // translateLocal is used intentionally: this runs outside a React render (in an
-                // action creator building optimistic data), so the useLocalize hook is unavailable.
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                Localize.translateLocal,
-                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
-                true,
-            );
-
-            onyxData?.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: {
-                    modifiedAmount: modifiedRequestAmount,
-                    modifiedMerchant: modifiedRequestMerchant,
-                    comment: {
-                        customUnit: {
-                            commuterExclusion,
-                            reimbursableDistance,
-                            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
-                        },
-                    },
-                },
-            });
-
-            // Failure: revert the optimistic transaction merge. The commuter-exclusion system message is
-            // created and reconciled by the server (Auth's CreateDistanceRequest), so it isn't seeded here.
-            onyxData?.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: {
-                    modifiedAmount: null,
-                    modifiedMerchant: null,
-                    comment: {
-                        customUnit: {
-                            commuterExclusion: null,
-                            reimbursableDistance: null,
-                            commuterExclusionMethod: null,
-                        },
-                    },
-                },
-            });
-        }
 
         const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 

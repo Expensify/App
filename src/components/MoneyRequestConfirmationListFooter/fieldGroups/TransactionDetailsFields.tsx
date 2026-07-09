@@ -154,7 +154,7 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    commuterExclusionData={distanceData.commuterExclusionData}
+                    customUnit={distanceData.customUnit}
                 />
             )}
 
