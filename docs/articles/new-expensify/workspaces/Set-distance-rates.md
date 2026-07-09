@@ -97,11 +97,11 @@ Yes. When **Distance Rates** is enabled, the Workspace must always have at least
 
 ---
 
-# How Expensify Selects a Rate When Multiple Rates Exist
+## How Expensify Selects a Rate When Multiple Rates Exist
 
-When a workspace has more than one distance rate, Expensify automatically applies the rate that matches the expense date. This lets you keep multiple rates active at once — for example, last year's mileage rate and this year's updated rate.
+When a Workspace has more than one distance rate, Expensify automatically applies the rate that matches the expense date. This lets you keep multiple rates active at once — for example, last year's mileage rate and this year's updated rate.
 
-- When a member creates or edits a distance expense, Expensify selects the rate whose **Start date** and **End date** range includes the expense date.
+- When a member creates or edits a dDistance expense, Expensify selects the rate whose **Start date** and **End date** range includes the expense date.
 - If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission.
 
 **Note:** Setting effective dates is optional. If your rates don't have **Start date** or **End date** values, Expensify continues to apply rates as before.
