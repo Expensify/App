@@ -106,8 +106,6 @@ function AgentsPage() {
         ];
     });
 
-    const hasAgents = agents.length > 0;
-
     const newAgentButton = (
         <Button
             success
