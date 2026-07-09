@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type ApproveActionButtonProps = {
@@ -44,6 +45,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
@@ -72,6 +74,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin,
                 full: true,
                 yourSpendPatchData,
                 onApproved: startApprovedAnimation,

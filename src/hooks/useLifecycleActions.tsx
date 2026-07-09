@@ -194,6 +194,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerLogin: submitterLogin,
             full: true,
             yourSpendPatchData,
             onApproved: () => {

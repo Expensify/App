@@ -178,6 +178,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                conciergeReportID: undefined,
             });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
@@ -210,6 +211,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -231,6 +233,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);
@@ -332,6 +335,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -440,6 +444,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -530,6 +535,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -584,6 +590,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -666,6 +673,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -720,6 +728,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -806,6 +815,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -860,6 +870,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -944,6 +955,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -998,6 +1010,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1101,6 +1114,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1219,6 +1233,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             };
         }
 
@@ -1442,6 +1457,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1532,6 +1548,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1870,6 +1887,7 @@ describe('actions/IOU/TrackExpense', () => {
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1903,6 +1921,7 @@ describe('actions/IOU/TrackExpense', () => {
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2097,6 +2116,99 @@ describe('actions/IOU/TrackExpense', () => {
             expect(resultWithoutTourViewed.chatReport).toBeDefined();
             expect(resultWithoutTourViewed.transaction).toBeDefined();
         });
+
+        it('getTrackExpenseInformation with isDraftChatReport:true should produce createdWorkspaceParams', () => {
+            // Given a selfDM report that is a draft (not yet committed to the server)
+            const draftSelfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-draft-flag-true',
+            };
+            const policy = createRandomPolicy(10);
+
+            // When getTrackExpenseInformation is called with isDraftChatReport: true
+            const result = getTrackExpenseInformation({
+                parentChatReport: draftSelfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Draft Flag True Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: 'USD',
+                isDraftChatReport: true,
+            });
+
+            // Then createdWorkspaceParams should be defined because the report is a draft
+            expect(result).toBeDefined();
+            expect(result.createdWorkspaceParams).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+        });
+
+        it('getTrackExpenseInformation with isDraftChatReport:false should not produce createdWorkspaceParams', () => {
+            // Given a selfDM report that is NOT a draft
+            const liveSelfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-draft-flag-false',
+            };
+
+            // When getTrackExpenseInformation is called with isDraftChatReport: false
+            const result = getTrackExpenseInformation({
+                parentChatReport: liveSelfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Draft Flag False Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: 'USD',
+                isDraftChatReport: false,
+            });
+
+            // Then createdWorkspaceParams should be undefined because the report is not a draft
+            expect(result).toBeDefined();
+            expect(result.createdWorkspaceParams).toBeUndefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+        });
     });
 
     describe('requestMoney', () => {
@@ -2216,7 +2328,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2253,6 +2365,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2383,6 +2496,7 @@ describe('actions/IOU/TrackExpense', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2520,7 +2634,7 @@ describe('actions/IOU/TrackExpense', () => {
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2557,6 +2671,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 

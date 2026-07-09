@@ -199,7 +199,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                                     src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}
                                     additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                    small
+                                    size={CONST.ICON_SIZE.SMALL}
                                 />
                             )}
                         </PressableWithFeedback>
@@ -217,7 +217,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
-                        extraSmall={!isLargeScreenWidth}
                         shouldDisablePointerEvents={shouldDisableActionPointerEvents}
                         chatReport={chatReport}
                     />

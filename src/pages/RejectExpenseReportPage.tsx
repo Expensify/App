@@ -21,7 +21,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSortedReportActions} from '@libs/ReportActionsUtils';
 
 import variables from '@styles/variables';
@@ -100,7 +100,11 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const lastForwardedActorDetails = getPersonalDetailByEmail(lastForwardedActorEmail);
     const previousApprover = !lastForwardedActorDetails?.accountID
         ? null
-        : {accountID: lastForwardedActorDetails.accountID, displayName: getDisplayNameOrDefault(lastForwardedActorDetails), email: lastForwardedActorEmail};
+        : {
+              accountID: lastForwardedActorDetails.accountID,
+              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate}),
+              email: lastForwardedActorEmail,
+          };
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID && previousApprover.accountID !== submitterAccountID;
@@ -117,7 +121,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         });
     }
 
-    const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(submitterEmail));
+    const submitterName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(submitterEmail), translate});
     options.push({
         text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
         alternateText: submitterEmail,

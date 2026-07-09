@@ -14,6 +14,7 @@ import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
+import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -59,9 +60,10 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         sourcePolicyIDMap[transactionID] = report?.policyID;
     }
 
-    const handleDuplicate = () => {
-        const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
+    const handleDuplicate = () => {
         bulkDuplicateExpenses({
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
@@ -81,6 +83,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+            policyTagList,
         });
 
         if (onAfterDuplicate) {

@@ -302,13 +302,13 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
         });
 
-        it('always shows "Link company cards" row even when company cards feature is disabled', async () => {
+        it('does not show "Link company cards" row when company cards feature is disabled', async () => {
             await setManageTeamUserState({areCompanyCardsEnabled: false});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.linkCompanyCards')).toBeNull();
         });
 
         it('shows "Set up spend rules" row when rules feature is enabled', async () => {

@@ -34,12 +34,11 @@ type PayActionCellProps = {
     reportID: string;
     hash?: number;
     amount?: number;
-    extraSmall: boolean;
     shouldDisablePointerEvents?: boolean;
     chatReport: OnyxEntry<Report>;
 };
 
-function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
+function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
@@ -159,7 +158,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         <SearchScopeProvider isOnSearch={false}>
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                buttonSize={CONST.BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
                 policyID={policyID || iouReport?.policyID}

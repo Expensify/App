@@ -190,7 +190,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
 
     await waitForBatchedUpdates();
 
@@ -536,6 +536,7 @@ describe('Unread Indicators', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -617,6 +618,7 @@ describe('Unread Indicators', () => {
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
                         delegateAccountID: undefined,
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -672,6 +674,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -691,6 +694,7 @@ describe('Unread Indicators', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: USER_A_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -803,6 +807,7 @@ describe('Unread Indicators', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -873,6 +878,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 

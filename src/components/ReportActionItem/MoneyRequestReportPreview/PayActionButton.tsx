@@ -40,6 +40,7 @@ import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type PayActionButtonProps = {
@@ -87,6 +88,7 @@ function PayActionButton({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -166,6 +168,7 @@ function PayActionButton({
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin,
                 full: true,
                 yourSpendPatchData,
                 onApproved: startApprovedAnimation,

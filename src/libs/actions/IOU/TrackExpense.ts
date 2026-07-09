@@ -125,7 +125,7 @@ import type {
 } from './types/TrackedExpenseParams';
 
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
@@ -200,6 +200,8 @@ type GetTrackExpenseInformationParams = {
     currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
+    isDraftChatReport?: boolean;
 };
 
 type DeleteTrackExpenseParams = {
@@ -861,6 +863,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
@@ -988,7 +991,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     }
 
     // Check if the report is a draft
-    const isDraftReportLocal = isDraftReport(chatReport?.reportID);
+    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
@@ -1734,15 +1737,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
-        policyParams: {
-            ...policyParams,
-            policyTagList: getMoneyRequestPolicyTags({
-                existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-                participant: participantParams.participant,
-            }),
-        },
+        policyParams,
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
@@ -2279,8 +2274,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             formatPhoneNumber,
             personalDetailsList,
             {accountID: currentUserAccountID},
-            undefined,
-            undefined,
             reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
@@ -2364,6 +2357,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         previousOdometerDraft,
         delegateAccountID,
         reportActionsList,
+        isDraftChatReport,
         personalDetailsList,
         currentUserLocalCurrency,
     } = params;
@@ -2525,6 +2519,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        isDraftChatReport,
         currentUserLocalCurrency,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
@@ -2616,6 +2611,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                reportActionsList: reportActionsList ?? {},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);

@@ -4434,6 +4434,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4496,6 +4497,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4541,6 +4543,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4659,6 +4662,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4740,6 +4744,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4812,6 +4817,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4879,6 +4885,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7512,6 +7519,63 @@ describe('createDistanceRequest', () => {
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
     });
 
+    it('returns the iou report and the written chatReportID for a non-split distance request', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+
+        expect(result.iouReport).toBeTruthy();
+        expect(result.chatReportID).toBeTruthy();
+        expect(result.iouReport?.chatReportID).toBe(result.chatReportID);
+        expect(result.transactionID).toBeTruthy();
+    });
+
+    it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(undefined, {amount: 1000}, recentWaypoints),
+            iouType: CONST.IOU.TYPE.SPLIT,
+        });
+
+        expect(result.iouReport).toBeFalsy();
+        expect(result.chatReportID).toBeTruthy();
+        expect(result.transactionID).toBeTruthy();
+    });
+
+    it('flags the created transaction for Search highlight on a global-create distance request', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1, isFromGlobalCreate: true}, recentWaypoints),
+            participants: [],
+        });
+
+        await waitForBatchedUpdates();
+
+        const highlight = await getOnyxValue(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE);
+        expect(Object.keys(highlight?.[CONST.SEARCH.DATA_TYPES.EXPENSE] ?? {})).toContain(result.transactionID);
+    });
+
+    it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingTransactionID = 'existing-txn-one-to-two';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '123'});
+        await waitForBatchedUpdates();
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+        await waitForBatchedUpdates();
+
+        const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`);
+        expect(Object.keys(reportMetadata?.pendingNewTransactionIDs ?? {})).toContain(result.transactionID);
+    });
+
     it('correctly sets quickAction', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -7916,7 +7980,7 @@ describe('createDistanceRequest', () => {
         const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
         expect(Object.keys(allReports ?? {}).length).toBeGreaterThan(initialReportsCount);
         expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
-        const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
+        const createdTransaction = Object.values(allTransactions ?? {}).at(0);
         expect(createdTransaction).toBeTruthy();
     });
 });

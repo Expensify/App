@@ -1775,6 +1775,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -2198,6 +2199,12 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
+        // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
+        // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
+        ATTRIBUTE_WIDE_LAYOUT: 'wide_layout',
+        // Stamped on the navigate-to-inbox-tab span when the app-loading skeleton was shown instead of the
+        // report list, so durations that include the openApp wait can be excluded from render measurements.
+        ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
@@ -2387,9 +2394,6 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
-    },
-    HTTP_HEADER_NAMES: {
-        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -2891,6 +2895,7 @@ const CONST = {
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
     CERTINIA_PSA_BUNDLE_VERSION: '1.3',
@@ -3381,6 +3386,43 @@ const CONST = {
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
         SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
         TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+    },
+
+    RILLET_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    RILLET_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    RILLET_EXPORT_COMPANY_CARD: {
+        CREDIT_CARD: 'CREDIT_CARD',
+    },
+
+    RILLET_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    RILLET_ACCOUNT_STATUS: {
+        ACTIVE: 'ACTIVE',
+        INACTIVE: 'INACTIVE',
+    },
+
+    RILLET_ACCOUNT_TYPE: {
+        ASSET: 'ASSET',
+        LIABILITY: 'LIABILITY',
+        EQUITY: 'EQUITY',
+        EXPENSE: 'EXPENSE',
+        INCOME: 'INCOME',
+    },
+
+    RILLET_ACCOUNT_SUBTYPE: {
+        CREDIT_CARD: 'Credit Card',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -3759,6 +3801,11 @@ const CONST = {
         WARNING: 'warning',
         DURATION: 2000,
         DURATION_LONG: 3500,
+        // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
+        DURATION_WITH_ACTION: 6000,
+        // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
+        // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
+        OFFSCREEN_OFFSET: 255,
     },
 
     LOCALES,
@@ -3925,6 +3972,7 @@ const CONST = {
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
+            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4390,6 +4438,7 @@ const CONST = {
             COMPANY_CARD: 'CompanyCard',
             EXPENSIFY_CARD: 'ExpensifyCard',
         },
+        CARD_LIST: 'cardList',
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
@@ -5941,6 +5990,13 @@ const CONST = {
         SMALL: 'small',
     },
 
+    ICON_SIZE: {
+        EXTRA_SMALL: 'extra-small',
+        SMALL: 'small',
+        MEDIUM: 'medium',
+        LARGE: 'large',
+    },
+
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR: 'CUSTOM_HISTORY-MFA_MODAL_NAVIGATOR',
@@ -6506,6 +6562,12 @@ const CONST = {
             PENDING: 'pending',
             CLEARED: 'cleared',
             FAILED: 'failed',
+            NEVER: 'never',
+        },
+        PAID_STATUS: {
+            MARKED_AS_PAID: 'markedAsPaid',
+            WITHDRAWING: 'withdrawing',
+            CONFIRMED: 'confirmed',
         },
         IS_VALUES: {
             READ: 'read',
@@ -6600,8 +6662,11 @@ const CONST = {
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
+                    FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
+                    FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
+                    PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6792,6 +6857,8 @@ const CONST = {
             DATE: 'date',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            FIRST_APPROVER: 'firstapprover',
+            FIRST_APPROVED: 'firstapproved',
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
@@ -6827,6 +6894,7 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
             AVATAR: 'avatar',
             STATUS: 'status',
+            PAID_STATUS: 'paidstatus',
             EXPENSES: 'expenses',
             FEED: 'feed',
             WITHDRAWN: 'withdrawn',
@@ -6913,6 +6981,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWAL_STATUS: 'withdrawalStatus',
+            PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
             TITLE: 'title',
@@ -6990,6 +7059,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWAL_STATUS: 'withdrawal-status',
+            PAID_STATUS: 'paid-status',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -7416,6 +7486,7 @@ const CONST = {
                 title: 'workspace.upgrade.controlPolicyRoles.title' as const,
                 description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             reports: {
                 id: 'reports' as const,
@@ -7877,6 +7948,13 @@ const CONST = {
         },
     },
 
+    TABLES: {
+        FILTER_TYPE: {
+            SINGLE_SELECT: 'singleSelect',
+            MULTI_SELECT: 'multiSelect',
+        },
+    },
+
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -8034,6 +8112,7 @@ const CONST = {
             TABLE_ROW: 'ExpenseRules-TableRow',
         },
         TABLE: {
+            FILTERS: 'Table-Filters',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
@@ -8223,7 +8302,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-            STATUS_PICKER: 'Account-StatusPicker',
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
@@ -8709,6 +8787,12 @@ const CONST = {
         },
         MFA_OVERLAY: {
             BACKDROP: 'MfaOverlay-Backdrop',
+        },
+        AGENTS: {
+            TABLE_ROW: 'Agents-TableRow',
+            CHAT: 'Agents-Chat',
+            COPILOT: 'Agents-Copilot',
+            EDIT: 'Agents-Edit',
         },
         DOMAIN: {
             ADMINS: {
