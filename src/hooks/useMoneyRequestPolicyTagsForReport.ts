@@ -18,6 +18,12 @@ type UseMoneyRequestPolicyTagsForReportParams = {
 
 const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
+/**
+ * Wrapper over `useMoneyRequestPolicyTags` that derives its IDs from a `report` (money-request report vs its
+ * chat/chat-draft, plus the first participant).
+ *
+ * Case-specific: it encodes the money-request flow's policy resolution for a report, not a general-purpose hook.
+ */
 function useMoneyRequestPolicyTagsForReport({report, currentUserAccountID, existingIOUReportPolicyID}: UseMoneyRequestPolicyTagsForReportParams): PolicyTagLists {
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const chatReportID = isMoneyRequestReport ? getNonEmptyStringOnyxID(report?.chatReportID) : undefined;
