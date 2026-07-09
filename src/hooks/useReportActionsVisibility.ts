@@ -75,9 +75,7 @@ function useReportActionsVisibility({
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
     const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : (mainDMSessionStartTime ?? null);
 
-    // IDs of the current session's messages (the user's own messages and the Concierge replies to
-    // them) captured by arrival, so a clock-skewed just-sent message or reply keeps counting as
-    // current-session regardless of its timestamp.
+    // Current-session message IDs captured by arrival, so a clock-skewed message or reply still counts.
     const currentSessionActionIDs = useCurrentSessionActionIDs(allReportActions, currentUserAccountID, sessionStartTime);
 
     const hasUserSentMessage =

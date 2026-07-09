@@ -5,25 +5,16 @@ import type {ReportAction} from '@src/types/onyx';
 import {useState} from 'react';
 
 /**
- * Tracks the IDs of the report actions that belong to the active Concierge session — the current
- * user's own messages and the Concierge replies to them — identified by arrival rather than timestamp.
+ * Tracks which report action IDs belong to the active Concierge session (the user's messages and the
+ * replies to them), identified by arrival instead of timestamp.
  *
- * Timestamps can't be trusted here: `sessionStartTime` is a raw client clock value, the user's
- * optimistic message is stamped with the skew-adjusted client clock, and a Concierge reply carries an
- * authoritative server timestamp. When the client clock runs ahead of the server, a genuine reply's
- * `created` lands before `sessionStartTime` and it gets filtered out of the session — "sometimes no
- * response from Concierge". So membership is captured from clock-independent facts instead:
- *   - The current user's own messages are captured while optimistic (`pendingAction === ADD`) and kept
- *     for the rest of the session, so a skewed message keeps counting even after AddComment success
- *     clears its `pendingAction` (which never rewrites `created`).
- *   - Once the user has sent a message this session, any newly-arriving action (i.e. not present at
- *     session start) is the Concierge reply to it and is captured too. A server-time floor over the
- *     history already loaded at session start keeps late-loading older history from leaking in, since
- *     a reply is always newer than any pre-session message (server clocks are monotonic).
+ * Timestamps are unreliable: `sessionStartTime` and the user's optimistic message use the client clock,
+ * while a reply carries a server timestamp — so under clock skew a real reply can land before
+ * `sessionStartTime` and get dropped ("no response from Concierge"). Instead we capture the user's own
+ * messages while optimistic (`pendingAction === ADD`), then any action arriving after that, gated by a
+ * server-time floor over the pre-session history so older late-loading messages can't leak in.
  *
- * The sets reset when `sessionStartTime` changes so IDs from a previous session never leak into a new
- * one. Capture happens during render (via the "adjust state during render" pattern) so the returned
- * set is correct within the same render.
+ * Sets reset when `sessionStartTime` changes; capture runs during render so the result is up to date.
  */
 function useCurrentSessionActionIDs(actions: ReportAction[] | undefined, currentUserAccountID: number | undefined, sessionStartTime: string | null): Set<string> {
     const [capturedIDs, setCapturedIDs] = useState<Set<string>>(() => new Set());
@@ -43,9 +34,7 @@ function useCurrentSessionActionIDs(actions: ReportAction[] | undefined, current
     let nextSeen = seen;
 
     if (sessionStartTime && actions) {
-        // The user has an active question in this session once one of their optimistic ADDs has been
-        // captured (or is still pending). Only then can a newly-arriving action be attributed to the
-        // ongoing exchange (i.e. the Concierge reply).
+        // The user has an active question once one of their ADDs is pending or already captured.
         const userHasSentMessage = actions.some(
             (action) =>
                 !!action.reportActionID &&
@@ -53,9 +42,8 @@ function useCurrentSessionActionIDs(actions: ReportAction[] | undefined, current
                 (isCurrentUserPendingAddAction(action, currentUserAccountID) || captured.has(action.reportActionID)),
         );
 
-        // Newest server timestamp among the history already loaded at session start (excluding the
-        // user's own skew-stamped messages). A reply is always newer than this, so it is a skew-proof
-        // floor that late-loading older history can never cross.
+        // Newest pre-session server timestamp (excluding the user's own skewed messages). A reply is
+        // always newer, so this is a skew-proof floor that late-loading older history can't cross.
         let latestPreSessionCreated: string | undefined;
         for (const action of actions) {
             if (!action.reportActionID || !seen.has(action.reportActionID) || action.actorAccountID === currentUserAccountID || isCreatedAction(action)) {
@@ -66,8 +54,7 @@ function useCurrentSessionActionIDs(actions: ReportAction[] | undefined, current
             }
         }
 
-        // The baseline is established once we have observed the actions loaded at session start; before
-        // that every action looks "new", so we must not capture replies yet.
+        // Until we've seen the session-start actions, everything looks new — don't capture replies yet.
         const baselineEstablished = seen.size > 0;
 
         for (const action of actions) {

@@ -38,8 +38,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
-        // Safe defaults: no active session and an anonymous user, so the existing
-        // followup-list tests below behave exactly as before.
+        // Safe defaults: no active session, so the existing followup-list tests behave as before.
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: CURRENT_USER_ACCOUNT_ID});
     });
@@ -149,8 +148,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
         });
 
         it("keeps indicators visible for the current user's optimistic message whose created is skewed before the session start", async () => {
-            // Given a just-sent message whose clock-skewed created is earlier than the session start,
-            // still optimistic (pendingAction === ADD) — the clock-skew race this fix targets.
+            // Given a still-optimistic (pendingAction === ADD) message skewed before the session start.
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [REPORT_ACTION_ID]: buildAction({

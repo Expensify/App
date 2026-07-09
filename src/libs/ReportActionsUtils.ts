@@ -200,10 +200,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-/**
- * The current user's optimistic, not-yet-synced comment. By construction it is a message just sent in
- * the current session, so it belongs to the session regardless of its `created` vs `sessionStartTime`.
- */
+/** The current user's optimistic, not-yet-synced comment — a message just sent in the current session. */
 function isCurrentUserPendingAddAction(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     return !!currentUserAccountID && reportAction?.actorAccountID === currentUserAccountID && reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 }

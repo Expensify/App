@@ -25,7 +25,7 @@ describe('useCurrentSessionActionIDs', () => {
     });
 
     it('retains the ID after pendingAction is cleared by the AddComment success (the clock-skew race)', () => {
-        // Given a just-sent message whose created is skewed earlier than sessionStartTime, captured while pending.
+        // Given a skewed just-sent message (created < sessionStartTime), captured while pending.
         const skewedCreated = '2026-06-29 09:59:59.000';
         const pending = buildAction({reportActionID: '100', created: skewedCreated, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
         const {result, rerender} = renderHook(({actions}) => useCurrentSessionActionIDs(actions, CURRENT_USER_ACCOUNT_ID, SESSION_START_TIME), {
@@ -33,21 +33,21 @@ describe('useCurrentSessionActionIDs', () => {
         });
         expect(result.current.has('100')).toBe(true);
 
-        // When the success clears pendingAction (created stays skewed) before Concierge replies.
+        // When success clears pendingAction (created stays skewed) before Concierge replies.
         const settled = buildAction({reportActionID: '100', created: skewedCreated, pendingAction: undefined});
         rerender({actions: [settled]});
 
-        // Then the message is still recognized as a current-session message.
+        // Then it's still a current-session message.
         expect(result.current.has('100')).toBe(true);
     });
 
     it("captures the Concierge reply that arrives after the user's question, even when its server timestamp is earlier (clock ahead of server)", () => {
-        // Given a Concierge report with prior history loaded at session start.
+        // Given prior history loaded at session start.
         const history = buildAction({reportActionID: '1', actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 08:00:00.000'});
         const {result, rerender} = renderHook(({actions}) => useCurrentSessionActionIDs(actions, CURRENT_USER_ACCOUNT_ID, SESSION_START_TIME), {
             initialProps: {actions: [history] as ReportAction[]},
         });
-        // The prior history is not part of the current session.
+        // Prior history isn't part of the session.
         expect(result.current.has('1')).toBe(false);
 
         // When the user sends a question this session.
@@ -55,13 +55,13 @@ describe('useCurrentSessionActionIDs', () => {
         rerender({actions: [history, question]});
         expect(result.current.has('100')).toBe(true);
 
-        // And Concierge replies with a server timestamp that lands before sessionStartTime (client clock ahead of server).
+        // And Concierge replies with a server timestamp before sessionStartTime (clock ahead of server).
         const reply = buildAction({reportActionID: '200', actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 09:59:58.000', pendingAction: undefined});
         rerender({actions: [history, question, reply]});
 
-        // Then the reply is captured as a current-session action regardless of its timestamp.
+        // Then the reply is captured regardless of its timestamp.
         expect(result.current.has('200')).toBe(true);
-        // And the prior history stays out of the session.
+        // And prior history stays out.
         expect(result.current.has('1')).toBe(false);
     });
 
@@ -82,7 +82,7 @@ describe('useCurrentSessionActionIDs', () => {
         });
         expect(result.current.has('100')).toBe(true);
 
-        // When a new session starts with no actions yet, the previous session's IDs are dropped.
+        // When a new session starts with no actions, the previous IDs are dropped.
         rerender({actions: [], sessionStartTime: '2026-06-29 12:00:00.000'});
 
         expect(result.current.has('100')).toBe(false);

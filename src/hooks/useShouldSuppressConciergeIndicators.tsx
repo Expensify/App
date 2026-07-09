@@ -32,8 +32,7 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const actionsList = Object.values(reportActions ?? {});
 
-    // IDs of the current session's messages (the user's own and the Concierge replies) captured by
-    // arrival, so clock-skewed activity keeps the indicators visible regardless of its timestamp.
+    // Current-session message IDs captured by arrival, so clock-skewed activity still shows indicators.
     const currentSessionActionIDs = useCurrentSessionActionIDs(actionsList, currentUserAccountID, sessionStartTime);
 
     const hasSessionActivity =
