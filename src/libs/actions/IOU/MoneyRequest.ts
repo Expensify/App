@@ -66,7 +66,7 @@ import Onyx from 'react-native-onyx';
 
 import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
-import {getAllTransactionDrafts, getMoneyRequestPolicyTags} from './index';
+import {getAllTransactionDrafts} from './index';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
@@ -125,15 +125,6 @@ function createTransaction({
     currentUserLocalCurrency,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getMoneyRequestPolicyTags({
-        moneyRequestReportID,
-        parentChatReport,
-        participant,
-    });
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -196,7 +187,7 @@ function createTransaction({
                     payeeAccountID: currentUserAccountID,
                     participant,
                 },
-                policyParams: {...(policyParams ?? {}), policyTagList},
+                policyParams: policyParams ?? {},
                 gpsPoint,
                 transactionParams: {
                     amount: 0,
