@@ -424,10 +424,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         });
     }
 
+    const visibleAccountItems = isAgentAccount
+        ? accountItems.filter((item) => item.screenName !== SCREENS.SETTINGS.WALLET.ROOT && item.screenName !== SCREENS.SETTINGS.SECURITY)
+        : accountItems;
+
     const accountMenuItemsData: Menu = {
         sectionStyle: styles.accountSettingsSectionContainer,
         sectionTranslationKey: 'initialSettingsPage.account',
-        items: accountItems,
+        items: visibleAccountItems,
     };
 
     let classicRedirectMenuItem: MenuData | null = null;
