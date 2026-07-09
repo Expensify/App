@@ -1,4 +1,4 @@
-import BAR_INNER_PADDING, {BAR_CORNER_RADIUS, MAX_HORIZONTAL_CHART_HEIGHT, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_CORNER_RADIUS, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -6,10 +6,8 @@ import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartCursorStyle, useChartInteractions} from '@components/Charts/hooks';
 import {createHorizontalBarPath, getBarColor, getCategoryLabelWidth, getFontLineMetrics, getYAxisLabelWidth, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
-import ScrollView from '@components/ScrollView';
 
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
@@ -80,7 +78,6 @@ function HorizontalBarChart({
     ellipsisWidth,
 }: HorizontalBarChartProps) {
     const theme = useTheme();
-    const styles = useThemeStyles();
 
     const horizontalChartData = data.map((point, index) => ({
         x: point.total,
@@ -200,11 +197,12 @@ function HorizontalBarChart({
     const horizontalValueLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, VALUE_AXIS_DOMAIN_PADDING);
     const {ascent, descent} = getFontLineMetrics(fontManager, variables.iconSizeExtraSmall);
     const horizontalXAxisLabelHeight = ascent + descent + VictoryTheme.axis.labelGap;
+    // Grows to fit every row instead of capping height, matching the vertical chart's approach:
+    // the page-level ScrollView (not an internal one) handles overflow when there are many categories.
     const horizontalContentHeight = Math.max(
         CHART_CONTENT_MIN_HEIGHT,
         data.length * MIN_BAR_ROW_HEIGHT + VictoryTheme.axis.padding.top + VictoryTheme.axis.padding.bottom + horizontalXAxisLabelHeight,
     );
-    const needsHorizontalScroll = horizontalContentHeight > MAX_HORIZONTAL_CHART_HEIGHT;
     const horizontalChartPadding = {
         ...VictoryTheme.axis.padding,
         left: horizontalCategoryLabelWidth + GLYPH_PADDING,
@@ -213,7 +211,7 @@ function HorizontalBarChart({
     };
     const horizontalChartStyle = {height: horizontalContentHeight};
 
-    const chartBody = (
+    return (
         <GestureDetector gesture={customGestures}>
             <Animated.View
                 style={[horizontalChartStyle, cursorStyle]}
@@ -281,20 +279,6 @@ function HorizontalBarChart({
             </Animated.View>
         </GestureDetector>
     );
-
-    if (needsHorizontalScroll) {
-        return (
-            <ScrollView
-                style={styles.chartHorizontalScroll}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator
-            >
-                {chartBody}
-            </ScrollView>
-        );
-    }
-
-    return chartBody;
 }
 
 export default HorizontalBarChart;

@@ -1,4 +1,3 @@
-import {MAX_HORIZONTAL_CHART_HEIGHT} from '@components/Charts/barChartConstants';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
@@ -6345,9 +6344,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: CHART_CONTENT_MIN_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
-        },
-        chartHorizontalScroll: {
-            maxHeight: MAX_HORIZONTAL_CHART_HEIGHT,
         },
         pieChartLegendContainer: {
             display: 'flex',
