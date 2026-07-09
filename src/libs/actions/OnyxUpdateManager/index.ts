@@ -66,14 +66,12 @@ const createQueryPromiseWrapper = () =>
 let queryPromiseWrapper = createQueryPromiseWrapper();
 let isFetchingForPendingUpdates = false;
 
-// A successful fetch of missing updates must advance the client past the update ID it was fired from.
-// When the server answers with a 200 that doesn't, repeating the same fetch right away cannot catch the
-// client up. Production traces show this loop re-firing about once per incoming Pusher update. Instead,
-// the first such response escalates to a single incremental ReconnectApp, whose response always applies
-// and moves the client to the server head, and further fetches from the same client state back off.
-// One useless answer only proves the server could not serve the range at that moment, so the back-off is
-// time-boxed rather than permanent: once it expires the normal flow fetches again, and a repeat stall
-// escalates again.
+// A successful fetch of missing updates must move the client past the update ID it was fired from.
+// When a 200 doesn't, the server can't serve that range right now and refetching won't help
+// (production traces showed this loop firing about once per incoming Pusher update). So the first
+// such response escalates to a single incremental ReconnectApp, whose response applies even with
+// the gap open and normally catches the client up. Further fetches from the same client state back
+// off, until the client advances or a minute passes; then the normal flow fetches and escalates again.
 let stalledFetch: {clientUpdateID: number; time: number} | undefined;
 
 const resetDeferralLogicVariables = () => {
@@ -105,7 +103,7 @@ function escalateIfFetchStalled(response: Awaited<ReturnType<typeof getMissingOn
 }
 
 // A fetch from this client state recently stalled and escalated to a ReconnectApp. Give that reconnect
-// its back-off window instead of repeating a fetch the server has just shown it cannot serve.
+// its back-off window instead of repeating a fetch the server has shown it cannot serve.
 function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
     if (!stalledFetch || stalledFetch.clientUpdateID !== lastUpdateIDFromClient) {
         return false;
@@ -118,10 +116,9 @@ function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
     return true;
 }
 
-// Fetches the missing updates and afterwards validates and applies the deferred updates. This will trigger
-// recursive calls to "validateAndApplyDeferredUpdates" if there are gaps in the deferred updates. When the
-// fetch settles without progress, escalateIfFetchStalled takes over and the deferred updates are skipped:
-// they all sit behind the unclosed gap, so none of them could be applied anyway.
+// Fetches the missing updates and afterwards validates and applies the deferred updates, which recurses
+// while the deferred updates still have gaps. When the fetch settles without progress, escalateIfFetchStalled
+// takes over and the deferred updates are skipped: they sit behind the unclosed gap and could never apply.
 function fetchMissingUpdates(lastUpdateIDFromClient: number, updateIDTo: number | string | undefined, clientLastUpdateID?: number) {
     setMissingOnyxUpdatesQueryPromise(
         getMissingOnyxUpdates(lastUpdateIDFromClient, updateIDTo).then((response) => {
@@ -241,8 +238,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         // This client already has the reliable updates mode enabled, but it's missing some updates and it needs to fetch those.
         // Therefore, we are calling the GetMissingOnyxUpdates query, to fetch the missing updates.
 
-        // Checked before enqueueing: a skipped cycle finalizes right away, which would wipe the just-deferred
-        // update anyway (it sits behind the unclosed gap and could never be applied).
+        // Checked before enqueueing: a skipped cycle finalizes right away, which would wipe the just-deferred update anyway.
         if (isFetchAlreadyStalled(lastUpdateIDFromClient)) {
             return true;
         }

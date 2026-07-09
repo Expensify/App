@@ -43,7 +43,7 @@ const mockValuesProxy = createProxyForObject(mockValues);
 const reconnectApp = jest.fn();
 
 const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number) => {
-    // When a response is set, the server "answers" without serving the requested range: nothing is applied.
+    // When a response is set, the server answers without serving the requested range: nothing is applied.
     if (mockValuesProxy.missingOnyxUpdatesResponse !== undefined) {
         return Promise.resolve(mockValuesProxy.missingOnyxUpdatesResponse);
     }
