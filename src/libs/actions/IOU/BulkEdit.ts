@@ -92,6 +92,7 @@ type UpdateMultipleMoneyRequestsParams = {
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
@@ -109,6 +110,7 @@ function updateMultipleMoneyRequests({
     policyCategories,
     policyTags,
     violations,
+    reportNameValuePairs,
     hash,
     allPolicies,
     currentUserAccountID,
@@ -182,7 +184,7 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy});
+            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs});
         };
 
         let transactionChanges: TransactionChanges = {};

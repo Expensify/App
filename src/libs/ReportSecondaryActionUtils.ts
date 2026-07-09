@@ -1147,7 +1147,8 @@ function getSecondaryTransactionThreadActions({
     policy,
     transactionThreadReport,
     outstandingReportsByPolicyID,
-    isChatReportArchived = false,
+    reportNameValuePairs,
+    isChatReportArchived,
     grandParentReport,
     isProduction,
 }: {
@@ -1160,7 +1161,8 @@ function getSecondaryTransactionThreadActions({
     policy: OnyxEntry<Policy>;
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
-    isChatReportArchived?: boolean;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    isChatReportArchived: boolean;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
@@ -1201,6 +1203,7 @@ function getSecondaryTransactionThreadActions({
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
             isChatReportArchived,
             outstandingReportsByPolicyID,
+            reportNameValuePairs,
             transaction: reportTransaction,
         }) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
