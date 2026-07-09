@@ -544,7 +544,16 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
 function getQueryHashes(query: SearchQueryJSON) {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
+
+    const status = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    orderedQuery += ` ${status.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
+
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
+
+    const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    if (policyID.value) {
+        orderedQuery += ` ${policyID.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
+    }
 
     const filterSet = new Set<string>(orderedQuery);
 
@@ -566,6 +575,11 @@ function getQueryHashes(query: SearchQueryJSON) {
         .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
 
     for (const {filterString, filterKey} of flatFilters) {
+        // Skip the status and policyID filter because we already handle it above
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+            continue;
+        }
+
         if (!similarSearchIgnoredFilters.has(filterKey)) {
             filterSet.add(filterKey);
         }
