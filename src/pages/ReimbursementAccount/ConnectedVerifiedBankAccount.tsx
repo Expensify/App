@@ -74,6 +74,7 @@ function ConnectedVerifiedBankAccount({
     const currency = reimbursementAccount?.achData?.currency;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const hasOtherEligibleAccountsToConnect = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, reimbursementAccount?.achData?.bankAccountID).length > 0;
+    const shouldShowChangeBankAccount = !!policyID && !!currency;
 
     const handleChangeBankAccount = () => {
         if (!policyID || !currency) {
@@ -131,14 +132,16 @@ function ConnectedVerifiedBankAccount({
                             wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
                         />
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
-                        <MenuItem
-                            title={translate('workspace.bankAccount.changeBankAccount')}
-                            icon={icons.Bank}
-                            onPress={handleChangeBankAccount}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                            disabled={!!pendingAction || !isEmptyObject(errors)}
-                        />
+                        {shouldShowChangeBankAccount && (
+                            <MenuItem
+                                title={translate('workspace.bankAccount.changeBankAccount')}
+                                icon={icons.Bank}
+                                onPress={handleChangeBankAccount}
+                                shouldShowRightIcon
+                                outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                disabled={!!pendingAction || !isEmptyObject(errors)}
+                            />
+                        )}
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={icons.Close}
