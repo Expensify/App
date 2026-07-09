@@ -42,6 +42,7 @@ import {
     isReportActionListItemType,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
+    isSuggestedSearchKey,
     isTaskListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
@@ -539,7 +540,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey: undefined,
+                    searchKey: currentSearchKey,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -980,7 +981,7 @@ function Search({
             if (savedSearch.name !== savedSearch.query) {
                 chartTitle = savedSearch.name;
             }
-        } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
+        } else if (isSuggestedSearchKey(currentSearchKey) && suggestedSearches[currentSearchKey]) {
             const suggestedSearch = suggestedSearches[currentSearchKey];
             const sortMatches = doesSearchItemMatchSort(currentSearchKey, suggestedSearch.searchQueryJSON?.sortBy, suggestedSearch.searchQueryJSON?.sortOrder, sortBy, sortOrder);
             if (sortMatches) {

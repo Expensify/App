@@ -883,7 +883,7 @@ function search({
     skipWaitForWrites = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
-    searchKey: SearchKey | undefined;
+    searchKey?: SearchKey;
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
@@ -923,7 +923,7 @@ function search({
         : queryJSONWithoutFlatFilters;
     const query = {
         ...backendQueryJSON,
-        searchKey,
+        ...(searchKey !== undefined && {searchKey}),
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
@@ -935,6 +935,7 @@ function search({
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
             queryJSON,
+            ...(searchKey !== undefined && {searchKey}),
             offset,
             allowPostSearchRecount: false,
         });
@@ -954,6 +955,7 @@ function search({
                         if (prevReportsLength) {
                             saveLastSearchParams({
                                 queryJSON,
+                                ...(searchKey !== undefined && {searchKey}),
                                 offset,
                                 hasMoreResults: !!response?.search?.hasMoreResults,
                                 previousLengthOfResults: prevReportsLength,
@@ -964,6 +966,7 @@ function search({
                         // Applies to all searches from the Search View
                         saveLastSearchParams({
                             queryJSON,
+                            ...(searchKey !== undefined && {searchKey}),
                             offset,
                             hasMoreResults: !!response?.search?.hasMoreResults,
                             previousLengthOfResults: reports.length,

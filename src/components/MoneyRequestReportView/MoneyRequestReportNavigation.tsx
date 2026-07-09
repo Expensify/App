@@ -211,7 +211,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                 offset: newOffset,
                 prevReportsLength: effectiveAllReports.length,
                 shouldCalculateTotals: false,
-                searchKey: lastSearchQuery.searchKey,
+                ...(lastSearchQuery.searchKey !== undefined && {searchKey: lastSearchQuery.searchKey}),
                 isLoading: isSearchLoading,
                 shouldUpdateLastSearchParams: true,
             });

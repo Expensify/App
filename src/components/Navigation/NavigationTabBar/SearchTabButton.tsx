@@ -74,7 +74,12 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             const lastQueryJSON = lastSearchParams?.queryJSON;
             const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
             const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery}));
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: lastQueryFromOnyx ?? defaultSearchQuery,
+                    searchKey: lastSearchParams?.searchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                }),
+            );
         });
     };
 

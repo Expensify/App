@@ -2,6 +2,7 @@ import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -22,7 +23,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, getSearchKeyForSavedSearch} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,9 +81,9 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
+    const {currentSearchKey} = useSearchQueryContext();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
-        hash: queryJSON?.hash,
-        similarSearchHash: queryJSON?.similarSearchHash,
+        searchKey: currentSearchKey,
         sortBy: queryJSON?.sortBy,
         sortOrder: queryJSON?.sortOrder,
         type: queryJSON?.type,
@@ -161,23 +162,34 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                   }
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
+                  const savedSearchKey = getSearchKeyForSavedSearch(key);
 
-                  queryMap.set(key, {query: item.query ?? '', name: item.name});
+                  queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
                   const itemHash = Number(key);
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
-                      onShare: () => {
-                          handleShare(itemHash, item.query);
-                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(
+                      expensifyIcons,
+                      title,
+                      itemHash,
+                      item.query,
+                      translate,
+                      showDeleteModal,
+                      true,
+                      () => setSavedSearchToModifyKey(null),
+                      {
+                          onShare: () => {
+                              handleShare(itemHash, item.query);
+                              setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                          },
+                          isCopied: copiedHash === itemHash,
                       },
-                      isCopied: copiedHash === itemHash,
-                  });
+                  );
 
-                  if (Number(key) === queryJSON?.hash) {
-                      activeKey = key;
+                  if (savedSearchKey === currentSearchKey) {
+                      activeKey = savedSearchKey;
                   }
 
                   return {
-                      key,
+                      key: savedSearchKey,
                       icon: expensifyIcons.Bookmark,
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -232,7 +244,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
+                params: {q: searchData.query, name: searchData.name, rawQuery: undefined, searchKey: tabKey},
             },
         });
     };

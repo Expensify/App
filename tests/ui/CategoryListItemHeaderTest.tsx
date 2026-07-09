@@ -29,7 +29,7 @@ const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typ
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
     currentSearchHash: 12345,
-    currentSearchKey: undefined,
+    currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,

@@ -17,7 +17,7 @@ function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKe
         return;
     }
     search({
-        searchKey: currentSearchKey,
+        ...(currentSearchKey !== undefined && {searchKey: currentSearchKey}),
         shouldCalculateTotals,
         offset: 0,
         queryJSON: currentSearchQueryJSON,

@@ -38,12 +38,11 @@ const defaultSearchInfo: SearchResultsInfo = {
 };
 
 function SearchResultsProvider({children}: SearchResultsProviderProps) {
-    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, suggestedSearches} = useSearchQueryContext();
-    const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
+    const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
 
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
 
-    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
+    const shouldUseLiveData = isTodoSearch(currentSearchKey);
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.

@@ -54,7 +54,7 @@ function getSpendOverTimeState(
 
 function useSpendOverTimeData() {
     const config = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
-    const {searchQueryJSON: queryJSON, searchQuery: query, key: searchKey} = config;
+    const {searchQueryJSON: queryJSON, searchQuery: query} = config;
     const {groupBy, view} = queryJSON ?? {};
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -73,7 +73,6 @@ function useSpendOverTimeData() {
 
         search({
             queryJSON,
-            searchKey,
             offset: 0,
             isOffline,
             isLoading: false,

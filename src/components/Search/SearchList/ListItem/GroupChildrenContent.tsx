@@ -1,4 +1,4 @@
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -41,6 +41,7 @@ function GroupChildrenContent({
 }: GroupChildrenContentProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -106,7 +107,7 @@ function GroupChildrenContent({
         }
         search({
             queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
+            searchKey: currentSearchKey,
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
@@ -120,7 +121,7 @@ function GroupChildrenContent({
         }
         search({
             queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
+            searchKey: currentSearchKey,
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,

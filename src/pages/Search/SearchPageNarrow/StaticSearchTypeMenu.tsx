@@ -1,4 +1,5 @@
 import {useSession} from '@components/OnyxListItemProvider';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
@@ -6,7 +7,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
@@ -21,16 +21,9 @@ import React from 'react';
 
 import staticPolicyInfoSelector from './staticPolicyInfoSelector';
 
-function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, searches: Record<string, SearchTypeMenuItem>): string {
-    const reportsSearch = searches[CONST.SEARCH.SEARCH_KEYS.REPORTS];
-    const expensesSearch = searches[CONST.SEARCH.SEARCH_KEYS.EXPENSES];
-    const submitSearch = searches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
-    const candidates = [reportsSearch, expensesSearch, ...(hasGroupPolicy ? [submitSearch] : [])];
-    return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
-}
-
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
+    const {currentSearchKey} = useSearchQueryContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil']);
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
     const hasGroupPolicy = policyInfo?.hasGroupPolicy ?? false;
@@ -51,7 +44,8 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
         tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
     }
 
-    const activeKey = getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);
+    const fallbackActiveKey = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? expensesSearch.key : reportsSearch.key;
+    const activeKey = tabs.some((tab) => tab.key === currentSearchKey) ? currentSearchKey : fallbackActiveKey;
 
     return (
         <SearchTypeMenuNarrowContent

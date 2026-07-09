@@ -29,7 +29,7 @@ type UseSearchHighlightAndScroll = {
     reportActions: OnyxCollection<ReportActions>;
     previousReportActions: OnyxCollection<ReportActions>;
     queryJSON: SearchQueryJSON;
-    searchKey: SearchKey | undefined;
+    searchKey: SearchKey;
     offset: number;
     shouldCalculateTotals: boolean;
     shouldUseLiveData: boolean;

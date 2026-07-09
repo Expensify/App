@@ -1,7 +1,7 @@
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,7 +17,7 @@ import type {TodoCounts} from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
-import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,16 +41,16 @@ type SearchTypeMenuProps = {
 
 type SectionParams = {
     section: SearchTypeMenuSection;
-    hash: number | undefined;
+    activeSearchKey: SearchKey;
     activeItemIndex: number;
     sectionStartIndex: number;
     reportCounts: TodoCounts;
     areAllSectionsExpanded: boolean;
-    onItemPress: (query: string) => void;
+    onItemPress: (query: string, searchKey: SearchKey) => void;
     onCollapsed: (isCollapsed: boolean) => void;
 };
 
-function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
+function Section({section, activeSearchKey, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
@@ -100,7 +100,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
         >
             {isSavedSearchesSection && (
                 <SavedSearchList
-                    hash={hash}
+                    activeSearchKey={activeSearchKey}
                     areAllSectionsExpanded={areAllSectionsExpanded}
                 />
             )}
@@ -117,7 +117,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                             icon={icon}
                             badgeText={getItemBadgeText(item.key, reportCounts)}
                             focused={focused}
-                            onPress={() => onItemPress(item.searchQuery)}
+                            onPress={() => onItemPress(item.searchQuery, item.key)}
                         />
                     );
                 })}
@@ -126,13 +126,14 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
 }
 
 function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
+    const {sortBy, sortOrder, type} = queryJSON ?? {};
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
+    const {currentSearchKey} = useSearchQueryContext();
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({searchKey: currentSearchKey, sortBy, sortOrder, type});
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
@@ -151,10 +152,10 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string, searchKey: SearchKey) => {
         clearSelectedTransactions();
         setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey}));
     });
 
     useLayoutEffect(() => {
@@ -193,7 +194,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                         section={expenseReportsSection}
                         onItemPress={handleTypeMenuItemPress}
                         onCollapsed={updateCollapsedCount}
-                        hash={hash}
+                        activeSearchKey={currentSearchKey}
                         sectionStartIndex={0}
                         activeItemIndex={activeItemIndex}
                         reportCounts={reportCounts}
@@ -213,7 +214,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                             section={section}
                             onItemPress={handleTypeMenuItemPress}
                             onCollapsed={updateCollapsedCount}
-                            hash={hash}
+                            activeSearchKey={currentSearchKey}
                             sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
                             activeItemIndex={activeItemIndex}
                             reportCounts={reportCounts}

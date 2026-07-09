@@ -2,7 +2,7 @@ import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem, SuggestedSearchKey} from '@libs/SearchUIUtils';
 
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -184,9 +184,9 @@ type SearchCustomColumnIds =
 type SearchQueryContextValue = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
-    currentSearchKey: SearchKey | undefined;
+    currentSearchKey: SearchKey;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
-    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
+    suggestedSearches: Record<SuggestedSearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;
 };
 
@@ -382,7 +382,7 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: Readonly<SearchQueryJSON>;
-    searchKey: SearchKey | undefined;
+    searchKey: SearchKey;
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;

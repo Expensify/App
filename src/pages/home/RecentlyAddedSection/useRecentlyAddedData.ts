@@ -129,7 +129,6 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         }
         search({
             queryJSON,
-            searchKey: undefined,
             offset: 0,
             isOffline,
             isLoading: false,
