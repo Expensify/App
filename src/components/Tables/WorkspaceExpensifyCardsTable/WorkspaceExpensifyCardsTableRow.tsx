@@ -55,7 +55,6 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
     const formattedRemainingLimit = convertToShortDisplayString(item.remainingLimit, item.currency);
-    const remainingLimitLabel = translate('workspace.expensifyCard.remainingLimit');
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
     let frozenByText: string | undefined;
     if (formattedFrozenDate) {
@@ -208,7 +207,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         <TextWithTooltip
                             shouldShowTooltip
                             numberOfLines={1}
-                            text={shouldUseNarrowTableLayout ? `${formattedLimit} · ${remainingLimitLabel} ${formattedRemainingLimit}` : formattedLimit}
+                            text={formattedLimit}
                         />
                         {shouldUseNarrowTableLayout && (
                             <Text
