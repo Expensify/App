@@ -1,9 +1,12 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import Modal from '@components/Modal';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -21,6 +24,9 @@ type VictoryChartExpandModalProps = {
 
     /** Called when the modal should close */
     onClose: () => void;
+
+    /** Called once the modal's closing animation has finished */
+    onModalHide?: () => void;
 };
 
 /**
@@ -34,11 +40,12 @@ type VictoryChartExpandModalProps = {
  * Rendering fluidly instead would resize only the canvas and leave labels at design coordinates,
  * misplacing them (and potentially overlaying the header, blocking the back button).
  */
-function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalProps) {
+function VictoryChartExpandModal({isVisible, onClose, onModalHide}: VictoryChartExpandModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {translate} = useLocalize();
-    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
+    const {chartContentStyles, chartContainerStyles, type} = useVictoryChartContext();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
@@ -52,12 +59,18 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const hasDesignDimensions = !!designWidth && !!designHeight;
     const isMeasured = availableSize.width > 0 && availableSize.height > 0;
 
-    // Uniform scale that fits the chart's design box inside the available modal area (may be > 1).
-    const scale = hasDesignDimensions && isMeasured ? Math.min(availableSize.width / designWidth, availableSize.height / designHeight) : 1;
+    // Match the inline container: polar charts are clipped to hide the dead space at the
+    // bottom of their design canvas, so the expanded chart centers the same way inline does.
+    const isPolar = type === CHART_TYPE.POLAR;
+    const effectiveDesignHeight = designHeight !== undefined && isPolar ? designHeight * POLAR_CONTAINER_HEIGHT_RATIO : designHeight;
 
-    // Visual styles parsed from the chart HTML — applied the same way VictoryChartContainerFixed
-    // applies them inline, so the expanded chart keeps the same background and rounding.
-    const backgroundColor = chartContainerStyles.backgroundColor;
+    // Uniform scale that fits the chart's (clipped) design box inside the available modal area (may be > 1).
+    const scale = hasDesignDimensions && effectiveDesignHeight !== undefined && isMeasured ? Math.min(availableSize.width / designWidth, availableSize.height / effectiveDesignHeight) : 1;
+
+    // Visual styles parsed from the chart HTML — resolved and applied the same way
+    // VictoryChartContainerFixed does inline, so the expanded chart keeps the same
+    // (theme-aware) background and rounding.
+    const backgroundColor = resolveChartContainerBgColor(chartContainerStyles.backgroundColor, theme);
     const borderRadius = chartContainerStyles.borderRadius;
 
     return (
@@ -65,6 +78,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose}
+            onModalHide={onModalHide}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -77,8 +91,15 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                 onLayout={onContainerLayout}
             >
                 {isMeasured &&
-                    (hasDesignDimensions ? (
-                        <View style={[StyleUtils.getWidthAndHeightStyle(designWidth * scale, designHeight * scale), styles.overflowHidden]}>
+                    (hasDesignDimensions && effectiveDesignHeight !== undefined ? (
+                        // Clip the container (not the content) so polar dead space is hidden while the chart renders at full fidelity.
+                        <View
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(designWidth * scale, effectiveDesignHeight * scale),
+                                typeof borderRadius === 'number' && isPolar && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                styles.overflowHidden,
+                            ]}
+                        >
                             {/* Fixed design-size box so the fluid chart renders at design size, then scaled uniformly. */}
                             <View
                                 style={[

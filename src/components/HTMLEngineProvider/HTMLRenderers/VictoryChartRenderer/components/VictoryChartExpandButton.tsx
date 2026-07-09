@@ -25,10 +25,14 @@ function VictoryChartExpandButton({onPress, shouldShow}: VictoryChartExpandButto
 
     return (
         <Tooltip text={translate('common.expand')}>
-            {/* Overlays the chart's top-right corner without affecting the chart's layout. The button
-                intentionally captures pointer events in that corner, suppressing any underlying chart
-                gesture layer — acceptable since charts render nothing interactive there. */}
-            <View style={[styles.pAbsolute, styles.t0, styles.r0, styles.m3, !shouldShow && styles.opacity0]}>
+            {/* Overlays the chart's top-right corner without affecting the chart's layout. When visible, the
+                button intentionally captures pointer events in that corner, suppressing any underlying chart
+                gesture layer — acceptable since charts render nothing interactive there. While hidden it
+                ignores pointer events entirely so an invisible button can never swallow presses. */}
+            <View
+                style={[styles.pAbsolute, styles.t0, styles.r0, styles.m3, !shouldShow && styles.opacity0]}
+                pointerEvents={shouldShow ? 'auto' : 'none'}
+            >
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
