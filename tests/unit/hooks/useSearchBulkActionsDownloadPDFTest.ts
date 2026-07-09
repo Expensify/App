@@ -202,9 +202,9 @@ const unscopedExpensifyCardStatementQueryJSON: SearchQueryJSON = {
     policyID: undefined,
 };
 
-function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>): SearchResults {
+function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>, extraData: Record<string, unknown> = {}): SearchResults {
     return {
-        data: makeSearchData(groups),
+        data: {...makeSearchData(groups), ...extraData} as SearchResults['data'],
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -244,6 +244,12 @@ describe('useSearchBulkActions - Download as PDF', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report 1',
+        });
+        // The statement export is admin-only, so the current user must be an admin of the settlement's workspace for
+        // the action to appear.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+            id: 'policy1',
+            role: CONST.POLICY.ROLE.ADMIN,
         });
     });
 
@@ -474,7 +480,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data)).toBeDefined();
+        // The settlement is on policy1; the user must be an admin of it for the export to be offered.
+        expect(
+            getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data, (policyID) => policyID === 'policy1', false),
+        ).toBeDefined();
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -622,10 +631,15 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockSelectedTransactions = {
             firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
-        mockCurrentSearchResults = makeCurrentSearchResults({
-            // A cross-workspace settlement has no single policyID; it is still exportable as the whole settlement.
-            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
-        });
+        mockCurrentSearchResults = makeCurrentSearchResults(
+            {
+                // A cross-workspace settlement has no single policyID; it is still exportable as the whole settlement.
+                [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
+            },
+            // The export is admin-only, so a cross-workspace settlement is offered only when the user is an admin of
+            // every workspace in the snapshot.
+            {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}},
+        );
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 

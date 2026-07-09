@@ -6,10 +6,15 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import {makeSearchData, makeSelectedTransaction, makeSettlementGroup, makeSettlementSelection} from '../utils/ExpensifyCardStatementTestUtils';
 
+// The export is admin-only. Unless a test overrides it, treat the user as an admin of every workspace (both the
+// per-workspace check and the cross-workspace fallback) so the existing cases exercise the rest of the selection logic.
+const isAdminOfAnyPolicy = () => true;
+const IS_ADMIN_OF_ALL_WORKSPACES = true;
+
 // Mirrors how production turns a selection into download params (useSearchBulkActions.exportExpensifyCardStatementPDF):
 // the export is only offered for a single feed, otherwise the multi-feed alert is shown instead.
 function getStatementParamsForExport(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType) {
-    const selection = getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchData);
+    const selection = getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
     const feed = selection && !selection.hasMultipleFeeds ? selection.feeds.at(0) : undefined;
     return feed ? getExpensifyCardStatementParamsFromFeed(feed) : undefined;
 }
@@ -88,7 +93,7 @@ describe('ExpensifyCardStatementUtils', () => {
         // policyID:A,B scopes the search to a subset of workspaces, which can't be honored as a statement scope.
         const multiPolicyQueryJSON: SearchQueryJSON = {...scopedQueryJSON, policyID: ['policy1', 'policy2']};
 
-        expect(getExpensifyCardStatementSelection(multiPolicyQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        expect(getExpensifyCardStatementSelection(multiPolicyQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });
 
     it('returns undefined when no selected transaction maps to a settlement group', () => {
@@ -97,7 +102,7 @@ describe('ExpensifyCardStatementUtils', () => {
             txn123: makeSelectedTransaction(),
         };
 
-        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, {})).toBeUndefined();
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, {}, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });
 
     it('includes a settlement selected directly by its row (collapsed, no loaded transactions)', () => {
@@ -106,7 +111,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions: SelectedTransactions = {[groupKey]: makeSelectedTransaction({reportID: undefined})};
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 
@@ -117,7 +122,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
-        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });
 
     it('includes a settlement when all of its transactions are selected', () => {
@@ -126,7 +131,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 
@@ -135,7 +140,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
-        const selection = getExpensifyCardStatementSelection(scopedQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(scopedQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.hasMultipleFeeds).toBe(false);
         expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
 
@@ -163,7 +168,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: undefined})});
 
         // A settlement that spans workspaces has no single policyID, so it is exported unscoped (no policyID sent).
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.hasMultipleFeeds).toBe(false);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
 
@@ -184,7 +189,7 @@ describe('ExpensifyCardStatementUtils', () => {
         });
 
         // Both settlements are the same feed (US), so they group into one exportable feed.
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.hasMultipleFeeds).toBe(false);
         expect(selection?.feeds.at(0)?.entryIDs).toEqual([123, 456]);
     });
@@ -202,7 +207,7 @@ describe('ExpensifyCardStatementUtils', () => {
             [secondGroupKey]: makeSettlementGroup({entryID: 456, feedCountry: 'US', fundID: 2}),
         });
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.hasMultipleFeeds).toBe(true);
         expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
@@ -219,7 +224,7 @@ describe('ExpensifyCardStatementUtils', () => {
             ],
         };
 
-        expect(getExpensifyCardStatementSelection(narrowedQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        expect(getExpensifyCardStatementSelection(narrowedQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });
 
     it('hides the export when a non-all expense status narrows the rows', () => {
@@ -229,7 +234,7 @@ describe('ExpensifyCardStatementUtils', () => {
         // status:unreported narrows which expenses are shown, so the PDF would not match the on-screen rows.
         const narrowedStatusQueryJSON: SearchQueryJSON = {...expensifyCardStatementQueryJSON, status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED};
 
-        expect(getExpensifyCardStatementSelection(narrowedStatusQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        expect(getExpensifyCardStatementSelection(narrowedStatusQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });
 
     it('keeps the export when only statement-scope filters are active', () => {
@@ -244,7 +249,7 @@ describe('ExpensifyCardStatementUtils', () => {
             ],
         };
 
-        const selection = getExpensifyCardStatementSelection(scopeFilteredQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(scopeFilteredQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 
@@ -253,7 +258,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 5})});
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 
@@ -262,7 +267,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 0})});
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 
@@ -271,8 +276,47 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 9})});
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES);
         expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it("hides the export when the user is not an admin of the settlement's workspace", () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'})});
+        // The statement is admin-only. A cardholder can see the settlement in search, but must not be offered the
+        // export - the backend would reject it with a 401.
+        const isNotAdmin = () => false;
+
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isNotAdmin, false)).toBeUndefined();
+    });
+
+    it('includes the settlement when the user is an admin of its workspace', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'})});
+        const isAdminOfPolicy1 = (policyID: string) => policyID === 'policy1';
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfPolicy1, false);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('hides a cross-workspace settlement when the user is not an admin of all workspaces', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        // A cross-workspace settlement has no single policyID; without admin of every workspace it can't be exported.
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: undefined})});
+
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, false)).toBeUndefined();
+    });
+
+    it('includes a cross-workspace settlement when the user is an admin of all workspaces', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: undefined})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, true);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
     });
 });

@@ -42,7 +42,7 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -563,10 +563,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const expensifyCardStatementSelection = useMemo(
-        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
-        [queryJSON, searchResults?.data, selectedTransactions],
-    );
+    const expensifyCardStatementSelection = useMemo(() => {
+        const isAdminOfPolicy = (policyID: string) => isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], currentUserLogin);
+
+        // A cross-workspace settlement has no single workspace to check, so it may only be exported by an admin of
+        // every workspace in the current search snapshot. The snapshot keys policies as `policy_<policyID>`, distinct
+        // from the `policy_categories_`/`policy_tags_` collections, so match the exact policy prefix.
+        const snapshotPolicyIDs = Object.keys(searchResults?.data ?? {})
+            .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY) && !key.startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES) && !key.startsWith(ONYXKEYS.COLLECTION.POLICY_TAGS))
+            .map((key) => key.slice(ONYXKEYS.COLLECTION.POLICY.length));
+        const isAdminOfAllWorkspaces = snapshotPolicyIDs.length > 0 && snapshotPolicyIDs.every(isAdminOfPolicy);
+
+        return getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data, isAdminOfPolicy, isAdminOfAllWorkspaces);
+    }, [queryJSON, searchResults?.data, selectedTransactions, policies, currentUserLogin]);
 
     // PopoverMenu snapshots its items, so onSelected can run detached from the current render. Read the
     // latest selection from a ref so the request reflects what is selected now, not what was when the menu

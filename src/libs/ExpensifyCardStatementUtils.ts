@@ -109,6 +109,18 @@ function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataT
     return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
 }
 
+// Whether the current user may export the given settlement group as a statement. The statement is admin-only (Auth
+// gates GetExpensifyCardPayments on domain/workspace admin), so only offer it for a settlement the user administers:
+//   - single-workspace settlement (has a policyID): the user must be an admin of that workspace.
+//   - cross-workspace settlement (no single policyID): the whole settlement spans every workspace in view, so the
+//     user must be an admin of all of them - approximated by isAdminOfAllWorkspaces from the search snapshot.
+function canExportSettlementGroup(settlementGroup: SearchWithdrawalIDGroup, isAdminOfPolicy: (policyID: string) => boolean, isAdminOfAllWorkspaces: boolean): boolean {
+    if (settlementGroup.policyID) {
+        return isAdminOfPolicy(settlementGroup.policyID);
+    }
+    return isAdminOfAllWorkspaces;
+}
+
 function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
     if (!searchData) {
         return [];
@@ -153,6 +165,8 @@ function getExpensifyCardStatementSelection(
     queryJSON: SearchQueryJSON | undefined,
     selectedTransactions: SelectedTransactions | undefined,
     searchData: SearchResultDataType | undefined,
+    isAdminOfPolicy: (policyID: string) => boolean,
+    isAdminOfAllWorkspaces: boolean,
 ): ExpensifyCardStatementSelection | undefined {
     if (!isExpensifyCardStatementSearch(queryJSON) || !selectedTransactions) {
         return undefined;
@@ -170,7 +184,12 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
-    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData);
+    // The statement export is admin-only, so drop any selected settlement the user does not administer. This keeps the
+    // action from being offered for a settlement the backend would reject with a 401 (e.g. a cardholder who can see the
+    // settlement in search but is not an admin of its workspace).
+    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData).filter((settlementGroup) =>
+        canExportSettlementGroup(settlementGroup, isAdminOfPolicy, isAdminOfAllWorkspaces),
+    );
     if (selectedSettlementGroups.length === 0) {
         return undefined;
     }
