@@ -20,6 +20,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -259,6 +260,7 @@ describe('OptionsListUtils', () => {
                 {},
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
+                translateLocal,
                 mockedPersonalDetails,
                 true,
             ),
@@ -271,7 +273,9 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, mockedPersonalDetails, true));
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, mockedPersonalDetails, true),
+        );
     });
 
     test('[OptionsListUtils] createFilteredOptionList', async () => {

@@ -42,12 +42,8 @@ type AvatarPreviewProps = {
     setImageData: (imageData: ImageData) => void;
     /** The function to set the error */
     setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
-    /** The function to set the crop image data */
-    setCropImageData: (cropImageData: ImageData) => void;
-    /** Whether the avatar crop modal is open */
-    isAvatarCropModalOpen: boolean;
-    /** The function to set whether the avatar crop modal is open */
-    setIsAvatarCropModalOpen: (isAvatarCropModalOpen: boolean) => void;
+    /** Opens the avatar crop screen for the picked image */
+    openCropper: (image: FileObject) => void;
 };
 
 type ImageData = {
@@ -59,7 +55,7 @@ type ImageData = {
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
-function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropModalOpen, setIsAvatarCropModalOpen, imageData, setImageData, setError, setCropImageData}: AvatarPreviewProps) {
+function AvatarPreview({selected, avatarCaptureRef, setSelected, imageData, setImageData, setError, openCropper}: AvatarPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -100,14 +96,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
                 setError(null, {});
-                setCropImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                    file: null,
-                });
+                openCropper(image);
             })
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
@@ -162,7 +152,6 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                                 icon={icons.Upload}
                                 text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                isDisabled={isAvatarCropModalOpen}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
@@ -175,7 +164,6 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     return (
                         <ButtonWithDropdownMenu
                             shouldUseOptionIcon
-                            isDisabled={isAvatarCropModalOpen}
                             onPress={() => {}}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             customText={translate('common.edit')}
