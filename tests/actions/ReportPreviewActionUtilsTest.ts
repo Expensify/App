@@ -323,7 +323,7 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
-    it('canSubmit should return true for expense preview report with only pending transactions', async () => {
+    it('getReportPreviewAction should return VIEW for expense preview report with only pending transactions', async () => {
         const report: Report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -365,7 +365,7 @@ describe('getReportPreviewAction', () => {
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canSubmit should return false for expense preview report with smartscan failed violation', async () => {

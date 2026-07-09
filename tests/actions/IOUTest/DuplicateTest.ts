@@ -592,6 +592,7 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -603,6 +604,7 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1294,6 +1296,7 @@ describe('actions/Duplicate', () => {
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
                 callback: (value) => {
                     targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
                 },
@@ -1335,6 +1338,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1345,6 +1349,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1398,6 +1403,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1408,6 +1414,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1453,6 +1460,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1462,6 +1470,7 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1501,6 +1510,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1510,6 +1520,7 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1549,6 +1560,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1559,6 +1571,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1600,6 +1613,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1610,6 +1624,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1661,6 +1676,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1671,6 +1687,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1707,6 +1724,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1747,6 +1765,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1790,6 +1809,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1839,6 +1859,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1848,6 +1869,7 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
                 },
@@ -1903,6 +1925,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -1968,6 +1991,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -2017,6 +2041,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -2035,6 +2060,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2076,6 +2102,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
             });
@@ -2087,6 +2114,7 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2403,6 +2431,7 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
                 },
@@ -2805,6 +2834,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetPolicyTags: {},
                 targetReport: policyExpenseChat,
+                policyTagList: {},
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
