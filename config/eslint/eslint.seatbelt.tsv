@@ -192,7 +192,6 @@
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/refs"	2
 "../../src/components/Form/InputWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Form/InputWrapper.tsx"	"react-hooks/refs"	1
-"../../src/components/FullscreenLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/GPSInProgressModal/index.native.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/GPSTripStateChecker/index.native.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/GrowlNotification/GrowlNotificationContent.tsx"	"no-restricted-imports"	1
@@ -237,7 +236,6 @@
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/LocationPermissionModal/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/LocationPermissionModal/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -360,7 +358,6 @@
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
 "../../src/components/Rule/RuleBooleanBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Rule/TextBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/ScreenShareRequestModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ScreenWrapper/ScreenWrapperContainer.tsx"	"react-hooks/refs"	2
 "../../src/components/Search/FilterComponents/AdvancedFilters/AmountFilterContent.tsx"	"no-restricted-imports"	1
