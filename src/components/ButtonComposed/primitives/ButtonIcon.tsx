@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 
 import useTheme from '@hooks/useTheme';
 
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
