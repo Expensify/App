@@ -17,7 +17,6 @@ import {createKeys, deleteKeys, getAllKeys, InputEncoding, signWithOptions} from
 
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 
-import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} from './operations';
 import useServerCredentials from './shared/useServerCredentials';
 
 /**
@@ -187,12 +186,9 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const hasLocalCredentials = async () => !!(await getLocalCredentialID());
 
     return {
-        deviceVerificationType,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
-        doesDeviceSupportAuthenticationMethod,
-        deviceCheckFailureReason,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

@@ -107,7 +107,6 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
 export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
 
 export default {
-    // Allowed methods are hardcoded here; keep in sync with allowedAuthenticationMethods in useNavigateTo3DSAuthorizationChallenge.
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: authorizeTransaction,
 

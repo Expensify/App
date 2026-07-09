@@ -23,7 +23,6 @@ import CONST from '@src/CONST';
 
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 
-import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} from './operations';
 import useServerCredentials from './shared/useServerCredentials';
 
 function usePasskeys(): UseBiometricsReturn {
@@ -179,12 +178,9 @@ function usePasskeys(): UseBiometricsReturn {
     };
 
     return {
-        deviceVerificationType,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
-        doesDeviceSupportAuthenticationMethod,
-        deviceCheckFailureReason,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

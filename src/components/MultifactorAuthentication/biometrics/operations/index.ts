@@ -4,10 +4,10 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 
 /**
- * Platform-resolved biometric operations shared by the MFA machine actors and the React biometrics
- * hooks. These functions read no Onyx and no React state, so a machine actor can import them directly
- * instead of reaching through a hook. Web resolves to this file and native resolves to the
- * `index.native.ts` sibling. Later slices add the registration and authorization operations here.
+ * Platform-resolved biometric operations for the device check. These functions read no Onyx and no
+ * React state, so the MFA machine actors and other non-React callers can import them directly. Web
+ * resolves to this file and native resolves to the `index.native.ts` sibling. Later slices add the
+ * registration and authorization operations here.
  */
 
 /** The authentication method this platform verifies with. Web verifies with passkeys. */

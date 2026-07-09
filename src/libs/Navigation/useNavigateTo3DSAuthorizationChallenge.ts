@@ -1,4 +1,4 @@
-import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
+import {deviceVerificationType, doesDeviceSupportAuthenticationMethod} from '@components/MultifactorAuthentication/biometrics/operations';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 
 import useOnyx from '@hooks/useOnyx';
@@ -74,8 +74,6 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return isMFAFlowScreen(focusedScreen);
     });
 
-    const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
-
     const transactionPending3DSReview = useMemo(() => {
         if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
             return undefined;
@@ -125,9 +123,8 @@ function useNavigateTo3DSAuthorizationChallenge() {
         let cancel = false;
 
         async function maybeNavigateTo3DSChallenge() {
-            const doesDeviceSupportAnAllowedAuthenticationMethod =
-                (await doesDeviceSupportAuthenticationMethod()) &&
-                (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
+            const allowedAuthenticationMethods: ReadonlyArray<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>> = AuthorizeTransaction.allowedAuthenticationMethods;
+            const doesDeviceSupportAnAllowedAuthenticationMethod = (await doesDeviceSupportAuthenticationMethod()) && allowedAuthenticationMethods.includes(deviceVerificationType);
 
             // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
             if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
@@ -179,7 +176,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, deviceVerificationType, isCurrentlyActingOn3DSChallenge, doesDeviceSupportAuthenticationMethod]);
+    }, [transactionPending3DSReview?.transactionID, isCurrentlyActingOn3DSChallenge]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;
