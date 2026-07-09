@@ -519,6 +519,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Beperkingen',
         tagGLCode: 'GL-code labelen',
         off: 'Uit',
+        noResultsFoundSubtitle: 'Geen resultaten. Probeer je filters of zoekopdracht aan te passen',
         unableToDisplayChart: 'Grafiek kan niet worden weergegeven',
         webGLNotSupported: 'Je browser ondersteunt WebGL niet. Schakel het in of gebruik een andere browser.',
         apiKey: 'API-sleutel',

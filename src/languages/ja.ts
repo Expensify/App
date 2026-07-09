@@ -519,6 +519,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '制限',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
+        noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
         apiKey: 'API キー',

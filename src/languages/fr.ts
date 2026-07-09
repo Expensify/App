@@ -520,6 +520,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrictions',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
         apiKey: 'Clé API',

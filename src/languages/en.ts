@@ -234,6 +234,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
+        noResultsFoundSubtitle: 'No results. Please try adjusting your filters or search query',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
         suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
