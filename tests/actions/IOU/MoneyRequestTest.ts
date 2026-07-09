@@ -8,7 +8,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 
@@ -231,6 +231,36 @@ describe('MoneyRequest', () => {
                     transactionViolations: {},
                 }),
             );
+        });
+
+        it('should forward the caller-supplied policyTagList through policyParams to requestMoney', () => {
+            const policyTagList = {Tag: {name: 'Tag', tags: {}, orderWeight: 0, required: false}} as PolicyTagLists;
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SEND,
+                allTransactionDrafts: {},
+                policyParams: {policy: undefined, policyTagList},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    policyParams: expect.objectContaining({policyTagList}),
+                }),
+            );
+        });
+
+        it('should forward the caller-supplied policyTagList through to trackExpense', () => {
+            const policyTagList = {Tag: {name: 'Tag', tags: {}, orderWeight: 0, required: false}} as PolicyTagLists;
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+                policyParams: {policy: undefined, policyTagList},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({policyTagList}));
         });
 
         it('should not pass shouldDeferAPIWrite to the action (V2: deferral is channel-driven)', () => {

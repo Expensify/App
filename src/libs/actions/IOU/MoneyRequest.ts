@@ -45,6 +45,7 @@ import type {
     LastSelectedDistanceRates,
     PersonalDetailsList,
     Policy,
+    PolicyTagLists,
     QuickAction,
     RecentWaypoint,
     Report,
@@ -84,7 +85,7 @@ type CreateTransactionParams = {
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
-    policyParams?: {policy: OnyxEntry<Policy>};
+    policyParams?: {policy: OnyxEntry<Policy>; policyTagList?: OnyxEntry<PolicyTagLists>};
     billable?: boolean;
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
