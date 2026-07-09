@@ -536,10 +536,10 @@ function Search({
 
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
-                    queryJSON: {...item.transactionsQueryJSON, searchKey: currentSearchKey},
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
+                    queryJSON: item.transactionsQueryJSON,
                 });
                 return;
             }

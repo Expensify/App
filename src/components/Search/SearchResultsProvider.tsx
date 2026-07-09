@@ -42,6 +42,7 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
 
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
 
+    // JACK_TODO: we should not use live data when filters are applied
     const shouldUseLiveData = isTodoSearch(currentSearchKey);
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined);
 
