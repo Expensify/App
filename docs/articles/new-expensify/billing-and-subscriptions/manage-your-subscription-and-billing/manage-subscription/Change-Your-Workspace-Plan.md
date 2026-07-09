@@ -1,9 +1,9 @@
 ---
 title: Change Your Workspace Plan
-description: Switch a Workspace between the Collect and Control plans from the Workspace's Plan type setting.
+description: Switch a Workspace's Plan type between Collect and Control. 
 keywords: [New Expensify, change workspace plan, switch plan, Collect plan, Control plan, plan type, upgrade, downgrade, upgrade to Control, downgrade to Collect, workspace admin]
-internalScope: Audience is workspace owners. Covers how to switch a Workspace between the Collect and Control plans. Does not cover the differences between the plans or how to change a subscription.
-retrievalIntent: How to switch a workspace between Collect and Control.
+internalScope: Audience is Workspace owners. Covers how to switch a Workspace between the Collect and Control plans. Does not cover the differences between plans or how to change a subscription.
+retrievalIntent: How to switch a Workspace plan between Collect and Control.
 contentType: task
 platform: new
 order: 4
@@ -11,9 +11,7 @@ order: 4
 
 # Change Your Workspace Plan
 
-Every Workspace uses either the Collect or Control plan. Your Workspace plan determines which features are available. If your needs change, you can switch plans from the Workspace's **Plan type** setting.
-
-Changing a Workspace plan is different from changing your subscription. This article explains how to switch a Workspace between the Collect and Control plans. If you want to manage your subscription instead, see How to Manage Your Plan or Subscription.
+Every Workspace uses either the Collect or Control plan. Your Workspace plan determines which features are available. If your needs change, you can switch the Workspace's **Plan type**. 
 
 To learn which plan is right for your organization, see [Compare Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
@@ -21,9 +19,9 @@ To learn which plan is right for your organization, see [Compare Collect and Con
 
 ## Who can change the Workspace plan
 
-Only the Workspace owner can change the Workspace plan. Changing the plan may change the monthly Expensify bill.
+Only the Workspace owner can change a workspace's plan. 
 
-To learn more, see How Your Plan and Subscription Determine Your Bill.
+If you have an Annual subcription, changes to your plan may be restricted. To learn more, see [When You Can Change Your Plan](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work#when-you-can-change-your-plan).
 
 ---
 
@@ -35,14 +33,12 @@ To learn more, see How Your Plan and Subscription Determine Your Bill.
 4. Choose **Collect** or **Control**.
 5. Confirm your selection. 
 
-**Note:** If your workspace is on the Control plan with an Annual subscription, you can't downgrade to Collect until your subscription term ends. To learn more, see When You Can Change Your Plan. 
-
 ---
 
 ## Related articles
 
  - [View Your Plan and Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/View-Your-Plan-and-Subscription)
- - [Understand Expensify pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing)
+ - [Understand Expensify pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
    
 ---
 
