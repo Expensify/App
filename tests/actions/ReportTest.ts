@@ -966,11 +966,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
+        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (snapshot) => {
-                reportActionsReactions = snapshot ?? {};
+            callback: (val, key) => {
+                reportActionsReactions[key] = val ?? {};
             },
         });
         let reportAction: OnyxTypes.ReportAction | undefined;
@@ -1104,11 +1104,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
+        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (snapshot) => {
-                reportActionsReactions = snapshot ?? {};
+            callback: (val, key) => {
+                reportActionsReactions[key] = val ?? {};
             },
         });
 
@@ -2652,6 +2652,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
                 callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -2676,6 +2677,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
                 callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
@@ -2746,6 +2748,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
                 callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
