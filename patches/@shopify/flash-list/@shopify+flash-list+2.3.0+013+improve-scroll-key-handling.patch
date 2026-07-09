@@ -16,7 +16,7 @@ index fa786bf..586014c 100644
      /**
       * Used to extract a unique key for a given item at the specified index.
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-index 3b69234..41bfb84 100644
+index 3b69234..a9474c1 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
 @@ -294,11 +294,26 @@ export class RecyclerViewManager {
@@ -48,11 +48,62 @@ index 3b69234..41bfb84 100644
              this.engagedIndicesTracker.scrollOffset = initialItemOffset;
          }
          else {
+@@ -317,8 +332,20 @@ export class RecyclerViewManager {
+             this.applyInitialScrollAdjustment();
+             const visibleIndices = this.computeVisibleIndices();
+             // console.log("---------> visibleIndices", visibleIndices);
+-            this.hasRenderedProgressively = visibleIndices.every((index) => layoutManager.getLayout(index).isHeightMeasured &&
+-                layoutManager.getLayout(index).isWidthMeasured);
++            const isFullyMeasured = (index) => layoutManager.getLayout(index).isHeightMeasured &&
++                layoutManager.getLayout(index).isWidthMeasured;
++            // With an explicit initialScrollIndex, also wait for the drawDistance buffer to be measured before
++            // completing the first layout, so estimate-driven layout shifts converge before anything is on screen.
++            let targetIndices = visibleIndices;
++            if (this.propsRef.initialScrollIndex !== undefined && visibleIndices.length > 0 && visibleIndices.every(isFullyMeasured)) {
++                const windowSize = this.propsRef.horizontal ? this.getWindowSize().width : this.getWindowSize().height;
++                const viewportStart = this.engagedIndicesTracker.scrollOffset;
++                // Cover the worst-case one-sided buffer the engaged tracker can mount after
++                // first layout (totalBuffer * largeMultiplier in the scroll direction).
++                const bufferDistance = this.engagedIndicesTracker.drawDistance * 2 * this.engagedIndicesTracker.largeMultiplier;
++                targetIndices = layoutManager.getVisibleLayouts(Math.max(0, viewportStart - bufferDistance), viewportStart + windowSize + bufferDistance);
++            }
++            this.hasRenderedProgressively = targetIndices.every(isFullyMeasured);
+             if (this.hasRenderedProgressively) {
+                 this.isFirstLayoutComplete = true;
+             }
+@@ -327,9 +354,13 @@ export class RecyclerViewManager {
+             // If everything is measured then render stack will be in sync. The buffer items will get rendered in the next update
+             // triggered by the useOnLoad hook.
+             !this.hasRenderedProgressively &&
+-                this.updateRenderStack(
+-                // pick first n indices from visible ones based on batch size
+-                visibleIndices.slice(0, Math.min(visibleIndices.length, this.getRenderStack().size + batchSize)));
++                this.updateRenderStack(targetIndices === visibleIndices
++                    ? // pick first n indices from visible ones based on batch size
++                        visibleIndices.slice(0, Math.min(visibleIndices.length, this.getRenderStack().size + batchSize))
++                    : // buffer phase: visible items are already measured, mount the whole
++                        // buffer window at once. Same single-commit cost the engaged tracker
++                        // would pay post-paint, just moved to where nothing is visible yet.
++                        targetIndices);
+         }
+     }
+     getItemType(index) {
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 18e59ce..17c8063 100644
+index 18e59ce..40bdddb 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-@@ -566,10 +566,45 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -25,6 +25,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+     const isUnmounted = useUnmountFlag();
+     const [_, setRenderId] = useState(0);
+     const pauseOffsetCorrection = useRef(false);
++    // Latest offset computed by applyInitialScrollIndex. The deferred (setTimeout) re-scroll reads this at
++    // fire-time instead of the value it closed over, so a stale timeout scheduled by an earlier commit can't
++    // snap back to an outdated offset after a newer commit.
++    const latestInitialScrollOffsetRef = useRef(0);
+     // True while a `scrollToIndex` / `scrollToOffset` smooth scroll is in
+     // flight. Cleared exactly once on `isMomentumEnd` via
+     // `notifyProgrammaticScrollSettled`.
+@@ -566,18 +570,55 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
              }, 500);
              pauseOffsetCorrection.current = true;
              const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
@@ -99,6 +150,17 @@ index 18e59ce..17c8063 100644
 +                    }
 +                }
 +            }
++            latestInitialScrollOffsetRef.current = offset;
              handlerMethods.scrollToOffset({
                  offset,
                  animated: false,
+                 skipFirstItemOffset: false,
+             });
++
+             setTimeout(() => {
+                 handlerMethods.scrollToOffset({
+-                    offset,
++                    offset: latestInitialScrollOffsetRef.current,
+                     animated: false,
+                     skipFirstItemOffset: false,
+                 });
