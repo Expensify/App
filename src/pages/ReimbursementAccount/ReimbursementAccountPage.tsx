@@ -496,6 +496,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     if (
         (!!policyIDParam || !!bankAccountIDParam) &&
+        !isChangingBusinessBankAccount &&
         (!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) &&
         shouldShowOfflineLoader &&
         (shouldReopenOnfido || !requestorStepRef?.current)

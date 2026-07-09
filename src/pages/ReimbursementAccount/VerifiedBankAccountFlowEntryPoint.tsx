@@ -135,7 +135,7 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         prepareNewBankAccountSetup(currency);
-        navigateToBankAccountRoute({});
+        navigateToBankAccountRoute({policyID});
     };
 
     const removeExistingBankAccountDetails = useCallback(() => {

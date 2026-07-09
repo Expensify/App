@@ -86,7 +86,7 @@ function ConnectedVerifiedBankAccount({
         }
 
         prepareNewBankAccountSetup(currency);
-        navigateToBankAccountRoute({});
+        navigateToBankAccountRoute({policyID});
     };
 
     useResetBankAccountModal({

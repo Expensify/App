@@ -52,19 +52,17 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
+        // When changing the bank account we prepare a fresh setup (clearing the current account without disconnecting it).
+        // We keep the policyID in the route so the newly connected account still links to the workspace's Workflows > Payments.
+        // We must not set the loading flag here: during the change flow the page skips fetchData, so nothing would reset it.
         if (isChangingBankAccount) {
             prepareNewBankAccountSetup(policyCurrency);
+        } else {
+            setReimbursementAccountLoading(true);
         }
 
-        setReimbursementAccountLoading(true);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(
-                appendParam(
-                    ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(isChangingBankAccount ? {policyID: undefined} : {policyID, backTo}),
-                    'stepToOpen',
-                    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
-                ),
-            );
+            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
         });
     };
 
