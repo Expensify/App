@@ -1,10 +1,7 @@
-import isEmpty from 'lodash/isEmpty';
-import keyBy from 'lodash/keyBy';
-import reject from 'lodash/reject';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -14,7 +11,6 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
@@ -30,6 +26,7 @@ import {
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -37,6 +34,14 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
+import reject from 'lodash/reject';
+import Onyx from 'react-native-onyx';
+
 import type ViolationFixParams from './types';
 
 let allBetas: OnyxEntry<Beta[]>;
@@ -205,13 +210,12 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
-            const tags = policyTagList[policyTagKeys[i]].tags;
-            const listHasEnabledTags = hasEnabledTags(tags);
-            if (!listHasEnabledTags) {
+            if (!selectedTag) {
                 continue;
             }
-            const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
-            if (!isTagInPolicy && selectedTag) {
+            const tags = policyTagList[policyTagKeys[i]].tags;
+            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -221,6 +225,10 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                     },
                 });
                 hasInvalidTag = true;
+                // The backend emits a single tagOutOfPolicy for the whole multi-level tag (labeled with the first
+                // out-of-policy level), so stop here to match it - flagging every level would flash extra errors on
+                // the other level rows that vanish once the backend response syncs.
+                break;
             }
         }
         if (!hasInvalidTag) {
@@ -357,7 +365,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
                 return !taxCode;
             }
             const matchingTaxRate = policyTaxRates[taxCode];
-            if (!matchingTaxRate) {
+            if (!matchingTaxRate || matchingTaxRate.isDisabled) {
                 return false;
             }
             // If taxValue is provided, check that it matches the policy tax rate. If taxValue is not provided, just check that the tax code exists in the policy.
@@ -539,8 +547,9 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
-            // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
+            // Add 'missingCategory' violation when categories are required and none is set. isCategoryMissing also
+            // covers the 'Uncategorized'/'none' sentinel, mirroring the categoryOutOfPolicy check above.
+            if (!hasMissingCategoryViolation && !!policy.requiresCategory && isCategoryMissing(categoryKey) && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
@@ -592,27 +601,40 @@ const ViolationsUtils = {
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         const isDistanceRequestForCustomUnit = TransactionUtils.isDistanceRequest(updatedTransaction);
         if (customUnitRateID && customUnitRateID.length > 0 && (!isSelfDM || isDistanceRequestForCustomUnit)) {
-            const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
-            let policyForCustomUnitRate = policy;
-
-            if (!isPerDiem && isDistanceRequestForCustomUnit && !getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
-                policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
-            }
-
-            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-            if (customRate && customRate.enabled !== false) {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
-                newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
-            } else if (isSelfDM && isDistanceRequestForCustomUnit) {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+            // A P2P distance rate (FAKE_P2P_ID) isn't tied to any workspace, so it can never be "out of policy"
+            // when the expense is genuinely P2P (a person chat or self DM). Clear any stale violation instead of
+            // flagging it. This prevents a spurious "Rate not valid for this workspace" from appearing optimistically
+            // when a P2P expense is created while a workspace policy is still in context (e.g. the new manual expense
+            // flow switching the recipient from the default workspace to a person before the API distance response
+            // arrives). We must NOT clear it when the transaction is still bound to a policy expense chat, because a
+            // track expense moved onto a workspace intentionally keeps FAKE_P2P_ID until the user picks a workspace
+            // rate, and the violation is what prompts them to do so — so that case falls through to the rate check below.
+            const isTransactionOnPolicyExpenseChat = updatedTransaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction) && !isTransactionOnPolicyExpenseChat) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
-                newTransactionViolations.push({
-                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
-                    type: CONST.VIOLATION_TYPES.VIOLATION,
-                    showInReview: true,
-                });
+                const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
+                let policyForCustomUnitRate = policy;
+
+                if (!isPerDiem && isDistanceRequestForCustomUnit && !getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
+                    policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
+                }
+
+                const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
+                if (customRate && customRate.enabled !== false) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                    newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
+                } else if (isSelfDM && isDistanceRequestForCustomUnit) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                } else {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                    newTransactionViolations.push({
+                        name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    });
+                }
             }
         }
 
@@ -632,7 +654,11 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+
+        // A disabled tax rate keeps its key (just `isDisabled: true`) but isn't valid, so it stays out of policy. A
+        // key-only check would treat it as in-policy and drop the violation on any unrelated recompute (e.g. tag delete).
+        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
+        const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -706,19 +732,28 @@ const ViolationsUtils = {
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
+        const ownerAccountID = iouReport?.ownerAccountID;
+        // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
+        // When ownerAccountID is undefined (offline split where iouReport is unavailable),
+        // fallback to using login/email to identify the owner (similar to AttendeeUtils approach).
         let attendeesMinusOwnerCount: number;
-        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
-        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
-        if (ownerLogin) {
-            // Filter by login or email to identify owner
-            attendeesMinusOwnerCount = attendees.filter((a) => {
-                const attendeeIdentifier = a?.email;
-                return attendeeIdentifier !== ownerLogin;
-            }).length;
+        if (ownerAccountID !== undefined) {
+            // Normal case: filter by accountID
+            attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
         } else {
-            // Can't identify owner at all - if there are attendees, assume owner is one of them
-            // This means we need at least 2 attendees to have a non-owner attendee
-            attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
+            // Offline scenario: ownerAccountID unavailable, use login/email as fallback
+            const currentUserEmail = getCurrentUserEmail();
+            if (currentUserEmail) {
+                // Filter by login or email to identify owner
+                attendeesMinusOwnerCount = attendees.filter((a) => {
+                    const attendeeIdentifier = a?.login ?? a?.email;
+                    return attendeeIdentifier !== currentUserEmail;
+                }).length;
+            } else {
+                // Can't identify owner at all - if there are attendees, assume owner is one of them
+                // This means we need at least 2 attendees to have a non-owner attendee
+                attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
+            }
         }
 
         const shouldShowMissingAttendees =
@@ -847,7 +882,7 @@ const ViolationsUtils = {
 
         // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
         // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
-        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxRateValid : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});

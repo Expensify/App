@@ -1,7 +1,5 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
@@ -10,6 +8,12 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -564,19 +568,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 /**
- * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
- * This is useful when you need to look up personal details by accountID multiple times
- * to avoid O(n) .find() calls in loops.
- */
-function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
-    const map: Record<number, PersonalDetails> = {};
-    for (const detail of details) {
-        map[detail.accountID] = detail;
-    }
-    return map;
-}
-
-/**
  * Checks whether any personal details are missing
  */
 function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -588,6 +579,21 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0
     );
+}
+
+/**
+ * Checks whether the personal details required for Expensify Card flows (ship + reveal)
+ * are missing. Stricter than {@link arePersonalDetailsMissing}: also requires individual
+ * address sub-fields (street, city, zip, country) that the backend asserts on those
+ * commands. Without this, a user whose `addresses[0]` exists but has empty fields would
+ * skip the missing-details prompt and hit a backend error on submit.
+ */
+function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (arePersonalDetailsMissing(privatePersonalDetails)) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
 }
 
 /**
@@ -624,7 +630,7 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,
 };

@@ -1,4 +1,5 @@
 import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
+
 import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 
 function hasAnyLoadedChartTypeface(typefaces: ChartDefaultTypeface): boolean {

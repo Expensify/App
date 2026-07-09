@@ -1,14 +1,21 @@
-import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSubmitToEmail} from '@libs/PolicyUtils';
+
 import ReportSubmitToContent from '@pages/ReportSubmitToContent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {RefObject} from 'react';
+
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
@@ -84,9 +91,20 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {
+        selector: willAlertModalBecomeVisibleSelector,
+    });
+    // Mirror willAlertModalBecomeVisible in a ref so the openReportSubmitToPopover callback can read the latest value
+    // at press time without taking it as a dependency. Keeping it out of the deps keeps the callback (and, for the
+    // shared Search host, the context value built from it) referentially stable across MODAL changes so opening an
+    // unrelated popover/modal does not re-render every Search row.
+    const willAlertModalBecomeVisibleRef = useRef(willAlertModalBecomeVisible);
+    useEffect(() => {
+        willAlertModalBecomeVisibleRef.current = willAlertModalBecomeVisible;
+    }, [willAlertModalBecomeVisible]);
 
-    const submitToContentKey = useMemo(() => `${reportID}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
+    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin)}`;
 
     const clearDismissGuard = useCallback(() => {
         setIsDismissGuardActive(false);
@@ -186,14 +204,14 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 return;
             }
 
-            if (willAlertModalBecomeVisible) {
+            if (willAlertModalBecomeVisibleRef.current) {
                 pendingSearchSubmitOpenOptionsRef.current = options;
                 return;
             }
 
             showReportSubmitToPopover(options);
         },
-        [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover],
+        [reportID, showReportSubmitToPopover],
     );
 
     const popoverContainerStyle = useMemo(() => (isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}), [isSmallScreenWidth, styles.w100]);

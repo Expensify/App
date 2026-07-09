@@ -1,19 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import LockAccountPageBase from '@pages/settings/Security/LockAccount/LockAccountPageBase';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainNameSelector} from '@src/selectors/Domain';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DomainReportSuspiciousActivityPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT>;
 

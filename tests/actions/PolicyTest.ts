@@ -1,10 +1,9 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -24,13 +23,20 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -5540,9 +5546,75 @@ describe('actions/Policy', () => {
 
             // Then the payer should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.achAccount?.reimburser).toBe('old@test.com');
             expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
             expect(updatedPolicy?.errorFields?.reimburser).toBeTruthy();
+        });
+
+        it('should update workspace payer in manual reimbursement mode', async () => {
+            // Given a workspace in manual reimbursement mode with no designated payer
+            const policy = {
+                ...createRandomPolicy(0),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: '',
+                achAccount: {reimburser: ''},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting a designated payer in manual mode
+            Policy.setWorkspacePayer(policy.id, 'payer@manual.com', policy.reimburser);
+
+            // Then optimistic data should set the reimburser
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
+            expect(updatedPolicy?.pendingFields?.reimburser).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared and reimburser preserved
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
+        });
+    });
+
+    describe('isPolicyPayer', () => {
+        it('returns true only for workspace owner when manual reimbursement has no achAccount reimburser', () => {
+            const policy = {
+                ...createRandomPolicy(0),
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'owner@test.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            expect(isPolicyPayer(policy, 'owner@test.com')).toBe(true);
+            expect(isPolicyPayer(policy, 'other-admin@test.com')).toBe(false);
+        });
+
+        it('returns true for payments admin designated as payer via policy.reimburser without achAccount', () => {
+            const paymentsAdminEmail = 'payments-admin@test.com';
+            const policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                owner: 'owner@test.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: paymentsAdminEmail,
+                employeeList: {
+                    [paymentsAdminEmail]: {
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    },
+                },
+            };
+
+            expect(isPolicyPayer(policy, paymentsAdminEmail)).toBe(true);
+            expect(isPolicyPayer(policy, 'owner@test.com')).toBe(false);
         });
     });
 
@@ -5853,7 +5925,12 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for a new member
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
+            const result = Policy.createPolicyExpenseChats({
+                policyID,
+                invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
+                currentUser: {accountID: ESH_ACCOUNT_ID},
+                reportActionsList: {},
+            });
 
             // Then optimistic data should be generated
             expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
@@ -5911,7 +5988,12 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for the existing member
-            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
+            const result = Policy.createPolicyExpenseChats({
+                policyID,
+                invitedEmailsToAccountIDs: {[existingMemberEmail]: existingMemberAccountID},
+                currentUser: {accountID: ESH_ACCOUNT_ID},
+                reportActionsList: {},
+            });
 
             // Then the existing report should be reused (no new reportActionID)
             const reportCreationEntry = result.reportCreationData[existingMemberEmail];
@@ -5930,7 +6012,12 @@ describe('actions/Policy', () => {
             const newMemberAccountID = 200;
             const customAccountID = 999;
 
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: customAccountID});
+            const result = Policy.createPolicyExpenseChats({
+                policyID,
+                invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
+                currentUser: {accountID: customAccountID},
+                reportActionsList: {},
+            });
 
             // Find the optimistic report data
             const reportCreationEntry = result.reportCreationData[newMemberEmail];
@@ -5962,14 +6049,20 @@ describe('actions/Policy', () => {
             const participantPath = ['participants', String(newMemberAccountID)];
 
             // When the explicit map says the member exists, the success-data participant is kept ({}), beating the empty fallback
-            const existsResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
-                [newMemberAccountID]: true,
+            const existsResult = Policy.createPolicyExpenseChats({
+                policyID,
+                invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
+                currentUser: {accountID: ESH_ACCOUNT_ID},
+                doesPersonalDetailExistByAccountID: {[newMemberAccountID]: true},
             });
             expect(getSuccessValue(existsResult)).toHaveProperty(participantPath, {});
 
             // When the explicit map says the member does NOT exist, the success-data participant is removed (null)
-            const missingResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
-                [newMemberAccountID]: false,
+            const missingResult = Policy.createPolicyExpenseChats({
+                policyID,
+                invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
+                currentUser: {accountID: ESH_ACCOUNT_ID},
+                doesPersonalDetailExistByAccountID: {[newMemberAccountID]: false},
             });
             expect(getSuccessValue(missingResult)).toHaveProperty(participantPath, null);
         });
@@ -7167,8 +7260,19 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[0]['localeTranslate'];
+            Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction: undefined,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                iouReportOwnerEmail,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: mockTranslate,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+            });
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -7198,8 +7302,19 @@ describe('actions/Policy', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            const result = Policy.createWorkspaceFromIOUPayment(nonIOUReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, 'owner@example.com', CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[0]['localeTranslate'];
+            const result = Policy.createWorkspaceFromIOUPayment({
+                iouReport: nonIOUReport,
+                reportPreviewAction: undefined,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                iouReportOwnerEmail: 'owner@example.com',
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: mockTranslate,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -7245,23 +7360,29 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            const result = Policy.createWorkspaceFromIOUPayment(
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[0]['localeTranslate'];
+            const result = Policy.createWorkspaceFromIOUPayment({
                 iouReport,
-                undefined,
-                ESH_ACCOUNT_ID,
-                ESH_EMAIL,
+                reportPreviewAction: undefined,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 iouReportOwnerEmail,
-                CONST.CURRENCY.USD,
-                undefined,
-                mockTranslate,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: mockTranslate,
                 reportActionsList,
-            );
+                doesEmployeePersonalDetailExist: true,
+            });
 
             // Verify the function returns a valid result (not undefined)
             expect(result).toBeDefined();
             expect(result?.policyID).toBeDefined();
             expect(result?.workspaceChatReportID).toBeDefined();
+
+            // The explicit doesEmployeePersonalDetailExist=true is forwarded to createPolicyExpenseChats, so the
+            // employee's success-data participant is kept ({}) even though the employee is absent from PERSONAL_DETAILS_LIST.
+            const writeArgs = apiWriteSpy.mock.calls.at(0)?.at(2);
+            expect(writeArgs).toHaveProperty('successData', expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({participants: {[employeeAccountID]: {}}})})]));
 
             apiWriteSpy.mockRestore();
             isIOUReportUsingReportSpy.mockRestore();
@@ -7293,8 +7414,19 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[0]['localeTranslate'];
+            Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction: undefined,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                iouReportOwnerEmail,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: mockTranslate,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+            });
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -7355,8 +7487,19 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[0]['localeTranslate'];
+            Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction: undefined,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                iouReportOwnerEmail,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: mockTranslate,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+            });
             await waitForBatchedUpdates();
 
             // Optimistic merge: read the stored transaction from Onyx

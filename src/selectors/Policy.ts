@@ -1,12 +1,16 @@
-import escapeRegExp from 'lodash/escapeRegExp';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
+// eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
 import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import escapeRegExp from 'lodash/escapeRegExp';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
@@ -41,34 +45,19 @@ const createOwnedPaidPoliciesCountsSelector =
         };
     };
 
-type CopySettingsEligibleTargets = {
-    /** IDs of non-personal policies administered by the user that can be copy-settings targets */
-    adminNonPersonal: string[];
-
-    /** Subset of adminNonPersonal limited to corporate (Control) policies */
-    corporateOnly: string[];
-};
-
 /**
- * Creates a selector returning only the policy IDs eligible as copy-settings targets,
- * so subscribers don't re-render when anything else on the policy collection changes.
+ * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
+ * subscribers don't re-render when anything else on the policy collection changes. Targets are
+ * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
+ * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
+ * are never valid targets.
  */
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
-    (policies: OnyxCollection<Policy>): CopySettingsEligibleTargets => {
-        const adminNonPersonal: string[] = [];
-        const corporateOnly: string[] = [];
-        for (const policy of Object.values(policies ?? {})) {
-            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, currentUserLogin) || isPendingDeletePolicy(policy)) {
-                continue;
-            }
-            adminNonPersonal.push(policy.id);
-            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-                corporateOnly.push(policy.id);
-            }
-        }
-        return {adminNonPersonal, corporateOnly};
-    };
+    (policies: OnyxCollection<Policy>): string[] =>
+        Object.values(policies ?? {})
+            .filter((policy): policy is Policy => !!policy && isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
+            .map((policy) => policy.id);
 
 type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
     /** Whether the policy is optimistically pending deletion */
@@ -180,23 +169,6 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         },
         units: policy.units,
     };
-
-const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) => {
-    const currencies = new Set<string>();
-
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        currencies.add(policy.outputCurrency);
-        if (currencies.size > 1) {
-            return true;
-        }
-    }
-
-    return false;
-};
 
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -321,8 +293,6 @@ function getReusablePoliciesConnectedTo(policies: OnyxCollection<Policy>, connec
 const reusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     getReusablePoliciesConnectedTo(policies, connectionName, currentPolicyID);
 
-const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
-
 const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     Object.values(policies ?? {}).some((policy) => isAdminPolicyConnectedTo(policy, connectionName) && isReusablePolicyConnection(policy, connectionName, currentPolicyID));
 
@@ -399,12 +369,10 @@ export {
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    hasMultipleOutputCurrenciesSelector,
     iouRequestPolicyCollectionSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
-    hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
@@ -414,4 +382,4 @@ export {
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
-export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets};
+export type {ReusablePolicyConnectionName};

@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {add as dateAdd} from 'date-fns';
-import {sub as dateSubtract} from 'date-fns/sub';
-import Config from 'react-native-config';
-import * as KeyCommand from 'react-native-key-command';
-import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
+
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import {
     ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
     DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
@@ -18,11 +14,22 @@ import {
 } from '@libs/Animation/animationTiming';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
+
+import type {ValueOf} from 'type-fest';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import {add as dateAdd} from 'date-fns';
+import {sub as dateSubtract} from 'date-fns/sub';
+import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
+
 import CI from './CI';
 import {LOCALES} from './LOCALES';
 
@@ -420,6 +427,8 @@ const CONST = {
 
     DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
+
+    GENERATED_LETTER_AVATAR_PATH: '/images/avatars/generated/letter/',
 
     DISPLAY_NAME: {
         // This value is consistent with the BE display name max length limit.
@@ -1252,6 +1261,7 @@ const CONST = {
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    NOTIFICATIONS_ICON_URL: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
     DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
@@ -1364,6 +1374,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
+            `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1730,6 +1742,23 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
+                    COPY_OVERVIEW: 'POLICYCHANGELOG_COPY_OVERVIEW',
+                    COPY_EMPLOYEES: 'POLICYCHANGELOG_COPY_EMPLOYEES',
+                    COPY_REPORT_FIELDS: 'POLICYCHANGELOG_COPY_REPORT_FIELDS',
+                    COPY_ACCOUNTING: 'POLICYCHANGELOG_COPY_ACCOUNTING',
+                    COPY_RECEIPT_PARTNERS: 'POLICYCHANGELOG_COPY_RECEIPT_PARTNERS',
+                    COPY_HR: 'POLICYCHANGELOG_COPY_HR',
+                    COPY_CATEGORIES: 'POLICYCHANGELOG_COPY_CATEGORIES',
+                    COPY_TAGS: 'POLICYCHANGELOG_COPY_TAGS',
+                    COPY_TAXES: 'POLICYCHANGELOG_COPY_TAXES',
+                    COPY_TIME_TRACKING: 'POLICYCHANGELOG_COPY_TIME_TRACKING',
+                    COPY_WORKFLOWS: 'POLICYCHANGELOG_COPY_WORKFLOWS',
+                    COPY_RULES: 'POLICYCHANGELOG_COPY_RULES',
+                    COPY_CODING_RULES: 'POLICYCHANGELOG_COPY_CODING_RULES',
+                    COPY_DISTANCE: 'POLICYCHANGELOG_COPY_DISTANCE',
+                    COPY_PER_DIEM: 'POLICYCHANGELOG_COPY_PER_DIEM',
+                    COPY_INVOICES: 'POLICYCHANGELOG_COPY_INVOICES',
+                    COPY_TRAVEL: 'POLICYCHANGELOG_COPY_TRAVEL',
                 },
                 RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
                 RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
@@ -1746,6 +1775,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -2169,6 +2199,12 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
+        // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
+        // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
+        ATTRIBUTE_WIDE_LAYOUT: 'wide_layout',
+        // Stamped on the navigate-to-inbox-tab span when the app-loading skeleton was shown instead of the
+        // report list, so durations that include the openApp wait can be excluded from render measurements.
+        ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
@@ -2358,9 +2394,6 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
-    },
-    HTTP_HEADER_NAMES: {
-        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -2862,6 +2895,7 @@ const CONST = {
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
     CERTINIA_PSA_BUNDLE_VERSION: '1.3',
@@ -3352,6 +3386,12 @@ const CONST = {
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
         SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
         TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+    },
+
+    RILLET_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -3730,6 +3770,11 @@ const CONST = {
         WARNING: 'warning',
         DURATION: 2000,
         DURATION_LONG: 3500,
+        // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
+        DURATION_WITH_ACTION: 6000,
+        // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
+        // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
+        OFFSCREEN_OFFSET: 255,
     },
 
     LOCALES,
@@ -3896,6 +3941,7 @@ const CONST = {
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
+            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4361,6 +4407,7 @@ const CONST = {
             COMPANY_CARD: 'CompanyCard',
             EXPENSIFY_CARD: 'ExpensifyCard',
         },
+        CARD_LIST: 'cardList',
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
@@ -5912,6 +5959,13 @@ const CONST = {
         SMALL: 'small',
     },
 
+    ICON_SIZE: {
+        EXTRA_SMALL: 'extra-small',
+        SMALL: 'small',
+        MEDIUM: 'medium',
+        LARGE: 'large',
+    },
+
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR: 'CUSTOM_HISTORY-MFA_MODAL_NAVIGATOR',
@@ -5983,6 +6037,7 @@ const CONST = {
 
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
+    SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -6476,6 +6531,12 @@ const CONST = {
             PENDING: 'pending',
             CLEARED: 'cleared',
             FAILED: 'failed',
+            NEVER: 'never',
+        },
+        PAID_STATUS: {
+            MARKED_AS_PAID: 'markedAsPaid',
+            WITHDRAWING: 'withdrawing',
+            CONFIRMED: 'confirmed',
         },
         IS_VALUES: {
             READ: 'read',
@@ -6570,8 +6631,11 @@ const CONST = {
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
+                    FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
+                    FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
+                    PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6762,6 +6826,8 @@ const CONST = {
             DATE: 'date',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            FIRST_APPROVER: 'firstapprover',
+            FIRST_APPROVED: 'firstapproved',
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
@@ -6797,6 +6863,7 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
             AVATAR: 'avatar',
             STATUS: 'status',
+            PAID_STATUS: 'paidstatus',
             EXPENSES: 'expenses',
             FEED: 'feed',
             WITHDRAWN: 'withdrawn',
@@ -6883,6 +6950,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWAL_STATUS: 'withdrawalStatus',
+            PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
             TITLE: 'title',
@@ -6960,6 +7028,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWAL_STATUS: 'withdrawal-status',
+            PAID_STATUS: 'paid-status',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -7386,6 +7455,7 @@ const CONST = {
                 title: 'workspace.upgrade.controlPolicyRoles.title' as const,
                 description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             reports: {
                 id: 'reports' as const,
@@ -7570,6 +7640,7 @@ const CONST = {
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
+        HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
     },
 
     DEBUG: {
@@ -7846,6 +7917,13 @@ const CONST = {
         },
     },
 
+    TABLES: {
+        FILTER_TYPE: {
+            SINGLE_SELECT: 'singleSelect',
+            MULTI_SELECT: 'multiSelect',
+        },
+    },
+
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -8003,6 +8081,7 @@ const CONST = {
             TABLE_ROW: 'ExpenseRules-TableRow',
         },
         TABLE: {
+            FILTERS: 'Table-Filters',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
@@ -8069,7 +8148,7 @@ const CONST = {
             FLAG_AS_OFFENSIVE: 'ContextMenu-FlagAsOffensive',
             DOWNLOAD: 'ContextMenu-Download',
             COPY_ONYX_DATA: 'ContextMenu-CopyOnyxData',
-            COPY_AGENT_ZERO_REQUEST_ID: 'ContextMenu-CopyAgentZeroRequestID',
+            VIEW_AGENT_ZERO_TRACE: 'ContextMenu-ViewAgentZeroTrace',
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
@@ -8192,7 +8271,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-            STATUS_PICKER: 'Account-StatusPicker',
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',

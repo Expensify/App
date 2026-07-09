@@ -1,11 +1,9 @@
-import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
-import React, {useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {RESULTS} from 'react-native-permissions';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useFilesValidation from '@hooks/useFilesValidation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -16,6 +14,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
+
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
@@ -28,12 +27,14 @@ import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {resolveChatTargetForScan} from '@pages/iou/request/step/resolveChatTarget';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +43,13 @@ import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
+import React, {useEffect, useState} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
@@ -90,6 +98,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
+    const {translate} = useLocalize();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -104,6 +113,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         isArchived,
         reportAttributesDerived,
         reportDraft,
+        translate,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

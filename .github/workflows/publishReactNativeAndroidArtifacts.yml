@@ -19,6 +19,11 @@ on:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
         required: false
         default: ''
+      reviewed_code:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
   push:
     branches:
       - main
@@ -128,9 +133,18 @@ jobs:
             echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
           fi
 
-  getMobileExpensifyRef:
-    name: Resolve Mobile-Expensify ref
-    uses: ./.github/workflows/resolveMobileExpensifyRef.yml
+  # Validates the actor and that they reviewed the PR before any token is used or untrusted App PR code is checked out.
+  prep:
+    uses: ./.github/workflows/validateBuildRequest.yml
+    with:
+      REVIEWED_CODE: ${{ inputs.reviewed_code || false }}
+    secrets:
+      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+  resolveRefs:
+    name: Resolve build refs
+    needs: [prep]
+    uses: ./.github/workflows/resolveBuildRefs.yml
     with:
       APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
       MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.mobile_expensify_pull_request_url }}
@@ -140,7 +154,7 @@ jobs:
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
-    needs: [verifyPatches, getMobileExpensifyRef]
+    needs: [verifyPatches, prep, resolveRefs]
     if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
       # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
@@ -155,15 +169,16 @@ jobs:
       - name: Checkout Code
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
+          ref: ${{ needs.resolveRefs.outputs.APP_REF }}
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ matrix.is_hybrid == 'true' && needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ matrix.is_hybrid == 'true' && needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+          git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
+          git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
 
       # Recompute the patches hash from the actually checked-out tree (which may include a custom Mobile-Expensify
       # ref) so the published artifact is tagged with a hash that consumers will match against.
@@ -236,4 +251,3 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           CHANNEL: '#expensify-open-source'
-

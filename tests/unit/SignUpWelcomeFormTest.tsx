@@ -1,10 +1,16 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import * as Session from '@libs/actions/Session';
+
+import SignUpWelcomeForm from '@pages/signin/SignUpWelcomeForm';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import * as Session from '@libs/actions/Session';
-import SignUpWelcomeForm from '@pages/signin/SignUpWelcomeForm';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useLocalize', () =>

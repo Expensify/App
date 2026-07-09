@@ -1,7 +1,3 @@
-import {getUnixTime} from 'date-fns';
-import lodashClone from 'lodash/clone';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -62,6 +58,7 @@ import {
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,6 +81,12 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import {getUnixTime} from 'date-fns';
+import lodashClone from 'lodash/clone';
+import Onyx from 'react-native-onyx';
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -836,6 +839,7 @@ type ChangeTransactionsReportProps = {
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
+    personalPolicyOutputCurrency: string | undefined;
 };
 
 function changeTransactionsReport({
@@ -851,6 +855,7 @@ function changeTransactionsReport({
     transactions,
     allTransactionViolation = {},
     allReports: allReportsParam,
+    personalPolicyOutputCurrency,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1228,7 +1233,7 @@ function changeTransactionsReport({
                     };
 
                     if (!isFetchingWaypointsFromServer(transaction)) {
-                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
                         const {unit, rate} = updatedMileageRate;
                         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
                         const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);

@@ -1,16 +1,12 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -21,6 +17,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     getIOURequestPolicyID,
     getMoneyRequestParticipantsFromReport,
@@ -49,13 +46,23 @@ import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
 
@@ -97,8 +104,6 @@ function SubmitDetailsPage({
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policy?.id}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy?.id}`);
 
-    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
-
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
@@ -113,7 +118,6 @@ function SubmitDetailsPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isConfirming, setIsConfirming] = useState(false);
     const formHasBeenSubmitted = useRef(false);
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
@@ -196,11 +200,11 @@ function SubmitDetailsPage({
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
-            ? getParticipantsOption(participant, personalDetails)
+            ? getParticipantsOption(participant, personalDetails, translate)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 
-    const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
+    const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const {isOffline} = useNetwork();
@@ -234,9 +238,18 @@ function SubmitDetailsPage({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
+    const listOfParticipants = participants.filter((participant) => participant.selected);
+    const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
+    const isIouReport = isMoneyRequestReport(reportToSubmit);
+    const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
+        moneyRequestReportID: isIouReport ? reportToSubmit?.reportID : undefined,
+        parentChatReportPolicyID: reportToSubmit?.policyID,
+        participantReportID: participant?.reportID,
+    });
 
-    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
-        if (!transaction) {
+    const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
+        if (!transaction || !participant) {
             return;
         }
 
@@ -247,6 +260,7 @@ function SubmitDetailsPage({
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
+                isDraftChatReport: !!reportDraft,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories},
                 action: CONST.IOU.TYPE.CREATE,
@@ -282,6 +296,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                reportActionsList: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -289,7 +304,7 @@ function SubmitDetailsPage({
             requestMoney({
                 report: reportToSubmit,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
+                policyParams: {policy, policyTagList: policyTagsForRequestMoney, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
@@ -339,16 +354,16 @@ function SubmitDetailsPage({
         });
     };
 
-    const onSuccess = (participant: Participant, file: File, locationPermissionGranted?: boolean) => {
+    const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
         if (!locationPermissionGranted) {
-            finishRequestAndNavigate(participant, receipt);
+            finishRequestAndNavigate(receipt);
             return;
         }
         // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
         if (userLocation) {
-            finishRequestAndNavigate(participant, receipt, {
+            finishRequestAndNavigate(receipt, {
                 lat: userLocation.latitude,
                 long: userLocation.longitude,
             });
@@ -356,20 +371,20 @@ function SubmitDetailsPage({
         }
         getCurrentPosition(
             (successData) => {
-                finishRequestAndNavigate(participant, receipt, {
+                finishRequestAndNavigate(receipt, {
                     lat: successData.coords.latitude,
                     long: successData.coords.longitude,
                 });
             },
             (errorData) => {
                 Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                finishRequestAndNavigate(participant, receipt);
+                finishRequestAndNavigate(receipt);
             },
         );
     };
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).
-    const performUpload = (participant: Participant, locationPermissionGranted: boolean) => {
+    const performUpload = (locationPermissionGranted: boolean) => {
         if (formHasBeenSubmitted.current || !currentAttachment) {
             setIsConfirming(false);
             return;
@@ -378,7 +393,7 @@ function SubmitDetailsPage({
         readFileAsync(
             currentReceiptSource,
             currentReceiptName,
-            (file) => onSuccess(participant, file, locationPermissionGranted),
+            (file) => onSuccess(file, locationPermissionGranted),
             () => {
                 // Allow retry after a file-read failure.
                 formHasBeenSubmitted.current = false;
@@ -388,7 +403,7 @@ function SubmitDetailsPage({
         );
     };
 
-    const onConfirm = (listOfParticipants?: Participant[], gpsRequired?: boolean) => {
+    const onConfirm = (gpsRequired?: boolean) => {
         setIsConfirming(true);
         const shouldStartLocationPermissionFlow =
             gpsRequired &&
@@ -397,17 +412,15 @@ function SubmitDetailsPage({
                     DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS));
 
         if (shouldStartLocationPermissionFlow) {
-            setSelectedParticipantList(listOfParticipants ?? selectedParticipants);
             setStartLocationPermissionFlow(true);
             return;
         }
 
-        const participant = listOfParticipants?.at(0) ?? selectedParticipants.at(0);
         if (!participant) {
             setIsConfirming(false);
             return;
         }
-        performUpload(participant, false);
+        performUpload(false);
     };
 
     return (
@@ -433,24 +446,22 @@ function SubmitDetailsPage({
                     }}
                     onGrant={() => {
                         setStartLocationPermissionFlow(false);
-                        const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
                             setIsConfirming(false);
                             return;
                         }
-                        performUpload(participant, true);
+                        performUpload(true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
                         if (wasUserInitiated) {
                             updateLastLocationPermissionPrompt();
                         }
-                        const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
                             setIsConfirming(false);
                             return;
                         }
-                        performUpload(participant, false);
+                        performUpload(false);
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
@@ -467,7 +478,7 @@ function SubmitDetailsPage({
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
-                        onConfirm={(updatedParticipants) => onConfirm(updatedParticipants, true)}
+                        onConfirm={() => onConfirm(true)}
                         receiptPath={currentReceiptSource}
                         receiptFilename={currentReceiptName}
                         reportID={reportOrAccountID}
