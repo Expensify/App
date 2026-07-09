@@ -992,6 +992,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'linkedTrackedExpenseReportID':
         case 'bank':
         case 'cardName':
+        case 'feedCountry':
         case 'cardNumber':
         case 'taxValue':
         case 'groupCurrency':
