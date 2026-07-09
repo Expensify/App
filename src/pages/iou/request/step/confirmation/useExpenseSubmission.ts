@@ -278,7 +278,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
-    const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     // Onboarding task data
     const {
