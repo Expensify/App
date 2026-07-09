@@ -1331,7 +1331,6 @@
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/settings/Agents/AgentsListRow.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Agents/AgentsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Agents/AgentsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditAgentAvatarPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditPromptPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
