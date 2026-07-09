@@ -39,6 +39,7 @@ const SCREENS = {
         DYNAMIC_PUBLIC_DOMAIN_ERROR: 'Dynamic_Travel_PublicDomainError',
         WORKSPACE_CONFIRMATION: 'Travel_WorkspaceConfirmation',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        LEGAL_ENTITY_TAX_ID: 'Travel_LegalEntityTaxID',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
         MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Travel_MissingPersonalDetails_ConfirmMagicCode',
@@ -312,10 +313,14 @@ const SCREENS = {
         EXPENSE_REPORT: 'ExpenseReport',
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
         CHRONOS_SCHEDULE_OOO: 'Chronos_Schedule_OOO',
+        AVATAR_CROP: 'AvatarCrop',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
+    AVATAR_CROP: {
+        DYNAMIC_ROOT: 'Dynamic_AvatarCrop_Root',
+    },
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
@@ -491,6 +496,7 @@ const SCREENS = {
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
         SELECT_FEATURES: 'Policy_Copy_Settings_Select_Features',
+        UPGRADE: 'Policy_Copy_Settings_Upgrade',
         CONFIRM: 'Policy_Copy_Settings_Confirm',
     },
 
@@ -661,6 +667,11 @@ const SCREENS = {
             RILLET_EXISTING_CONNECTIONS: 'Policy_Accounting_Rillet_Existing_Connections',
             RILLET_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Rillet_Subsidiary_Selector',
             RILLET_IMPORT: 'Policy_Accounting_Rillet_Import',
+            RILLET_EXPORT: 'Policy_Accounting_Rillet_Export',
+            RILLET_PREFERRED_EXPORTER: 'Policy_Accounting_Rillet_Preferred_Exporter',
+            RILLET_VENDOR_BILL_DATE: 'Policy_Accounting_Rillet_Vendor_Bill_Date',
+            RILLET_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Company_Card_Account',
+            RILLET_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_Rillet_Default_Company_Card_Vendor',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
