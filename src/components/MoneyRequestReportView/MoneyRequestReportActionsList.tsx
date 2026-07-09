@@ -552,12 +552,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         return;
                     }
 
-                    // We want to scroll to the end of the list where the newest message is
-                    // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
+                    // We want to scroll to the end of the list where the newest message is. We route through the indexed
+                    // scrollToBottom (scrollToIndex) rather than scrollToEnd because scrollToEnd targets an estimated
+                    // content-end offset that leaves the bottom blank on large transaction+chat lists. We still delay so
+                    // the just-sent item has landed in the data before we jump.
                     const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
                     if (index !== -1) {
                         setTimeout(() => {
-                            reportScrollManager.scrollToEnd();
+                            scrollToBottom();
                         }, DELAY_FOR_SCROLLING_TO_END);
                     } else {
                         setEnableScrollToEnd(true);
@@ -566,7 +568,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 },
             });
         },
-        [reportScrollManager, setIsFloatingMessageCounterVisible, visibleReportActions],
+        [scrollToBottom, setIsFloatingMessageCounterVisible, visibleReportActions],
     );
 
     useEffect(() => {
@@ -592,11 +594,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         const index = visibleReportActions.findIndex((item) => item.reportActionID === lastActionEventId);
         if (enableScrollToEnd && index !== -1) {
             setTimeout(() => {
-                reportScrollManager.scrollToEnd();
+                scrollToBottom();
             }, DELAY_FOR_SCROLLING_TO_END);
             setEnableScrollToEnd(false);
         }
-    }, [visibleReportActions, lastActionEventId, enableScrollToEnd, reportScrollManager]);
+    }, [visibleReportActions, lastActionEventId, enableScrollToEnd, scrollToBottom]);
 
     const renderReportAction = useCallback(
         (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {

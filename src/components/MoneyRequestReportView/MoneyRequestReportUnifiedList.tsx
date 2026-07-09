@@ -123,6 +123,12 @@ function MoneyRequestReportUnifiedList({
     const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
     const data: UnifiedListItem[] = shouldInlineTransactions ? [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems] : reportActionItems;
 
+    // Report actions load separately from transactions. When transactions are inlined, `data` is already non-empty
+    // (transaction rows + footer) while comments are still loading, so ListEmptyComponent can never surface the
+    // comments loading skeleton. Gate the skeleton on the report actions being empty and render it as the list footer
+    // (right below the transaction section, where comments will appear) in that case.
+    const shouldShowActionsLoadingSkeleton = !isOffline && isLoadingInitialActions && reportActionItems.length === 0;
+
     // Report the last index so callers can jump to the bottom via scrollToIndex.
     const lastDataIndex = data.length - 1;
 
@@ -257,7 +263,8 @@ function MoneyRequestReportUnifiedList({
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
             contentContainerStyle={contentContainerStyle}
-            ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            ListFooterComponent={shouldInlineTransactions && shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
             drawDistance={1000}
         />
     );
