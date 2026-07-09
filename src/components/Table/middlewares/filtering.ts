@@ -1,54 +1,46 @@
-import {useState} from 'react';
 import type {TableData} from '@components/Table/types';
+
+import type CONST from '@src/CONST';
+import {getObjectKeys, getObjectValues} from '@src/libs/ObjectUtils';
+
+import type {ValueOf} from 'type-fest';
+
+import {useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
  * Configuration for a single table filter.
- *
- * @template FilterKey - The type of filter keys.
  */
 type FilterConfigEntry = {
-    showLabel?: boolean;
-    filterType?: 'multi-select' | 'single-select';
+    label: string;
+    filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;
-    default?: string;
 };
 
 /**
  * Configuration for table filters.
- *
- * @template FilterKey - The type of filter keys.
  */
 type FilterConfig<FilterKey extends string = string> = Record<FilterKey, FilterConfigEntry>;
 
 /**
  * Callback to check if an item matches a filter.
- *
- * @template DataType - The type of items in the data array.
- * @param item - The item to check.
- * @param filters - The filters to check against.
- * @returns True if the item matches the filters, false otherwise.
  */
-type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, filters: string[]) => boolean;
+type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, values: string[]) => boolean;
 
 /**
- * Methods exposed by the table to control filtering.
- *
- * @template FilterKey - The type of filter keys.
+ *  Methods exposed by the table to control filtering.
  */
 type FilteringMethods<FilterKey extends string = string> = {
     /** Callback to update a filter value. */
-    updateFilter: (params: {key: FilterKey; value: unknown}) => void;
+    updateFilter: (params: {key: FilterKey; value: string[]}) => void;
 
     /** Callback to get the active filters. */
-    getActiveFilters: () => Record<FilterKey, unknown>;
+    getActiveFilters: () => Record<FilterKey, string[]>;
 };
 
 /**
  * Props for the filtering middleware.
- *
- * @template DataType - The type of items in the data array.
- * @template FilterKey - The type of filter keys.
  */
 type UseFilteringProps<DataType extends TableData, FilterKey extends string = string> = {
     filters?: FilterConfig<FilterKey>;
@@ -57,33 +49,25 @@ type UseFilteringProps<DataType extends TableData, FilterKey extends string = st
 
 /**
  * Result returned by the filtering middleware.
- *
- * @template DataType - The type of items in the data array.
- * @template FilterKey - The type of filter keys.
  */
 type UseFilteringResult<DataType extends TableData, FilterKey extends string = string> = MiddlewareHookResult<DataType, FilteringMethods<FilterKey>> & {
-    currentFilters: Record<FilterKey, unknown>;
+    hasActiveFilters: boolean;
+    currentFilters: Record<FilterKey, string[]>;
 };
 
 /**
  * Provides functionality to filter table data.
- *
- * @template DataType - The type of items in the data array.
- * @template FilterKey - The type of filter keys.
- * @param filters - The filters to use.
- * @param isItemInFilter - The callback to check if an item matches a filter.
- * @returns The result of the filtering middleware.
  */
 function useFiltering<DataType extends TableData, FilterKey extends string = string>({
     filters,
     isItemInFilter,
 }: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
-    const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, unknown>>(() => {
-        const initialFilters = {} as Record<FilterKey, unknown>;
+    const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, string[]>>(() => {
+        const initialFilters = {} as Record<FilterKey, string[]>;
 
         if (filters) {
-            for (const key of Object.keys(filters) as FilterKey[]) {
-                initialFilters[key] = filters[key].default;
+            for (const key of getObjectKeys(filters)) {
+                initialFilters[key] = [];
             }
         }
 
@@ -108,69 +92,33 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
         getActiveFilters,
     };
 
-    return {middleware, currentFilters, methods};
+    const hasActiveFilters = getObjectValues(currentFilters).some((filterValues) => filterValues.length > 0);
+
+    return {middleware, currentFilters, hasActiveFilters, methods};
 }
 
-/**
- * Parameters for the filtering middleware.
- *
- * @template DataType - The type of items in the data array.
- * @template FilterKey - The type of filter keys.
- */
 type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends string = string> = {
     data: DataType[];
     filters?: FilterConfig<FilterKey>;
-    currentFilters: Record<FilterKey, unknown>;
+    currentFilters: Partial<Record<FilterKey, string[]>>;
     isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
 
-/**
- * Filters table data based on the current filters.
- *
- * @template DataType - The type of items in the data array.
- * @template FilterKey - The type of filter keys.
- * @param data - The data to filter.
- * @param filters - The filters to use.
- * @param currentFilters - The current filters.
- * @param isItemInFilter - The callback to check if an item matches a filter.
- * @returns The filtered data.
- */
+// Filters table data based on the current filters.
 function filter<DataType extends TableData, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<DataType, FilterKey>): DataType[] {
     if (!filters) {
         // No filters configured, return original data.
         return data;
     }
 
-    const filterKeys = Object.keys(filters) as FilterKey[];
+    const filterKeys = getObjectKeys(filters);
 
     return data.filter((item) => {
         return filterKeys.every((filterKey) => {
-            const filterConfig = filters[filterKey];
             const filterValue = currentFilters[filterKey];
 
             // When no filter value is set, we keep the item.
-            if (filterValue === undefined || filterValue === null) {
-                return true;
-            }
-
-            if (filterConfig.filterType === 'multi-select') {
-                const selectedValues = Array.isArray(filterValue) ? filterValue.filter((value): value is string => typeof value === 'string') : [];
-
-                if (selectedValues.length === 0) {
-                    return true;
-                }
-
-                if (!isItemInFilter) {
-                    // Without a filter callback, we do not exclude any items.
-                    return true;
-                }
-
-                return isItemInFilter(item, selectedValues);
-            }
-
-            const singleValue = typeof filterValue === 'string' ? filterValue : '';
-
-            if (singleValue === '') {
+            if (!filterValue?.length) {
                 return true;
             }
 
@@ -179,10 +127,10 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
                 return true;
             }
 
-            return isItemInFilter(item, [singleValue]);
+            return isItemInFilter(item, filterValue);
         });
     });
 }
 
 export default useFiltering;
-export type {FilteringMethods, FilterConfig, FilterConfigEntry, IsItemInFilterCallback};
+export type {FilteringMethods, FilterConfig, IsItemInFilterCallback};

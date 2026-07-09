@@ -1,14 +1,17 @@
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {
     updateFinancialForceDimension1Mapping,
     updateFinancialForceDimension2Mapping,
     updateFinancialForceDimension3Mapping,
     updateFinancialForceDimension4Mapping,
 } from '@libs/actions/connections/FinancialForce';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
+
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
@@ -24,6 +27,7 @@ const CERTINIA_FFA_EXPORT_STATUSES: FinancialForceFFAExportStatus[] = [CONST.CER
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 type CertiniaReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
+type CertiniaParentTagMapping = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -36,6 +40,11 @@ function getDisplayTypeLabel(mappingValue: CertiniaMappingValue | undefined, tra
 
 function getDimensionLabel(dimension: CertiniaDimensionParam, translate: LocaleContextProps['translate']): string {
     return translate(`workspace.certinia.import.dimensions.${dimension}` as TranslationPaths);
+}
+
+function getParentTagMappingLabel(parentTagMapping: CertiniaParentTagMapping | undefined, translate: LocaleContextProps['translate']): string {
+    const value = parentTagMapping ?? CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS;
+    return translate(`workspace.certinia.import.parentTagMappingTypes.${value}` as TranslationPaths);
 }
 
 function normalizeCertiniaExportStatus(status: string): string {
@@ -121,8 +130,9 @@ export {
     getCertiniaFFAExportStatusValue,
     getDimensionLabel,
     getDisplayTypeLabel,
+    getParentTagMappingLabel,
     isCertiniaSRPConnection,
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };
-export type {CertiniaDimensionParam, CertiniaMappingValue, CertiniaReportExportStatus};
+export type {CertiniaDimensionParam, CertiniaMappingValue, CertiniaParentTagMapping, CertiniaReportExportStatus};

@@ -1,5 +1,7 @@
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type AgentPrompt from './AgentPrompt';
@@ -7,6 +9,9 @@ import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
+import type AvatarCropDraft from './AvatarCropDraft';
+import type {AvatarCropMaskType} from './AvatarCropDraft';
+import type AvatarCropResult from './AvatarCropResult';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -48,16 +53,12 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
-    FlaggedExpensesDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     SortedReportActionsDerivedValue,
-    TodoMetadata,
-    TodosDerivedValue,
     VisibleReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
@@ -201,6 +202,9 @@ export type {
     FileObject,
     TryNewDot,
     Attachment,
+    AvatarCropDraft,
+    AvatarCropMaskType,
+    AvatarCropResult,
     Account,
     AccountData,
     AssignCard,
@@ -395,15 +399,11 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    FlaggedExpensesDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -14,6 +14,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -24,13 +25,19 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
-import currencyList from '../../unit/currencyList.json';
+
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -70,14 +77,7 @@ const RORY_ACCOUNT_ID = 3;
 OnyxUpdateManager();
 describe('actions/Duplicate', () => {
     beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+        Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
@@ -85,8 +85,9 @@ describe('actions/Duplicate', () => {
 
     describe('mergeDuplicates', () => {
         let writeSpy: jest.SpyInstance;
+        let currencyListProvider: RenderAPI;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
 
@@ -103,10 +104,18 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            currencyListProvider = await initCurrencyListContext({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                },
+            });
         });
 
         afterEach(() => {
+            currencyListProvider.unmount();
             writeSpy.mockRestore();
         });
 
@@ -143,10 +152,10 @@ describe('actions/Duplicate', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
             reportID,
-            originalMessage: {
+            originalMessage: createMock<OriginalMessageIOU>({
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            } as OriginalMessageIOU,
+            }),
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
         });
@@ -444,10 +453,10 @@ describe('actions/Duplicate', () => {
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -583,7 +592,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -595,7 +603,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1287,7 +1294,6 @@ describe('actions/Duplicate', () => {
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
                 },
@@ -1339,7 +1345,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1403,7 +1408,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1458,7 +1462,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1507,7 +1510,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1557,7 +1559,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1609,7 +1610,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1671,7 +1671,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1849,7 +1848,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
                 },
@@ -1926,12 +1924,12 @@ describe('actions/Duplicate', () => {
             const mockTransactionWithLinkedAction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
-                linkedTrackedExpenseReportAction: {
+                linkedTrackedExpenseReportAction: createMock<ReportAction>({
                     reportActionID: 'linked-action-123',
                     childReportID: existingLinkedReportActionChildReportID,
                     actionName: 'IOU',
                     created: '2024-01-01 00:00:00',
-                } as ReportAction,
+                }),
                 comment: {
                     ...restOfComment,
                 },
@@ -2037,7 +2035,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2090,7 +2087,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2407,7 +2403,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
                 },
@@ -2861,13 +2856,13 @@ describe('actions/Duplicate', () => {
             employeeList: {[RORY_EMAIL]: {email: RORY_EMAIL, role: CONST.POLICY.ROLE.USER}},
         };
 
-        const inaccessiblePolicy = {
+        const inaccessiblePolicy = createMock<Policy>({
             ...createRandomPolicy(300, CONST.POLICY.TYPE.TEAM, 'Inaccessible WS'),
             id: OTHER_POLICY_ID,
             role: undefined,
             pendingAction: undefined,
             employeeList: {},
-        } as unknown as Policy;
+        });
 
         const ACTIVE_PEC_REPORT_ID = 'activePEC';
         const activePolicyExpenseChat: Report = {
@@ -2915,11 +2910,11 @@ describe('actions/Duplicate', () => {
             })),
             allReports: {},
             searchData: undefined,
-            allPolicies: {
+            allPolicies: createMock<BulkDuplicateReportsParams['allPolicies']>({
                 [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: inaccessiblePolicy,
-            } as BulkDuplicateReportsParams['allPolicies'],
+            }),
             allPolicyCategories: {},
             allPolicyTags: {},
             defaultExpensePolicy: defaultPolicy,
