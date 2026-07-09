@@ -98,7 +98,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const [searchValue, setSearchValue, searchFilteredAccountIDs] = useSearchResults(participants, (accountID, search) => {
         const details = personalDetails?.[accountID];
-        return !!details && isSearchStringMatchUserDetails(details, search);
+        return !!details && isSearchStringMatchUserDetails(details, search, translate);
     });
 
     const shouldIncludeMember = useCallback(
