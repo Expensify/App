@@ -241,6 +241,11 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         const threadReportID = buildThreadFromOnyx();
         showGrowl(threadReportID);
     }, SAFETY_TIMEOUT_MS);
+
+    // If the connect callback somehow resolved before the timeout was assigned, its clearTimeout was a no-op - drop the now-useless timer.
+    if (resolved) {
+        clearTimeout(safetyTimeoutID);
+    }
 }
 
 type SurfaceExpenseCreatedFeedbackParams = {

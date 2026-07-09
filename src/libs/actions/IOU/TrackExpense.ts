@@ -1933,7 +1933,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 transactionID: transaction.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isFromGlobalCreate,
-                shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
+                // Pending IDs are the fallback highlight when diff detection can't run (see useNewTransactions):
+                // the chat preview card fresh-mounts on a chat destination's first expense, and the report table
+                // fresh-mounts on the in-report 1→2 transition.
+                shouldAddPendingNewTransactionIDs: isMoneyRequestReport || navigationReportID === chatReport.reportID,
             });
         } else if (shouldShowPostCreateFeedback) {
             // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback

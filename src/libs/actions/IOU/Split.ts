@@ -2225,7 +2225,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
             transactionID: parameters.transactionID,
             transactionThreadReportID: parameters.transactionThreadReportID,
-            shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
+            // Pending IDs are the fallback highlight when diff detection can't run (see useNewTransactions):
+            // the chat preview card fresh-mounts on a chat destination's first expense, and the report table
+            // fresh-mounts on the in-report 1→2 transition.
+            shouldAddPendingNewTransactionIDs: isMoneyRequestReport || navigationActiveReportID === parameters.chatReportID,
         });
     } else {
         // Dismiss-first paths (orchestrator owns navigation). Surface feedback wherever the user lands:

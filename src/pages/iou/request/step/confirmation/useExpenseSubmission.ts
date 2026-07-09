@@ -681,6 +681,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!transaction) {
             return;
         }
+        // Without a selected participant the action would fall back to an empty participant object and build an invalid request.
+        if (selectedParticipantsForRequest.length === 0) {
+            return;
+        }
 
         createDistanceRequestIOUActions({
             report,
