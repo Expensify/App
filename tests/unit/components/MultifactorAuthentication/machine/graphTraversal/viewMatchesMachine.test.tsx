@@ -124,12 +124,14 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
             // The mock actor produces the same error the graph snapshot carries, so the walk can demand
-            // the exact screen the scenario maps for it. The device-check refusal fixture has a
+            // the exact screen the scenario maps for it. Each device-check refusal fixture has a
             // dedicated failure screen, while a plain rejection is recorded as a local unhandled
             // exception and falls back to the scenario's default client failure screen, which shows
             // the failure copy in both its header and its body title.
             if (state.context.error?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED) {
                 expect(screen.getByText(translateLocal('multifactorAuthentication.unsupportedDevice.unsupportedDevice'))).toBeOnTheScreen();
+            } else if (state.context.error?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED) {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.youCouldNotBeAuthenticated'))).toBeOnTheScreen();
             } else {
                 expect(screen.getAllByText(translateLocal('multifactorAuthentication.verificationFailed'))).toHaveLength(2);
             }

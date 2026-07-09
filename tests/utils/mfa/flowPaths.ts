@@ -85,9 +85,16 @@ type MfaActorDoneOutputFixtures = {
  * exhaustive keyed type makes a new actor fail compilation until its output variants are added.
  */
 const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
+    // The two refusal variants mirror the actor's gates: the scenario disallowing the platform method
+    // and the device failing the capability check. Each reason maps to its own failure screen, so both
+    // need a graph branch for the walk to reach those screens.
     validateDevice: [
         {success: true},
         {success: false, error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, 'Graph-traversal device-check refusal')},
+        {
+            success: false,
+            error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
+        },
     ],
 } satisfies MfaActorDoneOutputFixtures;
 
