@@ -1,8 +1,9 @@
-import {act, cleanup, render} from '@testing-library/react-native';
+import {act, cleanup, render, waitFor} from '@testing-library/react-native';
 
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
+import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 
 import App from '@src/App';
@@ -309,6 +310,68 @@ describe('Support auth token login', () => {
             expect(Session.signInWithSupportAuthToken).not.toHaveBeenCalled();
 
             unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+});
+
+describe('SAML required sign-in loop', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
+    });
+
+    // Regression test for the global New Expensify SAML web login loop (https://github.com/Expensify/Expensify/issues/657345).
+    // A SAML redirect-back short-lived token exchange sets account.isLoading, which is the same signal that drives
+    // SignInPage's shouldInitiateSAMLLogin. Re-initiating SAML while that exchange is in flight tears the page down
+    // before the token can be consumed, so the user loops back to their IdP forever. The RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN
+    // flag lets SignInPage tell the two apart, so it must not re-initiate SAML while the flag is set.
+    it(
+        'does not re-initiate SAML while a short-lived token exchange is in flight',
+        async () => {
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.CREDENTIALS]: {login: TEST_USER_LOGIN_1},
+                    [ONYXKEYS.ACCOUNT]: {isSAMLRequired: true, isLoading: true, validated: true},
+                    [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: true,
+                });
+            });
+
+            const {unmount} = render(<App />);
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // The exchange is in flight, so SAML must not be re-initiated.
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SAML_SIGN_IN);
+
+            // Positive control: once the exchange is no longer in flight, SAML re-initiates as usual. This proves the
+            // guard (and not the harness never reaching the decision) is what suppressed the navigation above.
+            navigateSpy.mockClear();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SAML_SIGN_IN));
+
+            unmount();
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
