@@ -2084,6 +2084,18 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Restablecer login guardado',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
+        saveReceiptsConfirmation: {
+            title: '¿Guardar tus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `Tienes ${count} ${count === 1 ? 'recibo' : 'recibos'} subiéndose todavía. Si cierras sesión ahora, ${count === 1 ? 'lo guardaremos' : 'los guardaremos'} en tus fotos para que ${count === 1 ? 'puedas añadirlo' : 'puedas añadirlos'} a un nuevo gasto más tarde.`,
+            confirm: 'Guardar y cerrar sesión',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: '¿Guardar tus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `Tienes ${count} ${count === 1 ? 'recibo' : 'recibos'} subiéndose todavía. Si cierras sesión ahora, ${count === 1 ? 'lo guardaremos' : 'los guardaremos'} en tus fotos para que ${count === 1 ? 'puedas añadirlo' : 'puedas añadirlos'} a un nuevo gasto más tarde. Perderás los demás cambios hechos mientras estabas desconectado.`,
+            confirm: 'Guardar y cerrar sesión',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
