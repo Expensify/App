@@ -2,7 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
@@ -467,7 +467,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    return API.writeWithNoDuplicatesConflictAction(
+    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.OPEN_APP,
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
@@ -477,6 +477,10 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+
+    loadPostDataForOpenOrReconnect();
+
+    return openAppPromise;
 }
 
 /**
@@ -519,7 +523,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         const isFullReconnect = !updateIDFrom;
-        return API.writeWithNoDuplicatesReconnectConflictAction(
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
             WRITE_COMMANDS.RECONNECT_APP,
             params,
             getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
@@ -529,7 +533,18 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+
+        loadPostDataForOpenOrReconnect();
+
+        return reconnectAppPromise;
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
 }
 
 /**
