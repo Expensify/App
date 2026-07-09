@@ -2247,12 +2247,25 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
 function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void}) {
     const shouldDismissModal = options?.shouldDismissModal ?? true;
 
-    if (shouldDismissModal) {
+    const navigateToRoute = () => {
         if (!reportID) {
-            Navigation.dismissModal({afterTransition: options?.afterTransition});
             return;
         }
-        Navigation.dismissModal();
+        const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        if (options?.afterTransition) {
+            Navigation.navigate(route, {afterTransition: options.afterTransition});
+        } else {
+            Navigation.navigate(route);
+        }
+    };
+
+    if (shouldDismissModal) {
+        // Navigating from dismissModal's afterTransition (rather than a setTimeout scheduled independently of it)
+        // ensures the navigation runs only once the dismiss transition has actually settled. Firing it
+        // independently can let the dismissal's own state update land afterward and clobber this navigation,
+        // e.g. when modals are dismissed in quick succession.
+        Navigation.dismissModal({afterTransition: reportID ? navigateToRoute : options?.afterTransition});
+        return;
     }
 
     if (!reportID) {
@@ -2260,14 +2273,7 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => {
-            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-            if (options?.afterTransition) {
-                Navigation.navigate(route, {afterTransition: options.afterTransition});
-            } else {
-                Navigation.navigate(route);
-            }
-        });
+        Navigation.isNavigationReady().then(navigateToRoute);
     }, 0);
 }
 
