@@ -35,7 +35,6 @@ type MileageRate = {
 };
 
 type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
-type TransactionCommuterExclusionData = Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit};
 
 /** @private Only for getRate function */
 let allPolicies: OnyxCollection<Policy>;
@@ -363,7 +362,7 @@ function getTransactionCommuterExclusionData({
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
-}): TransactionCommuterExclusionData | undefined {
+}): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
     const policyCommuterExclusions = policy?.commuterExclusions;
     if (
         transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
