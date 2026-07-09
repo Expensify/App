@@ -134,9 +134,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn().mockReturnValue(''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModalWithReport: jest.fn(),
-    dismissModal: jest.fn((options?: {afterTransition?: () => void}) => {
-        options?.afterTransition?.();
-    }),
+    dismissModal: jest.fn(),
     dismissToSuperWideRHP: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isActiveRoute: jest.fn(() => false),

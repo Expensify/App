@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {navigateToReport} from '@libs/actions/Report';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
@@ -105,7 +104,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
             ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        navigateToReport(optimisticReportID, {shouldDismissModal: true});
+        Navigation.dismissModalWithReport({reportID: optimisticReportID});
     };
 
     return (

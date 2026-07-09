@@ -2,7 +2,6 @@ import {render} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
-import {navigateToReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -22,12 +21,6 @@ jest.mock('@userActions/Agent', () => ({
 }));
 
 const mockCreateAgent = jest.mocked(createAgent);
-
-jest.mock('@libs/actions/Report', () => ({
-    navigateToReport: jest.fn(),
-}));
-
-const mockNavigateToReport = jest.mocked(navigateToReport);
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
 
@@ -57,6 +50,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
+    dismissModalWithReport: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -123,6 +117,7 @@ jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
 const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
 const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
+const mockDismissModalWithReport = jest.mocked(Navigation.dismissModalWithReport);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -258,7 +253,7 @@ describe('AddAgentPage', () => {
 
             // The 5th arg (selected preset avatar ID) is randomized on mount, so only assert the args that matter here.
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, expect.anything(), undefined, undefined, undefined);
-            expect(mockNavigateToReport).toHaveBeenCalledWith(OPTIMISTIC_REPORT_ID, {shouldDismissModal: true});
+            expect(mockDismissModalWithReport).toHaveBeenCalledWith({reportID: OPTIMISTIC_REPORT_ID});
         });
 
         it('forwards policyID from route params to createAgent', () => {
@@ -272,7 +267,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, expect.anything(), undefined, undefined, 'POL_42');
-            expect(mockNavigateToReport).toHaveBeenCalledWith(OPTIMISTIC_REPORT_ID, {shouldDismissModal: true});
+            expect(mockDismissModalWithReport).toHaveBeenCalledWith({reportID: OPTIMISTIC_REPORT_ID});
         });
     });
 });
