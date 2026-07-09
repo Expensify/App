@@ -67,7 +67,7 @@ Sharing saves time by avoiding repeated setup. It also helps when changing the w
 
 ## Can I share the same bank account with multiple admins?
 
-Yes. You can select multiple Workspace Admins when sharing.
+Yes. You can select multiple admins when sharing.
 
 ## Why don't I see the Share option?
 
