@@ -155,8 +155,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
-    const isAgentsTab = activeTab === RULES_TAB.AGENTS && isCustomAgentBetaEnabled;
-    const hasAgentRules = getVisibleAgentRules(policy?.rules?.agentRules, isOffline).length > 0;
+    const isAgentsTab = activeTab === RULES_TAB.AGENTS;
+    const hasAgentRules = isAgentsTab && getVisibleAgentRules(policy?.rules?.agentRules, isOffline).length > 0;
     const shouldUseFullWidthAgentsTabLayout = isAgentsTab && !hasAgentRules;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;

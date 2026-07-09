@@ -41,6 +41,7 @@ function RulesTabEmptyState({illustration, headerContentStyles, title, subtitle,
                 title={title}
                 subtitle={subtitle}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                minModalHeight={0}
                 cardContentStyles={styles.ph0}
                 containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
                 buttons={[

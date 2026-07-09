@@ -29,3 +29,4 @@ function getVisibleAgentRules(agentRules: AgentRulesCollection, isOffline: boole
 }
 
 export {getAgentRuleDisplayTitle, getVisibleAgentRules};
+export type {AgentRuleWithID};
