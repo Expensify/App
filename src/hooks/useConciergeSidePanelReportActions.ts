@@ -17,7 +17,7 @@ type UseConciergeSidePanelReportActionsParams = {
     hasOlderActions: boolean;
     sessionStartTime: string | null;
     currentUserAccountID: number;
-    currentSessionUserActionIDs: Set<string>;
+    currentSessionActionIDs: Set<string>;
     greetingText: string;
     loadOlderChats: (force?: boolean) => void;
     isConciergeMainDM?: boolean;
@@ -36,7 +36,7 @@ function useConciergeSidePanelReportActions({
     hasOlderActions,
     sessionStartTime,
     currentUserAccountID,
-    currentSessionUserActionIDs,
+    currentSessionActionIDs,
     greetingText,
     loadOlderChats,
     isConciergeMainDM,
@@ -132,13 +132,13 @@ function useConciergeSidePanelReportActions({
             const isCurrentSessionUserMessage =
                 !isCreatedAction(action) &&
                 action.actorAccountID === currentUserAccountID &&
-                (isCurrentUserPendingAddAction(action, currentUserAccountID) || currentSessionUserActionIDs.has(action.reportActionID) || action.created >= sessionStartTime);
+                (isCurrentUserPendingAddAction(action, currentUserAccountID) || currentSessionActionIDs.has(action.reportActionID) || action.created >= sessionStartTime);
             if (!isCurrentSessionUserMessage) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
         }, undefined);
-    }, [isConciergeMainDM, showConciergeSidePanelWelcome, isConciergeHiddenHistory, hasUserSentMessage, sessionStartTime, reportActions, currentUserAccountID, currentSessionUserActionIDs]);
+    }, [isConciergeMainDM, showConciergeSidePanelWelcome, isConciergeHiddenHistory, hasUserSentMessage, sessionStartTime, reportActions, currentUserAccountID, currentSessionActionIDs]);
 
     const isCurrentSessionAction = useCallback(
         (action: OnyxTypes.ReportAction): boolean => {
@@ -149,7 +149,7 @@ function useConciergeSidePanelReportActions({
                 return (
                     isCreatedAction(action) ||
                     isCurrentUserPendingAddAction(action, currentUserAccountID) ||
-                    currentSessionUserActionIDs.has(action.reportActionID) ||
+                    currentSessionActionIDs.has(action.reportActionID) ||
                     action.created >= sessionStartTime
                 );
             }
@@ -159,11 +159,11 @@ function useConciergeSidePanelReportActions({
             return (
                 isCreatedAction(action) ||
                 isCurrentUserPendingAddAction(action, currentUserAccountID) ||
-                currentSessionUserActionIDs.has(action.reportActionID) ||
+                currentSessionActionIDs.has(action.reportActionID) ||
                 (action.created >= sessionStartTime && action.created >= firstUserMessageCreated)
             );
         },
-        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID, currentSessionUserActionIDs],
+        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID, currentSessionActionIDs],
     );
 
     const filterActions = useCallback(

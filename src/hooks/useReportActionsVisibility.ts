@@ -9,7 +9,7 @@ import type {ReportAction} from '@src/types/onyx';
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
-import useCurrentSessionUserActionIDs from './useCurrentSessionUserActionIDs';
+import useCurrentSessionActionIDs from './useCurrentSessionActionIDs';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useLocalize from './useLocalize';
@@ -75,18 +75,18 @@ function useReportActionsVisibility({
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
     const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : (mainDMSessionStartTime ?? null);
 
-    // IDs of the current user's own messages captured while optimistic in this session. Retained after
-    // their pendingAction clears so a clock-skewed just-sent message keeps counting as current-session.
-    const currentSessionUserActionIDs = useCurrentSessionUserActionIDs(allReportActions, currentUserAccountID, sessionStartTime);
+    // IDs of the current session's messages (the user's own messages and the Concierge replies to
+    // them) captured by arrival, so a clock-skewed just-sent message or reply keeps counting as
+    // current-session regardless of its timestamp.
+    const currentSessionActionIDs = useCurrentSessionActionIDs(allReportActions, currentUserAccountID, sessionStartTime);
 
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
             ? allReportActions.some(
                   (action) =>
                       !isCreatedAction(action) &&
-                      (isCurrentUserPendingAddAction(action, currentUserAccountID) ||
-                          currentSessionUserActionIDs.has(action.reportActionID) ||
-                          (action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)),
+                      action.actorAccountID === currentUserAccountID &&
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || currentSessionActionIDs.has(action.reportActionID) || action.created >= sessionStartTime),
               )
             : false;
 
@@ -125,7 +125,7 @@ function useReportActionsVisibility({
             hasOlderActions,
             sessionStartTime,
             currentUserAccountID,
-            currentSessionUserActionIDs,
+            currentSessionActionIDs,
             greetingText: translate('common.concierge.greeting'),
             loadOlderChats,
             isConciergeMainDM,
