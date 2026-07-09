@@ -40,6 +40,7 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => true,
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
+        useRoute: () => ({key: 'test-route', name: 'Workspace_Members_Imported', params: {policyID: 'imported-members-test-policy'}}),
     };
 });
 
@@ -47,6 +48,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    getTopmostReportId: jest.fn(() => undefined),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
 }));
