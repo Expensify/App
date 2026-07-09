@@ -2072,11 +2072,7 @@ function hasVisibleViolations(
     return hasActionable && hasUserVisible;
 }
 
-function shouldShowExpense(currentQueryJSON: SearchQueryJSON | undefined, isActionLoading: boolean, report: OnyxEntry<OnyxTypes.Report>, transactionItemReportID?: string) {
-    if (isActionLoading || currentQueryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return true;
-    }
-
+function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, report: OnyxEntry<OnyxTypes.Report>, transactionItemReportID?: string) {
     const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
     if (!status.value) {
         return true;
@@ -2151,8 +2147,8 @@ function getTransactionsSections({
 
         if (!transactionItem.transactionID) {
             shouldShow = false;
-        } else if (!isTrackedOptimisticItem) {
-            shouldShow = shouldShowExpense(currentQueryJSON, isActionLoading, report, transactionItem.reportID);
+        } else if (!isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !isTrackedOptimisticItem) {
+            shouldShow = isEligibleForStatus(currentQueryJSON, report, transactionItem.reportID);
         }
 
         if (shouldShow) {
@@ -2864,7 +2860,7 @@ function getReportSections({
                 reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? {});
 
             const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
-            const shouldShow = shouldShowExpense(currentQueryJSON, isActionLoading, reportItem);
+            const shouldShow = !isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? isEligibleForStatus(currentQueryJSON, reportItem) : true;
 
             if (shouldShow) {
                 const reportPendingAction =
@@ -6564,6 +6560,7 @@ export {
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,
+    isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};

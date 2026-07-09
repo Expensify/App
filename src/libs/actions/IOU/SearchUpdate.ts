@@ -2,7 +2,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,21 +57,6 @@ function shouldOptimisticallyUpdateSearch(
     ) {
         return false;
     }
-    let shouldOptimisticallyUpdateByStatus = true;
-    const status = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    const transactionReportID = transaction?.reportID;
-    if (status.value) {
-        if (status.isNegated) {
-            shouldOptimisticallyUpdateByStatus = Object.keys(expenseReportStatusFilterMapping).some((val) => {
-                const isExcluded = status.value?.includes(val);
-                return !isExcluded && expenseReportStatusFilterMapping[val](iouReport, transactionReportID);
-            });
-        } else {
-            shouldOptimisticallyUpdateByStatus = status.value.some((val) => {
-                return expenseReportStatusFilterMapping[val](iouReport, transactionReportID);
-            });
-        }
-    }
 
     const currentSearchPolicyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (currentSearchPolicyIDs.value?.length && iouReport?.policyID) {
@@ -84,6 +69,7 @@ function shouldOptimisticallyUpdateSearch(
         }
     }
 
+    const shouldOptimisticallyUpdateByStatus = isEligibleForStatus(currentSearchQueryJSON, iouReport, transaction?.reportID);
     if (!shouldOptimisticallyUpdateByStatus) {
         return false;
     }
