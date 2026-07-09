@@ -2108,7 +2108,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('doesReportHaveVisibleActions', () => {
-        const reportID = 'report_dhva_1';
+        const reportID = 'report_1';
         const visibleComment: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
