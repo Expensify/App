@@ -1657,8 +1657,10 @@ function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
 
     const employees = policy.employeeList ?? {};
 
-    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added.
-    if (!!defaultApprover && !!employees[defaultApprover]?.forwardsTo) {
+    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added,
+    // either unconditionally (forwardsTo) or above an approval limit (overLimitForwardsTo).
+    const defaultApproverEmployee = employees[defaultApprover];
+    if (!!defaultApprover && (!!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo)) {
         return true;
     }
 

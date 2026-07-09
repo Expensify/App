@@ -926,6 +926,24 @@ describe('useGettingStartedItems', () => {
             expect(approvalsItem?.isComplete).toBe(true);
         });
 
+        it('should be completed when the default approver only forwards approvals above a limit', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'owner@test.com': {email: 'owner@test.com', approvalLimit: 100, overLimitForwardsTo: 'boss@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
         it('should be completed when a member submits to a non-default approver', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
