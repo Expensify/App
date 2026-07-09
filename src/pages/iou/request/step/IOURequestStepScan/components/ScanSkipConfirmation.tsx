@@ -4,6 +4,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -15,7 +16,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
-import {getMoneyRequestPolicyTags} from '@libs/actions/IOU';
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
@@ -174,10 +174,19 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
     };
 
+    const participant = participants.at(0);
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
+    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const policyTagList = useMoneyRequestPolicyTags({
+        moneyRequestReportID,
+        parentChatReportPolicyID: parentChatReport?.policyID,
+        participantReportID: participant?.reportID ?? undefined,
+    });
+
     const submitDirectly = (files: ReceiptFile[], locationPermissionGranted: boolean) => {
         cancelShutterSpans();
 
-        const participant = participants.at(0);
         const {chatReportID, optimisticChatReportID} = resolveChatTargetForScan({
             iouType,
             participant,
@@ -258,16 +267,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             policyForMovingExpenses,
             participant,
             transactionReportID: transaction?.reportID,
-        });
-
-        const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-        const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
-        const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policyTagList = getMoneyRequestPolicyTags({
-            moneyRequestReportID,
-            parentChatReport,
-            participant,
         });
 
         const baseParams = {
