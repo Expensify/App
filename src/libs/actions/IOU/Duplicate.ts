@@ -671,7 +671,6 @@ function createExpenseByType({
                 participants,
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
-                policyParams: params.policyParams,
                 existingTransaction: {
                     iouRequestType: getDuplicateRequestType(transaction),
                     amount: 0,
@@ -719,7 +718,6 @@ function createExpenseByType({
         default:
             return requestMoney({
                 ...params,
-                policyParams: params.policyParams,
             });
     }
 }
