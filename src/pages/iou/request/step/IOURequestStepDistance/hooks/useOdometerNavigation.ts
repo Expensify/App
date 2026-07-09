@@ -1,10 +1,11 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 
 import {rand64} from '@libs/NumberUtils';
-import {generateReportID, isMoneyRequestReport} from '@libs/ReportUtils';
+import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 
@@ -146,8 +147,9 @@ function useOdometerNavigation({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const delegateAccountID = useDelegateAccountID();
 
@@ -200,6 +202,7 @@ function useOdometerNavigation({
             optimisticChatReportID,
             reportDraft,
             delegateAccountID,
+            policyTagList,
         });
     };
 }

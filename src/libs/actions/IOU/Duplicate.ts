@@ -653,6 +653,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    policyTagList,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -665,20 +666,10 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    policyTagList: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
-            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
-            // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policyTagList = getMoneyRequestPolicyTags({
-                existingIOUReport: params.existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: currentChatReport,
-                participant: participants.at(0) ?? {},
-            });
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
@@ -729,22 +720,11 @@ function createExpenseByType({
             };
             return submitPerDiemExpense(perDiemParams);
         }
-        default: {
-            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : undefined;
-            const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policyTagList = getMoneyRequestPolicyTags({
-                existingIOUReport: params.existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport,
-                participant: params.participantParams.participant,
-            });
+        default:
             return requestMoney({
                 ...params,
                 policyParams: {...(params.policyParams ?? {}), policyTagList},
             });
-        }
     }
 }
 
@@ -773,6 +753,7 @@ type DuplicateExpenseTransactionParams = {
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
     delegateAccountID: number | undefined;
+    policyTagList: OnyxTypes.PolicyTagLists;
 };
 
 function duplicateExpenseTransaction({
@@ -800,13 +781,14 @@ function duplicateExpenseTransaction({
     currentUser,
     currentUserLocalCurrency,
     delegateAccountID,
+    policyTagList,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
     }
     const {accountID: currentUserAccountID, email: currentUserLogin = ''} = currentUser;
-
     const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
+
     const transactionDetails = getTransactionDetails(transaction);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
@@ -911,6 +893,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        policyTagList,
     });
 }
 
@@ -1053,6 +1036,18 @@ function duplicateReport({
             delegateAccountID,
         };
 
+        const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
+        const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
+        const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
+        // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const policyTagList = getMoneyRequestPolicyTags({
+            existingIOUReport: params.existingIOUReport,
+            moneyRequestReportID,
+            parentChatReport: currentChatReport,
+            participant: participants.at(0) ?? {},
+        });
+
         const result = createExpenseByType({
             transactionType: getTransactionType(transaction),
             params,
@@ -1065,6 +1060,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            policyTagList,
         });
 
         if (result?.iouReport) {
@@ -1097,6 +1093,7 @@ type BulkDuplicateExpensesParams = {
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
     delegateAccountID: number | undefined;
+    policyTagList: OnyxTypes.PolicyTagLists;
 };
 
 function bulkDuplicateExpenses({
@@ -1119,6 +1116,7 @@ function bulkDuplicateExpenses({
     currentUser,
     currentUserLocalCurrency,
     delegateAccountID,
+    policyTagList,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1215,6 +1213,7 @@ function bulkDuplicateExpenses({
             currentUser,
             currentUserLocalCurrency,
             delegateAccountID,
+            policyTagList,
         });
 
         if (result?.iouReport) {
