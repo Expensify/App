@@ -54,6 +54,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -63,7 +64,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
-    const bankAccountState = reimbursementAccount?.achData?.state ?? '';
+    const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
+    const bankAccountState = bankAccountConnectedToWorkspace?.accountData?.state ?? '';
     const pendingAction = reimbursementAccount?.pendingAction;
 
     // After a disconnect, wait for the reset API to finish before navigating to the entry point.
@@ -139,7 +141,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
             {!maxAttemptsReached && isBankAccountPending && (
                 <BankAccountValidationForm
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
-                    reimbursementAccount={reimbursementAccount}
+                    policyID={policyID}
+                    bankAccountID={bankAccountConnectedToWorkspace?.accountData?.bankAccountID}
                     policy={policy}
                 />
             )}
