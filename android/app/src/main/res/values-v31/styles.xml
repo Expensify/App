@@ -1,4 +1,14 @@
 <resources>
+    <style name="AppTheme" parent="BaseAppTheme">
+        <item name="android:autofilledHighlight">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
 
     <!-- Android 12 lets us clips the ripple at the outline, so we do that rather than inset -->
     <style name="AppTheme.Popup" parent="Base.ThemeOverlay.AppCompat">
