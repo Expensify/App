@@ -421,7 +421,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             <Icon
                                 src={expensifyIcons.Exclamation}
                                 fill={theme.icon}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
                         </View>
                         <View style={styles.flex1}>

@@ -777,6 +777,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXISTING_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.RILLET_SUBSIDIARY_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.RILLET_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_IMPORT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.RILLET_PREFERRED_EXPORTER]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.RILLET_VENDOR_BILL_DATE]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.RILLET_COMPANY_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.RILLET_DEFAULT_COMPANY_CARD_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.route,
@@ -1641,6 +1646,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.POLICY_COPY_SETTINGS.ROOT]: ROUTES.POLICY_COPY_SETTINGS.route,
                         [SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES]: ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.route,
+                        [SCREENS.POLICY_COPY_SETTINGS.UPGRADE]: ROUTES.POLICY_COPY_SETTINGS_UPGRADE.route,
                         [SCREENS.POLICY_COPY_SETTINGS.CONFIRM]: ROUTES.POLICY_COPY_SETTINGS_CONFIRM.route,
                     },
                 },
@@ -1928,6 +1934,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path,
                         [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.route,
                         [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
+                        [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: ROUTES.TRAVEL_LEGAL_ENTITY_TAX_ID.route,
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
@@ -2079,6 +2086,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.AVATAR_CROP]: {
+                    screens: {
+                        [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AVATAR_CROP.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {
