@@ -200,6 +200,20 @@ describe('createAgent', () => {
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticReportID: result.optimisticReportID}), expect.any(Object));
     });
 
+    it('passes createdReportActionID through to CreateAgent matching the key of the optimistic CREATED action, so the DM created action reconciles onto it instead of a duplicate', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        const {optimisticData} = getWriteOptions();
+        const actionsValue: unknown = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticReportID}`)?.value;
+        if (!actionsValue || typeof actionsValue !== 'object') {
+            throw new Error('No reportActions update in optimisticData');
+        }
+        const createdActionID = Object.keys(actionsValue).at(0);
+
+        expect(createdActionID).toBeTruthy();
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({createdReportActionID: createdActionID}), expect.any(Object));
+    });
+
     it('optimistic data writes the owner<->agent DM report with both participants and a pending createChat field', () => {
         const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 

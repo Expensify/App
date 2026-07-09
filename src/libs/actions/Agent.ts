@@ -4,6 +4,7 @@ import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -63,7 +64,15 @@ function createAgent(
         optimisticReportID,
         currentUserAccountID: ownerAccountID,
     });
-    const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE, currentUserAccountID: ownerAccountID});
+    // Generated up front (rather than left to buildOptimisticCreatedReportAction's default) so it can also
+    // be sent to CreateAgent, the same way OpenReport's callers forward createdReportActionID: the DM's
+    // CREATED action then reconciles onto this exact ID instead of the server generating a duplicate.
+    const createdReportActionID = rand64();
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction({
+        emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
+        currentUserAccountID: ownerAccountID,
+        optimisticReportActionID: createdReportActionID,
+    });
 
     const optimisticData: AnyOnyxUpdate[] = [
         {
@@ -152,7 +161,7 @@ function createAgent(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
