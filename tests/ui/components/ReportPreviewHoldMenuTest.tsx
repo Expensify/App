@@ -20,7 +20,6 @@ const SELECTED_BANK_ACCOUNT_ID = 9999;
 
 type CapturedHoldMenuProps = {
     isVisible?: boolean;
-    requestType?: string;
     paymentType?: PaymentMethodType;
     methodID?: number;
     nonHeldAmount?: string;
@@ -112,11 +111,10 @@ describe('ReportPreviewHoldMenu', () => {
         expect(mockHoldMenuPropsHolder.current).toBeUndefined();
     });
 
-    it('forwards the request type, payment type and selected bank account from the context state', () => {
+    it('forwards the payment type and selected bank account from the context state', () => {
         renderHoldMenu();
 
         expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
-        expect(mockHoldMenuPropsHolder.current?.requestType).toBe(CONST.IOU.REPORT_ACTION_TYPE.PAY);
         expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
         expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
     });
