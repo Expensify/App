@@ -125,4 +125,27 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
         expect(command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
         expect(params.emojiCode).toBe(THUMBSUP_HEX);
     });
+
+    it('does not throw when a name-keyed stub (no users) coexists with a hex-keyed reaction', () => {
+        const THUMBSUP_HEX = '1F44D';
+        const existingReactions: ReportActionReactions = {
+            [THUMBSUP_HEX]: {
+                createdAt: TIMESTAMP,
+                oldestTimestamp: TIMESTAMP,
+                users: {[USER_A]: makeUserReaction(USER_A)},
+            },
+            // Reproduces the post-Auth-hex-migration Onyx state left behind by addEmojiReaction's
+            // finallyData: a name-keyed stub with no `users` after the server NILs the optimistic entry.
+            '+1': {pendingAction: null},
+        };
+
+        expect(() => {
+            toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, true);
+        }).not.toThrow();
+
+        expect(writeMock).toHaveBeenCalledTimes(1);
+        const [command, params] = writeMock.mock.calls.at(0) as [string, {emojiCode: string}];
+        expect(command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
+        expect(params.emojiCode).toBe(THUMBSUP_HEX);
+    });
 });
