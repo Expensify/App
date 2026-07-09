@@ -879,7 +879,7 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
-            isDraftChatReport,
+            isDraftChatReport: !!isDraftChatReport,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             quickAction,

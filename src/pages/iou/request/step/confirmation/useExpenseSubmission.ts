@@ -646,7 +646,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             trackExpenseIOUActions({
                 report,
                 isDraftPolicy,
-                isDraftChatReport,
+                isDraftChatReport: !!isDraftChatReport,
                 action,
                 existingTransaction: item,
                 participantParams: {

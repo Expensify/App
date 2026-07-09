@@ -149,7 +149,7 @@ function createTransaction({
             trackExpense({
                 report,
                 isDraftPolicy: false,
-                isDraftChatReport,
+                isDraftChatReport: !!isDraftChatReport,
                 existingTransaction: transaction,
                 participantParams: {
                     payeeEmail: currentUserEmail,

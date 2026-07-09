@@ -43,8 +43,7 @@ type CreateTrackExpenseParams = {
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    isDraftChatReport?: boolean;
+    isDraftChatReport: boolean;
     // Personal details list is optional here because we only use/pass it for SHARE case
     personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };

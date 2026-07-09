@@ -214,6 +214,7 @@ describe('actions/Transaction', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,

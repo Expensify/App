@@ -187,6 +187,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -309,6 +310,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: participant.login,
@@ -413,6 +415,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
                     payeeEmail: participant.login,
@@ -514,6 +517,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -560,6 +564,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -652,6 +657,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -698,6 +704,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -793,6 +800,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -838,6 +846,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -932,6 +941,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -978,6 +988,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1092,6 +1103,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1138,6 +1150,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: ownPolicyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1211,6 +1224,7 @@ describe('actions/IOU/TrackExpense', () => {
             return {
                 report,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1429,6 +1443,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1524,6 +1539,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2344,6 +2360,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -2648,6 +2665,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,

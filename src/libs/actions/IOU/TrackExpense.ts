@@ -55,7 +55,6 @@ import {
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     getReportTransactions,
-    isDraftReport,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -988,8 +987,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         );
     }
 
-    // Check if the report is a draft
-    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
+    const isDraftReportLocal = isDraftChatReport;
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 

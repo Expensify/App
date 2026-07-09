@@ -784,6 +784,7 @@ describe('Unread Indicators', () => {
         trackExpense({
             report: selfDMReport,
             isDraftPolicy: true,
+            isDraftChatReport: false,
             action: CONST.IOU.ACTION.CREATE,
             participantParams: {
                 payeeEmail: participant.login,
