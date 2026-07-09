@@ -51,7 +51,7 @@ function ApproveActionButton() {
     const [transactionViolations] = useReportTransactionViolations(transactions);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
 
     const confirmApproval = () => {
         if (isDelegateAccessRestricted) {

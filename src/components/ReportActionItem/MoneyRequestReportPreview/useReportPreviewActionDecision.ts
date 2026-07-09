@@ -1,5 +1,4 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -9,7 +8,6 @@ import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 
 import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -46,14 +44,11 @@ function useReportPreviewActionDecision({
     isSubmittingAnimationRunning,
 }: UseReportPreviewActionDecisionParams): ReportPreviewActionState {
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {isOffline} = useNetwork();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReportID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
-
-    const filteredTransactions = transactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
@@ -66,7 +61,7 @@ function useReportPreviewActionDecision({
         bankAccountList,
         currentUserDetails.login ?? '',
         currentUserDetails.accountID,
-        filteredTransactions,
+        transactions,
         false,
         undefined,
         invoiceReceiverPolicy,
@@ -80,7 +75,7 @@ function useReportPreviewActionDecision({
             bankAccountList,
             currentUserDetails.login ?? '',
             currentUserDetails.accountID,
-            filteredTransactions,
+            transactions,
             true,
             undefined,
             invoiceReceiverPolicy,
@@ -93,7 +88,7 @@ function useReportPreviewActionDecision({
         currentUserLogin: currentUserDetails.login ?? '',
         report: iouReport,
         policy,
-        transactions: filteredTransactions,
+        transactions,
         bankAccountList,
         invoiceReceiverPolicy,
         isPaidAnimationRunning,
