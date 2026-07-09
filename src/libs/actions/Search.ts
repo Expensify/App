@@ -1475,6 +1475,7 @@ function queueExportSearchWithTemplate(
  * @param localeCompare - Locale-aware string comparison function used to sort each group alphabetically
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
+ * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
  * @returns The export templates, with the custom/IS group (sorted alphabetically) first, followed by the default group (sorted alphabetically)
  */
 function getExportTemplates(
@@ -1484,9 +1485,16 @@ function getExportTemplates(
     localeCompare: LocaleContextProps['localeCompare'],
     policy?: Policy,
     includeReportLevelExport = true,
+    includeBasicExport = false,
 ): ExportTemplate[] {
     // Helper function to normalize template data into consistent ExportTemplate format
-    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+    const normalizeTemplate = (
+        templateName: string,
+        template: Pick<ExportTemplate, 'name'> & Partial<ExportTemplate>,
+        type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>,
+        description = '',
+        policyID?: string,
+    ): ExportTemplate => ({
         ...template,
         templateName,
         description,
@@ -1496,14 +1504,17 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
-        exportTemplates.push(
-            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
-        );
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
+    // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
+    if (includeBasicExport) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, {name: translate('export.basicExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template

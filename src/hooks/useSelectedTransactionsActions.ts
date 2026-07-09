@@ -389,45 +389,46 @@ function useSelectedTransactionsActions({
             // If we've selected all the transactions on the report, we can also provide the report level export option
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
-            // Add the custom IS templates first, followed by the default templates, matching the Search export menu ordering
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport);
-            const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
+            // Add the custom IS templates first, followed by the default templates (including basic export), each group sorted alphabetically
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport, true);
+            const standardTemplateNames = new Set<string>([
+                CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
+            ]);
             let previousIsStandardTemplate: boolean | undefined;
             for (const template of exportTemplates) {
                 const isStandardTemplate = standardTemplateNames.has(template.templateName);
+                // "Basic export" is a plain CSV download, so it uses its own handler rather than the template export flow
+                const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
                 exportOptions.push({
                     text: template.name,
                     icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
+                    onSelected: isBasicExport
+                        ? () => {
+                              if (!report) {
+                                  return;
+                              }
+                              if (isOffline) {
+                                  onExportOffline?.();
+                                  return;
+                              }
+                              exportReportToCSV(
+                                  {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                                  () => {
+                                      onExportFailed?.();
+                                  },
+                                  translate,
+                              );
+                              clearSelectedTransactions(true);
+                          }
+                        : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
                     // Divider at the custom/default group boundary (suppressed when this is the first item)
                     addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
                 });
                 previousIsStandardTemplate = isStandardTemplate;
             }
-
-            // "Basic export" is a default export option, pinned to the bottom of the menu within the default templates group (no divider before it)
-            exportOptions.push({
-                text: translate('export.basicExport'),
-                icon: expensifyIcons.Table,
-                onSelected: () => {
-                    if (!report) {
-                        return;
-                    }
-                    if (isOffline) {
-                        onExportOffline?.();
-                        return;
-                    }
-                    exportReportToCSV(
-                        {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
-                        () => {
-                            onExportFailed?.();
-                        },
-                        translate,
-                    );
-                    clearSelectedTransactions(true);
-                },
-            });
 
             return exportOptions;
         };

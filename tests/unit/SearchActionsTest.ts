@@ -156,4 +156,19 @@ describe('getExportTemplates', () => {
         expect(templateNames).toContain(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT);
         expect(templateNames).not.toContain(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
     });
+
+    it('excludes the basic export template by default', () => {
+        const result = getExportTemplates([], {}, translate, localeCompare);
+        const templateNames = result.map((template) => template.templateName);
+
+        expect(templateNames).not.toContain(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
+    });
+
+    it('includes the basic export template in the default group (sorted alphabetically) when includeBasicExport is true', () => {
+        const result = getExportTemplates([], {}, translate, localeCompare, undefined, true, true);
+        const names = result.map((template) => template.name);
+
+        // Basic export is sorted alphabetically alongside the other default templates, not pinned to the bottom
+        expect(names).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport'), translate('export.basicExport')].sort(localeCompare));
+    });
 });
