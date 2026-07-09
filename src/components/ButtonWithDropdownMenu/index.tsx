@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
-import InlineIcon from '@components/InlineIcon';
+import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
 import Text from '@components/Text';
 
@@ -281,8 +281,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                 >
                                     {shouldUseShortForm ? (
                                         <InlineIcon
-                                            width={variables.iconSizeExtraSmall}
-                                            height={variables.iconSizeExtraSmall}
+                                            contentSize={{width: variables.iconSizeExtraSmall, height: variables.iconSizeExtraSmall}}
                                             src={icons.DownArrow}
                                             additionalStyles={[styles.pRelative, styles.t0, isMenuVisible ? styles.flipUpsideDown : undefined]}
                                             fill={success ? theme.buttonSuccessText : theme.buttonIcon}
