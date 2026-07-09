@@ -1,6 +1,5 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
@@ -10,13 +9,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -57,7 +62,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
@@ -76,7 +80,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
@@ -116,7 +119,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -143,7 +145,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -159,7 +160,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         resolve();
@@ -195,7 +195,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -211,7 +210,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -246,7 +244,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -262,7 +259,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -294,7 +290,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -321,7 +316,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -346,7 +340,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -383,7 +376,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -496,7 +488,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -529,7 +520,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -710,6 +700,7 @@ describe('actions/PolicyMember', () => {
                     TestHelper.formatPhoneNumber,
                     undefined,
                     currentUserInput,
+                    undefined,
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;
@@ -1253,7 +1244,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
@@ -1295,7 +1285,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1332,7 +1321,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1365,7 +1353,6 @@ describe('actions/PolicyMember', () => {
             const savedDraft1 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1376,7 +1363,6 @@ describe('actions/PolicyMember', () => {
             const savedDraft2 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1409,7 +1395,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1441,7 +1426,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);

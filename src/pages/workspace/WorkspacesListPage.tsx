@@ -1,12 +1,10 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -25,20 +24,24 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createCopySettingsEligibleTargetsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
-
-const EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS: CopySettingsEligibleTargets = {adminNonPersonal: [], corporateOnly: []};
 
 function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
@@ -62,9 +65,12 @@ function WorkspacesListPage() {
     // this page. Per-row error indicators subscribe to those fields themselves in WorkspaceRowBrickRoadIndicator.
     const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)}, [session?.email]);
 
-    // Projection of the policy collection passed down to the row menus, which compute their copy-settings
-    // eligibility from it. Kept at the page level so it is evaluated once per policy write instead of once per row.
+    // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)}, [session?.email]);
+
+    // A workspace can copy its settings when there is at least one other eligible target.
+    const isWorkspaceEligibleToCopy = (policyID: string) =>
+        !!copySettingsEligibleTargets && (copySettingsEligibleTargets.length > 1 || (copySettingsEligibleTargets.length === 1 && copySettingsEligibleTargets.at(0) !== policyID));
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
 
@@ -107,12 +113,13 @@ function WorkspacesListPage() {
                 role: CONST.POLICY.ROLE.USER,
                 isDeleted: false,
                 isJoinRequestPending: true,
+                isEligibleToCopy: false,
                 isDefault: activePolicyID === policyID,
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 ownerAccountID,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.name),
                 action: () => null,
@@ -122,10 +129,12 @@ function WorkspacesListPage() {
             workspaceRows.push(pendingWorkspaceRow);
         } else {
             const ownerDetails = policy.ownerAccountID ? ownerDisplayDetails?.[policy.ownerAccountID] : undefined;
+            const policyID = policy.id;
+            const isEligibleToCopy = isWorkspaceEligibleToCopy(policyID) && isPaidGroupPolicyByType(policy.type);
 
             const workspaceRow: WorkspaceRowData = {
-                keyForList: policy.id,
-                policyID: policy.id,
+                keyForList: policyID,
+                policyID,
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: policy.errors,
                 type: policy.type,
@@ -133,17 +142,18 @@ function WorkspacesListPage() {
                 role: policy.role,
                 ownerAccountID: policy.ownerAccountID,
                 isJoinRequestPending: false,
-                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policy.id,
-                isDefault: activePolicyID === policy.id,
+                isEligibleToCopy,
+                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
+                isDefault: activePolicyID === policyID,
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                 pendingAction: policy.pendingAction,
-                action: (event) => navigateToWorkspace(policy.id, event),
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                action: (event) => navigateToWorkspace(policyID, event),
+                dismissError: () => dismissWorkspaceError(policyID, policy.pendingAction),
             };
 
             workspaceRows.push(workspaceRow);
@@ -231,7 +241,6 @@ function WorkspacesListPage() {
                     workspaces={workspaceRows}
                     onDeleteWorkspace={setPolicyIDToDelete}
                     pendingDeletePolicyID={policyIDToDelete}
-                    copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
                 />
             )}
             {!!policyIDToDelete && (
