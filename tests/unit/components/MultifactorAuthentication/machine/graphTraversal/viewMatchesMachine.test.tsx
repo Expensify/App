@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
+import type {SnapshotFrom} from 'xstate';
 
 import getWalkedPaths, {getActorOutcomes, isAutoDrivenEvent} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
@@ -118,14 +119,20 @@ const testConfig = {
             // Every outcome screen renders the same `OutcomeScreenBase`, so the route name identifies which one is on top.
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
-            // The mock actor rejects with a plain Error, which the machine wraps as a local unhandled
-            // exception, so the scenario's default client failure screen is on top. That screen shows
-            // the failure copy in both its header and its body title.
-            expect(screen.getAllByText(translateLocal('multifactorAuthentication.verificationFailed'))).toHaveLength(2);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
+            // The mock actor produces the same error the graph snapshot carries, so the walk can demand
+            // the exact screen the scenario maps for it. The device-check refusal fixture has a
+            // dedicated failure screen, while a plain rejection is recorded as a local unhandled
+            // exception and falls back to the scenario's default client failure screen, which shows
+            // the failure copy in both its header and its body title.
+            if (state.context.error?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED) {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.unsupportedDevice.unsupportedDevice'))).toBeOnTheScreen();
+            } else {
+                expect(screen.getAllByText(translateLocal('multifactorAuthentication.verificationFailed'))).toHaveLength(2);
+            }
         },
         [MFA_STATE.CLOSING]: () => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

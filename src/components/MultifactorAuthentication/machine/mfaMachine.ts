@@ -1,6 +1,6 @@
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 
-import {createLocalMFAError, MFAActorError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createUnhandledExceptionMFAError, getMFAResultError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -119,21 +119,20 @@ const MFAMachine = setup({
                                 id: 'validateDevice',
                                 src: 'validateDevice',
                                 input: ({context}) => ({scenario: context.scenario}),
-                                // The device passed both gates, so continue to the outcome screen.
-                                // Device-ok lands on success until the registration and authorization
-                                // slices insert their steps before it.
-                                onDone: SUCCESS_TARGET,
-                                // The actor throws the blocking MFAError when the device cannot complete
-                                // the scenario, so carry it to the failure outcome. A non-MFAError means
-                                // the platform check itself threw unexpectedly.
+                                // The actor settles with an MFAResult, so its done event routes on
+                                // `success`. The device passing both gates lands on the success outcome
+                                // until the registration and authorization slices insert their steps
+                                // before it; a refusal carries the blocking MFAError to the failure
+                                // outcome, where the screen is chosen from the error reason.
+                                onDone: [
+                                    {guard: ({event}) => event.output.success, target: SUCCESS_TARGET},
+                                    {target: FAILURE_TARGET, actions: assign({error: ({event}) => getMFAResultError(event.output)})},
+                                ],
+                                // Expected refusals travel as failed results through onDone, so a
+                                // rejection means the platform check itself threw unexpectedly.
                                 onError: {
                                     target: FAILURE_TARGET,
-                                    actions: assign({
-                                        error: ({event}) =>
-                                            event.error instanceof MFAActorError
-                                                ? event.error.mfaError
-                                                : createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, 'Device check threw an unexpected error'),
-                                    }),
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Device check', event.error)}),
                                 },
                             },
                         },

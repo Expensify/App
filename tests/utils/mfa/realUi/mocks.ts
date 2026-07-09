@@ -2,6 +2,7 @@ import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/bi
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
+import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
 
 import {fromPromise} from 'xstate';
@@ -50,7 +51,8 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
 /**
  * Per-path outcomes for the mock actors the walk provides, keyed by actor id. The walk sets this from a
  * path's graph events before rendering, so an `xstate.error.actor.<id>` step makes that actor reject and
- * an `xstate.done.actor.<id>` step makes it resolve. Unlisted actors default to resolving.
+ * an `xstate.done.actor.<id>` step makes it resolve with the output fixture the graph generated the
+ * branch from. Unlisted actors default to resolving with their mock's default output.
  */
 let actorOutcomes: Record<string, ActorOutcome> = {};
 
@@ -59,7 +61,7 @@ function setActorOutcomes(outcomes: Record<string, ActorOutcome>) {
 }
 
 function getActorOutcome(actorId: string): ActorOutcome {
-    return actorOutcomes[actorId] ?? 'resolve';
+    return actorOutcomes[actorId] ?? {kind: 'resolve', output: undefined};
 }
 
 function resetMfaUiMocks() {
@@ -67,12 +69,19 @@ function resetMfaUiMocks() {
     actorOutcomes = {};
 }
 
-function makeActorMock<TInput>(actorID: string) {
-    return fromPromise<void, TInput>(async () => {
-        if (getActorOutcome(actorID) !== 'reject') {
-            return;
+function makeActorMock<TInput, TOutput>(actorID: string, defaultOutput: TOutput) {
+    return fromPromise<TOutput, TInput>(async () => {
+        const outcome = getActorOutcome(actorID);
+        if (outcome.kind === 'reject') {
+            throw new Error(`Mock MFA actor "${actorID}" rejected for this path`);
         }
-        throw new Error(`Mock MFA actor "${actorID}" rejected for this path`);
+        if (outcome.output === undefined) {
+            return defaultOutput;
+        }
+        // The recorded output originates from this actor's typed done-event fixtures in `flowPaths.ts`,
+        // and the generic outcome record cannot carry that link, so it narrows back to the output type.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return outcome.output as TOutput;
     });
 }
 
@@ -82,7 +91,7 @@ function makeActorMock<TInput>(actorID: string) {
  */
 function mfaActorsMock() {
     const actors = {
-        validateDevice: makeActorMock<ValidateDeviceInput>('validateDevice'),
+        validateDevice: makeActorMock<ValidateDeviceInput, MFAResult>('validateDevice', {success: true}),
     } satisfies ReturnType<typeof createActors>;
 
     return {

@@ -1,3 +1,4 @@
+import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 
@@ -5,7 +6,7 @@ import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFARes
 
 import CONST from '@src/CONST';
 
-import type {SnapshotFrom} from 'xstate';
+import type {OutputFrom, SnapshotFrom} from 'xstate';
 
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
@@ -71,14 +72,37 @@ function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
     return Object.hasOwn(MFA_GRAPH_EVENT_FIXTURES, type);
 }
 
+type MfaActors = ReturnType<typeof createActors>;
+
+type MfaActorDoneOutputFixtures = {
+    readonly [Id in keyof MfaActors]: readonly [OutputFrom<MfaActors[Id]>, ...Array<OutputFrom<MfaActors[Id]>>];
+};
+
+/**
+ * Output variants for each invoked actor's done event, keyed by invoke id. The machine routes a done
+ * event through guards on the actor's output, so the traversal must offer every output shape a branch
+ * depends on; XState's bare `{type}` synthesis would make those guards read an undefined output. The
+ * exhaustive keyed type makes a new actor fail compilation until its output variants are added.
+ */
+const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
+    validateDevice: [
+        {success: true},
+        {success: false, error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, 'Graph-traversal device-check refusal')},
+    ],
+} satisfies MfaActorDoneOutputFixtures;
+
+function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MFA_ACTOR_DONE_OUTPUT_FIXTURES {
+    return Object.hasOwn(MFA_ACTOR_DONE_OUTPUT_FIXTURES, actorId);
+}
+
 const INIT_STEP_EVENT_TYPE = 'xstate.init';
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
 const UI_UNPRODUCIBLE_EVENT_TYPES = new Set<string>(['SET_ERROR']);
 
-type ActorOutcome = 'resolve' | 'reject';
-type PathSteps = ReadonlyArray<{event: {type: string}}>;
+type ActorOutcome = {kind: 'resolve'; output: unknown} | {kind: 'reject'};
+type PathSteps = ReadonlyArray<{event: {type: string; output?: unknown}}>;
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
@@ -87,17 +111,19 @@ function isAutoDrivenEvent(eventType: string): boolean {
 }
 
 /**
- * Derives the outcome each invoked actor must produce from the graph path. This keeps the walk generic:
- * adding another actor only requires a corresponding mock implementation.
+ * Derives the settlement each invoked actor must produce from the graph path. A done step carries the
+ * output fixture its branch was generated from, so the mock resolves with exactly that value, and an
+ * error step makes it reject. This keeps the walk generic: adding another actor only requires a
+ * corresponding mock implementation.
  */
 function getActorOutcomes(steps: PathSteps): Record<string, ActorOutcome> {
     const outcomes: Record<string, ActorOutcome> = {};
     for (const step of steps) {
-        const {type} = step.event;
+        const {type, output} = step.event;
         if (type.startsWith(ACTOR_DONE_EVENT_PREFIX)) {
-            outcomes[type.slice(ACTOR_DONE_EVENT_PREFIX.length)] = 'resolve';
+            outcomes[type.slice(ACTOR_DONE_EVENT_PREFIX.length)] = {kind: 'resolve', output};
         } else if (type.startsWith(ACTOR_ERROR_EVENT_PREFIX)) {
-            outcomes[type.slice(ACTOR_ERROR_EVENT_PREFIX.length)] = 'reject';
+            outcomes[type.slice(ACTOR_ERROR_EVENT_PREFIX.length)] = {kind: 'reject'};
         }
     }
     return outcomes;
@@ -133,6 +159,17 @@ function getTraversalEvents(snapshot: MfaSnapshot): MfaEvent[] {
         }
         if (!type.startsWith('xstate.')) {
             throw new Error(`Missing MFA graph event fixture for application event "${type}"`);
+        }
+        if (type.startsWith(ACTOR_DONE_EVENT_PREFIX)) {
+            const actorId = type.slice(ACTOR_DONE_EVENT_PREFIX.length);
+            if (!hasActorDoneOutputFixtures(actorId)) {
+                throw new Error(`Missing MFA actor done-output fixtures for invoked actor "${actorId}"`);
+            }
+            // XState types `events` as the machine's event union, which cannot name framework events, so
+            // this widens the synthesized done events exactly like the bare synthesis below.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            events.push(...MFA_ACTOR_DONE_OUTPUT_FIXTURES[actorId].map((output) => ({type, output}) as MfaEvent));
+            continue;
         }
         // XState types `events` as the machine's event union, which cannot name framework events, so
         // this widens the synthesized event exactly like XState's own default traversal does.

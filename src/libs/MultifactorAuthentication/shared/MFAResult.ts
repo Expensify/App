@@ -1,3 +1,5 @@
+import {getErrorMessage} from '@libs/ErrorUtils';
+
 import type {MultifactorAuthenticationReason} from './types';
 
 import VALUES from './VALUES';
@@ -18,22 +20,24 @@ function createMFAErrorFromApiResponse(httpStatusCode: number | undefined, reaso
 }
 
 /**
- * The error an MFA actor rejects with when a step fails. It is a real Error, so it carries a stack and
- * satisfies the throw-an-Error lint, and it wraps the domain MFAError that the machine's onError routes
- * to the failure outcome.
+ * Builds the error for a step that threw where it should not. Expected refusals travel as failed
+ * results, so machine actors use this in onError, where a rejection always means an unhandled
+ * exception. The label names the failed step in telemetry, for example 'Device check'.
  */
-class MFAActorError extends Error {
-    readonly mfaError: MFAError;
-
-    constructor(mfaError: MFAError) {
-        super(mfaError.message ?? mfaError.reason);
-        this.name = 'MFAActorError';
-        this.mfaError = mfaError;
-    }
+function createUnhandledExceptionMFAError(stepLabel: string, thrown: unknown): MFAError {
+    return createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, `${stepLabel} threw: ${getErrorMessage(thrown)}`);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- {} means "no additional data fields" as default generic parameter
 type MFAResult<TData = {}> = ({success: true} & TData) | {success: false; error: MFAError};
 
+/**
+ * Returns the error a failed result carries, or undefined for a successful one. It narrows the result
+ * union for callers that already routed on `success` elsewhere, such as a guarded XState transition.
+ */
+function getMFAResultError(result: MFAResult): MFAError | undefined {
+    return result.success ? undefined : result.error;
+}
+
 export type {MFAError, MFAResult};
-export {createLocalMFAError, createMFAErrorFromApiResponse, MFAActorError};
+export {createLocalMFAError, createMFAErrorFromApiResponse, createUnhandledExceptionMFAError, getMFAResultError};
