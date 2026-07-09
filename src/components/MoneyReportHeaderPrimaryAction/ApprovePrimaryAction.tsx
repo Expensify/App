@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type ApprovePrimaryActionProps = {
@@ -52,6 +53,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -107,6 +109,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerLogin,
             full,
             onApproved: startApprovedAnimation,
             delegateEmail,

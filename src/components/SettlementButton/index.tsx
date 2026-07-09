@@ -6,6 +6,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import RenderHTML from '@components/RenderHTML';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
@@ -103,6 +104,8 @@ function SettlementButton({
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
+    approveSubMenuItems,
+    approveSubMenuHeaderText,
     useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
@@ -112,7 +115,7 @@ function SettlementButton({
     hasOnlyHeldExpenses = false,
     sentryLabel,
 }: SettlementButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User']);
+    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User', 'ArrowRight']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -284,11 +287,19 @@ function SettlementButton({
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))
             : undefined;
 
-    const approveButtonOption: DropdownOption<string> = {
+    const approveButtonOption: DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon' | 'subMenuHeaderText'> = {
         text: translate('iou.approve', {formattedAmount}),
         icon: icons.ThumbsUp,
         value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
         disabled: !!shouldDisableApproveButton,
+        ...(approveSubMenuItems?.length
+            ? {
+                  subMenuItems: approveSubMenuItems,
+                  subMenuHeaderText: approveSubMenuHeaderText,
+                  rightIcon: icons.ArrowRight,
+                  backButtonText: translate('iou.approve'),
+              }
+            : {}),
     };
 
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);

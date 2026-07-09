@@ -37,10 +37,11 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
+import type {ActionHandledType} from './useHoldMenuSubmit';
+
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import {ActionHandledType} from './useHoldMenuSubmit';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -67,6 +68,12 @@ type UseLifecycleActionsResult = {
     handleSubmitReport: (skipAnimation?: boolean) => void;
     shouldBlockSubmit: boolean;
     isBlockSubmitDueToPreventSelfApproval: boolean;
+    /** Approve submenu options (partial/full) for selection-mode dropdowns when the report has held expenses; undefined otherwise */
+    approveSubMenuItems: ReturnType<typeof getApprovalDropdownOptions> | undefined;
+    /** Header text shown above the approve submenu */
+    approveSubMenuHeaderText: string;
+    /** Whether the approve action should render as a submenu (i.e. the report has held expenses) */
+    shouldShowApproveSubMenu: boolean;
 };
 
 /**
@@ -167,12 +174,14 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
-    const onApprove = (isFullApproval: boolean) => {
+    const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-        startApprovedAnimation();
+        if (!skipAnimation && !isSubmitPolicy(policy)) {
+            startApprovedAnimation();
+        }
         approveMoneyRequest({
             expenseReport: moneyRequestReport,
             currentUserAccountIDParam: accountID,
@@ -185,9 +194,20 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             expenseReportPolicy: policy,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            ownerLogin: submitterLogin,
             amountOwed,
+            onApproved: () => {
+                if (skipAnimation) {
+                    return;
+                }
+                startApprovedAnimation();
+            },
             delegateEmail,
         });
+        if (skipAnimation) {
+            clearSelectedTransactions(true);
+            onCleanup?.();
+        }
     };
 
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID);
@@ -210,44 +230,25 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         : undefined;
     const approvalOptionsHeaderText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
 
+    // Approve submenu options for selection-mode dropdowns (bulk-select approve, selection toolbar). These skip the
+    // approval button animation and clear the current selection after approving, mirroring the previous confirmApproval flow.
+    const approveSubMenuItems = shouldShowApprovalSecondaryActions
+        ? getApprovalDropdownOptions({
+              moneyRequestReport,
+              hasOnlyHeldExpenses,
+              onPartialApprove: () => onApprove(false, true),
+              onFullApprove: () => onApprove(true, true),
+              translate,
+              shouldShowPayButton,
+              illustrations: expensifyIcons,
+              transactions,
+          })
+        : undefined;
+
+    // Approve the full report. When there are held expenses the partial/full choice is surfaced up front via the
+    // approve submenu instead, so this path always approves everything (used for the non-held case and as a safe fallback).
     const confirmApproval = (skipAnimation = false) => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-        if (isAnyTransactionOnHold) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, skipAnimation ? undefined : () => startApprovedAnimation());
-            return;
-        }
-        if (!skipAnimation && !isSubmitPolicy(policy)) {
-            startApprovedAnimation();
-        }
-        approveMoneyRequest({
-            expenseReport: moneyRequestReport,
-            expenseReportPolicy: policy,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: nextStep,
-            betas,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-            ownerLogin: submitterLogin,
-            full: true,
-            onApproved: () => {
-                if (skipAnimation) {
-                    return;
-                }
-                startApprovedAnimation();
-            },
-            delegateEmail,
-        });
-        if (skipAnimation) {
-            clearSelectedTransactions(true);
-            onCleanup?.();
-        }
+        onApprove(true, skipAnimation);
     };
 
     const handleSubmitReport = (skipAnimation = false) => {
@@ -511,6 +512,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         handleSubmitReport,
         shouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
+        approveSubMenuItems,
+        approveSubMenuHeaderText: approvalOptionsHeaderText,
+        shouldShowApproveSubMenu: shouldShowApprovalSecondaryActions,
     };
 }
 

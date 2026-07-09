@@ -1,5 +1,4 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +22,6 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {openHoldMenu} = useMoneyReportHeaderModals();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -41,38 +39,38 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
 
-    const confirmApproval = () => {
+    const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
-            openHoldMenu({
-                onConfirm: () => startApprovedAnimation(),
-            });
-        } else {
-            if (!isSubmitPolicy(policy)) {
-                startApprovedAnimation();
-            }
-            approveMoneyRequest({
-                expenseReport: moneyRequestReport,
-                expenseReportPolicy: policy,
-                currentUserAccountIDParam: accountID,
-                currentUserEmailParam: email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
-                betas,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin,
-                full: true,
-                onApproved: startApprovedAnimation,
-                delegateEmail,
-            });
+            return;
         }
+        if (!isSubmitPolicy(policy)) {
+            startApprovedAnimation();
+        }
+        approveMoneyRequest({
+            expenseReport: moneyRequestReport,
+            expenseReportPolicy: policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            expenseReportCurrentNextStepDeprecated: nextStep,
+            betas,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            ownerLogin,
+            full,
+            onApproved: startApprovedAnimation,
+            delegateEmail,
+        });
     };
 
-    return confirmApproval;
+    // When there are held expenses the partial/full choice is surfaced up front via the settlement button's approve
+    // submenu, so this always approves the full report (used for the non-held case and as a safe fallback).
+    const confirmApproval = () => onApprove(true);
+
+    return {confirmApproval, onApprove, isAnyTransactionOnHold};
 }
 
 export default useConfirmApproval;

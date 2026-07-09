@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
@@ -8,6 +9,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +24,13 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasUpdatedTotal,
+    isAllowedToApproveExpenseReport,
+    isInvoiceReport as isInvoiceReportUtil,
+} from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
@@ -121,7 +129,26 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
-    const confirmApproval = useConfirmApproval(reportID, startApprovedAnimation);
+    const {confirmApproval, onApprove: onApproveReport} = useConfirmApproval(reportID, startApprovedAnimation);
+
+    // When the report has held expenses, surface the partial/full approval choice up front as a submenu on the
+    // settlement button's Approve option, matching the primary Approve button behavior.
+    const approveIllustrations = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'DocumentCheck']);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
+    const shouldShowApproveSubMenu = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+    const approveSubMenuItems = shouldShowApproveSubMenu
+        ? getApprovalDropdownOptions({
+              moneyRequestReport,
+              hasOnlyHeldExpenses,
+              onPartialApprove: () => onApproveReport(false),
+              onFullApprove: () => onApproveReport(true),
+              translate,
+              shouldShowPayButton,
+              illustrations: approveIllustrations,
+              transactions,
+          })
+        : undefined;
+    const approveSubMenuHeaderText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -203,6 +230,8 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             onlyShowPayElsewhere={onlyShowPayElsewhere}
             currency={moneyRequestReport?.currency}
             confirmApproval={confirmApproval}
+            approveSubMenuItems={approveSubMenuItems}
+            approveSubMenuHeaderText={approveSubMenuHeaderText}
             policyID={moneyRequestReport?.policyID}
             chatReportID={chatReport?.reportID}
             iouReport={moneyRequestReport}
