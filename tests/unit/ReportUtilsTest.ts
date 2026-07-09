@@ -13941,6 +13941,21 @@ describe('ReportUtils', () => {
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
+        it('should return the known displayName for an optimistic personal detail that already has one (e.g. an agent pending creation)', async () => {
+            const optimisticAccountID = 8399123;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: {
+                    accountID: optimisticAccountID,
+                    displayName: "Michal's Agent",
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+
+            waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: optimisticAccountID});
+            expect(displayName).toBe("Michal's Agent");
+        });
         it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
             await Onyx.clear();
 
