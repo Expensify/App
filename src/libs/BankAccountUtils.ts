@@ -77,7 +77,6 @@ function getBankAccountConnectionStatus(state: string | undefined): BankAccountC
                 tone: 'success',
             };
         case CONST.BANK_ACCOUNT.STATE.SETUP:
-        case undefined:
             return {
                 labelKey: 'walletPage.bankAccountStatus.incomplete',
                 messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
