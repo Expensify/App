@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -2776,6 +2775,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     agentsPage: {
         title: '代理人',
         subtitle: `<muted-text>智能代理为你处理工作流程，让你每天多出数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解详情</a>。</muted-text>`,
+        findAgent: '查找代理',
         newAgent: '新代理人',
         emptyAgents: {
             title: '尚未创建代理',
@@ -4596,12 +4596,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             classes: '类别',
             locations: '位置',
             customers: '客户/项目',
+            items: '项目',
             accountsDescription: '您的 QuickBooks Online 科目表将作为类别导入到 Expensify。',
             accountsSwitchTitle: '选择将新账户导入为启用或禁用的类别。',
             accountsSwitchDescription: '启用的类别将在成员创建报销时供其选择。',
             classesDescription: '选择如何在 Expensify 中处理 QuickBooks Online 类别。',
             customersDescription: '选择如何在 Expensify 中处理 QuickBooks Online 客户/项目。',
             locationsDescription: '选择如何在 Expensify 中处理 QuickBooks Online 位置。',
+            itemsDescription: '选择如何在 Expensify 中处理 QuickBooks Online 项目。',
             taxesDescription: '选择如何在 Expensify 中处理 QuickBooks Online 的税务。',
             locationsLineItemsRestrictionDescription:
                 'QuickBooks Online 不支持在支票或供应商账单的分录级别使用地点。如果你希望在分录级别使用地点，请确保使用的是日记账分录以及信用卡/借记卡报销。',
@@ -5357,6 +5359,33 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
             dimensionsImport: '所有 Rillet 维度将作为标签导入',
             importDescription: '选择要从 Rillet 导入的编码配置。',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Rillet 中添加供应商，然后再次同步连接',
+            noAccountsFound: '未找到账户',
+            noAccountsFoundDescription: '请在 Rillet 中添加账户并重新同步连接',
+            exportDescription: '配置 Expensify 数据导出到 Rillet 的方式。',
+            exportReimbursable: {label: '将可报销费用导出为', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: '供应商账单'}}},
+            exportDate: {
+                label: '供应商账单日期',
+                description: '将报表导出到 Rillet 时使用此日期。',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 Rillet 的日期。',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportCompanyCard: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: '信用卡'}}},
+            defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
+            companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
         },
         type: {
             free: '免费',
