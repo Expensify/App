@@ -35,7 +35,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
 
     return (
         <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.cursorPointer]}
             accessible
             accessibilityLabel={groupAccessibilityLabel}
             role={CONST.ROLE.BUTTON}

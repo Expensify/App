@@ -43,6 +43,7 @@ import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    canMergeReports,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
     getPolicyExpenseChat,
@@ -1912,6 +1913,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(payButtonOption);
         }
 
+        const selectedMergeReports = selectedReports.map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter((report) => !!report);
+        if (canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID) && queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            options.push({
+                icon: expensifyIcons.ArrowCollapse,
+                text: translate('search.mergeReports.title'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute()),
+            });
+        }
+
         options.push(exportButtonOption);
 
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
@@ -2242,6 +2254,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

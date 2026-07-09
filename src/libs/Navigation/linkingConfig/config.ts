@@ -1963,6 +1963,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,
                             exact: true,
                         },
+                        [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: {
+                            path: ROUTES.MERGE_REPORTS_SEARCH_RHP.route,
+                            exact: true,
+                        },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: {
                             path: ROUTES.CHANGE_APPROVER_SEARCH_RHP.route,
                             exact: true,

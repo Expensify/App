@@ -8622,6 +8622,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

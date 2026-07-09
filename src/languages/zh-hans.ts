@@ -8525,6 +8525,10 @@ ${reportName}`,
             topCategories: '热门类别',
             topMerchants: '热门商家',
         },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+        },
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

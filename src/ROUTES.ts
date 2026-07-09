@@ -1124,6 +1124,15 @@ const ROUTES = {
             return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
         },
     },
+    MERGE_REPORTS_SEARCH_RHP: {
+        route: 'search/merge-reports/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/merge-reports/search' as const;
+            }
+            return `search/merge-reports/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
     CHANGE_APPROVER_SEARCH_RHP: {
         route: 'search/change-approver/search/:backTo?',
         getRoute: (backTo?: string) => {
