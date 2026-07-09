@@ -1736,6 +1736,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Puoi duplicare fino a ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} spese alla volta. Seleziona meno spese e riprova.`,
         deleted: 'Eliminato',
+        deletePendingExpense: 'Elimina spesa in attesa',
+        deleteConfirmationPendingBYOC: 'Sei sicuro di voler eliminare questa spesa? È in sospeso e potremmo importarla di nuovo se viene contabilizzata.',
+        deleteConfirmationSomePendingBYOC: 'Sei sicuro di voler eliminare queste spese? Alcune sono in sospeso e potremmo importarle di nuovo se vengono contabilizzate.',
         categoryDisabledAlert: {
             title: 'Categoria disattivata',
             prompt: 'Attiva le categorie nello spazio di lavoro per modificare i dettagli della spesa o eliminare la categoria da questa spesa.',
@@ -4383,6 +4386,12 @@ ${amount} per ${merchant} - ${date}`,
         carRental: 'autonoleggio',
         nightIn: 'notte in',
         nightsIn: 'notti a',
+        taxID: {
+            title: 'Codice fiscale',
+            subtitle: 'Inserisci il codice fiscale della tua entità legale così possiamo configurare la fatturazione dei viaggi nella tua valuta locale.',
+            inputLabel: 'Partita IVA dell’entità legale',
+            error: {required: 'Inserisci il codice fiscale/partita IVA della tua entità legale.'},
+        },
     },
     workspace: {
         common: {
@@ -5069,6 +5078,7 @@ ${amount} per ${merchant} - ${date}`,
                 oauth: 'Accedi tramite Salesforce',
                 oauthDescription: 'Per completare la configurazione, dovrai accedere tramite Salesforce e Certinia.\n\nUsa il pulsante qui sotto per continuare.',
                 connectButton: 'Connetti a Certinia',
+                connectSandboxButton: 'Connetti a Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Piano dei conti',
@@ -6326,6 +6336,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 conciergeNotificationDescription: 'Quando il processo sarà completato, Concierge ti invierà un messaggio.',
                 copyCompleted: 'Le impostazioni dello spazio di lavoro sono state copiate.',
             },
+            upgrade: {
+                title: 'Alcune funzionalità richiedono un piano Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} utilizza ${features}, che richiedono un piano Control.
+
+Per portare queste funzionalità negli altri tuoi spazi di lavoro, esegui l’upgrade per continuare.
+
+Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
+            },
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
@@ -7214,6 +7232,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>I ruoli specializzati dello spazio di lavoro sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            unlockFeatures: 'Sblocca queste funzionalità!',
         },
         downgrade: {
             commonFeatures: {
@@ -8844,6 +8863,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             pending: 'In sospeso',
             cleared: 'Compensato',
             failed: 'Non riuscito',
+            never: 'Mai',
         },
         failedError: ({link}: {link: string}) => `Riproveremo a effettuare questa liquidazione quando <a href="${link}">sblocchi il tuo conto</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
@@ -8980,13 +9000,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         stopTimer: (duration: string) => `Ferma timer (${duration})`,
         scheduleOOO: 'Pianifica OOO',
         scheduleOOOTitle: 'Programma assenza dall’ufficio',
-        date: 'Data',
+        date: 'Data di inizio',
+        endDate: 'Data di fine',
         time: 'Ora (formato 24 ore)',
         durationAmount: 'Durata',
         durationUnit: 'Unità',
         reason: 'Motivo',
         workingPercentage: 'Percentuale lavorativa',
-        dateRequired: 'La data è obbligatoria.',
+        dateRequired: 'La data di inizio è obbligatoria.',
+        endDateBeforeStart: 'La data di fine non può essere precedente alla data di inizio.',
         invalidTimeFormat: 'Inserisci un orario valido nel formato 24 ore (ad es. 14:30).',
         enterANumber: 'Inserisci un numero.',
         hour: 'ore',
@@ -9941,7 +9963,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rinomina qui le ricerche salvate</strong>!</tooltip>',
-        accountSwitcher: '<tooltip>Accedi ai tuoi <strong>account Copilot</strong> qui</tooltip>',
+        accountSwitcher: '<tooltip>Ora puoi fare da copilota in un altro account!</tooltip>',
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare il test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',

@@ -1744,6 +1744,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
         deleted: 'Supprimé',
+        deletePendingExpense: 'Supprimer la dépense en attente',
+        deleteConfirmationPendingBYOC: 'Voulez-vous vraiment supprimer cette dépense ? Elle est en attente et nous pourrions l’importer à nouveau si elle est comptabilisée.',
+        deleteConfirmationSomePendingBYOC: 'Voulez-vous vraiment supprimer ces dépenses ? Certaines sont en attente et nous pourrions les importer à nouveau si elles sont comptabilisées.',
         categoryDisabledAlert: {
             title: 'Catégorie désactivée',
             prompt: 'Activez les catégories dans l’espace de travail pour modifier les détails de la dépense ou supprimer la catégorie de cette dépense.',
@@ -4408,6 +4411,12 @@ ${amount} pour ${merchant} - ${date}`,
         carRental: 'location de voiture',
         nightIn: 'nuit dans',
         nightsIn: 'nuits à',
+        taxID: {
+            title: 'Identifiant fiscal',
+            subtitle: 'Saisissez l’identifiant fiscal de votre entité légale afin que nous puissions configurer la facturation des déplacements dans votre devise locale.',
+            inputLabel: 'Identifiant fiscal de l’entité juridique',
+            error: {required: 'Veuillez saisir l’identifiant fiscal de votre entité légale.'},
+        },
     },
     workspace: {
         common: {
@@ -5096,6 +5105,7 @@ ${amount} pour ${merchant} - ${date}`,
                 oauth: 'Se connecter via Salesforce',
                 oauthDescription: 'Pour terminer la configuration, vous devez vous connecter via Salesforce et Certinia.\n\nUtilisez le bouton ci-dessous pour continuer.',
                 connectButton: 'Se connecter à Certinia',
+                connectSandboxButton: 'Se connecter à Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plan comptable',
@@ -6363,6 +6373,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
             },
+            upgrade: {
+                title: 'Certaines fonctionnalités nécessitent un forfait Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} utilise ${features}, qui nécessitent un forfait Control.
+
+Pour apporter ces fonctionnalités à vos autres espaces de travail, mettez-les à niveau pour continuer.
+
+Le forfait Control commence à 9 $ par Membre actif et par mois.`,
+            },
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -7258,6 +7276,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            unlockFeatures: 'Débloquez ces fonctionnalités !',
         },
         downgrade: {
             commonFeatures: {
@@ -8888,6 +8907,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pending: 'En attente',
             cleared: 'Compensé',
             failed: 'Échec',
+            never: 'Jamais',
         },
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
@@ -9024,13 +9044,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         stopTimer: (duration: string) => `Arrêter le minuteur (${duration})`,
         scheduleOOO: 'Planifier une absence',
         scheduleOOOTitle: 'Planifier une absence du bureau',
-        date: 'Date',
+        date: 'Date de début',
+        endDate: 'Date de fin',
         time: 'Heure (format 24 heures)',
         durationAmount: 'Durée',
         durationUnit: 'Unité',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',
-        dateRequired: 'La date est obligatoire.',
+        dateRequired: 'La date de début est obligatoire.',
+        endDateBeforeStart: 'La date de fin ne peut pas être antérieure à la date de début.',
         invalidTimeFormat: 'Veuillez entrer une heure valide au format 24 heures (par ex. 14:30).',
         enterANumber: 'Veuillez saisir un nombre.',
         hour: 'heures',
@@ -9984,7 +10006,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
-        accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
+        accountSwitcher: '<tooltip>Vous pouvez désormais copiloter un autre compte&nbsp;!</tooltip>',
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
