@@ -2099,13 +2099,13 @@ describe('CardUtils', () => {
             expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED, false)).toBe('workspace.expensifyCard.statusInactive');
         });
 
-        it('reports a virtual card in a physical-only state as active', () => {
-            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED, true)).toBe('workspace.expensifyCard.statusActive');
-            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, true)).toBe('workspace.expensifyCard.statusActive');
+        it('reports no status for a virtual card in a physical-only state', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED, true)).toBeUndefined();
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, true)).toBeUndefined();
         });
 
-        it('falls back to active for an undefined state', () => {
-            expect(getTranslationKeyForCardStatus(undefined, false)).toBe('workspace.expensifyCard.statusActive');
+        it('reports no status for an undefined or unrecognized state', () => {
+            expect(getTranslationKeyForCardStatus(undefined, false)).toBeUndefined();
         });
     });
 

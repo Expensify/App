@@ -174,8 +174,10 @@ export default function WorkspaceExpensifyCardsTable({
         }
 
         if (activeSorting.columnKey === 'status') {
-            const status1 = translate(getTranslationKeyForCardStatus(item1.card.state, item1.isVirtual));
-            const status2 = translate(getTranslationKeyForCardStatus(item2.card.state, item2.isVirtual));
+            const status1TranslationKey = getTranslationKeyForCardStatus(item1.card.state, item1.isVirtual);
+            const status2TranslationKey = getTranslationKeyForCardStatus(item2.card.state, item2.isVirtual);
+            const status1 = status1TranslationKey ? translate(status1TranslationKey) : '';
+            const status2 = status2TranslationKey ? translate(status2TranslationKey) : '';
             return localeCompare(status1, status2) * orderMultiplier;
         }
 

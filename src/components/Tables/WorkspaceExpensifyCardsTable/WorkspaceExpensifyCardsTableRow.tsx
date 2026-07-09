@@ -46,7 +46,8 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
-    const statusLabel = translate(getTranslationKeyForCardStatus(item.card.state, item.isVirtual));
+    const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
+    const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
     let frozenByText: string | undefined;
