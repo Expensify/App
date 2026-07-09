@@ -4210,6 +4210,15 @@ function getSortedTransactionData(
     return data.sort((a, b) => compareScanningPriority(a, b) || compareColumn(a, b));
 }
 
+/**
+ * Pins in-progress scans to the top of a transaction list, preserving the existing order otherwise.
+ * Grouped Search children are rebuilt from a per-group snapshot and never reach getSortedTransactionData,
+ * so they need the same scanning-first treatment the ungrouped list and the report layouts already apply.
+ */
+function sortTransactionsScanningFirst<T extends TransactionListItemType>(transactions: T[]): T[] {
+    return [...transactions].sort(compareScanningPriority);
+}
+
 function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -6695,6 +6704,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    sortTransactionsScanningFirst,
     getViolationsFromSearchData,
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,

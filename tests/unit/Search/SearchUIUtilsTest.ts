@@ -6331,6 +6331,30 @@ describe('SearchUIUtils', () => {
             expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, CONST.SEARCH.SORT_ORDER.DESC).at(0)).toBe('scanning');
         });
 
+        it('should pin scanning transactions to the top of grouped Search children while keeping the rest in order', () => {
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture at index 0');
+            }
+            const first: TransactionListItemType = {...baseTransaction, transactionID: 'first', keyForList: 'first', receipt: undefined};
+            const second: TransactionListItemType = {...baseTransaction, transactionID: 'second', keyForList: 'second', receipt: undefined};
+            const scanningTransaction: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'scanning',
+                keyForList: 'scanning',
+                amount: 0,
+                modifiedAmount: '',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: '',
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
+
+            // Grouped Search children arrive in backend order and never pass through getSortedTransactionData
+            const sorted = SearchUIUtils.sortTransactionsScanningFirst([first, scanningTransaction, second]);
+
+            expect(sorted.map((transaction) => transaction.transactionID)).toEqual(['scanning', 'first', 'second']);
+        });
+
         it('should sort expense data by category GL code using policy categories', () => {
             const glCodePolicyID = 'policyGLCodeSort';
             const glCodeReport = {

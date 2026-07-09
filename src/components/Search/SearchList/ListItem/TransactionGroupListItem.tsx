@@ -24,7 +24,7 @@ import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getSections} from '@libs/SearchUIUtils';
+import {getSections, sortTransactionsScanningFirst} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -169,7 +169,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
-        transactions = sectionData.map((transactionItem) => ({
+        transactions = sortTransactionsScanningFirst(sectionData).map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
