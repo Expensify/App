@@ -644,6 +644,9 @@ const ONYXKEYS = {
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
 
+    /** Maps each loaded search snapshot's hash to its original query string, used to fan optimistic IOU updates to every matching snapshot */
+    SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
+
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
@@ -1453,6 +1456,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
+    [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;

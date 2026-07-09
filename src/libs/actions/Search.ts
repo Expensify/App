@@ -684,6 +684,14 @@ function getOnyxLoadingData(
         },
     ];
 
+    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
+    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
+    // because this function's return type only allows snapshot keys; the matching eviction lives
+    // in the SNAPSHOT subscription in IOU/index.ts.
+    if (queryJSON?.inputQuery) {
+        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
+    }
+
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -915,7 +923,10 @@ function search({
         ? {
               ...queryJSONWithoutFlatFilters,
               sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              inputQuery: buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE}),
+              inputQuery: buildSearchQueryString({
+                  ...queryJSON,
+                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              }),
               rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
                   filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
               ),
