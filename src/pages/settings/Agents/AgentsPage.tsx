@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
@@ -7,6 +7,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 
@@ -37,7 +38,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React, {useEffect, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 
 function AgentsPage() {
     const {translate} = useLocalize();
@@ -65,12 +66,6 @@ function AgentsPage() {
         }
         openAgentsPage();
     }, [isCustomAgentEnabled]);
-
-    const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
-        const accountID = Number(accountIDString);
-        const agentPrompt = agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`];
-        return agentPrompt?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    });
 
     const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -123,6 +118,12 @@ function AgentsPage() {
         ];
     });
 
+    const agentsByAccountID = new Map(agents.map((agent) => [agent.keyForList, agent]));
+    const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
+        const agent = agentsByAccountID.get(accountIDString);
+        return !!agent && agent.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
+
     const clearSelectedAgents = () => {
         setSelectedAgents((prevSelectedAgents) => (prevSelectedAgents.length > 0 ? [] : prevSelectedAgents));
     };
@@ -172,11 +173,12 @@ function AgentsPage() {
 
     const newAgentButton = (
         <Button
-            success
-            icon={icons.Plus}
-            text={translate('agentsPage.newAgent')}
+            variant="success"
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
-        />
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
+        </Button>
     );
 
     const headerButtons = shouldShowBulkActionsButton ? (

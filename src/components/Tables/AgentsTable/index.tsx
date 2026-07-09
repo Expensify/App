@@ -35,9 +35,16 @@ type AgentRowData = TableData & {
 };
 
 type AgentsTableProps = {
+    /** The list of agents to render as rows */
     agents: AgentRowData[];
+
+    /** Whether rows can be selected (enables selection UI) */
     canSelectAgents: boolean;
+
+    /** Keys of the currently selected rows */
     selectedKeys: string[];
+
+    /** Called with the updated selected row keys when the selection changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
