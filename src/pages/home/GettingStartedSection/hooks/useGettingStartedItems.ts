@@ -8,6 +8,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
@@ -27,7 +28,7 @@ import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/util
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
@@ -97,15 +98,27 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
+    if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
         return emptyResult;
+    }
+
+    // When there is no active paid workspace to run onboarding against (e.g. the user just deleted their only
+    // workspace), keep the section visible with a single actionable step to create one instead of hiding it.
+    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
+        return {
+            shouldShowSection: true,
+            items: [
+                {
+                    key: 'createWorkspace',
+                    label: translate('homePage.gettingStartedSection.createWorkspace'),
+                    isComplete: false,
+                    onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)),
+                },
+            ],
+        };
     }
 
     if (!isPolicyAdmin(policy)) {
-        return emptyResult;
-    }
-
-    if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
         return emptyResult;
     }
 

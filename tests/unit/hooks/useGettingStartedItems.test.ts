@@ -926,7 +926,7 @@ describe('useGettingStartedItems', () => {
     });
 
     describe('edge cases', () => {
-        it('should be hidden when active policy ID is missing', async () => {
+        it('should fall back to a single create-workspace step when active policy ID is missing', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
@@ -935,11 +935,12 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            expect(result.current.shouldShowSection).toBe(false);
-            expect(result.current.items).toEqual([]);
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+            expect(result.current.items.at(0)?.isComplete).toBe(false);
         });
 
-        it('should be hidden when the policy is pending deletion', async () => {
+        it('should fall back to a single create-workspace step when the policy is pending deletion', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
@@ -948,11 +949,12 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            expect(result.current.shouldShowSection).toBe(false);
-            expect(result.current.items).toEqual([]);
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+            expect(result.current.items.at(0)?.isComplete).toBe(false);
         });
 
-        it('should be hidden when policy data does not exist', async () => {
+        it('should fall back to a single create-workspace step when policy data does not exist', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'nonexistent-policy');
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
@@ -962,11 +964,12 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            expect(result.current.shouldShowSection).toBe(false);
-            expect(result.current.items).toEqual([]);
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+            expect(result.current.items.at(0)?.isComplete).toBe(false);
         });
 
-        it('should be hidden when active policy is a personal policy', async () => {
+        it('should fall back to a single create-workspace step when active policy is a personal policy', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {type: CONST.POLICY.TYPE.PERSONAL},
@@ -975,8 +978,9 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            expect(result.current.shouldShowSection).toBe(false);
-            expect(result.current.items).toEqual([]);
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+            expect(result.current.items.at(0)?.isComplete).toBe(false);
         });
 
         it('should be visible when active policy is a collect (team) policy', async () => {
@@ -1026,7 +1030,7 @@ describe('useGettingStartedItems', () => {
 
     describe('TRACK_WORKSPACE intent', () => {
         describe('visibility rules', () => {
-            it('should show the section only when NVP_ACTIVE_POLICY_ID is present', async () => {
+            it('should fall back to a single create-workspace step until NVP_ACTIVE_POLICY_ID is present', async () => {
                 await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
                 const policy = buildPolicy();
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -1034,14 +1038,16 @@ describe('useGettingStartedItems', () => {
                 await waitForBatchedUpdates();
 
                 const {result: missingActivePolicy} = renderHook(() => useGettingStartedItems());
-                expect(missingActivePolicy.current.shouldShowSection).toBe(false);
-                expect(missingActivePolicy.current.items).toEqual([]);
+                expect(missingActivePolicy.current.shouldShowSection).toBe(true);
+                expect(missingActivePolicy.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+                expect(missingActivePolicy.current.items.at(0)?.isComplete).toBe(false);
 
                 await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
                 await waitForBatchedUpdates();
 
                 const {result: withActivePolicy} = renderHook(() => useGettingStartedItems());
                 expect(withActivePolicy.current.shouldShowSection).toBe(true);
+                expect(withActivePolicy.current.items.length).toBeGreaterThan(1);
             });
 
             it('should show the section only within 60 days of NVP_FIRST_DAY_FREE_TRIAL', async () => {
@@ -1075,18 +1081,20 @@ describe('useGettingStartedItems', () => {
                 expect(admin.current.shouldShowSection).toBe(true);
             });
 
-            it('should show the section only when the active policy is a paid group policy', async () => {
+            it('should fall back to a single create-workspace step until the active policy is a paid group policy', async () => {
                 await setupTrackWorkspaceScenario({policy: {type: CONST.POLICY.TYPE.PERSONAL}});
 
                 const {result: personal} = renderHook(() => useGettingStartedItems());
-                expect(personal.current.shouldShowSection).toBe(false);
-                expect(personal.current.items).toEqual([]);
+                expect(personal.current.shouldShowSection).toBe(true);
+                expect(personal.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+                expect(personal.current.items.at(0)?.isComplete).toBe(false);
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {type: CONST.POLICY.TYPE.TEAM});
                 await waitForBatchedUpdates();
 
                 const {result: team} = renderHook(() => useGettingStartedItems());
                 expect(team.current.shouldShowSection).toBe(true);
+                expect(team.current.items.length).toBeGreaterThan(1);
             });
 
             it('should return items when intent is TRACK_WORKSPACE, within 60 days, policy admin on a paid group policy', async () => {
@@ -1402,13 +1410,14 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items).toEqual([]);
             });
 
-            it('should be hidden on a personal (non paid group) policy', async () => {
+            it('should fall back to a single create-workspace step on a personal (non paid group) policy', async () => {
                 await setupTrackPersonalScenario({policy: {type: CONST.POLICY.TYPE.PERSONAL}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
-                expect(result.current.shouldShowSection).toBe(false);
-                expect(result.current.items).toEqual([]);
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
+                expect(result.current.items.at(0)?.isComplete).toBe(false);
             });
 
             it('should be hidden after the 60-day Getting Started window', async () => {
