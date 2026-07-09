@@ -171,23 +171,6 @@ function ConfirmContent({
 
     return (
         <>
-            {shouldShowDismissIcon && (
-                <View style={[styles.alignItemsEnd, styles.pt5, styles.pr5]}>
-                    <Tooltip text={translate('common.close')}>
-                        <PressableWithoutFeedback
-                            onPress={onCancel}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.close')}
-                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.DISMISS_BUTTON}
-                        >
-                            <Icon
-                                fill={theme.icon}
-                                src={icons.Close}
-                            />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
-                </View>
-            )}
             {!!image && (
                 <View style={imageStyles}>
                     <ImageSVG
@@ -202,6 +185,23 @@ function ConfirmContent({
             )}
 
             <View style={[styles.m5, contentStyles, bottomSafeAreaPaddingStyle]}>
+                {shouldShowDismissIcon && (
+                    <View style={styles.alignItemsEnd}>
+                        <Tooltip text={translate('common.close')}>
+                            <PressableWithoutFeedback
+                                onPress={onCancel}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.DISMISS_BUTTON}
+                            >
+                                <Icon
+                                    fill={theme.icon}
+                                    src={icons.Close}
+                                />
+                            </PressableWithoutFeedback>
+                        </Tooltip>
+                    </View>
+                )}
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
                     {!!iconSource && (
                         <View style={[shouldCenterIcon ? styles.justifyContentCenter : null, styles.flexRow, styles.mb3]}>
