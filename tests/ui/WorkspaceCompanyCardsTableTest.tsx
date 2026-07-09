@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import {render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -47,42 +46,54 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 jest.mock('@components/ActivityIndicator', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
 });
 
 jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="WorkspaceCompanyCardPageEmptyState" />;
 });
 
 jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="WorkspaceCompanyCardsFeedAddedEmptyPage" />;
 });
 
 jest.mock('@components/Table', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const ReactMock = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
 
-    const MockTable = ReactMock.forwardRef(({children}: {children?: React.ReactNode}) => <View testID="WorkspaceCompanyCardsTable">{children}</View>);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars
+    const MockTable = ReactMock.forwardRef(({children}: {children?: React.ReactNode}, _ref: unknown) => <View testID="WorkspaceCompanyCardsTable">{children}</View>);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.FilterBar = () => <View testID="WorkspaceCompanyCardsTableFilterBar" />;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Header = () => <View testID="WorkspaceCompanyCardsTableHeader" />;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Body = () => <View testID="WorkspaceCompanyCardsTableBody" />;
 
     return {
         __esModule: true,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         default: MockTable,
     };
 });
 
 jest.mock('@components/CardFeedIcon', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="CardFeedIcon" />;
 });
 
 jest.mock('@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableHeaderButtons', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="WorkspaceCompanyCardsTableHeaderButtons" />;
 });
