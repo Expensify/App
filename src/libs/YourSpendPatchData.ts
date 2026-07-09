@@ -15,4 +15,4 @@ type YourSpendPatchData = {
 const EMPTY_YOUR_SPEND_PATCH_DATA: YourSpendPatchData = {paidPolicies: {}, snapshotSearches: {}};
 
 export {EMPTY_YOUR_SPEND_PATCH_DATA};
-export type {SnapshotSearch, YourSpendPatchData};
+export type {YourSpendPatchData};
