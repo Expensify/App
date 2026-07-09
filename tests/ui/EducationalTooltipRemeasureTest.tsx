@@ -11,7 +11,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 
 import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
-import {View} from 'react-native';
+import {DeviceEventEmitter, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 jest.mock('@react-navigation/native', () => {
@@ -37,13 +37,14 @@ function layoutEvent(target: ReturnType<typeof createTarget>) {
     return {target, nativeEvent: {layout: {x: 0, y: 300, width: 70, height: 28}, target}};
 }
 
-function renderTooltip() {
+function renderTooltip(shouldHideOnScroll = false) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SafeAreaProvider initialMetrics={INITIAL_METRICS}>
                 <PortalProvider>
                     <EducationalTooltip
                         shouldRender
+                        shouldHideOnScroll={shouldHideOnScroll}
                         renderTooltipContent={() => <View />}
                     >
                         <View testID="anchor" />
@@ -52,6 +53,14 @@ function renderTooltip() {
             </SafeAreaProvider>
         </ComposeProviders>,
     );
+}
+
+/** Drive the tooltip through its first display so it is measured and shown. */
+function displayTooltip(anchor: ReturnType<typeof screen.getByTestId>, target: ReturnType<typeof createTarget>) {
+    fireEvent(anchor, 'layout', layoutEvent(target));
+    act(() => {
+        jest.advanceTimersByTime(CONST.TOOLTIP_ANIMATION_DURATION + 1);
+    });
 }
 
 describe('EducationalTooltip', () => {
@@ -94,5 +103,33 @@ describe('EducationalTooltip', () => {
 
         // Nothing has displayed yet, so the delayed onLayout path still owns the first measurement.
         expect(target.measureInWindow).not.toHaveBeenCalled();
+    });
+
+    describe('when shouldHideOnScroll is set', () => {
+        it('should not measure while the page is scrolling, since the tooltip is hidden', () => {
+            renderTooltip(true);
+            const target = createTarget(270);
+            displayTooltip(screen.getByTestId('anchor'), target);
+            target.measureInWindow.mockClear();
+
+            act(() => {
+                DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
+            });
+
+            expect(target.measureInWindow).not.toHaveBeenCalled();
+        });
+
+        it('should re-measure once scrolling stops, so the tooltip follows the anchor or hides', () => {
+            renderTooltip(true);
+            const target = createTarget(270);
+            displayTooltip(screen.getByTestId('anchor'), target);
+            target.measureInWindow.mockClear();
+
+            act(() => {
+                DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
+            });
+
+            expect(target.measureInWindow).toHaveBeenCalled();
+        });
     });
 });

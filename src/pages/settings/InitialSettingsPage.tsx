@@ -23,6 +23,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -585,6 +586,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const onScroll: NonNullable<ScrollViewProps['onScroll']> = (e) => {
         // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
@@ -593,6 +595,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return;
         }
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        triggerScrollEvent();
     };
 
     useLayoutEffect(() => {
