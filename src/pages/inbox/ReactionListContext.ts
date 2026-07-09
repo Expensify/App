@@ -1,6 +1,6 @@
-import type {RefObject, SyntheticEvent} from 'react';
+import type {SyntheticEvent} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {FlatList, GestureResponderEvent, Text, View} from 'react-native';
+import type {GestureResponderEvent, Text, View} from 'react-native';
 
 import {createContext} from 'react';
 
@@ -14,22 +14,11 @@ type ReactionListContextType = {
     isActiveReportAction: (reportActionID: number | string) => boolean;
 };
 
-type FlatListRefType = RefObject<FlatList<unknown> | null> | null;
-
-type ScrollPosition = {offset?: number};
-
-type ActionListContextType = {
-    flatListRef: FlatListRefType;
-    scrollPositionRef: RefObject<ScrollPosition>;
-    scrollOffsetRef: RefObject<number>;
-};
-
-const ActionListContext = createContext<ActionListContextType>({flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}});
 const ReactionListContext = createContext<ReactionListContextType>({
     showReactionList: () => {},
     hideReactionList: () => {},
     isActiveReportAction: () => false,
 });
 
-export {ActionListContext, ReactionListContext};
-export type {ReactionListContextType, ActionListContextType, FlatListRefType, ReactionListAnchor, ReactionListEvent, ScrollPosition};
+export {ReactionListContext};
+export type {ReactionListContextType, ReactionListAnchor, ReactionListEvent};
