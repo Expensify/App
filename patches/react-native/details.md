@@ -51,13 +51,6 @@
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.83.1+008+iOSCoreAnimationBorderRendering.patch](react-native+0.83.1+008+iOSCoreAnimationBorderRendering.patch)
-
-- Reason: Fixes border rendering issues with Core Animation on iOS
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: 🛑
-
 ### [react-native+0.83.1+009+copyStateOnClone.patch](react-native+0.83.1+009+copyStateOnClone.patch)
 
 - Reason: Ensures state is properly copied when cloning components

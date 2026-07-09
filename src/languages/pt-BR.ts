@@ -1734,6 +1734,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        deletePendingExpense: 'Excluir despesa pendente',
+        deleteConfirmationPendingBYOC: 'Tem certeza de que quer excluir esta despesa? Ela está pendente e podemos importá-la novamente se for lançada.',
+        deleteConfirmationSomePendingBYOC: 'Tem certeza de que quer excluir estas despesas? Algumas estão pendentes e podemos importá-las novamente se forem lançadas.',
         categoryDisabledAlert: {
             title: 'Categoria desativada',
             prompt: 'Ative as categorias no workspace para editar os detalhes da despesa ou excluir a categoria desta despesa.',
@@ -2861,6 +2864,7 @@ ${amount} para ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agentes',
         subtitle: `<muted-text>Agentes cuidam dos seus fluxos de trabalho para você, para que você ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
+        findAgent: 'Encontrar agente',
         newAgent: 'Novo agente',
         emptyAgents: {
             title: 'Nenhum agente criado',
@@ -5061,6 +5065,7 @@ ${amount} para ${merchant} - ${date}`,
                 oauth: 'Entrar pelo Salesforce',
                 oauthDescription: 'Para concluir a configuração, você precisa entrar pelo Salesforce e pela Certinia.\n\nUse o botão abaixo para continuar.',
                 connectButton: 'Conectar ao Certinia',
+                connectSandboxButton: 'Conectar ao Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plano de contas',
@@ -6312,6 +6317,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 conciergeNotificationDescription: 'Quando o processo for concluído, o Concierge vai enviar uma mensagem para você.',
                 copyCompleted: 'As configurações do seu workspace foram copiadas.',
             },
+            upgrade: {
+                title: 'Alguns recursos exigem um plano Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} usa ${features}, que exigem um plano Control.
+
+Para levar esses recursos para seus outros espaços de trabalho, faça o upgrade deles para continuar.
+
+O plano Control começa em US$ 9 por membro ativo por mês.`,
+            },
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
@@ -7197,6 +7210,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            unlockFeatures: 'Desbloqueie estes recursos!',
         },
         downgrade: {
             commonFeatures: {
@@ -8812,6 +8826,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             pending: 'Pendente',
             cleared: 'Compensado',
             failed: 'Falhou',
+            never: 'Nunca',
         },
         failedError: ({link}: {link: string}) => `Tentaremos processar este acerto novamente quando você <a href="${link}">desbloquear sua conta</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
@@ -8948,13 +8963,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         stopTimer: (duration: string) => `Parar cronômetro (${duration})`,
         scheduleOOO: 'Agendar ausência',
         scheduleOOOTitle: 'Agendar ausência do escritório',
-        date: 'Data',
+        date: 'Data de início',
+        endDate: 'Data de término',
         time: 'Horário (formato de 24 horas)',
         durationAmount: 'Duração',
         durationUnit: 'Unidade',
         reason: 'Motivo',
         workingPercentage: 'Porcentagem de trabalho',
-        dateRequired: 'A data é obrigatória.',
+        dateRequired: 'A data de início é obrigatória.',
+        endDateBeforeStart: 'A data de término não pode ser anterior à data de início.',
         invalidTimeFormat: 'Insira um horário válido no formato 24 horas (por exemplo, 14:30).',
         enterANumber: 'Insira um número.',
         hour: 'horas',

@@ -1749,6 +1749,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
         deleted: 'Supprimé',
+        deletePendingExpense: 'Supprimer la dépense en attente',
+        deleteConfirmationPendingBYOC: 'Voulez-vous vraiment supprimer cette dépense ? Elle est en attente et nous pourrions l’importer à nouveau si elle est comptabilisée.',
+        deleteConfirmationSomePendingBYOC: 'Voulez-vous vraiment supprimer ces dépenses ? Certaines sont en attente et nous pourrions les importer à nouveau si elles sont comptabilisées.',
         categoryDisabledAlert: {
             title: 'Catégorie désactivée',
             prompt: 'Activez les catégories dans l’espace de travail pour modifier les détails de la dépense ou supprimer la catégorie de cette dépense.',
@@ -2885,6 +2888,7 @@ ${amount} pour ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agents',
         subtitle: `<muted-text>Les agents gèrent vos workflows pour vous, afin que vous gagniez des heures dans votre journée. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
+        findAgent: 'Trouver un agent',
         newAgent: 'Nouvel agent',
         emptyAgents: {
             title: 'Aucun agent créé',
@@ -5107,6 +5111,7 @@ ${amount} pour ${merchant} - ${date}`,
                 oauth: 'Se connecter via Salesforce',
                 oauthDescription: 'Pour terminer la configuration, vous devez vous connecter via Salesforce et Certinia.\n\nUtilisez le bouton ci-dessous pour continuer.',
                 connectButton: 'Se connecter à Certinia',
+                connectSandboxButton: 'Se connecter à Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plan comptable',
@@ -6374,6 +6379,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
             },
+            upgrade: {
+                title: 'Certaines fonctionnalités nécessitent un forfait Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} utilise ${features}, qui nécessitent un forfait Control.
+
+Pour apporter ces fonctionnalités à vos autres espaces de travail, mettez-les à niveau pour continuer.
+
+Le forfait Control commence à 9 $ par Membre actif et par mois.`,
+            },
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -7269,6 +7282,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            unlockFeatures: 'Débloquez ces fonctionnalités !',
         },
         downgrade: {
             commonFeatures: {
@@ -8899,6 +8913,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pending: 'En attente',
             cleared: 'Compensé',
             failed: 'Échec',
+            never: 'Jamais',
         },
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
@@ -9035,13 +9050,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         stopTimer: (duration: string) => `Arrêter le minuteur (${duration})`,
         scheduleOOO: 'Planifier une absence',
         scheduleOOOTitle: 'Planifier une absence du bureau',
-        date: 'Date',
+        date: 'Date de début',
+        endDate: 'Date de fin',
         time: 'Heure (format 24 heures)',
         durationAmount: 'Durée',
         durationUnit: 'Unité',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',
-        dateRequired: 'La date est obligatoire.',
+        dateRequired: 'La date de début est obligatoire.',
+        endDateBeforeStart: 'La date de fin ne peut pas être antérieure à la date de début.',
         invalidTimeFormat: 'Veuillez entrer une heure valide au format 24 heures (par ex. 14:30).',
         enterANumber: 'Veuillez saisir un nombre.',
         hour: 'heures',
