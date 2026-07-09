@@ -1,19 +1,18 @@
 ---
 title: Fix a Billing Issue
 description: Learn how to resolve billing issues by updating your payment method or completing the action shown in Account > Subscription.
-keywords: [fix billing issue, payment failed, retry payment, update payment card, authenticate payment, billing issue, payment could not be processed]
+keywords: [fix billing issue, payment failed, retry payment, good standing, update payment card, authenticate payment, billing issue, payment could not be processed]
 internalScope: Audience is Workspace owners. Covers resolving billing issues from Account > Subscription. Does not cover pricing, subscription management, or billing ownership.
+retrievalIntent: How to fix a failed payment.
 contentType: task
 platform: new
 ---
 
 # Fix a billing issue
 
-Billing issues occur when Expensify can't successfully process payment for your Workspace subscription.
+Billing issues occur when Expensify can't successfully process payment for your Workspace subscription. When this happens, the Workspace owner sees a notification and **Account > Subscription** explains why payment couldn't be processed and what action is required.
 
-When this happens, only the Workspace owner is notified. A message in **Account > Subscription** explains why payment couldn't be processed and what action is required.
-
-If a billing issue isn't resolved, the Workspace loses access to paid features until payment is successfully processed.
+If the billing issue isn't resolved within 7 days, the Workspace loses access to paid features until the outstanding payment is successfully processed.
 
 ---
 
@@ -56,7 +55,7 @@ After payment is successfully processed:
 - A receipt for the successful payment appears under **View payment history**
 - Access to paid features is restored.
 
-To learn how to find your payment receipt, see Find Your Expensify Billing Receipt.
+To learn how to find your payment receipt, see [Find Your Expensify Billing Receipt](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt).
 
 ---
 
@@ -64,11 +63,13 @@ To learn how to find your payment receipt, see Find Your Expensify Billing Recei
 
 ## Why can't I fix the billing issue?
 
-Only the **Workspace owner** can manage subscription payments. If you don't see the **Subscription** under **Account**, make sure you're signed in as the Workspace owner.
+Only the Workspace owner can manage subscription payments. To check who the Workspace owner is, see [What is a Workspace Owner](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
+
+To become the Workspace owner, see [Transfer Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
 
 ## What happens if a billing issue isn't fixed?
 
-The billing issue remains visible until it's resolved. If payment isn't successfully processed, the Workspace loses access to paid features. Access is restored after payment succeeds.
+The billing issue remains visible until it's resolved. If the billing issue isn't resolved within 7 days, the Workspace loses access to paid features. Once payment is successfully processed, access to paid features is restored.
 
 ## Why did my payment fail?
 
