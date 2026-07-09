@@ -362,7 +362,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+            // Only suppress the context menu while the reply is still being generated. Once streaming completes the
+            // three-dots menu must appear, even if the synthetic draft is still rendered during draft-to-persisted reconciliation.
+            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
             return (
                 <ReportActionIndexContext.Provider value={index}>
@@ -400,6 +402,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         },
         [
             draftReportActionID,
+            isDraftPendingCompletion,
             firstVisibleReportActionID,
             hasPreviousMessages,
             isOffline,
