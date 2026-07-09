@@ -4571,7 +4571,7 @@ function shouldShowReportActionNotification(
     isRemote = false,
 ): boolean {
     const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
-    const topmostReportID = Navigation.getTopmostReportId();
+    const topmostReportID = Navigation.getFocusedReportId();
 
     // Due to payload size constraints, some push notifications may have their report action stripped
     // so we must double check that we were provided an action before using it in these checks.

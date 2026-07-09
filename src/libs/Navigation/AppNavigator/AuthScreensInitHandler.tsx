@@ -89,7 +89,7 @@ function AuthScreensInitHandler() {
 
     useReconcileHighContrastIntent();
 
-    const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
+    const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
