@@ -103,7 +103,7 @@ function ReportSubmitToContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
-    const prepopulatedEmail = useMemo(() => getSubmitToEmail(policy, report), [policy, report]);
+    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -160,7 +160,7 @@ function ReportSubmitToContent({
         }
 
         const accountID = getKnownAccountIDByLogin(email);
-        const details = accountID ? getPersonalDetailsByID(accountID, personalDetails) : undefined;
+        const details = getPersonalDetailsByID(accountID, personalDetails);
 
         return {
             accountID,
