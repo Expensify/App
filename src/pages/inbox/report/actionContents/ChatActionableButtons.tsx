@@ -80,6 +80,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const firstPolicyID = filteredPoliciesInfo?.firstPolicyID;
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
@@ -175,6 +176,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                             personalDetail.accountID,
                             personalDetail.email,
                             delegateAccountID,
+                            conciergeReportID,
                         );
                     },
                 }));
