@@ -74,9 +74,6 @@ type ParticipantSearchResultsProps = {
     /** Whether the IOU is workspaces only */
     isWorkspacesOnly: boolean;
 
-    /** Whether the destination list is restricted to Submit (submit2026) workspaces only */
-    isSubmitWorkspacesOnly?: boolean;
-
     /** Whether this is a per diem expense request */
     isPerDiemRequest: boolean;
 
@@ -125,7 +122,6 @@ function ParticipantSearchResults({
     action,
     participants,
     isWorkspacesOnly,
-    isSubmitWorkspacesOnly = false,
     isPerDiemRequest,
     isTimeRequest,
     isNative,
@@ -159,7 +155,9 @@ function ParticipantSearchResults({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -182,7 +180,9 @@ function ParticipantSearchResults({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
-    const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
+    const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({
+        referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE,
+    });
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
@@ -297,7 +297,10 @@ function ParticipantSearchResults({
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
         const formatResults = formatSectionsFromSearchTerm(
             searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
+            participants.map((participant) => ({
+                ...participant,
+                reportID: participant.reportID,
+            })) as OptionData[],
             [],
             [],
             privateIsArchivedMap,
@@ -312,14 +315,10 @@ function ParticipantSearchResults({
         sections.push({...formatResults.section, sectionIndex: 0});
 
         const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
-        // "Submit to my employer" must only ever target Submit (submit2026) workspaces — never team/corporate ones.
-        const filteredWorkspaceChats = isSubmitWorkspacesOnly
-            ? workspaceChats.filter((option) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`]?.type === CONST.POLICY.TYPE.SUBMIT)
-            : workspaceChats;
-        if (filteredWorkspaceChats.length > 0) {
+        if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
-                data: filteredWorkspaceChats,
+                data: workspaceChats,
                 sectionIndex: 1,
             });
         }

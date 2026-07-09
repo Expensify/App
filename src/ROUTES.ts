@@ -1367,7 +1367,15 @@ const ROUTES = {
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
-        getRoute: ({page, subPage, action}: {page?: EnablePaymentsPageType; subPage?: EnablePaymentsSubPageType; action?: 'edit'} = {}) => {
+        getRoute: ({
+            page,
+            subPage,
+            action,
+        }: {
+            page?: EnablePaymentsPageType;
+            subPage?: EnablePaymentsSubPageType;
+            action?: 'edit';
+        } = {}) => {
             const base = 'settings/wallet/enable-payments';
             // The interpolated values are cast to `string` to keep the resulting template literal type simple and avoid TS2590 union complexity errors.
             const pagePart = page ? `/${page as string}` : '';
@@ -2007,18 +2015,9 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (
-            iouType: IOUType,
-            transactionID: string | undefined,
-            reportID: string | undefined,
-            backTo = '',
-            action: IOUAction = 'create',
-            isWorkspacesOnly = false,
-            // "Submit to my employer" with multiple Submit workspaces restricts the picker to Submit (submit2026) workspaces.
-            isSubmitWorkspacesOnly = false,
-        ) => {
-            const queryParams = [isWorkspacesOnly ? 'isWorkspacesOnly=true' : '', isSubmitWorkspacesOnly ? 'isSubmitWorkspacesOnly=true' : ''].filter(Boolean).join('&');
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams ? `?${queryParams}` : ''}`, backTo);
+        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create', isWorkspacesOnly = false) => {
+            const queryParams = isWorkspacesOnly ? '?isWorkspacesOnly=true' : '';
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_SCAN: {
@@ -4397,7 +4396,11 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
+type ExtractRouteName<TRoute> = TRoute extends {
+    getRoute: (...args: any[]) => infer TRouteName;
+}
+    ? TRouteName
+    : TRoute;
 
 /**
  * Represents all routes in the app as a union of literal strings.
