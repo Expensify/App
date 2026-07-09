@@ -27,6 +27,14 @@ function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseConta
 
     const isMountedRef = useRef(false);
 
+    // illustrations is a placeholder on first load and updates once the real asset loads, but runContactPermissionFlow
+    // (called inside a useEffect that doesn't depend on it) can still be mid-flight when that happens, so we read it via ref to get the latest value.
+    const illustrationsRef = useRef(illustrations);
+
+    useEffect(() => {
+        illustrationsRef.current = illustrations;
+    }, [illustrations]);
+
     const runContactPermissionFlow = useEffectEvent(async () => {
         if (hasDeniedContactImportPrompt) {
             onFocusTextInput();
@@ -54,7 +62,7 @@ function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseConta
                 title: translate('contact.importContactsTitle'),
                 titleContainerStyles: [styles.mt2, styles.mb0],
                 titleStyles: [styles.textHeadline],
-                iconSource: illustrations.ToddWithPhones,
+                iconSource: illustrationsRef.current.ToddWithPhones,
                 iconFill: false,
                 iconWidth: 176,
                 iconHeight: 178,
