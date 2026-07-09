@@ -678,14 +678,6 @@ function isSuggestedSearchKey(searchKey: SearchKey | string | undefined): search
     return typeof searchKey === 'string' && Object.values(CONST.SEARCH.SEARCH_KEYS).includes(searchKey as SuggestedSearchKey);
 }
 
-function getDefaultSearchKeyForSearchType(type: SearchDataTypes | string | undefined): SuggestedSearchKey {
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return CONST.SEARCH.SEARCH_KEYS.REPORTS;
-    }
-
-    return CONST.SEARCH.SEARCH_KEYS.EXPENSES;
-}
-
 /**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
  */

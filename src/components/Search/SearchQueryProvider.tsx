@@ -8,6 +8,7 @@ import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUti
 import {getDefaultSearchKeyForSearchType, getSuggestedSearches, isSavedSearchKey, isSuggestedSearchKey} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/routers';
@@ -45,6 +46,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
     const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
     const searchKeyParam = useRootNavigationState((state) => selectSearchKeyParam(state ?? navigation.getState()));
+
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const baseSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
 
@@ -55,16 +57,15 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const currentSearchHash = baseSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = baseSearchQueryJSON?.similarSearchHash ?? -1;
-    const currentSearchKey = searchKeyParam ?? getDefaultSearchKeyForSearchType(baseSearchQueryJSON?.type);
-    const validatedSearchKey = isSuggestedSearchKey(currentSearchKey) || isSavedSearchKey(currentSearchKey) ? currentSearchKey : getDefaultSearchKeyForSearchType(baseSearchQueryJSON?.type);
-    const currentSearchQueryJSON = baseSearchQueryJSON ? {...baseSearchQueryJSON, searchKey: validatedSearchKey} : undefined;
+    const currentSearchKey = searchKeyParam ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+    const currentSearchQueryJSON = baseSearchQueryJSON ? {...baseSearchQueryJSON, searchKey: currentSearchKey} : undefined;
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
+        currentSearchKey,
         currentSimilarSearchHash,
-        currentSearchKey: validatedSearchKey,
         currentSearchQueryJSON,
         suggestedSearches,
         shouldResetSearchQuery,
