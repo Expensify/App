@@ -1,7 +1,6 @@
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
-
-type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
+import {isIdentifier, isMemberExpression} from '@babel/types';
 
 function isComponentOrPureComponent(name?: string) {
     return name === 'Component' || name === 'PureComponent';
@@ -35,8 +34,15 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
         },
 
         ClassDeclaration(path) {
-            const {superClass} = path.node as unknown as SuperClassType;
-            if (superClass && ((superClass.object?.name === 'React' && isComponentOrPureComponent(superClass.property.name)) || isComponentOrPureComponent(superClass.name))) {
+            const {superClass} = path.node;
+            const extendsReactDotComponent =
+                isMemberExpression(superClass) &&
+                isIdentifier(superClass.object) &&
+                superClass.object.name === 'React' &&
+                isIdentifier(superClass.property) &&
+                isComponentOrPureComponent(superClass.property.name);
+            const extendsBareComponent = isIdentifier(superClass) && isComponentOrPureComponent(superClass.name);
+            if (extendsReactDotComponent || extendsBareComponent) {
                 isReactComponent = true;
                 path.stop();
             }
